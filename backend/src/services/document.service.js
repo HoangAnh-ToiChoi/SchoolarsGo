@@ -1,17 +1,21 @@
-const { supabase, supabaseAdmin } = require('./supabase');
+/**
+ * Document Service — lưu metadata documents vào DB (file đã được upload bằng multer disk storage).
+ * Không dùng Supabase Storage, chỉ dùng local /uploads folder.
+ */
+
+const { query, queryOne } = require('../utils/db');
 const path = require('path');
+const fs = require('fs');
+
 const VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 const getAll = async (userId) => {
-  const { data, error } = await supabase
-    .from('documents')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
+  const data = await query(
+    'SELECT * FROM documents WHERE user_id = $1 ORDER BY created_at DESC',
+    [userId]
+  );
+  return data.rows;
 };
 
 const upload = async (userId, docType, file) => {
@@ -36,75 +40,47 @@ const upload = async (userId, docType, file) => {
     throw err;
   }
 
-  // Upload lên Supabase Storage
-  const ext = path.extname(file.originalname);
-  const storagePath = `${userId}/${docType}/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-
-  const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-    .from('documents')
-    .upload(storagePath, file.buffer, {
-      contentType: file.mimetype,
-      upsert: false,
-    });
-
-  if (uploadError) throw uploadError;
-
-  // Lấy public URL
-  const { data: urlData } = supabaseAdmin.storage.from('documents').getPublicUrl(storagePath);
+  // File đã được lưu bởi multer middleware vào uploads/{userId}/{docType}/
+  // file.path sẽ có dạng: uploads/{userId}/{docType}/filename.ext
+  // Tạo URL tương đối
+  const fileUrl = `/${file.path.replace(/\\/g, '/').replace('uploads/', 'uploads/')}`;
 
   // Lưu metadata vào DB
-  const { data: doc, error: dbError } = await supabase
-    .from('documents')
-    .insert({
-      user_id: userId,
-      type: docType,
-      file_name: file.originalname,
-      file_url: urlData.publicUrl,
-      file_size: file.size,
-      mime_type: file.mimetype,
-    })
-    .select()
-    .single();
-
-  if (dbError) {
-    // Rollback: xóa file đã upload
-    await supabaseAdmin.storage.from('documents').remove([storagePath]);
-    throw dbError;
-  }
+  const doc = await queryOne(
+    `INSERT INTO documents (user_id, type, file_name, file_url, file_size, mime_type)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [userId, docType, file.originalname, fileUrl, file.size, file.mimetype]
+  );
 
   return doc;
 };
 
 const remove = async (userId, documentId) => {
-  // Lấy thông tin document
-  const { data: doc, error: fetchError } = await supabase
-    .from('documents')
-    .select('*')
-    .eq('id', documentId)
-    .eq('user_id', userId)
-    .single();
+  const doc = await queryOne(
+    'SELECT * FROM documents WHERE id = $1 AND user_id = $2',
+    [documentId, userId]
+  );
 
-  if (fetchError || !doc) {
+  if (!doc) {
     const err = new Error('Không tìm thấy document hoặc bạn không có quyền xóa');
     err.statusCode = 404;
     err.isOperational = true;
     throw err;
   }
 
-  // Xóa file khỏi storage
-  // Extract storage path từ URL (cắt bỏ phần domain)
-  const urlObj = new URL(doc.file_url);
-  const storagePath = urlObj.pathname.replace('/storage/v1/object/public/documents/', '');
-
-  await supabaseAdmin.storage.from('documents').remove([storagePath]);
+  // Xóa file vật lý
+  try {
+    const filePath = path.join(__dirname, '../../', doc.file_url.replace(/^\//, ''));
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (fsErr) {
+    console.warn('Warning: could not delete physical file:', fsErr.message);
+  }
 
   // Xóa record trong DB
-  const { error: deleteError } = await supabase
-    .from('documents')
-    .delete()
-    .eq('id', documentId);
-
-  if (deleteError) throw deleteError;
+  await query('DELETE FROM documents WHERE id = $1', [documentId]);
 };
 
 module.exports = { getAll, upload, remove };

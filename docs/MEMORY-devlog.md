@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DEVELOPER LOG
 # ============================================================
-# Last Updated: 26/3/2026
+# Last Updated: 31/3/2026
 
 ---
 
@@ -10,6 +10,7 @@
 | Date | Version | Type | Description |
 |------|---------|------|-------------|
 | 26/3/2026 | v0.1 | init | Initial project scaffold, 6 DB tables, 18 API endpoints defined |
+| 31/3/2026 | v0.2 | feat | Viết script scrape scholarships từ scholars4dev.com, seed vào Supabase. Thêm axios + cheerio vào package.json. Thêm npm scripts: seed, seed:mock, scrape |
 
 ---
 
@@ -20,6 +21,26 @@
 ---
 
 ## Technical Decisions
+
+### 31/3/2026 — Scraping: axios + cheerio thay vì Puppeteer/Playwright
+
+**Vấn đề:** Cần cào dữ liệu scholarships từ scholars4dev.com để seed 500+ records vào DB trước 6/5/2026.
+
+**Lựa chọn:**
+- Puppeteer / Playwright → headless browser, parse chính xác, nhưng nặng, chậm, dễ bị detect
+- axios + cheerio → HTTP request + HTML parsing, nhẹ, nhanh, đủ cho trang có cấu trúc đơn giản
+
+**Quyết định:** axios + cheerio
+
+**Lý do:**
+- Trang scholars4dev có HTML structure đơn giản, có thể parse bằng CSS selector
+- Nhẹ hơn nhiều so với headless browser
+- Dễ maintain và debug
+- Thêm rate limiting (1.2s sleep) để tránh bị chặn IP
+
+**Fallback:** Nếu website thay đổi cấu trúc HTML → cân nhắc chuyển sang Puppeteer.
+
+---
 
 ### 26/3/2026 — Database: Supabase thay vì raw PostgreSQL
 

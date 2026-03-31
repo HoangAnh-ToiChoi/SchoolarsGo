@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — FEATURES & BUSINESS LOGIC
 # ============================================================
-# Last Updated: 26/3/2026
+# Last Updated: 31/3/2026
 
 ---
 
@@ -202,6 +202,71 @@ Return top {top_n} recommendations with match score (0-1) and reasons.
 - API key không configured → fallback về rule-based
 - AI response timeout → fallback về rule-based
 - No scholarships match → return empty array
+
+---
+
+## 5. Scholarship Data Seed (Scholar Scraping)
+
+**Trạng thái:** ✅ Hoàn thành (31/3/2026)
+
+### Mô tả
+Script tự động cào học bổng từ trang **scholars4dev.com** và seed vào Supabase/PostgreSQL, phục vụ target 500+ học bổng trước tuần 6 (6/5/2026).
+
+### File
+`backend/scripts/seed-scholarships.js`
+
+### Các mode chạy
+
+```bash
+npm run seed        # Scrape từ web + seed vào DB (mặc định)
+npm run seed:mock   # Chỉ chạy mock data (50 học bổng hardcoded)
+npm run scrape      # Chỉ scrape, không insert DB
+```
+
+### Data Flow
+
+```
+scholars4dev.com (3 category pages)
+  → scrapeScholarshipListPage(url)
+    → Tìm scholarship links (regex: /\/\d+\//)
+    → Với mỗi link: axios.get(detail page)
+      → cheerio parse: provider, degree, deadline, country, application_url, image_url
+      → parseDeadline() → PostgreSQL timestamp
+      → mapDegree() → enum: Bachelor | Master | PhD | Any
+      → is_active = deadline > now
+      → sleep(1200ms) giữa mỗi detail page (rate limit)
+    → sleep(2000ms) giữa mỗi category page
+  → Deduplicate by title
+  → insertViaSupabase() / insertViaPg() → scholarships table
+```
+
+### Quy chuẩn dữ liệu
+
+| Trường | Quy tắc |
+|--------|---------|
+| `degree` | Map text → enum: Bachelor, Master, PhD, Any. Default: Master |
+| `deadline` | Parse "30 April 2026", "April 2026" → timestamp. "varies"/"open" → fallback ngày cuối tháng + 4 tháng |
+| `is_active` | `deadline > now()` → true, ngược lại false |
+| `source` | `'scholars4dev'` (scraped) hoặc `'own'` (mock data) |
+| `currency` | Mặc định `USD` |
+| Trường nullable | city, university, field_of_study, min_ielts, amount, coverage... |
+
+### Dependencies
+```json
+"axios": "^1.6.7",
+"cheerio": "^1.0.0-rc.12"
+```
+
+### Edge Cases
+
+| Trường hợp | Xử lý |
+|-------------|--------|
+| Deadline "varies"/"open" | Fallback: ngày cuối tháng hiện tại + 4 tháng |
+| Deadline đã qua | Tự động +1 năm |
+| Degree text không parse được | Default: `Master` |
+| Trùng scholarship (cùng title) | Deduplicate bằng Set trước khi insert |
+| Insert conflict (cùng scholarship đã tồn tại) | `ON CONFLICT DO NOTHING` |
+| Rate limit bị chặn | 1.2s sleep giữa mỗi request |
 
 ---
 

@@ -1,9 +1,11 @@
 /**
- * ScholarsGo — Scholarship Seed Script
- * Script: npm run seed
+ * ScholarsGo — Scholarship Seed + Scraping Script
+ * Scrape real scholarships từ scholars4dev.com và seed vào Supabase/PostgreSQL.
  *
- * Seed 50 mock scholarships vào bảng scholarships trong Supabase.
- * Chạy: node scripts/seed-scholarships.js
+ * Chạy:
+ *   node scripts/seed-scholarships.js                   → scrape từ web + seed
+ *   node scripts/seed-scholarships.js --mock            → chỉ chạy mock data
+ *   node scripts/seed-scholarships.js --scrape-only      → chỉ scrape, không insert
  *
  * Lưu ý:
  *  - Deadline phải > now, is_active = true
@@ -16,39 +18,482 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const { Client } = require('pg');
 
-// ── Supabase Admin Client (dùng khi Supabase gateway chạy) ─────────
+// ── CLI Arguments ───────────────────────────────────────────────
+const args = process.argv.slice(2);
+const MODE_MOCK = args.includes('--mock');
+const MODE_SCRAPE_ONLY = args.includes('--scrape-only');
+const SCRAPE_COUNT = parseInt(args.find((a) => a.startsWith('--count='))?.split('=')[1] || '50');
+
+// ── Supabase Admin Client ────────────────────────────────────────
 let supabaseAdmin = null;
 try {
   const { createClient } = require('@supabase/supabase-js');
   supabaseAdmin = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: { autoRefreshToken: false, persistSession: false },
-    }
+    { auth: { autoRefreshToken: false, persistSession: false } }
   );
 } catch (e) {
-  // Supabase SDK không khả dụng — sẽ dùng pg Client
+  // Supabase SDK not available — will use pg Client
 }
 
-// ── Helper: random int trong khoảng [min, max] ────────────────────
-const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+// ── Axios + Cheerio (web scraping) ─────────────────────────────
+let axios, cheerio;
+try {
+  axios = require('axios');
+  cheerio = require('cheerio');
+} catch (e) {
+  console.warn('⚠️  axios/cheerio not installed. Run: npm install axios cheerio');
+}
 
-// ── Helper: random float với 1-2 decimal places ───────────────────
+// ── Helpers: Random ──────────────────────────────────────────────
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randFloat = (min, max, decimals = 2) =>
   parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
-
-// ── Helper: random pick từ array ──────────────────────────────────
 const randPick = (arr) => arr[randInt(0, arr.length - 1)];
 
-// ── Helper: random date trong khoảng từ start đến end (Date objects) ─
 const randDate = (start, end) => {
   const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
   return date.toISOString();
 };
 
-// ── Seed Data — 50 Scholarships ───────────────────────────────────
-const scholarships = [
+// ── Helper: sleep (rate limiting) ────────────────────────────────
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 1: SCRAPING FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Parse deadline string thành PostgreSQL timestamp.
+ * Xử lý các format: "30 April 2026", "April 2026", "varies", "Open year-round"
+ * Trả về null nếu không parse được và không thể fallback an toàn.
+ */
+function parseDeadline(deadlineStr) {
+  if (!deadlineStr) return null;
+
+  const str = deadlineStr.trim().toLowerCase();
+
+  // Bỏ qua các giá trị không có ngày cụ thể
+  if (
+    ['varies', 'open', 'year-round', 'ongoing', 'check website', 'contact us', 'tba', 'tbd'].some(
+      (v) => str.includes(v)
+    )
+  ) {
+    // Fallback: lấy ngày cuối cùng của tháng hiện tại + 3 tháng
+    const d = new Date();
+    d.setMonth(d.getMonth() + 4);
+    d.setDate(0); // last day of previous month = last day of (month+3)
+    return d.toISOString();
+  }
+
+  // Map tháng tiếng Anh
+  const monthMap = {
+    january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+    july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+  };
+
+  // Format: "30 April 2026" hoặc "April 30, 2026" hoặc "30 Apr 2026"
+  const patterns = [
+    // "30 April 2026"
+    /^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/i,
+    // "April 30, 2026" hoặc "April 2026" (không có ngày → lấy ngày 28)
+    /^([a-z]+)\s+(\d{1,2}),?\s+(\d{4})$/i,
+    /^([a-z]+)\s+(\d{4})$/i,
+    // "2026-04-30" (ISO format)
+    /^(\d{4})-(\d{2})-(\d{2})$/,
+    // "30/04/2026" hoặc "04/30/2026"
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = str.match(pattern);
+    if (match) {
+      let year, month, day;
+
+      if (pattern === patterns[0]) {
+        // "30 April 2026"
+        day = parseInt(match[1]);
+        month = monthMap[match[2].toLowerCase()] ?? -1;
+        year = parseInt(match[3]);
+      } else if (pattern === patterns[1]) {
+        // "April 30, 2026"
+        month = monthMap[match[1].toLowerCase()] ?? -1;
+        day = parseInt(match[2]);
+        year = parseInt(match[3]);
+      } else if (pattern === patterns[2]) {
+        // "April 2026" — không có ngày, fallback ngày 28
+        month = monthMap[match[1].toLowerCase()] ?? -1;
+        year = parseInt(match[2]);
+        day = 28;
+      } else if (pattern === patterns[3]) {
+        // ISO format
+        year = parseInt(match[1]);
+        month = parseInt(match[2]) - 1;
+        day = parseInt(match[3]);
+      } else if (pattern === patterns[4]) {
+        // DD/MM/YYYY hoặc MM/DD/YYYY
+        const p1 = parseInt(match[1]);
+        const p2 = parseInt(match[2]);
+        year = parseInt(match[3]);
+        if (p1 > 12) {
+          day = p1; month = p2 - 1;
+        } else {
+          month = p1 - 1; day = p2;
+        }
+      }
+
+      if (month >= 0 && month <= 11 && year >= 2020) {
+        const d = new Date(year, month, Math.min(day, 28));
+        // Nếu deadline đã qua, fallback 1 năm sau
+        if (d <= new Date()) {
+          d.setFullYear(d.getFullYear() + 1);
+        }
+        return d.toISOString();
+      }
+    }
+  }
+
+  // Không parse được → fallback 3 tháng tới
+  const fallback = new Date();
+  fallback.setMonth(fallback.getMonth() + 3);
+  fallback.setDate(15);
+  return fallback.toISOString();
+}
+
+/**
+ * Map degree text từ web sang enum của DB.
+ * Trả về 1 trong: Bachelor, Master, PhD, Any
+ */
+function mapDegree(degreeStr) {
+  if (!degreeStr) return 'Any';
+
+  const lower = degreeStr.toLowerCase();
+
+  if (lower.includes('bachelor') || lower.includes('undergraduate')) return 'Bachelor';
+  if (lower.includes('master') && !lower.includes('phd')) return 'Master';
+  if (lower.includes('phd') || lower.includes('doctoral')) return 'PhD';
+  if (lower.includes('any') || lower.includes('all') || lower.includes('open')) return 'Any';
+
+  // Heuristic: nếu chỉ có "Masters/PhD" → lấy Master (phổ biến hơn)
+  return 'Master';
+}
+
+// ── Scrape danh sách scholarships từ trang chủ scholars4dev ─────
+async function scrapeScholarshipListPage(pageUrl) {
+  try {
+    const response = await axios.get(pageUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      timeout: 15000,
+    });
+
+    const $ = cheerio.load(response.data);
+    const scholarships = [];
+
+    // scholars4dev uses different layouts depending on the category page.
+    // Common selectors for scholarship cards/listings:
+    const cardSelectors = [
+      // Main list format: each item inside a section or div
+      'article',
+      '.scholarship-item',
+      '.scholarship',
+      '.post',
+      '.entry',
+      // Table row format (common in scholarship list pages)
+      'table tbody tr td',
+      // Generic list
+      '.listing-item',
+      '.scholarship-card',
+    ];
+
+    // We'll look for entries that have at least a link (title) and country/provider info
+    const entries = [];
+
+    // Approach: find all anchor tags that point to individual scholarship detail pages
+    // scholars4dev scholarship links look like: /4232/xxx-scholarship/
+    $('a[href*="/"]').each((_, el) => {
+      const href = $(el).attr('href');
+      const text = $(el).text().trim();
+
+      // Filter: href looks like a scholarship detail URL (numeric ID)
+      if (
+        href &&
+        (href.match(/\/\d+\//) || href.match(/\/scholarship\//i)) &&
+        text.length > 10 &&
+        text.length < 200
+      ) {
+        const fullUrl = href.startsWith('http') ? href : `https://www.scholars4dev.com${href}`;
+        if (!entries.find((e) => e.url === fullUrl)) {
+          entries.push({ url: fullUrl, title: text });
+        }
+      }
+    });
+
+    // Remove duplicates
+    const uniqueEntries = [];
+    const seen = new Set();
+    for (const entry of entries) {
+      if (!seen.has(entry.url)) {
+        seen.add(entry.url);
+        uniqueEntries.push(entry);
+      }
+    }
+
+    console.log(`  🔍 Found ${uniqueEntries.length} scholarship links on ${pageUrl}`);
+
+    // Get adjacent context for each entry (provider, degree, deadline, country)
+    for (const entry of uniqueEntries) {
+      // Navigate to the parent container to extract metadata
+      const response2 = await axios.get(entry.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+        timeout: 15000,
+      });
+
+      const $$ = cheerio.load(response2.data);
+      let provider = null, degree = null, deadline = null, country = null;
+      let fieldOfStudy = null, amount = null, language = null;
+      let eligibility = null, benefits = null, requirements = null;
+      let applicationUrl = null, imageUrl = null;
+
+      // Extract page text for pattern matching
+      const pageText = $$('body').text().toLowerCase();
+
+      // Provider: look in common patterns
+      // Usually near "Provider:", "Sponsor:", "Host Institution:", "Provided by:"
+      $$('p, li, span, div').each((_, el) => {
+        const text = $$(el).text();
+        const lower = text.toLowerCase();
+
+        if (!provider && (lower.includes('provider:') || lower.includes('sponsor:') || lower.includes('provided by:') || lower.includes('host institution:'))) {
+          provider = text.replace(/^(provider|sponsor|provided by|host institution):\s*/i, '').trim();
+          if (provider.length > 100) provider = provider.substring(0, 100);
+        }
+
+        if (!deadline && (lower.includes('deadline:') || lower.includes('application deadline:') || lower.includes('apply by:'))) {
+          deadline = text.replace(/^(deadline|application deadline|apply by):\s*/i, '').trim();
+        }
+
+        if (!degree && (lower.includes('degree:') || lower.includes('level:') || lower.includes('study level:'))) {
+          degree = text.replace(/^(degree|level|study level):\s*/i, '').trim();
+        }
+
+        if (!country && (lower.includes('study in:') || lower.includes('country:') || lower.includes('destination:'))) {
+          country = text.replace(/^(study in|country|destination):\s*/i, '').trim();
+          // Clean up: remove extra whitespace, take first country if multiple
+          country = country.split(/[,\/]/)[0].trim();
+        }
+      });
+
+      // Fallback: if not found in structured fields, try extracting from page
+      if (!provider) {
+        // Look for the first non-empty paragraph that might be the provider
+        $$('h2, h3, p').each((_, el) => {
+          if (!provider) {
+            const text = $$(el).text().trim();
+            if (text.length > 5 && text.length < 150 && !text.includes('Scholarship')) {
+              provider = text;
+            }
+          }
+          return !!provider;
+        });
+      }
+
+      // Extract scholarship details from structured table/list
+      $$('table, ul').each((_, el) => {
+        const tableText = $$(el).text().toLowerCase();
+
+        if (tableText.includes('deadline') && !deadline) {
+          $$(el).find('tr, li').each((_, row) => {
+            const rowText = $$(row).text();
+            if (rowText.toLowerCase().includes('deadline')) {
+              deadline = rowText.replace(/deadline:?\s*/i, '').trim();
+            }
+          });
+        }
+
+        if (tableText.includes('degree') && !degree) {
+          $$(el).find('tr, li').each((_, row) => {
+            const rowText = $$(row).text();
+            if (rowText.toLowerCase().includes('degree')) {
+              degree = rowText.replace(/degree:?\s*/i, '').trim();
+            }
+          });
+        }
+
+        if (tableText.includes('country') || tableText.includes('study in')) {
+          $$(el).find('tr, li').each((_, row) => {
+            const rowText = $$(row).text();
+            if (!country && (rowText.toLowerCase().includes('study in') || rowText.toLowerCase().includes('country'))) {
+              country = rowText.replace(/study in:?|country:?\s*/gi, '').trim();
+              country = country.split(/[,\/]/)[0].trim();
+            }
+          });
+        }
+
+        if (tableText.includes('field') || tableText.includes('subject') || tableText.includes('major')) {
+          $$(el).find('tr, li').each((_, row) => {
+            const rowText = $$(row).text();
+            if (!fieldOfStudy && (rowText.toLowerCase().includes('field') || rowText.toLowerCase().includes('subject'))) {
+              fieldOfStudy = rowText.replace(/field of study:|subject:?\s*/i, '').trim();
+            }
+          });
+        }
+
+        if (tableText.includes('benefit') || tableText.includes('coverage') || tableText.includes('award')) {
+          $$(el).find('tr, li').each((_, row) => {
+            const rowText = $$(row).text();
+            if (!benefits && (rowText.toLowerCase().includes('benefit') || rowText.toLowerCase().includes('coverage') || rowText.toLowerCase().includes('award'))) {
+              benefits = rowText.replace(/benefits?:?|coverage:?|award:?\s*/i, '').trim();
+            }
+          });
+        }
+      });
+
+      // Extract application URL
+      const applyLinks = [];
+      $$('a').each((_, el) => {
+        const href = $$(el).attr('href') || '';
+        const text = $$(el).text().toLowerCase();
+        if (
+          href &&
+          (text.includes('apply') || text.includes('apply now') || text.includes('official website') || text.includes('learn more') || href.includes('apply')) &&
+          !href.includes('scholars4dev') &&
+          href.startsWith('http')
+        ) {
+          applyLinks.push(href);
+        }
+      });
+      applicationUrl = applyLinks[0] || null;
+
+      // Extract image
+      const ogImage = $$('meta[property="og:image"]').attr('content');
+      const firstImg = $$('article img, .post img, .entry img, main img').first().attr('src');
+      imageUrl = ogImage || firstImg || null;
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `https://www.scholars4dev.com${imageUrl}`;
+      }
+
+      // Build scholarship object
+      const scholarship = {
+        title: entry.title,
+        provider: provider || 'Various Institutions',
+        country: country || 'Multiple Countries',
+        city: null,
+        university: null,
+        degree: mapDegree(degree),
+        field_of_study: fieldOfStudy,
+        amount: null,
+        currency: 'USD',
+        coverage: null,
+        deadline: parseDeadline(deadline),
+        intake: null,
+        language: null,
+        min_gpa: null,
+        min_ielts: null,
+        eligibility,
+        requirements,
+        benefits,
+        application_url: applicationUrl,
+        image_url: imageUrl,
+        is_featured: false,
+        is_active: null, // set after deadline check
+        source: 'scholars4dev',
+      };
+
+      // Set is_active
+      if (scholarship.deadline) {
+        scholarship.is_active = new Date(scholarship.deadline) > new Date();
+      } else {
+        // Nếu không parse được deadline rõ ràng → coi là active
+        scholarship.is_active = true;
+        // Fallback deadline 1 năm tới
+        const fallbackDeadline = new Date();
+        fallbackDeadline.setFullYear(fallbackDeadline.getFullYear() + 1);
+        scholarship.deadline = fallbackDeadline.toISOString();
+      }
+
+      scholarships.push(scholarship);
+      await sleep(1200); // Rate limit: 1.2s giữa mỗi detail page
+
+      // Progress indicator
+      if (scholarships.length % 5 === 0) {
+        console.log(`  ⏳ Scraped ${scholarships.length} scholarships so far...`);
+      }
+    }
+
+    return scholarships;
+  } catch (err) {
+    console.error(`  ❌ Error scraping ${pageUrl}: ${err.message}`);
+    return [];
+  }
+}
+
+// ── Main scrape orchestrator ─────────────────────────────────────
+async function scrapeScholarships4Dev() {
+  console.log('\n🌐 Starting Scholars4Dev Web Scraper...\n');
+
+  if (!axios || !cheerio) {
+    console.error('❌ Missing dependencies. Install with: npm install axios cheerio');
+    return [];
+  }
+
+  // Các trang danh mục của scholars4dev để scrape
+  const categoryPages = [
+    'https://www.scholars4dev.com/category/masters-scholarships/',
+    'https://www.scholars4dev.com/category/phd-scholarships/',
+    'https://www.scholars4dev.com/category/fully-funded-scholarships/',
+  ];
+
+  const allScholarships = [];
+  const seen = new Set();
+
+  for (const pageUrl of categoryPages) {
+    console.log(`\n📄 Scraping category: ${pageUrl}`);
+    await sleep(2000); // 2s giữa các page
+
+    const scraped = await scrapeScholarshipListPage(pageUrl);
+
+    // Deduplicate và filter
+    for (const s of scraped) {
+      const key = s.title.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        allScholarships.push(s);
+      }
+    }
+
+    if (allScholarships.length >= SCRAPE_COUNT) break;
+  }
+
+  // Limit to requested count
+  const result = allScholarships.slice(0, SCRAPE_COUNT);
+
+  console.log(`\n✅ Scraping complete! Total scraped: ${result.length}`);
+
+  // In sample
+  console.log('\n📋 Sample scraped scholarships:');
+  result.slice(0, 5).forEach((s, i) => {
+    console.log(
+      `  ${i + 1}. [${s.degree}] ${s.title} | ${s.provider} | ${s.country} | Deadline: ${s.deadline}`
+    );
+  });
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 2: MOCK SEED DATA (50 scholarships)
+// ═══════════════════════════════════════════════════════════════
+
+const mockScholarships = [
   // ─── USA ───────────────────────────────────────────────────────────
   {
     title: 'Fulbright Scholar Program 2026',
@@ -244,7 +689,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.3,
     min_ielts: 7.0,
-    eligibility: 'International students applying to Cornell\'s graduate programs.',
+    eligibility: "International students applying to Cornell's graduate programs.",
     requirements: 'SOP, transcripts, letters of recommendation.',
     benefits: 'Tuition coverage, stipend, research assistantship.',
     application_url: 'https://gradschool.cornell.edu/adstitute/',
@@ -275,7 +720,7 @@ const scholarships = [
       'Vietnamese citizens with at least 2 years (2,800 hours) of work experience; hold a Bachelor degree.',
     requirements:
       'Online application, IELTS/TOEFL, university offer letter, references, essays (3 required).',
-    benefits: 'Full tuition, living allowance (£1,800/month), travel to UK, arrival allowance.',
+    benefits: 'Full tuition, living allowance (\u00a31,800/month), travel to UK, arrival allowance.',
     application_url: 'https://www.chevening.org/apply/',
     image_url: 'https://images.unsplash.com/photo-1587385744395-8c1e28c5d38b?w=800',
     is_featured: true,
@@ -328,7 +773,7 @@ const scholarships = [
       'Vietnamese citizens aged 18-24 with a Bachelor degree; demonstrated academic excellence, leadership, and character.',
     requirements:
       'Online application, full academic transcripts, personal statement, English test scores, endorsement.',
-    benefits: 'Full tuition at Oxford, living stipend (£18,000/year), airfare, health insurance.',
+    benefits: 'Full tuition at Oxford, living stipend (\u00a318,000/year), airfare, health insurance.',
     application_url: 'https://www.rhodestrust.com/scholarships',
     image_url: 'https://images.unsplash.com/photo-1587385744395-8c1e28c5d38b?w=800',
     is_featured: true,
@@ -353,7 +798,7 @@ const scholarships = [
     min_ielts: 7.0,
     eligibility: 'Non-UK citizens with a Bachelor degree; strong academic and social leadership record.',
     requirements: 'CAMS application, Cambridge application, Gates Cambridge essay, references.',
-    benefits: 'Full tuition, living stipend (£17,500/year), airfare, family allowances.',
+    benefits: 'Full tuition, living stipend (\u00a317,500/year), airfare, family allowances.',
     application_url: 'https://www.gatescambridge.org/apply/',
     image_url: 'https://images.unsplash.com/photo-1587385744395-8c1e28c5d38b?w=800',
     is_featured: true,
@@ -386,7 +831,7 @@ const scholarships = [
     source: 'own',
   },
   {
-    title: 'Warwick Chancellor\'s International Scholarship',
+    title: "Warwick Chancellor's International Scholarship",
     provider: 'University of Warwick',
     country: 'UK',
     city: 'Coventry',
@@ -507,7 +952,7 @@ const scholarships = [
     min_gpa: 3.5,
     min_ielts: 6.5,
     eligibility:
-      'International PhD students with a Bachelor and Master degree; leadership and research excellence.',
+      "International PhD students with a Bachelor and Master degree; leadership and research excellence.",
     requirements: 'Research proposal, leadership statement, supervisor nomination, transcripts.',
     benefits: 'CAD $50,000/year for 3 years.',
     application_url: 'https://www.vanier.gc.ca/en/how_to_apply.html',
@@ -611,7 +1056,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Graduates from developing countries; leadership potential; Bachelor degree.',
     requirements: 'Online application, university admission, references, CV.',
-    benefits: 'Monthly stipend (€1,200), tuition waiver, travel allowance, health insurance.',
+    benefits: 'Monthly stipend (\u20ac1,200), tuition waiver, travel allowance, health insurance.',
     application_url: 'https://www.daad.de/ausland/scholarships/helmut-schmidt/en/',
     image_url: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800',
     is_featured: true,
@@ -636,7 +1081,7 @@ const scholarships = [
     min_ielts: 6.0,
     eligibility: 'Graduates from developing countries with 2+ years of professional experience.',
     requirements: 'Application through DAAD portal, university admission, employment references.',
-    benefits: 'Monthly stipend (€1,200), tuition, insurance, travel.',
+    benefits: 'Monthly stipend (\u20ac1,200), tuition, insurance, travel.',
     application_url: 'https://www.daad.de/ausland/scholarships/epos/en/',
     image_url: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800',
     is_featured: false,
@@ -644,8 +1089,8 @@ const scholarships = [
     source: 'own',
   },
   {
-    title: 'Heinrich Böll Foundation Master\'s Scholarship',
-    provider: 'Heinrich Böll Foundation',
+    title: "Heinrich B\u00f6ll Foundation Master's Scholarship",
+    provider: 'Heinrich B\u00f6ll Foundation',
     country: 'Germany',
     city: 'Berlin',
     university: null,
@@ -661,7 +1106,7 @@ const scholarships = [
     min_ielts: 6.0,
     eligibility: 'International students admitted to a German university; motivation for environmental/social policy.',
     requirements: 'Online application, university admission letter, essay on motivation, references.',
-    benefits: 'Monthly stipend (€1,350), family allowance if applicable.',
+    benefits: 'Monthly stipend (\u20ac1,350), family allowance if applicable.',
     application_url: 'https://www.boell.de/en/scholarships',
     image_url: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800',
     is_featured: false,
@@ -686,7 +1131,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'International students with excellent academic record; leadership in political or civic engagement.',
     requirements: 'Application via online portal, CV, academic records, motivational letter.',
-    benefits: 'Monthly stipend (€1,350), tuition waiver, seminar programme.',
+    benefits: 'Monthly stipend (\u20ac1,350), tuition waiver, seminar programme.',
     application_url: 'https://www.kas.de/en/scholarships',
     image_url: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=800',
     is_featured: false,
@@ -711,9 +1156,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.5,
-    eligibility: 'Non-EU/EEA students admitted to a Dutch research university for a Master\'s programme.',
+    eligibility: "Non-EU/EEA students admitted to a Dutch research university for a Master's programme.",
     requirements: 'Nomination by Dutch university, motivation letter, CV.',
-    benefits: 'One-time payment of €5,000.',
+    benefits: 'One-time payment of \u20ac5,000.',
     application_url: 'https://www.studyinholland.nl/scholarships/holland-scholarship',
     image_url: 'https://images.unsplash.com/photo-1521198711515-3e14c5dcc8bb?w=800',
     is_featured: false,
@@ -736,8 +1181,8 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.5,
-    eligibility: 'Students from any country applying to an Erasmus Mundus Joint Master programme.',
-    requirements: 'Apply through the specific programme\'s website; EU/non-EU eligible.',
+    eligibility: "Students from any country applying to an Erasmus Mundus Joint Master programme.",
+    requirements: "Apply through the specific programme's website; EU/non-EU eligible.",
     benefits: 'Contribution to travel, installation and other costs, monthly stipend.',
     application_url: 'https://www.eacea.ec.europa.eu/subsides/emjd',
     image_url: 'https://images.unsplash.com/photo-1521198711515-3e14c5dcc8bb?w=800',
@@ -761,9 +1206,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.5,
     min_ielts: 6.5,
-    eligibility: 'International non-EU Master\'s applicants with excellent academic record.',
+    eligibility: "International non-EU Master's applicants with excellent academic record.",
     requirements: 'Application for admission + scholarship application form.',
-    benefits: 'Full tuition waiver + monthly allowance (€900/month) for 2 years.',
+    benefits: 'Full tuition waiver + monthly allowance (\u20ac900/month) for 2 years.',
     application_url: 'https://www.tudelft.nl/scholarships',
     image_url: 'https://images.unsplash.com/photo-1521198711515-3e14c5dcc8bb?w=800',
     is_featured: false,
@@ -773,7 +1218,7 @@ const scholarships = [
 
   // ─── France ─────────────────────────────────────────────────────────
   {
-    title: 'Éiffel Excellence Scholarship Program',
+    title: '\u00c9iffel Excellence Scholarship Program',
     provider: 'Campus France',
     country: 'France',
     city: 'Paris',
@@ -790,7 +1235,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Non-French nationals under 30; admitted to a French higher education institution.',
     requirements: 'Nominated by French institution; must submit via Campus France.',
-    benefits: 'Monthly stipend (€1,181), health insurance, round-trip flights.',
+    benefits: 'Monthly stipend (\u20ac1,181), health insurance, round-trip flights.',
     application_url: 'https://www.campusfrance.org/en/eiffel-scholarship',
     image_url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
     is_featured: true,
@@ -799,7 +1244,7 @@ const scholarships = [
   },
   {
     title: 'PSL University Master Scholarship',
-    provider: 'Université Paris Sciences et Lettres',
+    provider: 'Universit\u00e9 Paris Sciences et Lettres',
     country: 'France',
     city: 'Paris',
     university: 'PSL University',
@@ -813,9 +1258,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.0,
-    eligibility: 'International Master\'s applicants with strong academic background.',
+    eligibility: "International Master's applicants with strong academic background.",
     requirements: 'Application via PSL portal, CV, personal statement.',
-    benefits: 'Monthly stipend (€1,000-1,200) for up to 2 years.',
+    benefits: 'Monthly stipend (\u20ac1,000-1,200) for up to 2 years.',
     application_url: 'https://www.psl.eu/en/admission/scholarships',
     image_url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
     is_featured: false,
@@ -842,7 +1287,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Vietnamese nationals aged 35 or below; university recommendation required.',
     requirements: 'University nomination, application form, academic transcripts, research plan.',
-    benefits: 'Full tuition, monthly allowance (¥143,000/month), travel expenses.',
+    benefits: 'Full tuition, monthly allowance (\u00a5143,000/month), travel expenses.',
     application_url: 'https://www.studyinjapan.go.jp/en/smap4j-001.html',
     image_url: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800',
     is_featured: true,
@@ -866,8 +1311,8 @@ const scholarships = [
     min_gpa: 3.3,
     min_ielts: 6.5,
     eligibility: 'Students from ASEAN countries applying for graduate programmes at Kyoto University.',
-    requirements: 'Graduate school application + separate scholarship form.',
-    benefits: 'Tuition waiver, monthly stipend (¥120,000), travel grant.',
+    requirements: "Graduate school application + separate scholarship form.",
+    benefits: 'Tuition waiver, monthly stipend (\u00a5120,000), travel grant.',
     application_url: 'https://www.kyoto-u.ac.jp/en/admissions/scholarships',
     image_url: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800',
     is_featured: false,
@@ -890,9 +1335,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.5,
     min_ielts: 6.5,
-    eligibility: 'International PhD applicants with a Master\'s degree in a STEM field.',
+    eligibility: "International PhD applicants with a Master's degree in a STEM field.",
     requirements: 'Application via UTAS portal, research proposal, supervisor approval.',
-    benefits: 'Tuition waiver, monthly stipend (¥150,000), international conference support.',
+    benefits: 'Tuition waiver, monthly stipend (\u00a5150,000), international conference support.',
     application_url: 'https://www.u-tokyo.ac.jp/en/prospective-students/scholarships.html',
     image_url: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800',
     is_featured: false,
@@ -942,7 +1387,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.5,
     min_ielts: 6.5,
-    eligibility: 'International PhD applicants with a Bachelor or Master\'s degree.',
+    eligibility: "International PhD applicants with a Bachelor or Master's degree.",
     requirements: 'Online application, research proposal, GRE scores, references.',
     benefits: 'Monthly stipend (SGD 2,000-2,700), tuition waiver, conference allowance.',
     application_url: 'https://www.nus.edu.sg/admissions/graduate/scholarships',
@@ -1020,7 +1465,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.5,
-    eligibility: 'Non-EU/EEA students admitted to Uppsala University Master\'s programmes.',
+    eligibility: "Non-EU/EEA students admitted to Uppsala University's Master's programmes.",
     requirements: 'University application first; scholarship application follows automatically.',
     benefits: 'Covers tuition fees for 2 years.',
     application_url: 'https://www.uu.se/en/admissions/scholarships/uppsala-university-ipk/',
@@ -1049,7 +1494,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Non-EU students with an offer from an Irish higher education institution.',
     requirements: 'Online application, proof of offer, personal statement.',
-    benefits: 'Full tuition fee waiver, €10,000 subsistence award for one academic year.',
+    benefits: 'Full tuition fee waiver, \u20ac10,000 subsistence award for one academic year.',
     application_url: 'https://hea.ie/skills-and-talent/government-of-ireland-international-education-scholarships/',
     image_url: 'https://images.unsplash.com/photo-1509023464722-18d996393ca8?w=800',
     is_featured: false,
@@ -1099,7 +1544,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.5,
     min_ielts: 6.5,
-    eligibility: 'Researchers with a Master\'s degree from a recognised university; nominated by a Swiss professor.',
+    eligibility: "Researchers with a Master's degree from a recognised university; nominated by a Swiss professor.",
     requirements: 'Research plan, CV, letters of recommendation, nomination letter from Swiss host professor.',
     benefits: 'Monthly stipend (CHF 1,920), health insurance, airfare.',
     application_url: 'https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships_and_grants/swiss-government-excellence.html',
@@ -1152,7 +1597,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.3,
     min_ielts: 6.5,
-    eligibility: 'International students with excellent academic results applying for a Master\'s by thesis.',
+    eligibility: "International students with excellent academic results applying for a Master's by thesis.",
     requirements: 'Research proposal, academic transcripts, supervisor agreement.',
     benefits: 'Tuition fees for 1-2 years, living allowance.',
     application_url: 'https://www.auckland.ac.nz/en/study/scholarships-and-awards/',
@@ -1181,7 +1626,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Citizens of countries on the DAC list (including Vietnam); Bachelor degree; relevant work experience.',
     requirements: 'Online application, motivation letter, CV, references.',
-    benefits: 'Full tuition, monthly stipend (€1,150), travel, insurance.',
+    benefits: 'Full tuition, monthly stipend (\u20ac1,150), travel, insurance.',
     application_url: 'https://www.vliruos.be/en/scholarships',
     image_url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800',
     is_featured: false,
@@ -1206,9 +1651,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.5,
-    eligibility: 'Non-EU/EEA Master\'s programme applicants to the University of Helsinki.',
-    requirements: 'Apply to Master\'s programme; scholarship application via studyinfo.fi.',
-    benefits: 'Tuition waiver + €6,000/year living cost support.',
+    eligibility: "Non-EU/EEA Master's programme applicants to the University of Helsinki.",
+    requirements: "Apply to Master's programme; scholarship application via studyinfo.fi.",
+    benefits: 'Tuition waiver + \u20ac6,000/year living cost support.',
     application_url: 'https://www.helsinki.fi/en/education/scholarships',
     image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
     is_featured: false,
@@ -1233,7 +1678,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.5,
-    eligibility: 'Non-EU/EEA students applying to Master\'s programmes at UiO.',
+    eligibility: "Non-EU/EEA students applying to Master's programmes at UiO.",
     requirements: 'University admission application + scholarship application form.',
     benefits: 'Tuition fee reduction.',
     application_url: 'https://www.uio.no/english/studies/scholarships/',
@@ -1289,7 +1734,7 @@ const scholarships = [
     min_ielts: 6.0,
     eligibility: 'Citizens of ADC priority countries (including Vietnam) with relevant work experience.',
     requirements: 'Application via Austrian Development Cooperation website, references.',
-    benefits: 'Tuition waiver, monthly stipend (€1,150), health insurance, travel.',
+    benefits: 'Tuition waiver, monthly stipend (\u20ac1,150), health insurance, travel.',
     application_url: 'https://www.entwicklung.at/en/cooperation/scholarships/',
     image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
     is_featured: false,
@@ -1316,7 +1761,7 @@ const scholarships = [
     min_ielts: 6.5,
     eligibility: 'Researchers who have not spent more than 12 months in Spain in the last 3 years.',
     requirements: 'Online application, research project, supervisor agreement, academic records.',
-    benefits: 'Annual stipend (€22,400), tuition fees, training, mobility allowance.',
+    benefits: 'Annual stipend (\u20ac22,400), tuition fees, training, mobility allowance.',
     application_url: 'https://fundacaolacaixa.org/en/inphinit',
     image_url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
     is_featured: false,
@@ -1368,9 +1813,9 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.0,
-    eligibility: 'Vietnamese citizens with a Bachelor degree; under 35 for Master\'s programmes.',
+    eligibility: "Vietnamese citizens with a Bachelor's degree; under 35 for Master's programmes.",
     requirements: 'Online CSC application, university nomination, physical examination form.',
-    benefits: 'Tuition waiver, accommodation, monthly stipend (¥3,000), health insurance.',
+    benefits: 'Tuition waiver, accommodation, monthly stipend (\u00a53,000), health insurance.',
     application_url: 'https://www.csc.edu.cn/studyinchina',
     image_url: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800',
     is_featured: true,
@@ -1422,7 +1867,7 @@ const scholarships = [
     language: 'English',
     min_gpa: 3.0,
     min_ielts: 6.0,
-    eligibility: 'International students admitted to Polish universities for Master\'s programmes.',
+    eligibility: "International students admitted to Polish universities for Master's programmes.",
     requirements: 'University admission + NAWA application form, CV.',
     benefits: 'Monthly stipend (PLN 1,500), tuition waiver.',
     application_url: 'https://nawa.gov.pl/en/scholarships',
@@ -1433,13 +1878,17 @@ const scholarships = [
   },
 ];
 
-// ── Validation helpers ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SECTION 3: VALIDATION
+// ═══════════════════════════════════════════════════════════════
+
 const VALID_DEGREES = ['Bachelor', 'Master', 'PhD', 'Any'];
-const VALID_COVERAGES = ['Full', 'Partial', 'Tuition', 'Stipend'];
 
 function validateScholarship(s) {
   if (!VALID_DEGREES.includes(s.degree)) {
-    throw new Error(`Invalid degree: "${s.degree}" — must be one of ${VALID_DEGREES.join(', ')}`);
+    throw new Error(
+      `Invalid degree: "${s.degree}" — must be one of ${VALID_DEGREES.join(', ')}`
+    );
   }
   if (s.min_gpa !== null && (s.min_gpa < 0 || s.min_gpa > 4.0)) {
     throw new Error(`min_gpa out of range (0-4.0): ${s.min_gpa}`);
@@ -1452,7 +1901,11 @@ function validateScholarship(s) {
   }
 }
 
-// ── pg direct client (cho local Docker) ──────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SECTION 4: DATABASE INSERTION
+// ═══════════════════════════════════════════════════════════════
+
+// pg direct client (cho local Docker)
 const pgClient = new Client({
   host: process.env.PG_HOST || 'localhost',
   port: parseInt(process.env.PG_PORT || '5432'),
@@ -1461,7 +1914,6 @@ const pgClient = new Client({
   password: process.env.PG_PASSWORD || 'scholarsgo_password',
 });
 
-// ── Helper: convert scholarship object sang array values theo column order ─
 const scholarshipColumns = [
   'title', 'provider', 'country', 'city', 'university', 'degree',
   'field_of_study', 'amount', 'currency', 'coverage', 'deadline',
@@ -1482,28 +1934,107 @@ const toRow = (s) =>
 const colPlaceholders = scholarshipColumns.map((_, i) => `$${i + 1}`).join(', ');
 const allCols = scholarshipColumns.join(', ');
 
-// ── Main seed function ───────────────────────────────────────────────
+// ── Insert via Supabase ───────────────────────────────────────────
+async function insertViaSupabase(scholarships) {
+  if (!supabaseAdmin) {
+    throw new Error('Supabase admin client not available');
+  }
+
+  const insertedRows = [];
+  const errors = [];
+
+  // Batch insert — Supabase max 1000 rows per request
+  const BATCH = 100;
+  for (let i = 0; i < scholarships.length; i += BATCH) {
+    const batch = scholarships.slice(i, i + BATCH);
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('scholarships')
+        .insert(batch)
+        .select('id, title, country, degree');
+
+      if (error) {
+        errors.push({ batch: i / BATCH + 1, error: error.message });
+      } else if (data) {
+        insertedRows.push(...data);
+      }
+    } catch (err) {
+      errors.push({ batch: i / BATCH + 1, error: err.message });
+    }
+  }
+
+  return { insertedRows, errors };
+}
+
+// ── Insert via pg client ──────────────────────────────────────────
+async function insertViaPg(scholarships) {
+  const insertSQL = `
+    INSERT INTO scholarships (${allCols})
+    VALUES (${colPlaceholders})
+    ON CONFLICT DO NOTHING
+    RETURNING id, title, country, degree
+  `;
+
+  const insertedRows = [];
+  const errors = [];
+
+  for (const s of scholarships) {
+    try {
+      const res = await pgClient.query(insertSQL, toRow(s));
+      if (res.rows.length > 0) {
+        insertedRows.push(res.rows[0]);
+      }
+    } catch (err) {
+      errors.push({ title: s.title, error: err.message });
+    }
+  }
+
+  return { insertedRows, errors };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 5: MAIN SEED FUNCTION
+// ═══════════════════════════════════════════════════════════════
+
 async function seed() {
   console.log('\n🚀 Starting ScholarsGo Scholarship Seed...\n');
+  console.log(`📌 Mode: ${MODE_MOCK ? 'MOCK DATA ONLY' : MODE_SCRAPE_ONLY ? 'SCRAPE ONLY (no DB insert)' : 'SCRAPE + SEED'}\n`);
 
-  // 1. Validate env
+  // 1. Determine scholarship source
+  let scholarshipsToInsert = [];
+
+  if (MODE_MOCK) {
+    console.log('📦 Using mock data (--mock flag)');
+    scholarshipsToInsert = mockScholarships;
+  } else {
+    // Scrape from scholars4dev
+    const scraped = await scrapeScholarships4Dev();
+    scholarshipsToInsert = scraped;
+  }
+
+  // Skip DB insert if scrape-only mode
+  if (MODE_SCRAPE_ONLY) {
+    console.log(`\n✅ Scrape complete! ${scholarshipsToInsert.length} scholarships scraped.`);
+    console.log('   (--scrape-only flag: skipping DB insert)');
+    process.exit(0);
+  }
+
+  // 2. Validate env
   const hasSupabase = !!(
     process.env.SUPABASE_URL &&
     process.env.SUPABASE_SERVICE_ROLE_KEY &&
     process.env.SUPABASE_URL.startsWith('http')
   );
-  const hasPg = !!(
-    process.env.PG_HOST || process.env.PG_PORT || process.env.PG_DATABASE
-  );
+  const hasPg = !!(process.env.PG_HOST || process.env.PG_PORT || process.env.PG_DATABASE);
 
   if (!hasSupabase && !hasPg) {
     console.error('❌ ERROR: No database connection configured.');
-    console.error('   Set SUPABASE_URL (for Supabase cloud/local)');
+    console.error('   Set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (for Supabase cloud/local)');
     console.error('   OR set PG_HOST/PORT/DATABASE (for direct PostgreSQL)');
     process.exit(1);
   }
 
-  // 2. Connect to PostgreSQL via pg
+  // 3. Connect to PostgreSQL via pg
   console.log('📡 Connecting to PostgreSQL...');
   try {
     await pgClient.connect();
@@ -1513,7 +2044,7 @@ async function seed() {
     process.exit(1);
   }
 
-  // 3. Check if scholarships table exists
+  // 4. Check if scholarships table exists
   console.log('🔍 Checking scholarships table...');
   try {
     const res = await pgClient.query(
@@ -1535,9 +2066,9 @@ async function seed() {
     process.exit(1);
   }
 
-  // 4. Validate all scholarships before insert
+  // 5. Validate all scholarships before insert
   console.log('🔍 Validating scholarship data...');
-  scholarships.forEach((s, i) => {
+  scholarshipsToInsert.forEach((s, i) => {
     try {
       validateScholarship(s);
     } catch (e) {
@@ -1546,60 +2077,56 @@ async function seed() {
       process.exit(1);
     }
   });
-  console.log(`✅ All ${scholarships.length} records validated\n`);
+  console.log(`✅ All ${scholarshipsToInsert.length} records validated\n`);
 
-  // 5. Clear existing active scholarships
-  console.log('🗑️  Clearing old active scholarships...');
+  // 6. Clear old active scholarships (same source) to avoid duplicates
+  const sourceLabel = MODE_MOCK ? 'own' : 'scholars4dev';
+  console.log(`🗑️  Clearing old active scholarships (source: ${sourceLabel})...`);
   try {
     await pgClient.query(
       `DELETE FROM scholarships
-       WHERE is_active = true
-       AND deadline >= $1`,
-      [new Date().toISOString()]
+       WHERE source = $1
+       AND is_active = true
+       AND deadline >= $2`,
+      [sourceLabel, new Date().toISOString()]
     );
     console.log('✅ Old scholarships cleared\n');
   } catch (err) {
-    console.error('⚠️  Warning: Could not clear old scholarships:', err.message);
+    console.warn('⚠️  Warning: Could not clear old scholarships:', err.message);
   }
 
-  // 6. Batch insert using a prepared statement
-  console.log(`📦 Inserting ${scholarships.length} scholarships...`);
-  const insertSQL = `
-    INSERT INTO scholarships (${allCols})
-    VALUES (${colPlaceholders})
-    RETURNING id, title, country, degree
-  `;
+  // 7. Insert
+  console.log(`📦 Inserting ${scholarshipsToInsert.length} scholarships...`);
 
-  const insertedRows = [];
-  const errors = [];
+  let insertedRows = [];
+  let errors = [];
 
-  // Batch insert in chunks of 10 to avoid oversized parameter lists
-  const CHUNK = 10;
-  for (let i = 0; i < scholarships.length; i += CHUNK) {
-    const chunk = scholarships.slice(i, i + CHUNK);
-    const rows = chunk.map((s) => toRow(s));
-
-    for (const row of rows) {
-      try {
-        const res = await pgClient.query(insertSQL, row);
-        insertedRows.push(res.rows[0]);
-      } catch (err) {
-        errors.push({ row, err: err.message });
-      }
-    }
+  if (hasSupabase && supabaseAdmin) {
+    console.log('🔌 Using Supabase SDK for insertion...');
+    const result = await insertViaSupabase(scholarshipsToInsert);
+    insertedRows = result.insertedRows;
+    errors = result.errors;
+  } else {
+    console.log('🔌 Using pg client for insertion...');
+    const result = await insertViaPg(scholarshipsToInsert);
+    insertedRows = result.insertedRows;
+    errors = result.errors;
   }
 
   if (errors.length > 0) {
     console.error(`❌ ${errors.length} insert failed:`);
-    errors.slice(0, 3).forEach((e) => {
-      console.error(`   Row: ${JSON.stringify(e.row)}`);
-      console.error(`   Error: ${e.err}`);
+    errors.slice(0, 5).forEach((e) => {
+      if (e.title) {
+        console.error(`   [${e.title}] ${e.error}`);
+      } else {
+        console.error(`   Batch ${e.batch}: ${e.error}`);
+      }
     });
   }
 
-  // 7. Summary
+  // 8. Summary
   console.log('\n✅ Seed completed!');
-  console.log(`   📊 Inserted: ${insertedRows.length} / ${scholarships.length} scholarships\n`);
+  console.log(`   📊 Inserted: ${insertedRows.length} / ${scholarshipsToInsert.length} scholarships\n`);
   if (insertedRows.length > 0) {
     console.log('   📋 Sample inserted records:');
     insertedRows.slice(0, 5).forEach((s) => {
@@ -1607,7 +2134,7 @@ async function seed() {
     });
   }
 
-  // 8. Verify total count
+  // 9. Verify total count
   try {
     const countRes = await pgClient.query(
       `SELECT COUNT(*) as cnt FROM scholarships
@@ -1616,7 +2143,7 @@ async function seed() {
     );
     console.log(`\n   📈 Total active scholarships in DB: ${countRes.rows[0].cnt}\n`);
   } catch (err) {
-    console.error('⚠️  Could not get total count:', err.message);
+    console.warn('⚠️  Could not get total count:', err.message);
   }
 
   await pgClient.end();

@@ -3,11 +3,11 @@
 # ============================================================
 | # | File | Mô tả | Last Updated |
 |---|------|-------|--------------|
-| 1 | MEMORY.md | INDEX — file này | 26/3/2026 |
+| 1 | MEMORY.md | INDEX — file này | 31/3/2026 |
 | 2 | [MEMORY-schema.md](./MEMORY-schema.md) | Database schema toàn bộ tables | 26/3/2026 |
 | 3 | [MEMORY-api.md](./MEMORY-api.md) | API contracts tất cả endpoints | 26/3/2026 |
-| 4 | [MEMORY-features.md](./MEMORY-features.md) | Luồng nghiệp vụ, data flow, thuật toán | 26/3/2026 |
-| 5 | [MEMORY-devlog.md](./MEMORY-devlog.md) | Bug đã fix, quyết định kỹ thuật, tech debt | 26/3/2026 |
+| 4 | [MEMORY-features.md](./MEMORY-features.md) | Luồng nghiệp vụ, data flow, thuật toán | 31/3/2026 |
+| 5 | [MEMORY-devlog.md](./MEMORY-devlog.md) | Bug đã fix, quyết định kỹ thuật, tech debt | 31/3/2026 |
 
 ---
 
