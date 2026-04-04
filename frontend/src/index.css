@@ -4,6 +4,10 @@
 
 :root {
   --color-primary: #2563eb;
+  --color-secondary: #7c3aed;
+  --radius-card: 1rem;
+  --radius-button: 0.75rem;
+  --radius-input: 0.75rem;
 }
 
 * {
@@ -16,6 +20,137 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #111827;
+  background-color: #f9fafb;
+}
+
+/* ===== DESIGN SYSTEM — Component Layer ===== */
+@layer components {
+  /* Container */
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-narrow {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold transition-all
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           shadow-button active:scale-[0.98];
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white px-6 py-2.5 rounded-button
+           hover:bg-primary-700 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-gray-700 px-6 py-2.5 rounded-button
+           border border-gray-200 hover:bg-gray-50 hover:border-gray-300
+           focus:ring-gray-300;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-gray-600 px-4 py-2.5 rounded-button
+           hover:bg-gray-100 hover:text-gray-900
+           focus:ring-gray-300 shadow-none;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger-600 text-white px-6 py-2.5 rounded-button
+           hover:bg-danger-700 focus:ring-danger-500;
+  }
+
+  .btn-sm {
+    @apply text-sm px-4 py-2;
+  }
+
+  .btn-lg {
+    @apply text-lg px-8 py-3.5 font-bold;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white rounded-card border border-gray-100 shadow-card;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:border-primary-100 transition-all;
+  }
+
+  .card-body {
+    @apply p-6 sm:p-8;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full border border-gray-200 rounded-input px-4 py-2.5 text-body
+           placeholder:text-gray-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-colors;
+  }
+
+  .input-with-icon {
+    @apply input pl-12;
+  }
+
+  .input-label {
+    @apply block text-body-sm font-medium text-gray-700 mb-1.5;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center gap-1 text-caption font-semibold px-2.5 py-1 rounded-badge;
+  }
+
+  /* Tag – pill-shaped */
+  .tag {
+    @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag
+           bg-gray-100 text-gray-700;
+  }
+
+  /* Section heading */
+  .section-title {
+    @apply text-heading-1 text-gray-900;
+  }
+
+  .section-subtitle {
+    @apply text-body-lg text-gray-600 mt-2;
+  }
+
+  /* Page heading block */
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-header h1 {
+    @apply text-heading-1 text-gray-900;
+  }
+
+  .page-header p {
+    @apply text-body text-gray-600 mt-1;
+  }
+
+  /* Empty state */
+  .empty-state {
+    @apply text-center py-20 card;
+  }
+
+  .empty-state-icon {
+    @apply w-16 h-16 text-gray-300 mx-auto mb-4;
+  }
+
+  .empty-state h3 {
+    @apply text-heading-3 text-gray-700 mb-2;
+  }
+
+  .empty-state p {
+    @apply text-body text-gray-500 mb-6;
+  }
 }
 
 @layer utilities {

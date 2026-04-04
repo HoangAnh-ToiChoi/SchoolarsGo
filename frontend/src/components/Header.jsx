@@ -75,7 +75,7 @@ const Header = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+                  className="btn-primary btn-sm"
                 >
                   Đăng ký
                 </Link>
@@ -85,7 +85,7 @@ const Header = () => {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden p-2 text-gray-600 hover:text-primary-600"
+            className="md:hidden btn-ghost p-2"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -116,7 +116,7 @@ const Header = () => {
                   <Link to="/applications" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
                     Đơn ứng tuyển
                   </Link>
-                  <button onClick={handleLogout} className="block text-red-600 font-medium py-2 w-full text-left">
+                  <button onClick={handleLogout} className="block text-danger-600 font-medium py-2 w-full text-left">
                     Đăng xuất
                   </button>
                 </>
@@ -125,7 +125,7 @@ const Header = () => {
                   <Link to="/login" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
                     Đăng nhập
                   </Link>
-                  <Link to="/register" className="block bg-primary-600 text-white text-center px-4 py-2 rounded-lg font-medium" onClick={() => setMobileOpen(false)}>
+                  <Link to="/register" className="block btn-primary text-center" onClick={() => setMobileOpen(false)}>
                     Đăng ký
                   </Link>
                 </>
