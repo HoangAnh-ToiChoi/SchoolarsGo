@@ -1,7 +1,7 @@
 /**
  * ScholarsGo — Cloud Seed Script
  * Cào học bổng từ scholars4dev.com (RSS → axios+cheerio fallback)
- * và seed vào Supabase Cloud.
+ * và seed vào PostgreSQL (Supabase Cloud Connection Pooling).
  *
  * Chạy:
  *   node scripts/seed-cloud.js
@@ -11,40 +11,17 @@
  *   node scripts/seed-cloud.js --limit=20   → giới hạn số bản ghi quét
  *
  * Lưu ý:
- *  - Kết nối DB dùng @supabase/supabase-js (hỗ trợ IPv4/IPv6 tự động).
- *  - Biến SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY trong .env là bắt buộc.
- *  - INSERT dùng upsert (onConflict: 'title', ignoreDuplicates: true) chống trùng lặp.
- *  - Bảo vệ mạng: delay 1–2s giữa mỗi lần quét.
+ *  - Kết nối DB dùng pg Pool từ src/utils/db.js (không dùng @supabase/supabase-js).
+ *  - Biến PG_HOST + PG_PASSWORD trong .env là bắt buộc.
+ *  - INSERT dùng ON CONFLICT (title) DO NOTHING chống trùng lặp.
+ *  - Bảo vệ mạng: delay 2–3s giữa mỗi lần quét.
  *  - Script tự process.exit(0) khi hoàn tất.
  */
 
 'use strict';
 
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
-
-// ── Supabase JS client (hỗ trợ IPv4/IPv6 tự động — không như pg) ─
-let supabase;
-function getSupabase() {
-  if (supabase) return supabase;
-  const { createClient } = require('@supabase/supabase-js');
-  const url  = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key  = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    console.error('❌ Thiếu biến môi trường: SUPABASE_URL và SUPABASE_SERVICE_ROLE_KEY bắt buộc trong .env');
-    console.error('   Thêm vào backend/.env:');
-    console.error('   SUPABASE_URL=https://mthxqvnukejvjadldwob.supabase.co');
-    console.error('   SUPABASE_SERVICE_ROLE_KEY=<key từ Supabase Dashboard → Settings → API → service_role secret>');
-    process.exit(1);
-  }
-
-  // Chuẩn hoá URL (bỏ trailing slash)
-  const cleanUrl = url.replace(/\/$/, '');
-  supabase = createClient(cleanUrl, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  return supabase;
-}
+const db = require('../src/utils/db');
 
 // ── CLI arguments ──────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -54,7 +31,7 @@ const SCRAPE_LIMIT = limitArg ? parseInt(limitArg.split('=')[1], 10) : 100;
 
 // ── Helper: sleep ────────────────────────────────────────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const delay = () => sleep(1000 + Math.floor(Math.random() * 1000)); // 1–2s random
+const delay = () => sleep(2000 + Math.floor(Math.random() * 1000)); // 2–3s random
 
 // ── Helper: random ──────────────────────────────────────────────
 const randFloat = (min, max, dec = 2) =>
@@ -66,50 +43,46 @@ const randFloat = (min, max, dec = 2) =>
 
 async function verifyConnection() {
   console.log('────────────────────────────────────────────');
-  console.log('  ScholarsGo Cloud Seed — Supabase Cloud');
+  console.log('  ScholarsGo Cloud Seed — PostgreSQL Pool');
   console.log('────────────────────────────────────────────\n');
 
-  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/, '');
-  console.log(`📡 Supabase : ${supabaseUrl}`);
+  const pgHost = (process.env.PG_HOST || '').trim();
+  const pgPw   = (process.env.PG_PASSWORD || '').trim();
 
-  if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
-    console.error('❌ SUPABASE_URL không hợp lệ trong .env');
-    console.error('   Giá trị hiện tại: "' + supabaseUrl + '"');
+  if (!pgHost) {
+    console.error('❌ Thiếu biến môi trường PG_HOST trong .env');
+    console.error('   Thêm vào backend/.env:');
+    console.error(`   PG_HOST=${pgHost || 'your-supabase-host.supabase.co'}`);
+    console.error('   PG_PORT=5432');
+    console.error('   PG_DATABASE=postgres');
+    console.error('   PG_USER=postgres');
+    console.error('   PG_PASSWORD=<password>');
     process.exit(1);
   }
 
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error('❌ Thiếu SUPABASE_SERVICE_ROLE_KEY trong .env');
-    console.error('   Lấy key tại: Supabase Dashboard → Settings → API → service_role secret');
+  if (!pgPw) {
+    console.error('❌ Thiếu PG_PASSWORD trong .env');
     process.exit(1);
   }
 
-  console.log('✅ Cấu hình Supabase đầy đủ\n');
-
-  const sb = getSupabase();
+  const host = pgHost.includes(':') ? pgHost : `${pgHost}:${process.env.PG_PORT || 5432}`;
+  console.log(`📡 PostgreSQL : ${host}`);
 
   try {
-    // Test: đếm scholarships hiện tại
-    const { data, error, count } = await sb
-      .from('scholarships')
-      .select('id', { count: 'exact', head: true });
-
-    if (error) throw error;
-
-    console.log(`   Supabase REST: ✅ Kết nối OK`);
-    console.log(`   Project URL  : ${supabaseUrl}`);
-    console.log(`   Học bổng hiện tại: ${count ?? 0}\n`);
+    await db.query('SELECT 1');
+    const { rowCount } = await db.query(
+      'SELECT 1 FROM scholarships LIMIT 1'
+    );
+    console.log(`   PostgreSQL Pool: ✅ Kết nối OK`);
+    console.log(`   Host           : ${host}\n`);
   } catch (err) {
-    console.error(`\n❌ KẾT NỐI SUPABASE THẤT BẠI: ${err.message}`);
+    console.error(`\n❌ KẾT NỐI POSTGRESQL THẤT BẠI: ${err.message}`);
     console.error('\n   Nguyên nhân thường gặp:');
-    console.error('   1. Chưa thêm SUPABASE_SERVICE_ROLE_KEY vào .env');
-    console.error('      Lấy tại: Supabase Dashboard → Settings → API → service_role secret');
-    console.error('');
-    console.error('   2. Bảng scholarships chưa tồn tại → chạy migration database.sql trước');
-    console.error('');
-    console.error('   3. RLS policy chặn truy cập → kiểm tra policies trên bảng scholarships');
-    console.error('');
-    console.error('   4. IP của bạn chưa whitelist trong Supabase Dashboard → Network');
+    console.error('   1. Chưa thêm PG_HOST, PG_PASSWORD vào .env');
+    console.error('   2. Bảng scholarships chưa tồn tại → chạy migration database.sql');
+    console.error('   3. Supabase: dùng IP của Supabase (DB Settings → Connection Pooling)');
+    console.error('   4. Supabase: bật "Allow IP Addresses" hoặc dùng Connection Pooling mode');
+    console.error('   5. Kiểm tra: kết nối qua psql hoặc dBeaver trước');
     console.error('');
     process.exit(1);
   }
@@ -478,8 +451,27 @@ function normalizeForDB(item) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SECTION 6 — INSERT (ON CONFLICT DO NOTHING via Supabase SDK)
+// SECTION 6 — INSERT (ON CONFLICT DO NOTHING via pg Pool)
 // ═══════════════════════════════════════════════════════════════
+
+const COLUMNS = [
+  'title','provider','country','city','university','degree',
+  'field_of_study','amount','currency','coverage','deadline',
+  'intake','language','min_gpa','min_ielts','eligibility',
+  'requirements','benefits','application_url','image_url',
+  'is_featured','is_active','source',
+];
+
+function toPgValue(col, val) {
+  if (val === null || val === undefined) return 'NULL';
+  if (col === 'deadline') return `'${new Date(val).toISOString()}'`;
+  if (col === 'is_featured' || col === 'is_active') return val ? 'TRUE' : 'FALSE';
+  if (col === 'amount') return isNaN(val) ? 'NULL' : String(val);
+  if (col === 'min_gpa' || col === 'min_ielts') return isNaN(val) ? 'NULL' : String(val);
+  const str = String(val);
+  const maxLen = col === 'title' ? 500 : col === 'application_url' || col === 'image_url' ? 2048 : 255;
+  return `'${str.substring(0, maxLen).replace(/'/g, "''")}'`;
+}
 
 async function insertBatch(items) {
   if (items.length === 0) return { inserted: 0, skipped: 0, errors: [] };
@@ -488,44 +480,31 @@ async function insertBatch(items) {
   let inserted = 0;
   let skipped  = 0;
   const errors = [];
-  const sb = getSupabase();
 
   for (let i = 0; i < items.length; i += BATCH) {
     const batch = items.slice(i, i + BATCH).map(normalizeForDB);
     const progress = Math.min(i + BATCH, items.length);
 
-    try {
-      // Plain insert — unique constraint trên title đã có trong schema
-      const { data, error } = await sb
-        .from('scholarships')
-        .insert(batch)
-        .select('id, title');
+    const rows = batch.map((item) => {
+      return '(' + COLUMNS.map((col) => toPgValue(col, item[col])).join(', ') + ')';
+    }).join(',\n');
 
-      if (error) {
-        const msg = error.message || String(error);
-        // Bất kỳ lỗi constraint nào → skip batch (unique, not-null, too long...)
-        if (msg.includes('23505') || msg.includes('23502') || msg.includes('too long') || msg.toLowerCase().includes('null')) {
-          skipped += batch.length;
-          process.stdout.write(`\r   💾 Inserted: ${inserted} | Skip (trùng): ${skipped} | Tiến độ: ${progress}/${items.length}   `);
-        } else {
-          errors.push({ batch: Math.floor(i / BATCH) + 1, error: msg });
-          console.error(`\n   ❌ Batch ${Math.floor(i / BATCH) + 1} error: ${msg}`);
-        }
-      } else {
-        const rowsInserted = Array.isArray(data) ? data.length : 0;
-        inserted += rowsInserted;
-        skipped  += batch.length - rowsInserted;
-        process.stdout.write(`\r   💾 Đã insert: ${inserted} | Skip (trùng): ${skipped} | Tiến độ: ${progress}/${items.length}   `);
-      }
+    const sql = `
+      INSERT INTO scholarships (${COLUMNS.join(', ')})
+      VALUES\n${rows}
+      ON CONFLICT (title) DO NOTHING
+      RETURNING id;
+    `;
+
+    try {
+      const result = await db.query(sql);
+      const rowsInserted = result.rowCount ?? 0;
+      inserted += rowsInserted;
+      skipped  += batch.length - rowsInserted;
+      process.stdout.write(`\r   💾 Inserted: ${inserted} | Skip: ${skipped} | ${progress}/${items.length}   `);
     } catch (err) {
-      const msg = err.message || String(err);
-      if (msg.includes('23505') || msg.toLowerCase().includes('unique')) {
-        skipped += batch.length;
-        process.stdout.write(`\r   💾 Inserted: ${inserted} | Skip (trùng): ${skipped} | Tiến độ: ${progress}/${items.length}   `);
-      } else {
-        errors.push({ batch: Math.floor(i / BATCH) + 1, error: msg });
-        console.error(`\n   ❌ Batch ${Math.floor(i / BATCH) + 1} exception: ${msg}`);
-      }
+      errors.push({ batch: Math.floor(i / BATCH) + 1, error: err.message });
+      console.error(`\n   ❌ Batch ${Math.floor(i / BATCH) + 1} error: ${err.message}`);
     }
   }
 
@@ -584,12 +563,12 @@ async function main() {
   }
 
   // 6. Insert vào DB
-  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/, '');
-  console.log('── Insert vào Supabase Cloud ──────────────────');
-  console.log(`   Target : ${supabaseUrl}`);
+  const pgHost = process.env.PG_HOST || 'localhost';
+  console.log('── Insert vào PostgreSQL ───────────────────────');
+  console.log(`   Target     : ${pgHost}`);
   console.log(`   Số bản ghi : ${scholarships.length}`);
   console.log(`   Batch size : 50`);
-  console.log(`   Upsert     : ON CONFLICT (title) DO NOTHING\n`);
+  console.log(`   Clause     : ON CONFLICT (title) DO NOTHING\n`);
 
   const { inserted, skipped, errors } = await insertBatch(scholarships);
 
@@ -610,14 +589,11 @@ async function main() {
 
   // 8. Verify tổng số trong DB
   try {
-    const sb = getSupabase();
-    const { count, error: countErr } = await sb
-      .from('scholarships')
-      .select('id', { count: 'exact', head: true })
-      .eq('is_active', true);
-    if (!countErr) {
-      console.log(`\n  📈 Tổng học bổng active trong DB : ${count ?? 0}`);
-    }
+    const result = await db.query(
+      "SELECT COUNT(*)::int AS cnt FROM scholarships WHERE is_active = TRUE"
+    );
+    const cnt = result.rows[0]?.cnt ?? 0;
+    console.log(`\n  📈 Tổng học bổng active trong DB : ${cnt}`);
   } catch (_) {}
 
   console.log('════════════════════════════════════════════\n');

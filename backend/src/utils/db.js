@@ -1,6 +1,8 @@
 /**
  * ScholarsGo — Direct PostgreSQL Client (singleton)
- * Dùng thay Supabase SDK khi chạy local Docker (Supabase gateway không chạy).
+ * Dùng cho tất cả query trong backend (seed script + API).
+ * Kết nối trực tiếp PostgreSQL — hỗ trợ cả Supabase Cloud Connection Pooling
+ * (port 6543) lẫn Supabase local Docker (port 5432).
  *
  * Connection pool: reuse connection, tự động handle disconnect/reconnect.
  */
@@ -17,8 +19,8 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
   ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
-  // Supabase Cloud dùng IPv6-only → ưu tiên IPv6
-  family: parseInt(process.env.PG_DNS_FAMILY || '6', 10),
+  // Supabase Connection Pooler (port 6543): bỏ qua DNS family — pooler trung gian xử lý
+  family: parseInt(process.env.PG_DNS_FAMILY || '0', 10),
 });
 
 pool.on('error', (err) => {

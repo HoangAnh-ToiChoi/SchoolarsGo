@@ -8,7 +8,7 @@ const getAll = async (filters) => {
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
   const offset = (page - 1) * limit;
 
-  const conditions = ['is_active = true', 'deadline >= now()'];
+  const conditions = ['is_active = true', 'deadline > NOW()'];
   const params = [];
   let idx = 1;
 
@@ -110,7 +110,7 @@ const getCountries = async () => {
 
 const getById = async (id, userId) => {
   const scholarship = await queryOne(
-    'SELECT * FROM scholarships WHERE id = $1',
+    'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()',
     [id]
   );
 

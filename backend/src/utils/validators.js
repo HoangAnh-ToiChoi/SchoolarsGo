@@ -8,7 +8,7 @@ const COVERAGES = ['Full', 'Partial', 'Tuition', 'Stipend', 'Accommodation'];
 
 const registerSchema = z.object({
   email: z.string().email('Email không hợp lệ').max(255),
-  password: z.string().min(8, 'Mật khẩu phải có ít nhất 8 ký tự').max(128),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').max(128),
   full_name: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự').max(255),
 });
 

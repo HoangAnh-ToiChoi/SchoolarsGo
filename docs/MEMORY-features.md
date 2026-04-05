@@ -1,16 +1,87 @@
 # ============================================================
 # SCHOLARSGO — FEATURES & BUSINESS LOGIC
 # ============================================================
-# Last Updated: 31/3/2026
+# Last Updated: 4/4/2026
+
+---
+
+## 0. Auth — User Authentication (Week 3)
+
+**Trạng thái:** ✅ Hoàn thành (4/4/2026)
+
+### Mô tả
+Hệ thống xác thực người dùng bằng email/password với JWT token, sử dụng thư viện `bcryptjs` để băm mật khẩu và `jsonwebtoken` để tạo/verify token.
+
+### Tech Stack
+- **Password hashing:** `bcryptjs` với salt rounds = 12
+- **Token:** `jsonwebtoken`, payload: `{ id, email }`, expires: `JWT_EXPIRES_IN` env (mặc định `7d`)
+- **Database access:** Raw SQL với parameterized queries (`$1, $2, ...`) — KHÔNG dùng Supabase SDK cho auth
+- **Connection pool:** PostgreSQL qua `src/utils/db.js`
+- **Rate limiting:** `express-rate-limit`, áp dụng ở route-level
+
+### File Structure
+```
+src/
+├── controllers/auth.controller.js   ← request handlers (gọi service)
+├── services/auth.service.js         ← business logic, raw SQL, bcrypt, jwt
+├── routes/auth.routes.js            ← route definitions + rate limiter wiring
+├── middlewares/auth.js              ← JWT verification middleware
+└── utils/validators.js              ← Zod schemas cho register/login
+```
+
+### User Flow
+
+```
+User → Register Page → POST /api/auth/register
+  → Zod validate { email, password(min 6), full_name }
+  → Check email tồn tại chưa (SELECT WHERE email = $1)
+  → bcrypt.hash(password, 12)
+  → INSERT INTO users ($1, $2, $3)
+  → jwt.sign({ id, email }, JWT_SECRET, { expiresIn })
+  → Return { user, token } + 201
+
+User → Login Page → POST /api/auth/login
+  → Zod validate { email, password }
+  → SELECT user WHERE email = $1
+  → bcrypt.compare(password, hash)
+  → jwt.sign({ id, email }, JWT_SECRET, { expiresIn })
+  → Return { user, token } + 200
+
+User → Protected Route → GET /api/auth/me
+  → Auth middleware: verify JWT from Bearer header / cookie
+  → req.user = { id, email }
+  → Return user data + 200
+```
+
+### Rate Limiting
+| Endpoint | Limit | Reason |
+|----------|-------|--------|
+| POST /api/auth/register | 3 req/phút/IP | Chống spam đăng ký |
+| POST /api/auth/login | 5 req/phút/IP | Chống brute-force |
+
+### Security Considerations
+- Password được hash bằng bcryptjs (salt rounds = 12) — KHÔNG bao giờ lưu plain-text
+- SQL injection prevented bằng parameterized queries (`$1, $2`)
+- JWT verified trong auth middleware; invalid/expired token → 401
+- User chỉ có thể truy cập route `/me` khi có token hợp lệ
+
+### Edge Cases
+| Scenario | Handling |
+|----------|----------|
+| Email đã tồn tại khi register | 409 Conflict: "Email đã được sử dụng" |
+| Sai email hoặc password khi login | 401 Unauthorized: "Email hoặc mật khẩu không đúng" |
+| Token expired | 401: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại" |
+| Token không hợp lệ | 401: "Token không hợp lệ" |
+| Không có token | 401: "Vui lòng đăng nhập để tiếp tục" |
 
 ---
 
 ## 1. Scholarship Search (P0 Feature #1)
 
-**Trạng thái:** Chưa bắt đầu
+**Trạng thái:** ✅ Hoàn thành (4/4/2026)
 
 ### Mô tả
-Cho phép user tìm kiếm và filter học bổng theo nhiều tiêu chí: quốc gia, bậc học, ngành, GPA, deadline, ngôn ngữ...
+Cho phép user tìm kiếm và filter học bổng theo nhiều tiêu chí: quốc gia, bậc học, ngành, GPA, deadline, ngôn ngữ... với phân trang. Dùng raw SQL + parameterized queries trực tiếp PostgreSQL (không Supabase SDK).
 
 ### User Flow
 
@@ -31,8 +102,11 @@ FE: ScholarshipSearchPage.jsx
     → axios.get('/api/scholarships', { params: filters })
       → BE: GET /api/scholarships
         → scholarshipsController.getAll(req, res)
-          → supabase.from('scholarships').select('*', { filters })...
-          → return { success: true, data: [...], meta: {...} }
+          → scholarshipService.getAll(filters)
+            → Dynamic SQL: WHERE is_active = true AND deadline > NOW() + filters
+            → SELECT COUNT(*) → total (for pagination meta)
+            → SELECT ... LIMIT $limit OFFSET $offset → paginated rows
+          → return { success: true, data: [...], meta: { page, limit, total, totalPages } }
         → FE: hiển thị scholarship cards
 ```
 
@@ -59,9 +133,12 @@ FE: ScholarshipSearchPage.jsx
 - Response có `meta: { page, limit, total, totalPages }`
 
 ### Edge Cases
-- Không có filter nào → trả về top 20 scholarships mới nhất
-- Filter không match → trả về empty array
-- Deadline đã qua → không hiển thị (is_active = true AND deadline > now)
+- Không có filter nào → trả về top 20 scholarships mới nhất (deadline gần nhất)
+- Filter không match → trả về empty array + meta.total = 0
+- Deadline đã qua hoặc hết hạn trong ngày (`deadline > NOW()`) → không hiển thị
+- Limit vượt quá 50 → tự động clamp về 50 (MAX_LIMIT)
+- Invalid scholarship ID (UUID không đúng format) → PostgreSQL error → 500
+- Scholarship inactive hoặc hết hạn → `getById` trả 404
 
 ---
 

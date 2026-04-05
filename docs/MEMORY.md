@@ -28,9 +28,10 @@
 
 | # | Feature | Status | Ghi chú |
 |---|---------|--------|---------|
-| 1 | Scholarship Search | Chưa bắt đầu | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline |
-| 2 | Profile Manager | Chưa bắt đầu | Upload & quản lý CV, SOP, bảng điểm, thư giới thiệu |
-| 3 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
+| 1 | Scholarship Search | ✅ Hoàn thành | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline. Phân trang. Raw SQL. |
+| 2 | Auth (Week 3) | ✅ Hoàn thành | Register/Login/Logout/Refresh/Me. Raw SQL + bcryptjs + jwt. Rate limit 3-5 req/phút. |
+| 3 | Profile Manager | Chưa bắt đầu | Upload & quản lý CV, SOP, bảng điểm, thư giới thiệu |
+| 4 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
 
 ## Optional Features P1
 
