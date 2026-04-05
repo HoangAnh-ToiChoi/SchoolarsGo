@@ -8,7 +8,12 @@
     "start": "node src/server.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "seed": "node scripts/seed-scholarships.js"
+    "seed": "node scripts/seed-scholarships.js",
+    "seed:mock": "node scripts/seed-scholarships.js --mock",
+    "scrape": "node scripts/seed-scholarships.js --scrape-only",
+    "seed:cloud": "node scripts/seed-cloud.js",
+    "seed:cloud:dry": "node scripts/seed-cloud.js --dry-run",
+    "seed:cloud:limit": "node scripts/seed-cloud.js --limit=20"
   },
   "keywords": [
     "scholarship",
@@ -21,7 +26,9 @@
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0-rc.12",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -32,6 +39,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.20.0",
+    "rss-parser": "^3.13.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "zod": "^3.22.4"

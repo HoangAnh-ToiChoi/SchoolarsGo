@@ -1,0 +1,182 @@
+###
+# ============================================================
+# ScholarsGo — REST Client Test File
+# ============================================================
+# Extension: REST Client (VSCode marketplace)
+# Usage   : Nhấn "Send Request" (Ctrl+Alt+R / Cmd+Alt+R) trên mỗi block
+#
+# Chạy backend trước: cd backend && npm run dev
+# Backend mặc định chạy ở: http://localhost:5000
+#
+# Lưu ý:
+#   - Block @name đặt tên request → hiện trong history
+#   - Dùng {{$guid}} để tạo unique email mỗi lần gọi register
+#   - Dùng {{token}} variable để lưu token từ login response
+# ============================================================
+
+@baseUrl = http://localhost:5000/api
+@email = test{{$guid}}@example.com
+@password = 123456
+
+###############################################################################
+# AUTH — Đăng ký
+###############################################################################
+
+### [AUTH] POST /register
+# Tạo tài khoản mới
+# Rate limit: 3 requests / phút / IP
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "full_name": "Nguyen Van A"
+}
+
+> {%
+    if (response.body.success && response.body.data.token) {
+        client.global.set("authToken", response.body.data.token);
+        client.global.set("userEmail", response.body.data.user.email);
+        client.global.set("userId", response.body.data.user.id);
+        client.log("✅ Register thành công! Token đã lưu vào biến authToken.");
+    } else {
+        client.log("❌ Register thất bại: " + JSON.stringify(response.body));
+    }
+%}
+
+
+###############################################################################
+# AUTH — Đăng nhập
+###############################################################################
+
+### [AUTH] POST /login
+# Đăng nhập bằng email/password
+# Rate limit: 5 requests / phút / IP
+# Để @email rỗng (comment dòng trên) nếu muốn dùng tài khoản đã register ở trên
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{userEmail}}",
+  "password": "{{password}}"
+}
+
+> {%
+    if (response.body.success && response.body.data.token) {
+        client.global.set("authToken", response.body.data.token);
+        client.log("✅ Login thành công! Token đã lưu.");
+    } else {
+        client.log("❌ Login thất bại: " + JSON.stringify(response.body));
+    }
+%}
+
+
+###############################################################################
+# AUTH — Lấy thông tin user hiện tại
+###############################################################################
+
+### [AUTH] GET /me — Không có token
+GET {{baseUrl}}/auth/me
+
+> {%
+    client.log("Response: " + JSON.stringify(response.body));
+%}
+
+
+### [AUTH] GET /me — Có token (Authorization: Bearer)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+> {%
+    if (response.body.success) {
+        client.log("✅ Lấy profile thành công: " + JSON.stringify(response.body.data));
+    } else {
+        client.log("❌ Lỗi: " + JSON.stringify(response.body));
+    }
+%}
+
+
+###############################################################################
+# SCHOLARSHIPS — Lấy danh sách (Không cần auth)
+###############################################################################
+
+### [SCHOLARSHIP] GET /scholarships — Không filter (phân trang mặc định)
+# Trả về: page=1, limit=20, kèm meta { page, limit, total, totalPages }
+GET {{baseUrl}}/scholarships
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: country
+# Lọc học bổng theo quốc gia (case-insensitive, partial match)
+GET {{baseUrl}}/scholarships?country=USA
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: degree + country
+# Kết hợp nhiều filters
+GET {{baseUrl}}/scholarships?degree=Master&country=UK
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: min_gpa
+# Chỉ học bổng có min_gpa <= giá trị truyền vào
+# Ví dụ: min_gpa=3.5 → học bổng yêu cầu GPA <= 3.5 sẽ hiển thị
+GET {{baseUrl}}/scholarships?min_gpa=3.5
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: search (keyword)
+# Tìm kiếm theo title HOẶC provider (case-insensitive, partial match)
+GET {{baseUrl}}/scholarships?search=Fulbright
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: language
+GET {{baseUrl}}/scholarships?language=English
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: kết hợp nhiều params
+# Tìm học bổng Master ở USA, deadline >= ngày hiện tại, có min_gpa phù hợp
+GET {{baseUrl}}/scholarships?country=USA&degree=Master&min_gpa=3.0&language=English&search=Engineering
+
+
+### [SCHOLARSHIP] GET /scholarships — Phân trang tùy chỉnh
+# page=2, limit=10
+GET {{baseUrl}}/scholarships?page=2&limit=10
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: featured=true
+GET {{baseUrl}}/scholarships?featured=true
+
+
+### [SCHOLARSHIP] GET /scholarships — Filter: coverage
+# coverage: Full, Partial, Tuition, Stipend, Accommodation
+GET {{baseUrl}}/scholarships?coverage=Full
+
+
+### [SCHOLARSHIP] GET /scholarships/featured — Học bổng nổi bật
+GET {{baseUrl}}/scholarships/featured
+
+
+### [SCHOLARSHIP] GET /scholarships/countries — Danh sách quốc gia có sẵn
+GET {{baseUrl}}/scholarships/countries
+
+
+###############################################################################
+# SCHOLARSHIPS — Lấy chi tiết (Không cần auth)
+###############################################################################
+
+### [SCHOLARSHIP] GET /scholarships/:id — Lấy chi tiết 1 học bổng
+# Thay {{scholarshipId}} bằng UUID thực tế từ danh sách ở trên
+# VD: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+GET {{baseUrl}}/scholarships/3fa85f64-5717-4562-b3fc-2c963f66afa6
+
+
+### [SCHOLARSHIP] GET /scholarships/:id — Có auth (trả về thêm field is_saved)
+# Nếu user đã login và lưu học bổng này → is_saved: true
+GET {{baseUrl}}/scholarships/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Authorization: Bearer {{authToken}}
+
+
+###############################################################################
+# HEALTH CHECK
+###############################################################################
+
+### [SYSTEM] GET /health
+GET {{baseUrl}}/health

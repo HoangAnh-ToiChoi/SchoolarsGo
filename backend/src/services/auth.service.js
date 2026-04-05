@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { supabaseAdmin } = require('./supabase');
+const { query, queryOne } = require('../utils/db');
 
 const SALT_ROUNDS = 12;
 
@@ -13,11 +13,10 @@ const generateToken = (user) => {
 };
 
 const register = async (email, password, fullName) => {
-  const { data: existing } = await supabaseAdmin
-    .from('users')
-    .select('id')
-    .eq('email', email)
-    .single();
+  const existing = await queryOne(
+    'SELECT id FROM users WHERE email = $1',
+    [email]
+  );
 
   if (existing) {
     const err = new Error('Email đã được sử dụng');
@@ -26,26 +25,45 @@ const register = async (email, password, fullName) => {
     throw err;
   }
 
-  const { data: user, error } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    user_metadata: { full_name: fullName },
-  });
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  if (error) throw error;
+  const user = await queryOne(
+    `INSERT INTO users (email, password_hash, full_name)
+     VALUES ($1, $2, $3)
+     RETURNING id, email, full_name, avatar_url, phone, date_of_birth, created_at`,
+    [email, passwordHash, fullName]
+  );
+
+  if (!user) {
+    const err = new Error('Không thể tạo user');
+    err.statusCode = 500;
+    err.isOperational = true;
+    throw err;
+  }
 
   const token = generateToken(user);
 
   return {
-    user: { id: user.id, email: user.email, full_name: user.user_metadata.full_name },
+    user: { id: user.id, email: user.email, full_name: user.full_name },
     token,
   };
 };
 
 const login = async (email, password) => {
-  const { data: user, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
+  const user = await queryOne(
+    'SELECT id, email, password_hash, full_name, avatar_url, phone, date_of_birth FROM users WHERE email = $1',
+    [email]
+  );
 
-  if (error) {
+  if (!user) {
+    const err = new Error('Email hoặc mật khẩu không đúng');
+    err.statusCode = 401;
+    err.isOperational = true;
+    throw err;
+  }
+
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) {
     const err = new Error('Email hoặc mật khẩu không đúng');
     err.statusCode = 401;
     err.isOperational = true;
@@ -55,42 +73,32 @@ const login = async (email, password) => {
   const token = generateToken(user);
 
   return {
-    user: { id: user.id, email: user.email, full_name: user.user_metadata.full_name },
+    user: { id: user.id, email: user.email, full_name: user.full_name },
     token,
   };
 };
 
 const getMe = async (userId) => {
-  const { data: user, error } = await supabaseAdmin
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  const user = await queryOne(
+    'SELECT id, email, full_name, avatar_url, phone, date_of_birth, created_at FROM users WHERE id = $1',
+    [userId]
+  );
 
-  if (error || !user) {
+  if (!user) {
     const err = new Error('Không tìm thấy user');
     err.statusCode = 404;
     err.isOperational = true;
     throw err;
   }
 
-  return {
-    id: user.id,
-    email: user.email,
-    full_name: user.full_name,
-    avatar_url: user.avatar_url,
-    phone: user.phone,
-    date_of_birth: user.date_of_birth,
-    created_at: user.created_at,
-  };
+  return user;
 };
 
 const refreshToken = async (userId) => {
-  const { data: user } = await supabaseAdmin
-    .from('users')
-    .select('id, email')
-    .eq('id', userId)
-    .single();
+  const user = await queryOne(
+    'SELECT id, email FROM users WHERE id = $1',
+    [userId]
+  );
 
   if (!user) {
     const err = new Error('Không tìm thấy user');

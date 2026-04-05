@@ -1,130 +1,136 @@
-const { supabase, supabaseAdmin } = require('./supabase');
+const { query, queryOne } = require('../utils/db');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
 
-// Build Supabase query từ filters
-const buildFilters = (query, filters) => {
-  const {
-    country,
-    degree,
-    field,
-    language,
-    min_gpa,
-    min_ielts,
-    deadline_from,
-    deadline_to,
-    amount_min,
-    coverage,
-    featured,
-    search,
-  } = filters;
-
-  if (country) query = query.ilike('country', `%${country}%`);
-  if (degree) query = query.eq('degree', degree);
-  if (field) query = query.ilike('field_of_study', `%${field}%`);
-  if (language) query = query.eq('language', language);
-  if (min_gpa) query = query.lte('min_gpa', Number(min_gpa));
-  if (min_ielts) query = query.lte('min_ielts', Number(min_ielts));
-  if (deadline_from) query = query.gte('deadline', deadline_from);
-  if (deadline_to) query = query.lte('deadline', deadline_to);
-  if (amount_min) query = query.gte('amount', Number(amount_min));
-  if (coverage) query = query.eq('coverage', coverage);
-  if (featured !== undefined) query = query.eq('is_featured', featured === 'true' || featured === true);
-
-  // Chỉ hiển thị scholarships còn hạn và active
-  query = query.eq('is_active', true);
-  query = query.gte('deadline', new Date().toISOString());
-
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,provider.ilike.%${search}%`);
-  }
-
-  return query;
-};
-
 const getAll = async (filters) => {
   const page = Math.max(1, Number(filters.page) || 1);
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+  const offset = (page - 1) * limit;
 
-  let query = supabase
-    .from('scholarships')
-    .select('id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured', { count: 'exact' });
+  const conditions = ['is_active = true', 'deadline > NOW()'];
+  const params = [];
+  let idx = 1;
 
-  query = buildFilters(query, filters);
-  query = query.order('deadline', { ascending: true }).range(from, to);
+  if (filters.country) {
+    conditions.push(`country ILIKE $${idx++}`);
+    params.push(`%${filters.country}%`);
+  }
+  if (filters.degree) {
+    conditions.push(`degree = $${idx++}`);
+    params.push(filters.degree);
+  }
+  if (filters.field) {
+    conditions.push(`field_of_study ILIKE $${idx++}`);
+    params.push(`%${filters.field}%`);
+  }
+  if (filters.language) {
+    conditions.push(`language = $${idx++}`);
+    params.push(filters.language);
+  }
+  if (filters.min_gpa) {
+    conditions.push(`min_gpa <= $${idx++}`);
+    params.push(Number(filters.min_gpa));
+  }
+  if (filters.min_ielts) {
+    conditions.push(`min_ielts <= $${idx++}`);
+    params.push(Number(filters.min_ielts));
+  }
+  if (filters.deadline_from) {
+    conditions.push(`deadline >= $${idx++}`);
+    params.push(filters.deadline_from);
+  }
+  if (filters.deadline_to) {
+    conditions.push(`deadline <= $${idx++}`);
+    params.push(filters.deadline_to);
+  }
+  if (filters.amount_min) {
+    conditions.push(`amount >= $${idx++}`);
+    params.push(Number(filters.amount_min));
+  }
+  if (filters.coverage) {
+    conditions.push(`coverage = $${idx++}`);
+    params.push(filters.coverage);
+  }
+  if (filters.featured === 'true' || filters.featured === true) {
+    conditions.push(`is_featured = true`);
+  }
+  if (filters.search) {
+    conditions.push(`(title ILIKE $${idx} OR provider ILIKE $${idx})`);
+    params.push(`%${filters.search}%`);
+    idx++;
+  }
 
-  const { data, error, count } = await query;
+  const where = `WHERE ${conditions.join(' AND ')}`;
 
-  if (error) throw error;
-
-  const total = count || 0;
+  // Count total
+  const countResult = await queryOne(
+    `SELECT COUNT(*) as total FROM scholarships ${where}`,
+    params
+  );
+  const total = parseInt(countResult.total, 10);
   const totalPages = Math.ceil(total / limit);
 
+  // Fetch data
+  const selectCols = [
+    'id', 'title', 'provider', 'country', 'degree', 'amount', 'currency',
+    'coverage', 'deadline', 'language', 'min_gpa', 'image_url', 'is_featured',
+  ].join(', ');
+
+  const data = await query(
+    `SELECT ${selectCols} FROM scholarships ${where} ORDER BY deadline ASC LIMIT $${idx++} OFFSET $${idx}`,
+    [...params, limit, offset]
+  );
+
   return {
-    data,
+    data: data.rows,
     meta: { page, limit, total, totalPages },
   };
 };
 
 const getFeatured = async () => {
-  const { data, error } = await supabase
-    .from('scholarships')
-    .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
-    .eq('is_featured', true)
-    .eq('is_active', true)
-    .gte('deadline', new Date().toISOString())
-    .order('deadline', { ascending: true })
-    .limit(6);
-
-  if (error) throw error;
-  return data;
+  const data = await query(
+    `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
+     FROM scholarships
+     WHERE is_active = true AND deadline >= now() AND is_featured = true
+     ORDER BY deadline ASC
+     LIMIT 6`
+  );
+  return data.rows;
 };
 
 const getCountries = async () => {
-  const { data, error } = await supabase
-    .from('scholarships')
-    .select('country')
-    .eq('is_active', true)
-    .not('country', 'is', null)
-    .order('country');
-
-  if (error) throw error;
-
-  // Loại bỏ duplicates
-  const countries = [...new Set(data.map((r) => r.country))];
-  return countries;
+  const data = await query(
+    `SELECT DISTINCT country FROM scholarships
+     WHERE is_active = true AND country IS NOT NULL
+     ORDER BY country ASC`
+  );
+  return data.rows.map((r) => r.country);
 };
 
 const getById = async (id, userId) => {
-  const { data, error } = await supabase
-    .from('scholarships')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const scholarship = await queryOne(
+    'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()',
+    [id]
+  );
 
-  if (error || !data) {
+  if (!scholarship) {
     const err = new Error('Không tìm thấy học bổng');
     err.statusCode = 404;
     err.isOperational = true;
     throw err;
   }
 
-  // Kiểm tra user đã save chưa
   let isSaved = false;
   if (userId) {
-    const { data: saved } = await supabase
-      .from('saved_scholarships')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('scholarship_id', id)
-      .single();
+    const saved = await queryOne(
+      'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
+      [userId, id]
+    );
     isSaved = !!saved;
   }
 
-  return { ...data, is_saved: isSaved };
+  return { ...scholarship, is_saved: isSaved };
 };
 
 module.exports = { getAll, getFeatured, getCountries, getById };

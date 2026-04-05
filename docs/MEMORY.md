@@ -3,11 +3,11 @@
 # ============================================================
 | # | File | Mô tả | Last Updated |
 |---|------|-------|--------------|
-| 1 | MEMORY.md | INDEX — file này | 26/3/2026 |
+| 1 | MEMORY.md | INDEX — file này | 31/3/2026 |
 | 2 | [MEMORY-schema.md](./MEMORY-schema.md) | Database schema toàn bộ tables | 26/3/2026 |
 | 3 | [MEMORY-api.md](./MEMORY-api.md) | API contracts tất cả endpoints | 26/3/2026 |
-| 4 | [MEMORY-features.md](./MEMORY-features.md) | Luồng nghiệp vụ, data flow, thuật toán | 26/3/2026 |
-| 5 | [MEMORY-devlog.md](./MEMORY-devlog.md) | Bug đã fix, quyết định kỹ thuật, tech debt | 26/3/2026 |
+| 4 | [MEMORY-features.md](./MEMORY-features.md) | Luồng nghiệp vụ, data flow, thuật toán | 31/3/2026 |
+| 5 | [MEMORY-devlog.md](./MEMORY-devlog.md) | Bug đã fix, quyết định kỹ thuật, tech debt | 31/3/2026 |
 
 ---
 
@@ -28,9 +28,10 @@
 
 | # | Feature | Status | Ghi chú |
 |---|---------|--------|---------|
-| 1 | Scholarship Search | Chưa bắt đầu | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline |
-| 2 | Profile Manager | Chưa bắt đầu | Upload & quản lý CV, SOP, bảng điểm, thư giới thiệu |
-| 3 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
+| 1 | Scholarship Search | ✅ Hoàn thành | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline. Phân trang. Raw SQL. |
+| 2 | Auth (Week 3) | ✅ Hoàn thành | Register/Login/Logout/Refresh/Me. Raw SQL + bcryptjs + jwt. Rate limit 3-5 req/phút. |
+| 3 | Profile Manager | Chưa bắt đầu | Upload & quản lý CV, SOP, bảng điểm, thư giới thiệu |
+| 4 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
 
 ## Optional Features P1
 

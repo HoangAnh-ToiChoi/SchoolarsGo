@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DEVELOPER LOG
 # ============================================================
-# Last Updated: 26/3/2026
+# Last Updated: 4/4/2026
 
 ---
 
@@ -10,16 +10,103 @@
 | Date | Version | Type | Description |
 |------|---------|------|-------------|
 | 26/3/2026 | v0.1 | init | Initial project scaffold, 6 DB tables, 18 API endpoints defined |
+| 31/3/2026 | v0.2 | feat | Viết script scrape scholarships từ scholars4dev.com, seed vào Supabase. Thêm axios + cheerio vào package.json. Thêm npm scripts: seed, seed:mock, scrape |
+| 4/4/2026 | v0.3 | feat | Auth API Week 3: register/login/logout/refresh/me. Raw SQL (không Supabase SDK). bcryptjs + jsonwebtoken + express-rate-limit. Validators: password min 6 chars. |
+| 4/4/2026 | v0.4 | feat | Scholarships API Week 3: list/detail endpoints. Raw SQL, parameterized queries, dynamic filter builder, pagination (COUNT + LIMIT/OFFSET), `deadline > NOW()` check. File test-api.http. |
 
 ---
 
 ## Bug Fixes
 
-*(Chưa có bug nào được fix — project mới khởi tạo)*
+### 4/4/2026 — scholarship.service.js: getById thiếu điều kiện is_active + deadline
+**Vấn đề:** Endpoint `GET /api/scholarships/:id` không kiểm tra `is_active = true` và `deadline > NOW()` → cho phép truy cập học bổng đã hết hạn hoặc bị deactivate.
+
+**Fix:**
+```sql
+-- TRƯỚC (bug):
+SELECT * FROM scholarships WHERE id = $1
+
+-- SAU (fix):
+SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()
+```
+
+### 4/4/2026 — scholarship.service.js: getAll dùng `deadline >= now()` thay vì `> now()`
+**Vấn đề:** Học bổng có deadline trùng với thời điểm hiện tại vẫn hiển thị → có thể gây confusion khi deadline hết vào đúng ngày.
+
+**Fix:**
+```sql
+-- TRƯỚC (bug):
+const conditions = ['is_active = true', 'deadline >= now()'];
+
+-- SAU (fix):
+const conditions = ['is_active = true', 'deadline > NOW()'];
+```
 
 ---
 
 ## Technical Decisions
+
+### 4/4/2026 — Auth: Raw SQL + bcryptjs + jsonwebtoken (không dùng Supabase SDK)
+
+**Vấn đề:** Yêu cầu Week 3 chỉ định dùng `bcrypt` và `jsonwebtoken` thuần, không dùng `@supabase/supabase-js` cho auth. Các thư viện này đã có trong `package.json` (`bcryptjs` và `jsonwebtoken`).
+
+**Lựa chọn:**
+- Supabase Auth (built-in) → dùng `supabase.auth.*` → có sẵn nhưng không match yêu cầu đề bài
+- Raw SQL + bcryptjs + jsonwebtoken → chủ động hoàn toàn, parameterized queries chống SQL injection
+
+**Quyết định:** Raw SQL + bcryptjs + jsonwebtoken
+
+**Lý do:**
+- Match đúng yêu cầu đề bài
+- PostgreSQL connection pool được cấu hình sẵn trong `src/utils/db.js` (max 20 conn, parameterized queries)
+- Hoàn toàn chủ động về security (bcrypt salt rounds = 12)
+- JWT payload chứa `{ id, email }`, verify ở middleware `src/middlewares/auth.js`
+
+**Files changed:**
+- `src/services/auth.service.js` — register, login, getMe, refreshToken bằng raw SQL
+- `src/controllers/auth.controller.js` — request handlers
+- `src/routes/auth.routes.js` — wired rate limiter + validate middleware
+- `src/middlewares/auth.js` — JWT verification (đã có sẵn, payload là `{ id, email }`)
+- `src/utils/validators.js` — password min length: 8 → 6
+
+---
+
+### 4/4/2026 — Rate Limiting: express-rate-limit ở route-level
+
+**Vấn đề:** Cần áp dụng rate limit khác nhau cho register (3 req/phút) và login (5 req/phút).
+
+**Lựa chọn:**
+- Global rate limiter (1 middleware cho toàn app) → không linh hoạt
+- Route-level rate limiter (factory function `rateLimiter()`) → có thể cấu hình per-route
+
+**Quyết định:** Route-level qua factory function `rateLimiter(maxRequests, windowSeconds, message)`
+
+**Lý do:**
+- Linh hoạt: mỗi route có limit riêng
+- Dùng `express-rate-limit` (đã có trong dependencies)
+- Skip health check endpoint để tránh ảnh hưởng monitoring
+
+---
+
+### 31/3/2026 — Scraping: axios + cheerio thay vì Puppeteer/Playwright
+
+**Vấn đề:** Cần cào dữ liệu scholarships từ scholars4dev.com để seed 500+ records vào DB trước 6/5/2026.
+
+**Lựa chọn:**
+- Puppeteer / Playwright → headless browser, parse chính xác, nhưng nặng, chậm, dễ bị detect
+- axios + cheerio → HTTP request + HTML parsing, nhẹ, nhanh, đủ cho trang có cấu trúc đơn giản
+
+**Quyết định:** axios + cheerio
+
+**Lý do:**
+- Trang scholars4dev có HTML structure đơn giản, có thể parse bằng CSS selector
+- Nhẹ hơn nhiều so với headless browser
+- Dễ maintain và debug
+- Thêm rate limiting (1.2s sleep) để tránh bị chặn IP
+
+**Fallback:** Nếu website thay đổi cấu trúc HTML → cân nhắc chuyển sang Puppeteer.
+
+---
 
 ### 26/3/2026 — Database: Supabase thay vì raw PostgreSQL
 

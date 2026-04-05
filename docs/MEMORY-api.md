@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — API CONTRACTS
 # ============================================================
-# Last Updated: 26/3/2026
+# Last Updated: 4/4/2026
 
 ---
 
@@ -386,11 +386,15 @@ Get scholarship recommendations based on user profile (auth required).
 
 | Method | Path | Status | Notes |
 |--------|------|--------|-------|
-| POST | /api/auth/register | Chưa implement | — |
-| POST | /api/auth/login | Chưa implement | — |
-| GET | /api/auth/me | Chưa implement | — |
-| GET | /api/scholarships | Chưa implement | — |
-| GET | /api/scholarships/:id | Chưa implement | — |
+| POST | /api/auth/register | ✅ Implemented | Raw SQL + bcryptjs + jwt. Rate limit: 3 req/phút/IP |
+| POST | /api/auth/login | ✅ Implemented | Raw SQL + bcryptjs + jwt. Rate limit: 5 req/phút/IP |
+| GET | /api/auth/me | ✅ Implemented | Auth required |
+| POST | /api/auth/logout | ✅ Implemented | Clear cookie |
+| POST | /api/auth/refresh | ✅ Implemented | Auth required |
+| GET | /api/scholarships | ✅ Implemented | Filters: country, degree, min_gpa, search, language, coverage, featured... Pagination. Raw SQL. |
+| GET | /api/scholarships/:id | ✅ Implemented | Detail. is_active + deadline > NOW(). Raw SQL. |
+| GET | /api/scholarships/featured | ✅ Implemented | Top 6 featured scholarships |
+| GET | /api/scholarships/countries | ✅ Implemented | Distinct country list |
 | GET | /api/profile | Chưa implement | — |
 | PUT | /api/profile | Chưa implement | — |
 | GET | /api/documents | Chưa implement | — |

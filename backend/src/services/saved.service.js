@@ -1,38 +1,36 @@
-const { supabase } = require('./supabase');
+const { query, queryOne } = require('../utils/db');
 
 const getAll = async (userId) => {
-  const { data, error } = await supabase
-    .from('saved_scholarships')
-    .select('*, scholarship:scholarships(id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data;
+  const data = await query(
+    `SELECT ss.id, ss.note, ss.created_at,
+            s.id as scholarship_id, s.title, s.provider, s.country, s.degree,
+            s.amount, s.currency, s.deadline, s.image_url, s.is_featured
+     FROM saved_scholarships ss
+     JOIN scholarships s ON ss.scholarship_id = s.id
+     WHERE ss.user_id = $1
+     ORDER BY ss.created_at DESC`,
+    [userId]
+  );
+  return data.rows;
 };
 
 const save = async (userId, scholarshipId, note) => {
-  // Kiểm tra scholarship tồn tại
-  const { data: scholarship, error: schError } = await supabase
-    .from('scholarships')
-    .select('id, title')
-    .eq('id', scholarshipId)
-    .single();
+  const scholarship = await queryOne(
+    'SELECT id, title FROM scholarships WHERE id = $1',
+    [scholarshipId]
+  );
 
-  if (schError || !scholarship) {
+  if (!scholarship) {
     const err = new Error('Không tìm thấy học bổng');
     err.statusCode = 404;
     err.isOperational = true;
     throw err;
   }
 
-  // Kiểm tra đã save chưa
-  const { data: existing } = await supabase
-    .from('saved_scholarships')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('scholarship_id', scholarshipId)
-    .single();
+  const existing = await queryOne(
+    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
+    [userId, scholarshipId]
+  );
 
   if (existing) {
     const err = new Error(`Bạn đã lưu học bổng "${scholarship.title}" rồi`);
@@ -41,24 +39,37 @@ const save = async (userId, scholarshipId, note) => {
     throw err;
   }
 
-  const { data, error } = await supabase
-    .from('saved_scholarships')
-    .insert({ user_id: userId, scholarship_id: scholarshipId, note: note || null })
-    .select('*, scholarship:scholarships(id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
-    .single();
+  const saved = await queryOne(
+    `INSERT INTO saved_scholarships (user_id, scholarship_id, note)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [userId, scholarshipId, note || null]
+  );
 
-  if (error) throw error;
-  return data;
+  // Lấy scholarship details
+  const scholarshipDetails = await queryOne(
+    `SELECT id as scholarship_id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
+     FROM scholarships WHERE id = $1`,
+    [scholarshipId]
+  );
+
+  return { ...saved, scholarship: scholarshipDetails };
 };
 
 const remove = async (userId, scholarshipId) => {
-  const { error } = await supabase
-    .from('saved_scholarships')
-    .delete()
-    .eq('user_id', userId)
-    .eq('scholarship_id', scholarshipId);
+  const existing = await queryOne(
+    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
+    [userId, scholarshipId]
+  );
 
-  if (error) throw error;
+  if (!existing) {
+    const err = new Error('Không tìm thấy scholarship trong danh sách đã lưu');
+    err.statusCode = 404;
+    err.isOperational = true;
+    throw err;
+  }
+
+  await query('DELETE FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2', [userId, scholarshipId]);
 };
 
 module.exports = { getAll, save, remove };

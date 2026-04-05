@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DATABASE SCHEMA
 # ============================================================
-# Last Updated: 26/3/2026
+# Last Updated: 4/4/2026
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Database | Provider | Connection |
 |----------|----------|------------|
-| PostgreSQL | Supabase | supabase-js SDK |
+| PostgreSQL | Supabase | Raw pg Pool (`src/utils/db.js`) | Raw SQL — không Supabase SDK cho API |
 
 ---
 
