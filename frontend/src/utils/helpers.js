@@ -40,11 +40,11 @@ export const truncate = (str, length = 100) => {
 export const getStatusColor = (status) => {
   const colors = {
     draft: 'bg-gray-100 text-gray-700',
-    submitted: 'bg-blue-100 text-blue-700',
-    under_review: 'bg-yellow-100 text-yellow-700',
-    interview: 'bg-purple-100 text-purple-700',
-    accepted: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
+    submitted: 'bg-primary-50 text-primary-700',
+    under_review: 'bg-warning-50 text-warning-700',
+    interview: 'bg-secondary-50 text-secondary-700',
+    accepted: 'bg-success-50 text-success-700',
+    rejected: 'bg-danger-50 text-danger-700',
     withdrawn: 'bg-gray-100 text-gray-500',
   };
   return colors[status] || 'bg-gray-100 text-gray-700';

@@ -9,31 +9,31 @@ const HomePage = () => {
     <div>
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+        <div className="container-page py-20 md:py-32">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-tag px-4 py-2 mb-8">
               <Star className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm font-medium">500+ Học bổng đang chờ bạn</span>
+              <span className="text-body-sm font-medium">500+ Học bổng đang chờ bạn</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+            <h1 className="text-4xl md:text-display font-extrabold mb-6 leading-tight">
               Tìm Học Bổng Du Học<br />
               <span className="text-yellow-300">Phù Hợp Nhất</span>
             </h1>
-            <p className="text-lg md:text-xl text-primary-100 mb-10 max-w-2xl mx-auto">
+            <p className="text-body-lg text-primary-100 mb-10 max-w-2xl mx-auto">
               ScholarsGo giúp sinh viên Việt Nam tìm kiếm và ứng tuyển học bổng du học
               với công nghệ AI thông minh, quản lý hồ sơ chuyên nghiệp.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/scholarships"
-                className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary-50 transition-colors shadow-lg"
+                className="btn btn-lg bg-white text-primary-700 hover:bg-primary-50 shadow-lg"
               >
                 <Search className="w-5 h-5" />
                 Tìm Học Bổng Ngay
               </Link>
               <Link
                 to="/register"
-                className="inline-flex items-center gap-2 bg-primary-500 bg-opacity-20 backdrop-blur-sm border border-white/30 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-opacity-30 transition-colors"
+                className="btn btn-lg bg-primary-500/20 backdrop-blur-sm border border-white/30 text-white hover:bg-primary-500/30"
               >
                 Đăng Ký Miễn Phí
                 <ArrowRight className="w-5 h-5" />
@@ -44,35 +44,35 @@ const HomePage = () => {
       </section>
 
       {/* Features */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-section bg-white">
+        <div className="container-page">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Tại sao chọn ScholarsGo?</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            <h2 className="section-title">Tại sao chọn ScholarsGo?</h2>
+            <p className="section-subtitle max-w-2xl mx-auto">
               Nền tảng toàn diện giúp bạn từ tìm kiếm đến khi nhận học bổng
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Search className="w-8 h-8 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Tìm Kiếm Thông Minh</h3>
-              <p className="text-gray-600">Filter theo quốc gia, ngành học, GPA, deadline — tìm học bổng phù hợp trong giây lát</p>
+              <h3 className="text-heading-3 text-gray-900 mb-3">Tìm Kiếm Thông Minh</h3>
+              <p className="text-body text-gray-600">Filter theo quốc gia, ngành học, GPA, deadline — tìm học bổng phù hợp trong giây lát</p>
             </div>
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-secondary-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <GraduationCap className="w-8 h-8 text-secondary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Quản Lý Hồ Sơ</h3>
-              <p className="text-gray-600">Upload và quản lý CV, SOP, bảng điểm, thư giới thiệu — mọi thứ ở một nơi</p>
+              <h3 className="text-heading-3 text-gray-900 mb-3">Quản Lý Hồ Sơ</h3>
+              <p className="text-body text-gray-600">Upload và quản lý CV, SOP, bảng điểm, thư giới thiệu — mọi thứ ở một nơi</p>
             </div>
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Star className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-success-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Star className="w-8 h-8 text-success-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Gợi Ý AI</h3>
-              <p className="text-gray-600">Công nghệ AI phân tích profile và gợi ý học bổng phù hợp nhất với bạn</p>
+              <h3 className="text-heading-3 text-gray-900 mb-3">Gợi Ý AI</h3>
+              <p className="text-body text-gray-600">Công nghệ AI phân tích profile và gợi ý học bổng phù hợp nhất với bạn</p>
             </div>
           </div>
         </div>
