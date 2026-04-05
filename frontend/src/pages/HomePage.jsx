@@ -8,18 +8,18 @@ const HomePage = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 text-white">
+      <section className="bg-gradient-to-br from-slate-700 via-blue-700 to-slate-800 text-white">
         <div className="container-page py-20 md:py-32">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-tag px-4 py-2 mb-8">
-              <Star className="w-4 h-4 text-yellow-400" />
+              <Star className="w-4 h-4 text-amber-300" />
               <span className="text-body-sm font-medium">500+ Học bổng đang chờ bạn</span>
             </div>
             <h1 className="text-4xl md:text-display font-extrabold mb-6 leading-tight">
               Tìm Học Bổng Du Học<br />
-              <span className="text-yellow-300">Phù Hợp Nhất</span>
+              <span className="text-amber-200">Phù Hợp Nhất</span>
             </h1>
-            <p className="text-body-lg text-primary-100 mb-10 max-w-2xl mx-auto">
+            <p className="text-body-lg text-blue-100/90 mb-10 max-w-2xl mx-auto">
               ScholarsGo giúp sinh viên Việt Nam tìm kiếm và ứng tuyển học bổng du học
               với công nghệ AI thông minh, quản lý hồ sơ chuyên nghiệp.
             </p>
