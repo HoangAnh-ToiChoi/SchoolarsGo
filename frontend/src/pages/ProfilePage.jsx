@@ -68,7 +68,7 @@ const ProfilePage = () => {
               </div>
               <div className="flex items-center gap-3">
                 {documents?.data?.filter((d) => d.type === docType.value).map((d) => (
-                  <div key={d.id} className="flex items-center gap-2 bg-white px-3 py-1 rounded-button border">
+                  <div key={d.id} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-button border">
                     <span className="text-body-sm text-gray-600 max-w-[150px] truncate">{d.file_name}</span>
                     <button onClick={() => deleteDoc.mutate(d.id)} className="text-danger-500 hover:text-danger-700"><Trash2 className="w-4 h-4" /></button>
                   </div>

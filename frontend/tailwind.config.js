@@ -52,6 +52,11 @@ export default {
           600: '#dc2626',
           700: '#b91c1c',
         },
+        // Surface tokens – dùng thay thế bg-white để giảm cường độ trắng
+        surface: {
+          DEFAULT: '#f8fafc', // off-white cho card, modal, input panel
+          muted: '#f1f5f9',   // cho body, section xen kẽ, btn hover
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -74,8 +79,8 @@ export default {
         'tag': '9999px',
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
-        'card-hover': '0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.06)',
+        'card': '0 2px 8px 0 rgb(0 0 0 / 0.09), 0 1px 3px 0 rgb(0 0 0 / 0.06)',
+        'card-hover': '0 20px 40px -8px rgb(0 0 0 / 0.16), 0 8px 20px -4px rgb(0 0 0 / 0.10)',
         'button': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
       },
       spacing: {

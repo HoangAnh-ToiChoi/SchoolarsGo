@@ -21,7 +21,7 @@ const Header = () => {
   ];
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-surface shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -95,7 +95,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 animate-slide-down">
+        <div className="md:hidden bg-surface border-t border-gray-100 animate-slide-down">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <Link
