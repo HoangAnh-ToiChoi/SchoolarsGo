@@ -1,10 +1,10 @@
 import { cn } from '../../utils/helpers';
 
-const Input = ({ label, icon: Icon, error, className, id, ...props }) => {
+const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, className, id, ...props }) => {
   const inputId = id || props.name;
 
   return (
-    <div>
+    <div className={wrapperClassName}>
       {label && (
         <label htmlFor={inputId} className="input-label">
           {label}
@@ -21,6 +21,7 @@ const Input = ({ label, icon: Icon, error, className, id, ...props }) => {
         />
       </div>
       {error && <p className="text-caption text-danger-600 mt-1">{error}</p>}
+      {!error && helperText && <p className="text-caption text-gray-500 mt-1">{helperText}</p>}
     </div>
   );
 };
