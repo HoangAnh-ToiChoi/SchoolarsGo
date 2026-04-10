@@ -52,6 +52,11 @@ export default {
           600: '#dc2626',
           700: '#b91c1c',
         },
+        // Surface tokens – dùng thay thế bg-white để giảm cường độ trắng
+        surface: {
+          DEFAULT: '#f8fafc', // off-white cho card, modal, input panel
+          muted: '#f1f5f9',   // cho body, section xen kẽ, btn hover
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

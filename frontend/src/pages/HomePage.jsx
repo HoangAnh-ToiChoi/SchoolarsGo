@@ -119,7 +119,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="py-section bg-white">
+      <section className="py-section bg-surface">
         <div className="container-page">
           <div className="mb-16 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -182,7 +182,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="py-section bg-white">
+      <section className="py-section bg-surface-muted">
         <div className="container-page">
           <Card className="overflow-hidden border-none bg-gradient-to-r from-slate-950 via-primary-900 to-sky-800 text-white shadow-card-hover">
             <CardContent className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
