@@ -54,8 +54,8 @@ export default {
         },
         // Surface tokens – dùng thay thế bg-white để giảm cường độ trắng
         surface: {
-          DEFAULT: '#f8fafc', // off-white cho card, modal, input panel
-          muted: '#f1f5f9',   // cho body, section xen kẽ, btn hover
+          DEFAULT: '#f8fafcc0', // off-white cho card, modal, input panel
+          muted: '#f1f5f9b1',   // cho body, section xen kẽ, btn hover
         },
       },
       fontFamily: {
