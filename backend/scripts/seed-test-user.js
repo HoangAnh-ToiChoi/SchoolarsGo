@@ -10,6 +10,10 @@
  *   Password: 123456
  */
 
+'use strict';
+
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 
