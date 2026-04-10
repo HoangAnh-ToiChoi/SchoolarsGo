@@ -79,7 +79,7 @@ body {
   }
 
   .card-hover {
-    @apply card hover:shadow-card-hover hover:border-primary-100 transition-all;
+    @apply card hover:shadow-card-hover hover:-translate-y-2 hover:border-primary-100 transition-all duration-300;
   }
 
   .card-body {
