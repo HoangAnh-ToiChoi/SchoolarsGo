@@ -7,56 +7,62 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary: Chuyển sang tông Xanh Slate/Indigo dịu mắt hơn
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#f0f4f8',
+          100: '#d9e2ec',
+          200: '#bcccdc',
+          300: '#9fb3c8',
+          400: '#829ab1',
+          500: '#627d98', // Màu chủ đạo trầm, chuyên nghiệp
+          600: '#486581',
+          700: '#334e68',
+          800: '#243b53',
+          900: '#102a43',
         },
+        // Secondary: Tông tím khói (Muted Purple)
         secondary: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
+          50: '#f5f3f7',
+          100: '#e8e4ec',
+          200: '#d0c9d6',
+          300: '#b6acc0',
+          400: '#9c8eaa',
+          500: '#827094',
+          600: '#6a597a',
+          700: '#53465f',
+          800: '#3c3345',
+          900: '#25202b',
         },
         success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
+          50: '#f2f9f1',
+          500: '#62a46e', // Xanh lá xám dịu
+          600: '#498a54',
+          700: '#34703f',
         },
         warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
+          50: '#fff9f2',
+          500: '#d99430', // Cam đất thay vì cam tươi
+          600: '#bc791d',
+          700: '#9c6010',
         },
         danger: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
+          50: '#fff5f5',
+          500: '#bc5454', // Đỏ đô nhẹ
+          600: '#a33c3c',
+          700: '#892727',
         },
-        // Surface tokens – dùng thay thế bg-white để giảm cường độ trắng
+        // Surface: Tránh dùng màu trắng tinh (Pure White #FFFFFF)
         surface: {
-          DEFAULT: '#f8fafcc0', // off-white cho card, modal, input panel
-          muted: '#f1f5f9b1',   // cho body, section xen kẽ, btn hover
+          DEFAULT: '#ffffff',      // Nền card trắng tinh khôi
+          sunken: '#f7f9fb',      // Nền body hơi xám xanh để dịu mắt
+          muted: '#e4e7eb',       // Cho các thành phần phụ
         },
+        // Text: Giảm độ đen tuyệt đối để tăng tính thẩm mỹ
+        content: {
+          primary: '#1f2933',     // Chữ chính
+          secondary: '#52606d',   // Chữ phụ
+          tertiary: '#9aa5b1',    // Chữ mờ/placeholder
+        }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -79,9 +85,10 @@ export default {
         'tag': '9999px',
       },
       boxShadow: {
-        'card': '0 2px 8px 0 rgb(0 0 0 / 0.09), 0 1px 3px 0 rgb(0 0 0 / 0.06)',
-        'card-hover': '0 20px 40px -8px rgb(0 0 0 / 0.16), 0 8px 20px -4px rgb(0 0 0 / 0.10)',
-        'button': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        // Đổ bóng mềm hơn với độ mờ cao hơn
+        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03)',
+        'button': '0 2px 4px 0 rgba(0, 0, 0, 0.05)',
       },
       spacing: {
         'page': '2rem',
