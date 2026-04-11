@@ -3,7 +3,7 @@
 # ============================================================
 | # | File | Mô tả | Last Updated |
 |---|------|-------|--------------|
-| 1 | MEMORY.md | INDEX — file này | 31/3/2026 |
+| 1 | MEMORY.md | INDEX — file này | 10/4/2026 |
 | 2 | [MEMORY-schema.md](./MEMORY-schema.md) | Database schema toàn bộ tables | 26/3/2026 |
 | 3 | [MEMORY-api.md](./MEMORY-api.md) | API contracts tất cả endpoints | 26/3/2026 |
 | 4 | [MEMORY-features.md](./MEMORY-features.md) | Luồng nghiệp vụ, data flow, thuật toán | 31/3/2026 |
@@ -30,7 +30,7 @@
 |---|---------|--------|---------|
 | 1 | Scholarship Search | ✅ Hoàn thành | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline. Phân trang. Raw SQL. |
 | 2 | Auth (Week 3) | ✅ Hoàn thành | Register/Login/Logout/Refresh/Me. Raw SQL + bcryptjs + jwt. Rate limit 3-5 req/phút. |
-| 3 | Profile Manager | Chưa bắt đầu | Upload & quản lý CV, SOP, bảng điểm, thư giới thiệu |
+| 3 | Profile Manager | ✅ Hoàn thành | GET/PUT /api/profile (UPSERT). Documents: GET/POST/DELETE. Supabase Storage + Raw SQL. Rollback khi upload thất bại. |
 | 4 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
 
 ## Optional Features P1

@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DEVELOPER LOG
 # ============================================================
-# Last Updated: 4/4/2026
+# Last Updated: 10/4/2026
 
 ---
 
@@ -13,6 +13,8 @@
 | 31/3/2026 | v0.2 | feat | Viết script scrape scholarships từ scholars4dev.com, seed vào Supabase. Thêm axios + cheerio vào package.json. Thêm npm scripts: seed, seed:mock, scrape |
 | 4/4/2026 | v0.3 | feat | Auth API Week 3: register/login/logout/refresh/me. Raw SQL (không Supabase SDK). bcryptjs + jsonwebtoken + express-rate-limit. Validators: password min 6 chars. |
 | 4/4/2026 | v0.4 | feat | Scholarships API Week 3: list/detail endpoints. Raw SQL, parameterized queries, dynamic filter builder, pagination (COUNT + LIMIT/OFFSET), `deadline > NOW()` check. File test-api.http. |
+| 10/4/2026 | v0.5 | feat | Profile Manager (Week 4): GET/PUT /api/profile (UPSERT). Document Upload (POST /api/documents/upload) → Supabase Storage + memoryStorage. Document Delete (DELETE /api/documents/:id) → Storage → DB. Rollback khi DB insert fail. |
+| 10/4/2026 | v0.5.1 | fix | Bug handleUploadError: thêm `return` để ngăn "Cannot set headers after they are sent". Khi Multer chặn request, middleware phải return ngay không thì code tiếp tục chạy xuống controller → crash server. |
 
 ---
 
@@ -42,9 +44,86 @@ const conditions = ['is_active = true', 'deadline >= now()'];
 const conditions = ['is_active = true', 'deadline > NOW()'];
 ```
 
+### 10/4/2026 — handleUploadError: thêm `return` ngăn crash server
+
+**Vấn đề:** Khi Multer chặn request (thiếu file hoặc file không hợp lệ), middleware gửi response 400 nhưng **không có `return`** → code tiếp tục chạy xuống controller → controller cũng cố gắng gửi response → crash server.
+
+**Lỗi:**
+```
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+```
+
+**Fix:**
+```javascript
+// TRƯỚC (bug):
+const handleUploadError = (err, req, res, next) => {
+  if (err) {
+    res.status(400).json({ message: err.message });  // Gửi response
+  }
+  next();  // ← Vẫn chạy tiếp!
+};
+
+// SAU (fix):
+const handleUploadError = (err, req, res, next) => {
+  if (err) {
+    return res.status(400).json({  // ← THÊM return
+      success: false,
+      message: err.message || 'Upload file không hợp lệ',
+      code: 400,
+    });
+  }
+  return next();  // ← THÊM return
+};
+```
+
 ---
 
 ## Technical Decisions
+
+### 10/4/2026 — Document Storage: Supabase Storage + memoryStorage (hybrid approach)
+
+**Vấn đề:** Dự án đã gỡ `@supabase/supabase-js` khỏi DB layer (chuyển sang pg pool thuần). Tuy nhiên Storage upload file vật lý không thể dùng Raw SQL → cần giải pháp.
+
+**Lựa chọn:**
+- Phương án 1: Cài lại `@supabase/supabase-js` CHỈ cho Storage (tách module riêng `storage.service.js`)
+- Phương án 2: Dùng axios gọi Supabase Storage REST API → phức tạp hơn
+- Phương án 3: Dùng local disk storage → không scale được
+
+**Quyết định:** Phương án 1 — cài lại `@supabase/supabase-js` trong `storage.service.js`
+
+**Lý do:**
+- Supabase SDK là cách clean nhất để interact với Storage API
+- Chỉ dùng cho Storage, DB vẫn dùng pg pool (không ảnh hưởng kiến trúc đã có)
+- Supabase Storage có RLS riêng → cần `service_role` key (khác DB key)
+- Dùng `crypto.randomUUID()` (built-in Node.js) thay vì thư viện `uuid` để sinh random suffix
+
+**Files changed:**
+- `src/services/storage.service.js` — mới, uploadFile() + deleteFile()
+- `src/middlewares/upload.js` — memoryStorage + validation theo document type
+- `src/services/document.service.js` — Storage upload + DB insert + rollback
+- `.env` — thêm `SUPABASE_SERVICE_ROLE_KEY` placeholder
+
+**Rollback mechanism (ngăn Orphaned Files):**
+```
+Upload flow:
+  1. Validate type field
+  2. uploadFile() → Supabase Storage
+  3. INSERT metadata vào DB (documents table)
+  4. Catch DB error → deleteFile() → xóa file vừa upload
+     → Trả 500 cho FE
+```
+
+**Security:**
+- Multer memoryStorage: file đọc vào RAM, không ghi ổ cứng
+- Validation extension theo từng document type:
+  - `transcript` / `recommendation_letter`: chỉ `.pdf`
+  - `cv` / `sop`: `.pdf`, `.doc`, `.docx`
+  - `other`: `.pdf`, `.doc`, `.docx`, `.png`, `.jpg`
+- File size: 10MB max
+- File overwrite prevention: sinh UUID suffix nối vào tên file
+- DELETE always: `AND user_id = $2` để ngăn xóa file người khác
+
+---
 
 ### 4/4/2026 — Auth: Raw SQL + bcryptjs + jsonwebtoken (không dùng Supabase SDK)
 
