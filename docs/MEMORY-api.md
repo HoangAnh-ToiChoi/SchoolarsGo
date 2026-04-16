@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — API CONTRACTS
 # ============================================================
-# Last Updated: 4/4/2026
+# Last Updated: 10/4/2026
 
 ---
 
@@ -395,11 +395,11 @@ Get scholarship recommendations based on user profile (auth required).
 | GET | /api/scholarships/:id | ✅ Implemented | Detail. is_active + deadline > NOW(). Raw SQL. |
 | GET | /api/scholarships/featured | ✅ Implemented | Top 6 featured scholarships |
 | GET | /api/scholarships/countries | ✅ Implemented | Distinct country list |
-| GET | /api/profile | Chưa implement | — |
-| PUT | /api/profile | Chưa implement | — |
-| GET | /api/documents | Chưa implement | — |
-| POST | /api/documents/upload | Chưa implement | — |
-| DELETE | /api/documents/:id | Chưa implement | — |
+| GET | /api/profile | ✅ Implemented | UPSERT: INSERT ON CONFLICT DO UPDATE. Raw SQL, < 100ms. |
+| PUT | /api/profile | ✅ Implemented | Validation GPA 0-4.0, degree Bachelor/Master/PhD. Zod validation. |
+| GET | /api/documents | ✅ Implemented | Raw SQL: SELECT * FROM documents WHERE user_id = $1 |
+| POST | /api/documents/upload | ✅ Implemented | Supabase Storage + memoryStorage. Rollback nếu DB insert thất bại. Validate MIME/extension theo type. |
+| DELETE | /api/documents/:id | ✅ Implemented | 2-step delete: Storage → DB. Always AND user_id = $2. |
 | GET | /api/applications | Chưa implement | — |
 | POST | /api/applications | Chưa implement | — |
 | PATCH | /api/applications/:id | Chưa implement | — |

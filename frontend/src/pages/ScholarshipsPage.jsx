@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useScholarships } from '../hooks/useScholarship';
+import { useScholarships, useCountries } from '../hooks/useScholarship';
 import { DEGREES, LANGUAGES, COVERAGES, PAGE_SIZE } from '../utils/constants';
 import { cn } from '../utils/helpers';
 import ScholarshipCard from '../components/ScholarshipCard';
@@ -14,6 +14,8 @@ const ScholarshipsPage = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const { data, isLoading, isFetching } = useScholarships({ ...filters, page, limit: PAGE_SIZE });
+  const { data: countriesResp } = useCountries();
+  const countryOptions = (countriesResp?.data || []).map((c) => ({ value: c, label: c }));
 
   const scholarships = data?.data || [];
   const meta = data?.meta || {};
@@ -69,10 +71,12 @@ const ScholarshipsPage = () => {
       {showFilters && (
         <div className="card card-body mb-6 animate-slide-down">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="input-label">Quốc gia</label>
-              <input type="text" placeholder="VD: UK, USA, Australia" className="input" onChange={(e) => handleFilterChange('country', e.target.value)} />
-            </div>
+            <Select
+              label="Quốc gia"
+              options={countryOptions}
+              placeholder="Tất cả quốc gia"
+              onChange={(e) => handleFilterChange('country', e.target.value)}
+            />
             <Select label="Bậc học" options={DEGREES} placeholder="Tất cả" onChange={(e) => handleFilterChange('degree', e.target.value)} />
             <Select label="Ngôn ngữ" options={LANGUAGES} placeholder="Tất cả" onChange={(e) => handleFilterChange('language', e.target.value)} />
             <Select label="Phạm vi" options={COVERAGES} placeholder="Tất cả" onChange={(e) => handleFilterChange('coverage', e.target.value)} />
@@ -88,9 +92,15 @@ const ScholarshipsPage = () => {
         <LoadingSpinner />
       ) : (
         <>
-          <div className="mb-4 text-body text-gray-600">
-            {isFetching && <span className="text-primary-600">Đang tải...</span>}
-            {!isFetching && <span>Tìm thấy <strong>{meta.total || 0}</strong> học bổng</span>}
+          <div className="mb-4 flex items-center gap-3 text-body text-gray-600">
+            {isFetching ? (
+              <span className="flex items-center gap-2 text-primary-600">
+                <span className="w-4 h-4 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin inline-block" />
+                Đang tải...
+              </span>
+            ) : (
+              <span>Tìm thấy <strong>{meta.total || 0}</strong> học bổng</span>
+            )}
           </div>
 
           {scholarships.length === 0 ? (
@@ -103,7 +113,7 @@ const ScholarshipsPage = () => {
             />
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300', isFetching && 'opacity-50 pointer-events-none')}>
                 {scholarships.map((s) => (
                   <ScholarshipCard key={s.id} scholarship={s} />
                 ))}
