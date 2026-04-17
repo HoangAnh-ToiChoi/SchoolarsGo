@@ -6,6 +6,7 @@ export const useScholarships = (filters) => {
   return useQuery({
     queryKey: ['scholarships', filters],
     queryFn: () => scholarshipService.getAll(filters).then((res) => res.data),
+    placeholderData: (previousData) => previousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
