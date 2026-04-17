@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Brain, Compass, Search, Sparkles, Star, Trophy } from 'lucide-react';
+import { useState } from 'react';
 import { useScholarships } from '../hooks/useScholarship';
 import ScholarshipCard from '../components/ScholarshipCard';
 import LoadingSpinner from '../components/LoadingSpinner';
