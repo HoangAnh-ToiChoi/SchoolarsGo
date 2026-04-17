@@ -13,6 +13,7 @@ const scholarshipRoutes = require('./routes/scholarship.routes');
 const profileRoutes = require('./routes/profile.routes');
 const documentRoutes = require('./routes/document.routes');
 const applicationRoutes = require('./routes/application.routes');
+const applicationV2Routes = require('./routes/application-v2.routes');
 const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
 
@@ -44,6 +45,7 @@ app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/v2/applications', applicationV2Routes);
 app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 

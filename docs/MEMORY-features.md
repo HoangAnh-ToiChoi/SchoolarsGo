@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — FEATURES & BUSINESS LOGIC
 # ============================================================
-# Last Updated: 4/4/2026
+# Last Updated: 17/4/2026
 
 ---
 
@@ -184,10 +184,43 @@ User → Profile Page
 
 ## 3. Application Tracker (P0 Feature #3)
 
-**Trạng thái:** Chưa bắt đầu
+**Trạng thái:** ✅ VÙNG 2 Hoàn thành (17/4/2026) — Controller → Service → Repository → DB
 
-### Mô tả
-Track đơn ứng tuyển của user: status, checklist hồ sơ, deadline, notes.
+### Kiến trúc VÙNG 2 (4 tầng)
+
+```
+Controller  (application-v2.controller.js) — Facade: nhận req, gọi service, trả res JSON
+    ↓
+Service     (application-v2.service.js)    — Business logic, validate input, format response
+    ↓
+Repository  (application.repository.js)    — Raw SQL duy nhất, parameterized queries
+    ↓
+DB          (PostgreSQL / applications table)
+```
+
+### File Structure (VÙNG 2)
+```
+src/
+├── repositories/
+│   ├── base.repository.js           ← class cha dùng chung
+│   └── application.repository.js   ← Toàn bộ SQL cho applications
+├── services/
+│   └── application-v2.service.js   ← Business logic, validate status
+├── controllers/
+│   └── application-v2.controller.js ← Facade, ERROR_MAP, HTTP handling
+├── routes/
+│   └── application-v2.routes.js    ← Route definitions
+└── container.js                    ← Wiring: db → Repo → Service
+```
+
+### API Endpoints (VÙNG 2)
+| Method | Path | Mô tả |
+|--------|------|--------|
+| GET | /api/v2/applications | Danh sách đơn (phân trang, lọc status) |
+| POST | /api/v2/applications | Tạo đơn mới (status='draft') |
+| GET | /api/v2/applications/:id | Chi tiết 1 đơn |
+| PATCH | /api/v2/applications/:id | Cập nhật đơn |
+| DELETE | /api/v2/applications/:id | Xóa đơn |
 
 ### Application Status Flow
 
@@ -209,23 +242,62 @@ draft → submitted → under_review → interview → accepted
 ]
 ```
 
-### Notifications
-- Deadline approaching (7 days before): show warning badge
-- Deadline passed: show "Expired" badge, move to archive tab
-
-### Data Flow
+### Data Flow (VÙNG 2)
 
 ```
+FE: ApplicationListPage
+  → GET /api/v2/applications?page=1&limit=20&status=draft
+    → Controller.getAll(req, res)
+      → Service.getAll(userId, filters)
+        → Repository.findAllByUser(userId, { page, limit, status })
+          → Raw SQL: JOIN applications + scholarships + pagination
+        → Service format response
+      → Controller trả JSON { success: true, data: [...], meta: { page, limit, total } }
+    → FE hiển thị danh sách
+
 FE: ApplicationDetailPage
-  → PATCH /api/applications/:id { status: "submitted", checklist: [...] }
-    → BE validate → update DB → return updated application
+  → PATCH /api/v2/applications/:id { status: "submitted", checklist: [...] }
+    → Controller.update(req, res)
+      → Service.update(userId, applicationId, updates)
+        → Repository.findByIdAndUser() — lấy đơn hiện tại
+        → Service validate status enum + status transition
+        → Repository.updateByIdAndUser() — cập nhật DB
+        → Service auto-set applied_at khi draft → submitted
+        → Service format response
+      → Controller trả JSON
+    → FE show success toast
+
+FE: Xóa đơn
+  → DELETE /api/v2/applications/:id
+    → Controller.remove(req, res)
+      → Service.delete(userId, applicationId)
+        → Repository.findByIdAndUser() — lấy đơn hiện tại
+        → Service chặn nếu status ∈ ['submitted', 'under_review']
+        → Repository.deleteByIdAndUser() — xóa với điều kiện user_id
+      → Controller trả JSON
     → FE show success toast
 ```
 
+### Error Codes (VÙNG 2)
+| Error Code | HTTP | Nguồn | Mô tả |
+|------------|------|--------|--------|
+| SCHOLARSHIP_NOT_FOUND | 404 | Service | Học bổng không tồn tại (trước khi tạo đơn) |
+| APPLICATION_ALREADY_EXISTS | 409 | Repository (PostgreSQL err.code=23505) | UNIQUE(user_id, scholarship_id) bị vi phạm |
+| NOT_FOUND | 404 | Service/Repository | Đơn không tồn tại hoặc không thuộc user |
+| INVALID_STATUS | 400 | Service | Status truyền không nằm trong enum ['draft','submitted','under_review','interview','accepted','rejected','withdrawn'] |
+| INVALID_STATUS_TRANSITION | 400 | Service | Chuyển trạng thái không hợp lệ (VD: accepted → draft) |
+| CANNOT_DELETE_SUBMITTED | 400 | Service | Cố xóa đơn đã submitted/under_review |
+
 ### Edge Cases
-- User đã ứng tuyển scholarship → không cho tạo đơn mới (unique constraint)
-- Xóa application khi status = "submitted" → warning confirm dialog
-- Update status không hợp lệ (VD: accepted → draft) → trả 400
+| Scenario | Handling |
+|----------|----------|
+| User đã ứng tuyển scholarship | PostgreSQL UNIQUE constraint → err.code=23505 → Repository ném 'APPLICATION_ALREADY_EXISTS' → HTTP 409 |
+| Xóa application khi status = "submitted" | Service chặn → HTTP 400 với message "Không thể xóa đơn đã nộp" |
+| Update status không hợp lệ (VD: accepted → draft) | Service kiểm tra VALID_TRANSITIONS → ném 'INVALID_STATUS_TRANSITION' → HTTP 400 |
+| Update status không nằm trong enum | Service kiểm tra VALID_STATUSES → ném 'INVALID_STATUS' → HTTP 400 |
+| Update status = submitted từ draft | Service tự động set applied_at = now() |
+| Xóa application của user khác | Repository luôn thêm AND user_id = $2 → trả 0 row affected → Service ném 'NOT_FOUND' |
+| scholarship_id không tồn tại khi tạo đơn | Service gọi scholarshipExists() → ném 'SCHOLARSHIP_NOT_FOUND' → HTTP 404 |
 
 ---
 

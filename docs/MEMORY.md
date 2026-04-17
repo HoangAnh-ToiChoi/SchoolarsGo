@@ -31,7 +31,7 @@
 | 1 | Scholarship Search | ✅ Hoàn thành | Filter theo quốc gia, ngành, GPA, ngôn ngữ, deadline. Phân trang. Raw SQL. |
 | 2 | Auth (Week 3) | ✅ Hoàn thành | Register/Login/Logout/Refresh/Me. Raw SQL + bcryptjs + jwt. Rate limit 3-5 req/phút. |
 | 3 | Profile Manager | ✅ Hoàn thành | GET/PUT /api/profile (UPSERT). Documents: GET/POST/DELETE. Supabase Storage + Raw SQL. Rollback khi upload thất bại. |
-| 4 | Application Tracker | Chưa bắt đầu | Checklist, deadline tracker, trạng thái đơn ứng tuyển |
+| 4 | Application Tracker | ✅ VÙNG 2 Hoàn thành (17/4/2026) | Controller → Service → Repository → DB. 4 APIs: GET/POST/PATCH/DELETE /api/v2/applications. Validate status enum + transition. UNIQUE constraint handling. |
 
 ## Optional Features P1
 
