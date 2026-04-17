@@ -3,7 +3,7 @@ const { success } = require('../utils/responseHelper');
 
 const getAll = async (req, res, next) => {
   try {
-    const { data, meta } = await scholarshipService.getAll(req.query);
+    const { data, meta } = await scholarshipService.getAll(req.query, req.user?.id);
     return success(res, data, 'Scholarships retrieved', meta);
   } catch (error) {
     next(error);

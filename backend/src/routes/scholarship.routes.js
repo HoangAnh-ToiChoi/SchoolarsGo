@@ -10,7 +10,7 @@ const router = Router();
  * GET /api/scholarships
  * @desc List scholarships with filters (public)
  */
-router.get('/', validate(scholarshipQuerySchema, 'query'), scholarshipController.getAll);
+router.get('/', optionalAuth, validate(scholarshipQuerySchema, 'query'), scholarshipController.getAll);
 
 /**
  * GET /api/scholarships/featured
