@@ -3,7 +3,7 @@ const { query, queryOne } = require('../utils/db');
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
 
-const getAll = async (filters) => {
+const getAll = async (filters, userId) => {
   const page = Math.max(1, Number(filters.page) || 1);
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
   const offset = (page - 1) * limit;
@@ -82,8 +82,23 @@ const getAll = async (filters) => {
     [...params, limit, offset]
   );
 
+  let rows = data.rows;
+
+  if (userId && rows.length > 0) {
+    const savedRows = await query(
+      `SELECT scholarship_id
+       FROM saved_scholarships
+       WHERE user_id = $1 AND scholarship_id = ANY($2::uuid[])`,
+      [userId, rows.map((row) => row.id)]
+    );
+    const savedIds = new Set(savedRows.rows.map((row) => row.scholarship_id));
+    rows = rows.map((row) => ({ ...row, is_saved: savedIds.has(row.id) }));
+  } else {
+    rows = rows.map((row) => ({ ...row, is_saved: false }));
+  }
+
   return {
-    data: data.rows,
+    data: rows,
     meta: { page, limit, total, totalPages },
   };
 };
