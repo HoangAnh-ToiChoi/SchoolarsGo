@@ -15,6 +15,7 @@
 | 4/4/2026 | v0.4 | feat | Scholarships API Week 3: list/detail endpoints. Raw SQL, parameterized queries, dynamic filter builder, pagination (COUNT + LIMIT/OFFSET), `deadline > NOW()` check. File test-api.http. |
 | 10/4/2026 | v0.5 | feat | Profile Manager (Week 4): GET/PUT /api/profile (UPSERT). Document Upload (POST /api/documents/upload) → Supabase Storage + memoryStorage. Document Delete (DELETE /api/documents/:id) → Storage → DB. Rollback khi DB insert fail. |
 | 10/4/2026 | v0.5.1 | fix | Bug handleUploadError: thêm `return` để ngăn "Cannot set headers after they are sent". Khi Multer chặn request, middleware phải return ngay không thì code tiếp tục chạy xuống controller → crash server. |
+| 19/4/2026 | v0.6 | refactor | OOP Refactor Bước 1: **Scholarships Module** (4 APIs) → Repository/Service/Controller/Container theo kiến trúc 4 tầng. Xem chi tiết phần "OOP Refactor" bên dưới. |
 
 ---
 
@@ -78,7 +79,84 @@ const handleUploadError = (err, req, res, next) => {
 
 ---
 
-## Technical Decisions
+## OOP Refactor — Kiến trúc 4 Tầng
+
+> **Bắt đầu:** 19/4/2026 | **Mục tiêu:** Refactor toàn bộ 25+ endpoints theo pattern: `Route → Controller → Service → Repository → DB`
+
+### Luật áp dụng
+
+```
+✅ Bọc functions vào class
+✅ Tách SQL từ Service ra Repository
+✅ Inject dependency qua constructor
+✅ Đăng ký vào container.js
+
+❌ KHÔNG viết lại logic
+❌ KHÔNG đổi tên function/variable
+❌ KHÔNG thay đổi response format
+❌ KHÔNG sửa SQL query đang chạy tốt
+```
+
+### Thứ tự refactor
+
+```
+Bước 1: Scholarships (4 APIs)     ✅ HOÀN THÀNH 19/4/2026
+Bước 2: Profile (2 APIs)
+Bước 3: Documents (3 APIs)
+Bước 4: Saved Scholarships (3 APIs)
+Bước 5: Applications v1 (4 APIs)
+Bước 6: Applications v2 (5 APIs)
+Bước 7: Auth (5 APIs)
+Bước 8: AI Recommender (1 API)
+```
+
+### Bước 1: Scholarships — Chi tiết
+
+**Files thay đổi:**
+
+| File | Hành động | Mô tả |
+|---|---|---|
+| `repositories/scholarship.repository.js` | TẠO MỚI | 4 public + 3 private methods, SQL tách hoàn toàn |
+| `services/scholarship.service.js` | VIẾT LẠI | Class, inject repo, KHÔNG có SQL |
+| `controllers/scholarship.controller.js` | VIẾT LẠI | Class, arrow functions, import từ container |
+| `container.js` | CẬP NHẬT | Thêm scholarshipRepo + scholarshipService |
+
+**Repository — Public methods:**
+
+| Method | Signature | Lý do public |
+|---|---|---|
+| `findAll` | `(filters, userId) → { data, meta }` | Service gọi |
+| `findFeatured` | `() → rows[]` | Service gọi |
+| `findCountries` | `() → string[]` | Service gọi |
+| `findById` | `(id, userId) → object\|null` | Service gọi |
+
+**Repository — Private methods:**
+
+| Method | Lý do private |
+|---|---|
+| `#buildWhereClause` | Chỉ dùng trong findAll |
+| `#attachSavedStatus` | Chỉ dùng trong findAll |
+| `#checkSavedStatus` | Chỉ dùng trong findById |
+
+**Service — Public methods:**
+
+| Method | Logic |
+|---|---|
+| `getAll` | Gọi `repo.findAll` |
+| `getFeatured` | Gọi `repo.findFeatured` |
+| `getCountries` | Gọi `repo.findCountries` |
+| `getById` | Gọi `repo.findById` → throw 404 |
+
+**Service — Private methods:**
+
+| Method | Logic |
+|---|---|
+| `#ensureFound` | Throw Error 404 nếu scholarship null |
+
+**Container wiring:**
+```
+db → ScholarshipRepository(db) → ScholarshipService(repo) → Controller
+```
 
 ### 10/4/2026 — Document Storage: Supabase Storage + memoryStorage (hybrid approach)
 
