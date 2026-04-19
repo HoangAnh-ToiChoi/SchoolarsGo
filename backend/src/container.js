@@ -8,6 +8,7 @@
  *
  * Wiring: db → ScholarshipRepository → ScholarshipService
  *         db → ApplicationRepository → ApplicationService
+ *         db → ProfileRepository → ProfileService → ProfileController
  */
 
 const db = require('./utils/db');
@@ -26,8 +27,18 @@ const ApplicationService = require('./services/application-v2.service');
 const applicationRepo = new ApplicationRepository(db);
 const applicationService = new ApplicationService(applicationRepo);
 
+// ── Profile Module ──────────────────────────────────────────
+const ProfileRepository = require('./repositories/profile.repository');
+const ProfileService = require('./services/profile.service');
+const ProfileController = require('./controllers/profile.controller');
+
+const profileRepo = new ProfileRepository(db);
+const profileService = new ProfileService(profileRepo);
+const profileController = new ProfileController(profileService);
+
 module.exports = {
   scholarshipRepo,
   scholarshipService,
   applicationService,
+  profileController,
 };
