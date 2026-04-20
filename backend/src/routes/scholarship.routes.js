@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const scholarshipController = require('../controllers/scholarship.controller');
+const { scholarshipController } = require('../container');
 const { optionalAuth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 const { scholarshipQuerySchema } = require('../utils/validators');

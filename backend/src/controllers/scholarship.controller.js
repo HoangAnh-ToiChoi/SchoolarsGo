@@ -1,20 +1,21 @@
 /**
  * ScholarshipController — VÙNG 2 (Controller → Service → Repository → DB)
  *
- * HTTP handling, import service từ container.
- * KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
- *
- * Export: instance của class (để routes gọi trực tiếp)
+ * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
+ * Inject: scholarshipService qua constructor.
  */
-const { scholarshipService } = require('../container');
 const { success } = require('../utils/responseHelper');
 
 class ScholarshipController {
-  // ─── PUBLIC — routes gọi trực tiếp (arrow functions) ──────────────────
+  constructor(scholarshipService) {
+    this.scholarshipService = scholarshipService;
+  }
+
+  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
 
   getAll = async (req, res, next) => {
     try {
-      const { data, meta } = await scholarshipService.getAll(req.query, req.user?.id);
+      const { data, meta } = await this.scholarshipService.getAll(req.query, req.user?.id);
       return success(res, data, 'Scholarships retrieved', meta);
     } catch (error) {
       next(error);
@@ -23,7 +24,7 @@ class ScholarshipController {
 
   getFeatured = async (req, res, next) => {
     try {
-      const data = await scholarshipService.getFeatured();
+      const data = await this.scholarshipService.getFeatured();
       return success(res, data);
     } catch (error) {
       next(error);
@@ -32,7 +33,7 @@ class ScholarshipController {
 
   getCountries = async (req, res, next) => {
     try {
-      const data = await scholarshipService.getCountries();
+      const data = await this.scholarshipService.getCountries();
       return success(res, data);
     } catch (error) {
       next(error);
@@ -41,7 +42,7 @@ class ScholarshipController {
 
   getById = async (req, res, next) => {
     try {
-      const data = await scholarshipService.getById(req.params.id, req.user?.id);
+      const data = await this.scholarshipService.getById(req.params.id, req.user?.id);
       return success(res, data);
     } catch (error) {
       next(error);
@@ -49,4 +50,4 @@ class ScholarshipController {
   };
 }
 
-module.exports = new ScholarshipController();
+module.exports = ScholarshipController;

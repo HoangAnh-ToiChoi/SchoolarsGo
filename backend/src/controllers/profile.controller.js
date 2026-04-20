@@ -33,4 +33,4 @@ class ProfileController {
   };
 }
 
-module.exports = ProfileController;
+module.exports = new ProfileController();
