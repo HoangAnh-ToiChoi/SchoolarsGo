@@ -33,19 +33,21 @@ class ScholarshipService {
 
   getById = async (id, userId = null) => {
     const scholarship = await this.repo.findById(id, userId);
-    this.#ensureFound(scholarship, id);
+    this.#ensureFound(scholarship);
     return scholarship;
   };
 
   // ─── PRIVATE — chỉ dùng nội bộ ──────────────────────────────────────────
 
-  #ensureFound(scholarship, id) {
-    if (!scholarship) {
-      const err = new Error('Không tìm thấy học bổng');
-      err.statusCode = 404;
-      err.isOperational = true;
-      throw err;
-    }
+  #throwError(message, statusCode = 500) {
+    const err = new Error(message);
+    err.statusCode = statusCode;
+    err.isOperational = true;
+    throw err;
+  }
+
+  #ensureFound(scholarship, message = 'Không tìm thấy') {
+    if (!scholarship) this.#throwError(message, 404);
   }
 }
 
