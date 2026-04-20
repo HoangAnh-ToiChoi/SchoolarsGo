@@ -1,31 +1,30 @@
 /**
- * Profile Repository — bóc tách SQL từ profile.service.js
+ * ProfileRepository — VÙNG 2 (Controller → Service → Repository → DB)
  *
- * Extends BaseRepository.
- * Quy tắc: KHÔNG viết SQL ở tầng Service/Controller.
+ * Lớp này CHỨA TOÀN BỘ SQL của module Profile.
+ * KHÔNG viết SQL ở bất kỳ tầng nào khác (Service/Controller).
  *
- * Table: profiles (primary key: user_id)
- * Related: documents (user_id), users (id = user_id)
+ * Public methods — Service gọi:
+ *   findByUserId(userId)      → profile object kèm documents
+ *   upsertProfile(userId, updates) → profile đã upsert
+ *
+ * Private helpers — nội bộ:
+ *   #buildProfileUpdateSets(updates) → { cols[], values[] }
  */
-
 const BaseRepository = require('./base.repository');
 
 class ProfileRepository extends BaseRepository {
-  /**
-   * @param {object} db - { query, queryOne, transaction }
-   */
   constructor(db) {
     super(db, 'profiles');
   }
 
+  // ─── PUBLIC — Service gọi ────────────────────────────────────────────────
+
   /**
-   * Lấy profile + danh sách documents của user.
-   * Nếu chưa có profile → tạo mới bằng UPSERT để đảm bảo lúc nào cũng có row.
-   *
-   * @param {string} userId
-   * @returns {Promise<{...profile, documents: any[]}>}
+   * Lấy profile kèm danh sách documents
+   * Nếu chưa có → tạo mới bằng upsert
    */
-  async getProfile(userId) {
+  async findByUserId(userId) {
     let profile = await this.db.queryOne(
       'SELECT * FROM profiles WHERE user_id = $1',
       [userId]
@@ -50,24 +49,14 @@ class ProfileRepository extends BaseRepository {
   }
 
   /**
-   * Cập nhật profile (UPSERT — hỗ trợ cả tạo mới và cập nhật).
-   * Nếu có full_name → cập nhật luôn bảng users.
-   *
-   * allowedFields đóng vai trò whitelist — ngăn SQL injection và trường không cho phép.
-   *
-   * @param {string} userId
-   * @param {object} updates - các trường muốn cập nhật
-   * @returns {Promise<any>} profile đã được cập nhật
+   * Upsert profile (hỗ trợ cả tạo mới và cập nhật)
+   * Trả về profile đã upsert.
+   * Side effect: cập nhật full_name trong bảng users nếu có trong updates.
    */
-  async updateProfile(userId, updates) {
-    const allowedFields = [
-      'bio', 'gpa', 'gpa_scale', 'english_level',
-      'target_country', 'target_major', 'target_degree', 'target_intake',
-    ];
+  async upsertProfile(userId, updates) {
+    const { cols, values } = this.#buildProfileUpdateSets(updates);
 
-    const fieldsToUpdate = allowedFields.filter(k => updates[k] !== undefined);
-
-    if (fieldsToUpdate.length === 0) {
+    if (cols.length === 0) {
       let profile = await this.db.queryOne(
         'SELECT * FROM profiles WHERE user_id = $1',
         [userId]
@@ -82,12 +71,13 @@ class ProfileRepository extends BaseRepository {
       return profile;
     }
 
-    const setClauses = fieldsToUpdate.map((k, i) => `${k} = $${i + 2}`);
-    const insertCols = ['user_id', ...fieldsToUpdate];
-    const insertValues = [userId, ...fieldsToUpdate.map(k => updates[k])];
-    const insertPlaceholders = insertValues.map((_, i) => `$${i + 1}`);
-
+    const setClauses = cols.map((c, i) => `${c} = $${i + 2}`);
     setClauses.push('updated_at = now()');
+
+    const insertCols = ['user_id', ...cols];
+    // $1 = user_id, $2..$n = các giá trị field
+    const insertPlaceholders = [`$${1}`, ...values.map((_, i) => `$${i + 2}`)];
+    const insertValues = [userId, ...values];
 
     const profile = await this.db.queryOne(
       `INSERT INTO profiles (${insertCols.join(', ')})
@@ -105,6 +95,21 @@ class ProfileRepository extends BaseRepository {
     }
 
     return profile;
+  }
+
+  // ─── PRIVATE ─────────────────────────────────────────────────────────────
+
+  /**
+   * Xây whitelist fields + extract values từ updates object
+   */
+  #buildProfileUpdateSets(updates) {
+    const allowedFields = [
+      'bio', 'gpa', 'gpa_scale', 'english_level',
+      'target_country', 'target_major', 'target_degree', 'target_intake',
+    ];
+    const cols = allowedFields.filter(k => updates[k] !== undefined);
+    const values = cols.map(k => updates[k]);
+    return { cols, values };
   }
 }
 

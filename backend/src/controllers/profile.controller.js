@@ -1,38 +1,32 @@
 /**
  * ProfileController — VÙNG 2 (Controller → Service → Repository → DB)
  *
- * Nhận req/res, gọi service từ container, trả về res.
- * TUYỆT ĐỐI không chứa business logic.
- *
- * Inject: profileService qua constructor
+ * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
+ * Inject: profileService qua constructor.
  */
+
+const { success } = require('../utils/responseHelper');
 
 class ProfileController {
   constructor(profileService) {
     this.profileService = profileService;
   }
 
-  // ─── PUBLIC — Routes gọi ────────────────────────────────────────────────
+  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
 
-  getProfile = (req, res, next) => {
+  getProfile = async (req, res, next) => {
     try {
-      const data = this.profileService.getProfile(req.user.id);
-      return data.then(d => {
-        const { success } = require('../utils/responseHelper');
-        return success(res, d);
-      }).catch(next);
+      const data = await this.profileService.getProfile(req.user.id);
+      return success(res, data);
     } catch (error) {
       next(error);
     }
   };
 
-  updateProfile = (req, res, next) => {
+  updateProfile = async (req, res, next) => {
     try {
-      const data = this.profileService.updateProfile(req.user.id, req.body);
-      return data.then(d => {
-        const { success } = require('../utils/responseHelper');
-        return success(res, d, 'Profile updated');
-      }).catch(next);
+      const data = await this.profileService.updateProfile(req.user.id, req.body);
+      return success(res, data, 'Profile updated');
     } catch (error) {
       next(error);
     }
