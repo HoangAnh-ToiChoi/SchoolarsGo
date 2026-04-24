@@ -203,28 +203,28 @@ const ScholarshipsPage = () => {
               options={countryOptions}
               placeholder="Tat ca quoc gia"
               value={filters.country || ''}
-              onChange={(e) => handleFilterChange('country', e.target.value)}
+              onChange={(value) => handleFilterChange('country', value)}
             />
             <Select
               label="Bac hoc"
               options={DEGREES}
               placeholder="Tat ca"
               value={filters.degree || ''}
-              onChange={(e) => handleFilterChange('degree', e.target.value)}
+              onChange={(value) => handleFilterChange('degree', value)}
             />
             <Select
               label="Ngon ngu"
               options={LANGUAGES}
               placeholder="Tat ca"
               value={filters.language || ''}
-              onChange={(e) => handleFilterChange('language', e.target.value)}
+              onChange={(value) => handleFilterChange('language', value)}
             />
             <Select
               label="Pham vi"
               options={COVERAGES}
               placeholder="Tat ca"
               value={filters.coverage || ''}
-              onChange={(e) => handleFilterChange('coverage', e.target.value)}
+              onChange={(value) => handleFilterChange('coverage', value)}
             />
             <Input
               label="Nganh hoc"

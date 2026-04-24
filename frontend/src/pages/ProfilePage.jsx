@@ -82,7 +82,7 @@ const ProfilePage = () => {
           <Input label="GPA (thang 4.0)" type="number" step="0.01" min="0" max="4" value={form.gpa ?? profile.gpa ?? ''} onChange={(e) => setForm({ ...form, gpa: e.target.value })} placeholder="3.5" />
           <Input label="Trình độ tiếng Anh" type="text" value={form.english_level ?? profile.english_level ?? ''} onChange={(e) => setForm({ ...form, english_level: e.target.value })} placeholder="IELTS 7.0" />
           <Input label="Quốc gia muốn đến" type="text" value={form.target_country ?? profile.target_country ?? ''} onChange={(e) => setForm({ ...form, target_country: e.target.value })} placeholder="UK, USA, Australia..." />
-          <Select label="Bậc học mong muốn" options={DEGREES} placeholder="Chọn bậc học" value={form.target_degree ?? profile.target_degree ?? ''} onChange={(e) => setForm({ ...form, target_degree: e.target.value })} />
+          <Select label="Bậc học mong muốn" options={DEGREES} placeholder="Chọn bậc học" value={form.target_degree ?? profile.target_degree ?? ''} onChange={(value) => setForm({ ...form, target_degree: value })} />
           <div className="md:col-span-2">
             <Input label="Ngành học mong muốn" type="text" value={form.target_major ?? profile.target_major ?? ''} onChange={(e) => setForm({ ...form, target_major: e.target.value })} placeholder="Computer Science" list="majors" />
             <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
