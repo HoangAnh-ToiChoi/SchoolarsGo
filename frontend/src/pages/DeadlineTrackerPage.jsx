@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { format, isSameDay, parseISO, isAfter, isBefore, startOfDay } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import Calendar from 'react-calendar';
@@ -142,7 +142,7 @@ const DeadlineTrackerPage = () => {
           <Card>
             <CardContent className="p-6">
               <h3 className="text-heading-3 text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
+                <CalendarIcon className="w-5 h-5" />
                 Lịch deadline
               </h3>
 
@@ -150,7 +150,6 @@ const DeadlineTrackerPage = () => {
                 <Calendar
                   onChange={setSelectedDate}
                   value={selectedDate}
-                  locale="vi-VN"
                   tileContent={tileContent}
                   tileClassName={tileClassName}
                   className="w-full border-none"
