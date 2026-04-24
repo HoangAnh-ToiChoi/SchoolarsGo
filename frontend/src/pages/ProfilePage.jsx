@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Button, Input, Select, PageHeader } from '../components/ui';
-import { Upload, FileText, Trash2 } from 'lucide-react';
+import { Button, Input, Select, PageHeader, FileUpload } from '../components/ui';
+import { Upload, FileText, Trash2, Eye, Download } from 'lucide-react';
 
 const ProfilePage = () => {
   const { data, isLoading } = useProfile();
@@ -22,12 +22,51 @@ const ProfilePage = () => {
     updateProfile.mutate(form);
   };
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleUpload = async (file, error) => {
+    if (error) {
+      // Error is already shown by FileUpload component via onFileSelect
+      return;
+    }
     if (!file) return;
-    const type = e.target.dataset.type;
-    uploadDoc.mutate({ file, type });
-    e.target.value = '';
+
+    // Find the document type based on file extension or let user choose
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    let docType = 'other';
+
+    if (['pdf'].includes(fileExt)) {
+      // For PDF files, check if it's CV or SOP based on filename or let user choose
+      const fileName = file.name.toLowerCase();
+      if (fileName.includes('cv') || fileName.includes('resume')) {
+        docType = 'cv';
+      } else if (fileName.includes('sop') || fileName.includes('statement')) {
+        docType = 'sop';
+      } else {
+        // Default to CV for PDFs if not specified
+        docType = 'cv';
+      }
+    } else if (['doc', 'docx'].includes(fileExt)) {
+      docType = 'cv'; // Default to CV for Word docs
+    } else if (['txt'].includes(fileExt)) {
+      docType = 'sop'; // Default to SOP for text files
+    }
+
+    uploadDoc.mutate({ file, type: docType });
+  };
+
+  const handleViewDocument = (document) => {
+    // Open document in new tab or download
+    if (document.url) {
+      window.open(document.url, '_blank');
+    }
+  };
+
+  const handleDownloadDocument = (document) => {
+    if (document.url) {
+      const link = document.createElement('a');
+      link.href = document.url;
+      link.download = document.file_name;
+      link.click();
+    }
   };
 
   if (!profile) return <div className="p-8 text-center text-body text-gray-600">Vui lòng đăng nhập để xem profile</div>;
@@ -59,24 +98,75 @@ const ProfilePage = () => {
       {/* Documents */}
       <div className="card card-body">
         <h2 className="text-heading-3 text-gray-900 border-b pb-3 mb-6">Tài liệu của tôi</h2>
+
+        {/* Drag & Drop Upload Area */}
+        <div className="mb-6">
+          <FileUpload
+            label="Upload tài liệu mới"
+            description="Kéo thả file hoặc click để chọn"
+            accept=".pdf,.doc,.docx,.txt"
+            maxSize={5 * 1024 * 1024} // 5MB
+            onFileSelect={(file, error) => handleUpload(file, error)}
+            disabled={uploadDoc.isPending}
+          />
+        </div>
+
+        {/* Document List */}
         <div className="space-y-4">
-          {DOCUMENT_TYPES.map((docType) => (
-            <div key={docType.value} className="flex items-center justify-between p-4 bg-gray-50 rounded-card">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-gray-400" />
-                <div><p className="font-medium text-gray-900">{docType.label}</p><p className="text-caption text-gray-500">PDF, DOC, DOCX — tối đa 10MB</p></div>
-              </div>
-              <div className="flex items-center gap-3">
-                {documents?.data?.filter((d) => d.type === docType.value).map((d) => (
-                  <div key={d.id} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-button border">
-                    <span className="text-body-sm text-gray-600 max-w-[150px] truncate">{d.file_name}</span>
-                    <button onClick={() => deleteDoc.mutate(d.id)} className="text-danger-500 hover:text-danger-700"><Trash2 className="w-4 h-4" /></button>
+          {DOCUMENT_TYPES.map((docType) => {
+            const docs = documents?.data?.filter((d) => d.type === docType.value) || [];
+            return (
+              <div key={docType.value} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-gray-900">{docType.label}</h3>
+                  <span className="text-caption text-gray-500">{docs.length} file</span>
+                </div>
+
+                {docs.length > 0 ? (
+                  <div className="space-y-2">
+                    {docs.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-gray-400" />
+                          <div>
+                            <p className="text-body-sm font-medium text-gray-900">{doc.file_name}</p>
+                            <p className="text-caption text-gray-500">
+                              {new Date(doc.created_at).toLocaleDateString('vi-VN')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewDocument(doc)}
+                            className="text-primary-600 hover:text-primary-800 p-1"
+                            title="Xem tài liệu"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownloadDocument(doc)}
+                            className="text-primary-600 hover:text-primary-800 p-1"
+                            title="Tải xuống"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteDoc.mutate(doc.id)}
+                            className="text-danger-500 hover:text-danger-700 p-1"
+                            title="Xóa tài liệu"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-                <label className="cursor-pointer"><input type="file" className="hidden" accept=".pdf,.doc,.docx" data-type={docType.value} onChange={handleUpload} /><span className="btn-primary btn-sm"><Upload className="w-4 h-4" />Upload</span></label>
+                ) : (
+                  <p className="text-body-sm text-gray-500 italic">Chưa có tài liệu nào</p>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
