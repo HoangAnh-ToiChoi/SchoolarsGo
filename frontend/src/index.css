@@ -188,6 +188,39 @@ body {
   .modal-description {
     @apply mt-1 text-body-sm text-slate-600;
   }
+
+  /* Calendar */
+  .calendar-container .react-calendar {
+    @apply w-full bg-white rounded-card shadow-card border border-gray-200;
+  }
+
+  .calendar-container .react-calendar__navigation {
+    @apply bg-gray-50 rounded-t-card px-4 py-3 border-b border-gray-200;
+  }
+
+  .calendar-container .react-calendar__navigation button {
+    @apply text-gray-700 hover:text-primary-600 font-medium transition-colors;
+  }
+
+  .calendar-container .react-calendar__month-view__weekdays {
+    @apply bg-gray-50 text-gray-600 font-medium text-body-sm py-2;
+  }
+
+  .calendar-container .react-calendar__tile {
+    @apply text-gray-900 hover:bg-primary-50 transition-colors;
+  }
+
+  .calendar-container .react-calendar__tile--active {
+    @apply bg-primary-600 text-white hover:bg-primary-700;
+  }
+
+  .calendar-container .react-calendar__tile--now {
+    @apply bg-primary-50 text-primary-700 font-semibold;
+  }
+
+  .calendar-container .react-calendar__tile.has-deadline {
+    @apply font-semibold;
+  }
 }
 
 @layer utilities {
