@@ -1,40 +1,53 @@
-const scholarshipService = require('../services/scholarship.service');
+/**
+ * ScholarshipController — VÙNG 2 (Controller → Service → Repository → DB)
+ *
+ * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
+ * Inject: scholarshipService qua constructor.
+ */
 const { success } = require('../utils/responseHelper');
 
-const getAll = async (req, res, next) => {
-  try {
-    const { data, meta } = await scholarshipService.getAll(req.query);
-    return success(res, data, 'Scholarships retrieved', meta);
-  } catch (error) {
-    next(error);
+class ScholarshipController {
+  constructor(scholarshipService) {
+    this.scholarshipService = scholarshipService;
   }
-};
 
-const getFeatured = async (req, res, next) => {
-  try {
-    const data = await scholarshipService.getFeatured();
-    return success(res, data);
-  } catch (error) {
-    next(error);
-  }
-};
+  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
 
-const getCountries = async (req, res, next) => {
-  try {
-    const data = await scholarshipService.getCountries();
-    return success(res, data);
-  } catch (error) {
-    next(error);
-  }
-};
+  getAll = async (req, res, next) => {
+    try {
+      const { data, meta } = await this.scholarshipService.getAll(req.query, req.user?.id);
+      return success(res, data, 'Scholarships retrieved', meta);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-const getById = async (req, res, next) => {
-  try {
-    const data = await scholarshipService.getById(req.params.id, req.user?.id);
-    return success(res, data);
-  } catch (error) {
-    next(error);
-  }
-};
+  getFeatured = async (req, res, next) => {
+    try {
+      const data = await this.scholarshipService.getFeatured();
+      return success(res, data);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-module.exports = { getAll, getFeatured, getCountries, getById };
+  getCountries = async (req, res, next) => {
+    try {
+      const data = await this.scholarshipService.getCountries();
+      return success(res, data);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getById = async (req, res, next) => {
+    try {
+      const data = await this.scholarshipService.getById(req.params.id, req.user?.id);
+      return success(res, data);
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+module.exports = ScholarshipController;
