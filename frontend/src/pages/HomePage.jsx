@@ -19,6 +19,8 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
+  const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
+  const featuredScholarships = featured?.data || [];
   const { data: recommended, isLoading: recLoading } = useScholarships({ limit: 3 }); // Mock for recommendations
   const recommendedScholarships = recommended?.data || [];
 
@@ -33,6 +35,45 @@ const HomePage = () => {
     { label: 'Học bổng nổi bật', value: `${featuredScholarships.length || 6}+`, icon: Star },
     { label: 'Luồng theo dõi hồ sơ', value: '4 bước', icon: Compass },
     { label: 'Gợi ý theo profile', value: 'AI-ready', icon: Brain },
+  ];
+
+  const testimonials = [
+    {
+      name: 'Nguyễn Thị Lan',
+      role: 'Sinh viên ngành Kỹ thuật, Học bổng Chevening',
+      quote: 'ScholarsGo giúp tôi tìm được học bổng mơ ước tại Anh. Giao diện dễ sử dụng và gợi ý cá nhân hóa thực sự hữu ích!',
+      image: 'https://via.placeholder.com/64x64?text=Lan',
+    },
+    {
+      name: 'Trần Minh Tuấn',
+      role: 'Nghiên cứu sinh, Học bổng Australia Awards',
+      quote: 'Từ khi dùng ScholarsGo, việc theo dõi deadline trở nên đơn giản. Tôi đã giành được học bổng toàn phần nhờ nền tảng này.',
+      image: 'https://via.placeholder.com/64x64?text=Tuấn',
+    },
+    {
+      name: 'Lê Hoàng Anh',
+      role: 'Học sinh THPT, Học bổng Nhật Bản',
+      quote: 'Ứng dụng gợi ý học bổng phù hợp với profile của tôi. Rất tiện lợi cho việc chuẩn bị hồ sơ du học.',
+      image: 'https://via.placeholder.com/64x64?text=Anh',
+    },
+  ];
+
+  const processSteps = [
+    {
+      title: 'Khám phá cơ hội',
+      description: 'Sử dụng bộ lọc thông minh theo quốc gia, ngành học, bậc học và mức tài trợ để tìm học bổng phù hợp nhất với mục tiêu của bạn.',
+      icon: Search,
+    },
+    {
+      title: 'Chuẩn bị hồ sơ',
+      description: 'Tải lên và quản lý CV, bảng điểm, thư giới thiệu và các tài liệu cần thiết trong một giao diện đơn giản, dễ sử dụng.',
+      icon: BookOpen,
+    },
+    {
+      title: 'Theo dõi tiến độ',
+      description: 'Nhận thông báo tự động về deadline, trạng thái ứng tuyển và lời khuyên cá nhân hóa để không bỏ lỡ cơ hội.',
+      icon: Trophy,
+    },
   ];
 
   const faqs = [
@@ -128,38 +169,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      <section className="py-section bg-slate-50">
-        <div className="container-page">
-          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Personalized recommendations</p>
-              <h2 className="section-title mt-2">Học bổng gợi ý cho bạn</h2>
-            </div>
-            <Link to="/scholarships" className="btn-ghost self-start md:self-auto">
-              Xem thêm gợi ý
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {recLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {recommendedScholarships.slice(0, 3).map((scholarship) => (
-                <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
-              ))}
-            </div>
-          )}
-
-          {!recLoading && recommendedScholarships.length === 0 && (
-            <Card>
-              <CardContent className="flex min-h-48 items-center justify-center text-center text-body text-gray-500">
-                Chưa có gợi ý học bổng cá nhân hóa. Hãy hoàn thiện profile để nhận đề xuất phù hợp.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
       <section className="py-section bg-surface">
         <div className="container-page">
           <div className="mb-16 text-center">
@@ -188,12 +197,9 @@ const HomePage = () => {
         <div className="container-page">
           <div className="mb-16 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Component-first home</p>
-              <h2 className="section-title mt-2">Các block nền để mở rộng landing page</h2>
+              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Cách thức hoạt động</p>
+              <h2 className="section-title mt-2">3 bước để bắt đầu hành trình du học</h2>
             </div>
-            <p className="max-w-2xl text-body text-gray-600">
-              Card, button, input và modal được đưa vào đúng ngữ cảnh sử dụng thay vì dựng rời rạc. Mục tiêu là sprint sau có thể nối tiếp section mới mà không phải đập đi làm lại.
-            </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {processSteps.map(({ title, description, icon: Icon }) => (
@@ -206,7 +212,7 @@ const HomePage = () => {
                   <CardDescription>{description}</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2 text-body-sm text-gray-500">
-                  Thiết kế block theo dạng component giúp section này có thể tái dùng ở onboarding hoặc trang giới thiệu tính năng.
+                  Quy trình được thiết kế đơn giản và trực quan để bạn dễ dàng quản lý toàn bộ hành trình ứng tuyển học bổng.
                 </CardContent>
               </Card>
             ))}
@@ -219,7 +225,7 @@ const HomePage = () => {
           <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Featured scholarships</p>
-              <h2 className="section-title mt-2">Khối nội dung thật cho trang Home</h2>
+              <h2 className="section-title mt-2">Học bổng nổi bật tuần này</h2>
             </div>
             <Link to="/scholarships" className="btn-ghost self-start md:self-auto">
               Xem tất cả học bổng
@@ -241,6 +247,39 @@ const HomePage = () => {
             <Card>
               <CardContent className="flex min-h-48 items-center justify-center text-center text-body text-gray-500">
                 Chưa có dữ liệu học bổng nổi bật để hiển thị trong block Home.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      <section className="py-section bg-slate-50">
+        <div className="container-page">
+          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Personalized recommendations</p>
+              <h2 className="section-title mt-2">Học bổng gợi ý cho bạn</h2>
+            </div>
+            <Link to="/scholarships" className="btn-ghost self-start md:self-auto">
+              Xem thêm gợi ý
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {recLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {recommendedScholarships.slice(0, 3).map((scholarship) => (
+                <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
+              ))}
+            </div>
+          )}
+
+          {!recLoading && recommendedScholarships.length === 0 && (
+            <Card>
+              <CardContent className="flex min-h-48 items-center justify-center text-center text-body text-gray-500">
+                Chưa có gợi ý học bổng cá nhân hóa. Hãy hoàn thiện profile để nhận đề xuất phù hợp.
               </CardContent>
             </Card>
           )}
