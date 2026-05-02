@@ -1,75 +1,69 @@
-const { query, queryOne } = require('../utils/db');
+/**
+ * SavedScholarshipService — Bước 4: Refactor Saved Scholarships (Tầng Service)
+ *
+ * Lớp này CHỨA BUSINESS LOGIC, KHÔNG có SQL.
+ * SQL nằm trong SavedScholarshipRepository — Service chỉ gọi repo methods.
+ *
+ * Inject: savedScholarshipRepo qua constructor
+ *
+ * Public methods — Controller gọi:
+ *   getAll(userId)                              → saved scholarships[]
+ *   save(userId, scholarshipId, note)          → saved scholarship + details
+ *   remove(userId, scholarshipId)               → void
+ */
+class SavedScholarshipService {
+  constructor(savedScholarshipRepository) {
+    this.repo = savedScholarshipRepository;
+  }
 
-const getAll = async (userId) => {
-  const data = await query(
-    `SELECT ss.id, ss.note, ss.created_at,
-            s.id as scholarship_id, s.title, s.provider, s.country, s.degree,
-            s.amount, s.currency, s.deadline, s.image_url, s.is_featured
-     FROM saved_scholarships ss
-     JOIN scholarships s ON ss.scholarship_id = s.id
-     WHERE ss.user_id = $1
-     ORDER BY ss.created_at DESC`,
-    [userId]
-  );
-  return data.rows;
-};
+  // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
 
-const save = async (userId, scholarshipId, note) => {
-  const scholarship = await queryOne(
-    'SELECT id, title FROM scholarships WHERE id = $1',
-    [scholarshipId]
-  );
+  getAll = async (userId) => {
+    const rows = await this.repo.findAllByUser(userId);
+    return rows;
+  };
 
-  if (!scholarship) {
-    const err = new Error('Không tìm thấy học bổng');
-    err.statusCode = 404;
+  save = async (userId, scholarshipId, note) => {
+    // Bước 1: Kiểm tra scholarship có tồn tại không
+    const scholarship = await this.repo.findScholarshipById(scholarshipId);
+    if (!scholarship) {
+      this.#throwError('Không tìm thấy học bổng', 404);
+    }
+
+    // Bước 2: Kiểm tra đã save chưa (tránh duplicate)
+    const existing = await this.repo.findExisting(userId, scholarshipId);
+    if (existing) {
+      this.#throwError(`Bạn đã lưu học bổng "${scholarship.title}" rồi`, 409);
+    }
+
+    // Bước 3: Tạo saved scholarship record
+    const saved = await this.repo.create(userId, scholarshipId, note || null);
+
+    // Bước 4: Lấy chi tiết scholarship để trả về client
+    const scholarshipDetails = await this.repo.getScholarshipDetails(scholarshipId);
+
+    return { ...saved, scholarship: scholarshipDetails };
+  };
+
+  remove = async (userId, scholarshipId) => {
+    // Bước 1: Kiểm tra có trong danh sách đã lưu không
+    const existing = await this.repo.findExisting(userId, scholarshipId);
+    if (!existing) {
+      this.#throwError('Không tìm thấy scholarship trong danh sách đã lưu', 404);
+    }
+
+    // Bước 2: Xóa khỏi DB
+    await this.repo.deleteByUserAndScholarship(userId, scholarshipId);
+  };
+
+  // ─── PRIVATE — validation & error helpers ─────────────────────────────────
+
+  #throwError(message, statusCode = 500) {
+    const err = new Error(message);
+    err.statusCode = statusCode;
     err.isOperational = true;
     throw err;
   }
+}
 
-  const existing = await queryOne(
-    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarshipId]
-  );
-
-  if (existing) {
-    const err = new Error(`Bạn đã lưu học bổng "${scholarship.title}" rồi`);
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
-  }
-
-  const saved = await queryOne(
-    `INSERT INTO saved_scholarships (user_id, scholarship_id, note)
-     VALUES ($1, $2, $3)
-     RETURNING *`,
-    [userId, scholarshipId, note || null]
-  );
-
-  // Lấy scholarship details
-  const scholarshipDetails = await queryOne(
-    `SELECT id as scholarship_id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-     FROM scholarships WHERE id = $1`,
-    [scholarshipId]
-  );
-
-  return { ...saved, scholarship: scholarshipDetails };
-};
-
-const remove = async (userId, scholarshipId) => {
-  const existing = await queryOne(
-    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarshipId]
-  );
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy scholarship trong danh sách đã lưu');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  await query('DELETE FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2', [userId, scholarshipId]);
-};
-
-module.exports = { getAll, save, remove };
+module.exports = SavedScholarshipService;

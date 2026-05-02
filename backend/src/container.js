@@ -48,6 +48,15 @@ const documentRepo = new DocumentRepository(db);
 const documentService = new DocumentService(documentRepo);
 const documentController = new DocumentController(documentService);
 
+// ── Saved Scholarship Module ────────────────────────────────
+const SavedScholarshipRepository = require('./repositories/saved-scholarship.repository');
+const SavedScholarshipService = require('./services/saved.service');
+const SavedScholarshipController = require('./controllers/saved.controller');
+
+const savedScholarshipRepo = new SavedScholarshipRepository(db);
+const savedScholarshipService = new SavedScholarshipService(savedScholarshipRepo);
+const savedScholarshipController = new SavedScholarshipController(savedScholarshipService);
+
 module.exports = {
   scholarshipRepo,
   scholarshipService,
@@ -59,4 +68,7 @@ module.exports = {
   documentRepo,
   documentService,
   documentController,
+  savedScholarshipRepo,
+  savedScholarshipService,
+  savedScholarshipController,
 };

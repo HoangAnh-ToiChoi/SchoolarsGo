@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const savedController = require('../controllers/saved.controller');
+const { savedScholarshipController: savedController } = require('../container');
 const { auth } = require('../middlewares/auth');
 
 const router = Router();
