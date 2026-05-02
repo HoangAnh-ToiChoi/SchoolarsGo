@@ -39,7 +39,7 @@ const ProfilePage = () => {
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="card card-body mb-8 space-y-5">
         <h2 className="text-heading-3 text-gray-900 border-b pb-3">Thông tin cá nhân</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <Input label="GPA (thang 4.0)" type="number" step="0.01" min="0" max="4" value={form.gpa ?? profile.gpa ?? ''} onChange={(e) => setForm({ ...form, gpa: e.target.value })} placeholder="3.5" />
           <Input label="Trình độ tiếng Anh" type="text" value={form.english_level ?? profile.english_level ?? ''} onChange={(e) => setForm({ ...form, english_level: e.target.value })} placeholder="IELTS 7.0" />
           <Input label="Quốc gia muốn đến" type="text" value={form.target_country ?? profile.target_country ?? ''} onChange={(e) => setForm({ ...form, target_country: e.target.value })} placeholder="UK, USA, Australia..." />
@@ -50,7 +50,7 @@ const ProfilePage = () => {
           </div>
           <div className="md:col-span-2">
             <label className="input-label">Giới thiệu bản thân</label>
-            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
+            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input w-full" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
           </div>
         </div>
         <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>
@@ -61,19 +61,27 @@ const ProfilePage = () => {
         <h2 className="text-heading-3 text-gray-900 border-b pb-3 mb-6">Tài liệu của tôi</h2>
         <div className="space-y-4">
           {DOCUMENT_TYPES.map((docType) => (
-            <div key={docType.value} className="flex items-center justify-between p-4 bg-gray-50 rounded-card">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-gray-400" />
-                <div><p className="font-medium text-gray-900">{docType.label}</p><p className="text-caption text-gray-500">PDF, DOC, DOCX — tối đa 10MB</p></div>
+            <div key={docType.value} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-card">
+              <div className="flex items-start md:items-center gap-3 min-w-0">
+                <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1 md:mt-0" />
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 text-sm md:text-base">{docType.label}</p>
+                  <p className="text-caption text-gray-500">PDF, DOC, DOCX — tối đa 10MB</p>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 {documents?.data?.filter((d) => d.type === docType.value).map((d) => (
-                  <div key={d.id} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-button border">
-                    <span className="text-body-sm text-gray-600 max-w-[150px] truncate">{d.file_name}</span>
-                    <button onClick={() => deleteDoc.mutate(d.id)} className="text-danger-500 hover:text-danger-700"><Trash2 className="w-4 h-4" /></button>
+                  <div key={d.id} className="flex items-center gap-1 md:gap-2 bg-surface px-2 md:px-3 py-1 rounded-button border text-xs md:text-sm flex-shrink-0">
+                    <span className="text-gray-600 truncate max-w-[100px] md:max-w-[150px]">{d.file_name}</span>
+                    <button type="button" onClick={() => deleteDoc.mutate(d.id)} className="text-danger-500 hover:text-danger-700 flex-shrink-0 p-0.5">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
-                <label className="cursor-pointer"><input type="file" className="hidden" accept=".pdf,.doc,.docx" data-type={docType.value} onChange={handleUpload} /><span className="btn-primary btn-sm"><Upload className="w-4 h-4" />Upload</span></label>
+                <label className="cursor-pointer flex-shrink-0">
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx" data-type={docType.value} onChange={handleUpload} />
+                  <span className="btn-primary btn-sm inline-flex items-center gap-1 whitespace-nowrap"><Upload className="w-4 h-4" />Upload</span>
+                </label>
               </div>
             </div>
           ))}
