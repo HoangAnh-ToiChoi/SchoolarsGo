@@ -70,23 +70,23 @@ const HomePage = () => {
               <p className="mt-6 max-w-2xl text-body-lg text-sky-50/88">
                 Bản layout đầu tiên tập trung vào thông điệp rõ ràng, lối vào tìm kiếm nhanh và các khối nội dung có thể mở rộng tiếp trong các sprint sau.
               </p>
-              <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto_auto]">
+              <form onSubmit={handleSearch} className="mt-8 grid gap-2 rounded-[1.5rem] border border-white/15 bg-white/10 p-3 backdrop-blur-md sm:gap-3 sm:p-4 md:grid-cols-[1fr_auto_auto]">
                 <Input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Thử nhập: Chevening, Australia Awards, Data Science..."
                   icon={Search}
-                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300"
-                  wrapperClassName="sm:min-w-0"
+                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300 text-sm md:text-base"
+                  wrapperClassName="min-w-0"
                 />
-                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800">
+                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800 text-sm md:text-base">
                   Tìm học bổng
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
                   onClick={() => setIsRoadmapOpen(true)}
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white text-sm md:text-base"
                 >
                   Xem lộ trình
                 </Button>
@@ -165,7 +165,7 @@ const HomePage = () => {
           {isLoading ? (
             <LoadingSpinner />
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {featuredScholarships.slice(0, 3).map((scholarship) => (
                 <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
               ))}
@@ -185,19 +185,19 @@ const HomePage = () => {
       <section className="py-section bg-surface-muted">
         <div className="container-page">
           <Card className="overflow-hidden border-none bg-gradient-to-r from-slate-950 via-primary-900 to-sky-800 text-white shadow-card-hover">
-            <CardContent className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+            <CardContent className="grid gap-6 sm:gap-8 p-6 sm:p-8 md:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200">Next up</p>
-                <h2 className="mt-3 text-3xl font-bold leading-tight">Home layout đã có khung. Sprint tiếp theo có thể nối sang testimonial, FAQ và recommendation.</h2>
+                <h2 className="mt-3 text-2xl sm:text-3xl font-bold leading-tight">Home layout đã có khung. Sprint tiếp theo có thể nối sang testimonial, FAQ và recommendation.</h2>
                 <p className="mt-4 max-w-2xl text-body text-sky-100/85">
                   Phần này dùng chính Card + Button để giữ mạch UI đồng nhất, hạn chế việc section mới mỗi nơi một kiểu trong các tuần sau.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Link to="/register" className="btn btn-lg bg-white text-primary-700 hover:bg-sky-50">
+              <div className="flex flex-col gap-3 w-full lg:w-auto lg:flex-col">
+                <Link to="/register" className="btn btn-lg bg-white text-primary-700 hover:bg-sky-50 text-center">
                   Tạo tài khoản miễn phí
                 </Link>
-                <Button size="lg" variant="secondary" onClick={() => setIsRoadmapOpen(true)} className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <Button size="lg" variant="secondary" onClick={() => setIsRoadmapOpen(true)} className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white w-full lg:w-auto">
                   Mở roadmap UI
                 </Button>
               </div>
