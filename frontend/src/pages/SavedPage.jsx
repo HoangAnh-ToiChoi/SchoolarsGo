@@ -7,24 +7,24 @@ import { PageHeader, EmptyState } from '../components/ui';
 const SavedPage = () => {
   const { data, isLoading } = useSavedScholarships();
 
-  if (isLoading) return <LoadingSpinner />;
-
   const saved = data?.data || [];
 
   return (
     <div className="container-page py-8">
       <PageHeader title="Học bổng đã lưu" description="Danh sách học bổng bạn đã bookmark để theo dõi" />
 
-      {saved.length === 0 ? (
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : saved.length === 0 ? (
         <EmptyState
           icon={Heart}
           title="Chưa lưu học bổng nào"
-          description="Browse danh sách và nhấn icon trái tim để lưu"
+          description="Khám phá danh sách học bổng và nhấn icon trái tim để lưu những cơ hội yêu thích của bạn."
           actionLabel="Tìm học bổng"
           actionTo="/scholarships"
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {saved.map((item) => (
             <ScholarshipCard key={item.id} scholarship={item.scholarship} />
           ))}
