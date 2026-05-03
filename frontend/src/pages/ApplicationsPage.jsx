@@ -73,7 +73,6 @@ const ApplicationsPage = () => {
         />
       </div>
 
-      {applications.length === 0 ? (
       {isLoading ? (
         <LoadingSpinner />
       ) : applications.length === 0 ? (

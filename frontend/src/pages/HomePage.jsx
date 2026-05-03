@@ -21,8 +21,6 @@ const HomePage = () => {
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
   const featuredScholarships = featured?.data || [];
-  const { data: recommended, isLoading: recLoading } = useScholarships({ limit: 3 }); // Mock for recommendations
-  const recommendedScholarships = recommended?.data || [];
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -37,67 +35,23 @@ const HomePage = () => {
     { label: 'Gợi ý theo profile', value: 'AI-ready', icon: Brain },
   ];
 
-  const testimonials = [
-    {
-      name: 'Nguyễn Thị Lan',
-      role: 'Sinh viên ngành Kỹ thuật, Học bổng Chevening',
-      quote: 'ScholarsGo giúp tôi tìm được học bổng mơ ước tại Anh. Giao diện dễ sử dụng và gợi ý cá nhân hóa thực sự hữu ích!',
-      image: 'https://via.placeholder.com/64x64?text=Lan',
-    },
-    {
-      name: 'Trần Minh Tuấn',
-      role: 'Nghiên cứu sinh, Học bổng Australia Awards',
-      quote: 'Từ khi dùng ScholarsGo, việc theo dõi deadline trở nên đơn giản. Tôi đã giành được học bổng toàn phần nhờ nền tảng này.',
-      image: 'https://via.placeholder.com/64x64?text=Tuấn',
-    },
-    {
-      name: 'Lê Hoàng Anh',
-      role: 'Học sinh THPT, Học bổng Nhật Bản',
-      quote: 'Ứng dụng gợi ý học bổng phù hợp với profile của tôi. Rất tiện lợi cho việc chuẩn bị hồ sơ du học.',
-      image: 'https://via.placeholder.com/64x64?text=Anh',
-    },
-  ];
-
   const processSteps = [
     {
       title: 'Khám phá cơ hội',
-      description: 'Sử dụng bộ lọc thông minh theo quốc gia, ngành học, bậc học và mức tài trợ để tìm học bổng phù hợp nhất với mục tiêu của bạn.',
+      description: 'Bắt đầu từ bộ lọc theo quốc gia, ngành, bậc học và mức hỗ trợ tài chính.',
       icon: Search,
     },
     {
       title: 'Chuẩn bị hồ sơ',
-      description: 'Tải lên và quản lý CV, bảng điểm, thư giới thiệu và các tài liệu cần thiết trong một giao diện đơn giản, dễ sử dụng.',
+      description: 'Tập trung CV, SOP, bảng điểm và các giấy tờ quan trọng trong một luồng rõ ràng.',
       icon: BookOpen,
     },
     {
       title: 'Theo dõi tiến độ',
-      description: 'Nhận thông báo tự động về deadline, trạng thái ứng tuyển và lời khuyên cá nhân hóa để không bỏ lỡ cơ hội.',
+      description: 'Quản lý deadline và trạng thái ứng tuyển để không bỏ sót từng mốc quan trọng.',
       icon: Trophy,
     },
   ];
-
-  const faqs = [
-    {
-      question: 'ScholarsGo hỗ trợ tìm học bổng cho những quốc gia nào?',
-      answer: 'Chúng tôi hỗ trợ học bổng từ hơn 50 quốc gia, bao gồm Mỹ, Anh, Úc, Canada, Nhật Bản, Hàn Quốc và nhiều nước châu Âu.',
-    },
-    {
-      question: 'Tôi cần chuẩn bị gì để bắt đầu tìm học bổng?',
-      answer: 'Bạn cần có CV, bảng điểm, thư giới thiệu và kế hoạch học tập. ScholarsGo sẽ hướng dẫn bạn từng bước chuẩn bị hồ sơ.',
-    },
-    {
-      question: 'Làm thế nào để nhận gợi ý học bổng cá nhân hóa?',
-      answer: 'Tạo tài khoản và hoàn thiện profile của bạn. Hệ thống AI sẽ phân tích thông tin để gợi ý học bổng phù hợp.',
-    },
-    {
-      question: 'ScholarsGo có miễn phí không?',
-      answer: 'Có, nền tảng cơ bản hoàn toàn miễn phí. Chúng tôi chỉ tính phí cho các dịch vụ tư vấn chuyên sâu.',
-    },
-    {
-      question: 'Tôi có thể theo dõi deadline như thế nào?',
-      answer: 'Sau khi đăng ký, bạn sẽ nhận thông báo tự động về deadline và có thể quản lý tất cả trong dashboard cá nhân.',
-    },
-    {
       question: 'ScholarsGo hỗ trợ tiếng Việt không?',
       answer: 'Đúng vậy, giao diện và hỗ trợ hoàn toàn bằng tiếng Việt để phục vụ cộng đồng người Việt Nam tốt nhất.',
     },

@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Button, Input, Select, PageHeader, FileUpload } from '../components/ui';
-import { Upload, FileText, Trash2, Eye, Download } from 'lucide-react';
 import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
 import { Upload, FileText, Trash2, Plus } from 'lucide-react';
 
