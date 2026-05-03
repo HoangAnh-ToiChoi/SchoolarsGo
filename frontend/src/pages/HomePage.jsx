@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Modal,
 } from '../components/ui';
 
 const HomePage = () => {
@@ -20,7 +19,9 @@ const HomePage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
+  const { data: recommended, isLoading: recLoading } = useScholarships({ limit: 6 });
   const featuredScholarships = featured?.data || [];
+  const recommendedScholarships = recommended?.data || [];
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -52,8 +53,31 @@ const HomePage = () => {
       icon: Trophy,
     },
   ];
+
+  const faqs = [
+    {
+      question: 'ScholarsGo là gì?',
+      answer: 'ScholarsGo là nền tảng thông minh giúp bạn tìm, so sánh và quản lý các đơn ứng tuyển học bổng quốc tế. Chúng tôi cung cấp cơ sở dữ liệu rộng lớn về học bổng, công cụ lọc thông minh, và theo dõi tiến độ ứng tuyển.',
+    },
+    {
+      question: 'Có phí sử dụng ScholarsGo không?',
+      answer: 'Không, ScholarsGo hoàn toàn miễn phí. Bạn có thể tìm kiếm, lưu, và quản lý các đơn ứng tuyển mà không cần chi phí gì.',
+    },
+    {
       question: 'ScholarsGo hỗ trợ tiếng Việt không?',
       answer: 'Đúng vậy, giao diện và hỗ trợ hoàn toàn bằng tiếng Việt để phục vụ cộng đồng người Việt Nam tốt nhất.',
+    },
+    {
+      question: 'Làm thế nào để nhận gợi ý học bổng cá nhân hóa?',
+      answer: 'Hãy hoàn thiện thông tin profile của bạn bao gồm ngành học, bậc học, điểm GPA và các thông tin khác. ScholarsGo sẽ sử dụng thông tin này để gợi ý những học bổng phù hợp nhất với bạn.',
+    },
+    {
+      question: 'Tôi có thể lưu học bổng yêu thích được không?',
+      answer: 'Có, bạn có thể nhấn icon trái tim trên bất kỳ thẻ học bổng nào để lưu nó. Các học bổng được lưu sẽ hiển thị trong mục "Học bổng đã lưu" để bạn dễ dàng quay lại xem sau.',
+    },
+    {
+      question: 'Làm sao để theo dõi deadline của học bổng?',
+      answer: 'Sau khi ứng tuyển, bạn có thể theo dõi tiến độ và deadline của từng đơn ứng tuyển trong mục "Đơn ứng tuyển". ScholarsGo sẽ tự động nhắc nhở bạn khi deadline sắp tới.',
     },
   ];
 
