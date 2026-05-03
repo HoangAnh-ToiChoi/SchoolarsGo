@@ -78,7 +78,7 @@ const ProfilePage = () => {
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="card card-body mb-8 space-y-5">
         <h2 className="text-heading-3 text-gray-900 border-b pb-3">Thông tin cá nhân</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <Input label="GPA (thang 4.0)" type="number" step="0.01" min="0" max="4" value={form.gpa ?? profile.gpa ?? ''} onChange={(e) => setForm({ ...form, gpa: e.target.value })} placeholder="3.5" />
           <Input label="Trình độ tiếng Anh" type="text" value={form.english_level ?? profile.english_level ?? ''} onChange={(e) => setForm({ ...form, english_level: e.target.value })} placeholder="IELTS 7.0" />
           <Input label="Quốc gia muốn đến" type="text" value={form.target_country ?? profile.target_country ?? ''} onChange={(e) => setForm({ ...form, target_country: e.target.value })} placeholder="UK, USA, Australia..." />
@@ -89,7 +89,7 @@ const ProfilePage = () => {
           </div>
           <div className="md:col-span-2">
             <label className="input-label">Giới thiệu bản thân</label>
-            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
+            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input w-full" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
           </div>
         </div>
         <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>

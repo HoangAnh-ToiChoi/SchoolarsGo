@@ -48,11 +48,11 @@ const ScholarshipCard = ({ scholarship }) => {
           <img src={image_url} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
         </div>
       )}
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex-1">
-            {is_featured && <span className="badge bg-warning-50 text-warning-700 mb-1"><Star className="w-3 h-3 fill-warning-500" />Nổi bật</span>}
-            <h3 className="font-bold text-gray-900 leading-tight line-clamp-2">{title}</h3>
+          <div className="flex-1 min-w-0">
+            {is_featured && <span className="badge bg-warning-50 text-warning-700 mb-1 inline-flex whitespace-nowrap"><Star className="w-3 h-3 fill-warning-500" />Nổi bật</span>}
+            <h3 className="font-bold text-gray-900 leading-tight line-clamp-2 text-sm sm:text-base">{title}</h3>
           </div>
           <button
             type="button"
@@ -67,13 +67,13 @@ const ScholarshipCard = ({ scholarship }) => {
             <Heart className={cn('w-5 h-5', savedState && 'fill-current')} />
           </button>
         </div>
-        <p className="text-body-sm text-gray-500 mb-4">{provider}</p>
+        <p className="text-body-sm text-gray-500 mb-4 line-clamp-1">{provider}</p>
         <div className="flex flex-wrap gap-2 mb-4">
-          <span className="tag"><MapPin className="w-3 h-3" />{country}</span>
-          <span className="tag"><GraduationCap className="w-3 h-3" />{degree}</span>
-          <span className="tag"><Calendar className="w-3 h-3" />{formatDate(deadline, 'dd/MM/yyyy')}</span>
+          <span className="tag text-xs sm:text-sm"><MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{country}</span></span>
+          <span className="tag text-xs sm:text-sm"><GraduationCap className="w-3 h-3 flex-shrink-0" /><span className="truncate">{degree}</span></span>
+          <span className="tag text-xs sm:text-sm"><Calendar className="w-3 h-3 flex-shrink-0" /><span className="truncate">{formatDate(deadline, 'dd/MM/yyyy')}</span></span>
         </div>
-        {amount && <div className="flex items-center gap-1 text-success-600 font-bold"><DollarSign className="w-4 h-4" />{formatCurrency(amount, currency)}</div>}
+        {amount && <div className="flex items-center gap-1 text-success-600 font-bold text-sm"><DollarSign className="w-4 h-4 flex-shrink-0" />{formatCurrency(amount, currency)}</div>}
       </div>
     </Link>
   );

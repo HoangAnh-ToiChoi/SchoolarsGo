@@ -120,23 +120,23 @@ const HomePage = () => {
               <p className="mt-6 max-w-2xl text-body-lg text-sky-50/88">
                 Từ việc khám phá hàng nghìn học bổng quốc tế đến theo dõi hồ sơ ứng tuyển cá nhân hóa, ScholarsGo đồng hành cùng bạn trên mọi bước đi để biến giấc mơ du học thành hiện thực.
               </p>
-              <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto_auto]">
+              <form onSubmit={handleSearch} className="mt-8 grid gap-2 rounded-[1.5rem] border border-white/15 bg-white/10 p-3 backdrop-blur-md sm:gap-3 sm:p-4 md:grid-cols-[1fr_auto_auto]">
                 <Input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Thử nhập: Chevening, Australia Awards, Data Science..."
                   icon={Search}
-                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300"
-                  wrapperClassName="sm:min-w-0"
+                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300 text-sm md:text-base"
+                  wrapperClassName="min-w-0"
                 />
-                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800">
+                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800 text-sm md:text-base">
                   Tìm học bổng
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
                   onClick={() => setIsRoadmapOpen(true)}
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white text-sm md:text-base"
                 >
                   Xem lộ trình
                 </Button>
@@ -236,7 +236,7 @@ const HomePage = () => {
           {isLoading ? (
             <LoadingSpinner />
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {featuredScholarships.slice(0, 3).map((scholarship) => (
                 <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
               ))}
