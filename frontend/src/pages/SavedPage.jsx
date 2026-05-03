@@ -10,12 +10,32 @@ const SavedPage = () => {
   if (isLoading) return <LoadingSpinner />;
 
   const saved = data?.data || [];
+  const normalizedSaved = saved.map((item) => (
+    item.scholarship
+      ? item
+      : {
+          ...item,
+          scholarship: {
+            id: item.scholarship_id,
+            title: item.title,
+            provider: item.provider,
+            country: item.country,
+            degree: item.degree,
+            amount: item.amount,
+            currency: item.currency,
+            deadline: item.deadline,
+            image_url: item.image_url,
+            is_featured: item.is_featured,
+            is_saved: true,
+          },
+        }
+  ));
 
   return (
     <div className="container-page py-8">
       <PageHeader title="Học bổng đã lưu" description="Danh sách học bổng bạn đã bookmark để theo dõi" />
 
-      {saved.length === 0 ? (
+      {normalizedSaved.length === 0 ? (
         <EmptyState
           icon={Heart}
           title="Chưa lưu học bổng nào"
@@ -25,7 +45,7 @@ const SavedPage = () => {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {saved.map((item) => (
+          {normalizedSaved.map((item) => (
             <ScholarshipCard key={item.id} scholarship={item.scholarship} />
           ))}
         </div>

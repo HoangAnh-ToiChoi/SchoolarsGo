@@ -1,22 +1,36 @@
-const profileService = require('../services/profile.service');
+/**
+ * ProfileController — VÙNG 2 (Controller → Service → Repository → DB)
+ *
+ * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
+ * Inject: profileService qua constructor.
+ */
+
 const { success } = require('../utils/responseHelper');
 
-const getProfile = async (req, res, next) => {
-  try {
-    const data = await profileService.getProfile(req.user.id);
-    return success(res, data);
-  } catch (error) {
-    next(error);
+class ProfileController {
+  constructor(profileService) {
+    this.profileService = profileService;
   }
-};
 
-const updateProfile = async (req, res, next) => {
-  try {
-    const data = await profileService.updateProfile(req.user.id, req.body);
-    return success(res, data, 'Profile updated');
-  } catch (error) {
-    next(error);
-  }
-};
+  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
 
-module.exports = { getProfile, updateProfile };
+  getProfile = async (req, res, next) => {
+    try {
+      const data = await this.profileService.getProfile(req.user.id);
+      return success(res, data);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateProfile = async (req, res, next) => {
+    try {
+      const data = await this.profileService.updateProfile(req.user.id, req.body);
+      return success(res, data, 'Profile updated');
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+module.exports = ProfileController;

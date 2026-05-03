@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DATABASE SCHEMA
 # ============================================================
-# Last Updated: 4/4/2026
+# Last Updated: 20/4/2026
 
 ---
 
@@ -213,6 +213,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 |------|---------|---------|
 | 26/3/2026 | v0.1 | Initial schema — 6 tables created |
 | 27/3/2026 | v0.2 | Deploy lên Supabase local Docker. Thêm: RLS policies đầy đủ, auto-update `updated_at` trigger, indexes mở rộng. 6 tables + 16 indexes + 20 policies. |
+| 20/4/2026 | v0.3 | Refactor toàn bộ backend sang OOP 4-layer architecture (Scholarship, Profile, Document modules). Thêm DocumentRepository, container.js wiring đầy đủ. |
 
 ## Local Docker Setup
 
@@ -259,3 +260,173 @@ docker exec -it scholarsgo_postgres psql -U postgres
 | DB Name | postgres |
 | pgAdmin Email | admin@scholarsgo.com |
 | pgAdmin Password | scholarsgo_admin |
+
+---
+
+## Backend OOP Architecture (cập nhật 20/4/2026)
+
+> **Nguồn:** Các nhánh `feature/scholarships-oop`, `feature/profile-oop`, `feature/document-oop`
+
+### Nguyên tắc 4-Layer (bất biến)
+
+```
+Routes → Controller → Service → Repository → DB
+```
+
+| Layer | Trách nhiệm | Quy tắc |
+|-------|-------------|----------|
+| **Controller** | HTTP handling, parse req/res | KHÔNG chứa business logic hay SQL |
+| **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận repo qua constructor |
+| **Repository** | Toàn bộ SQL của module | Kế thừa `BaseRepository`, KHÔNG SQL ở tầng khác |
+| **DB** (`utils/db.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
+
+### Dependency Injection — `container.js`
+
+- **Singleton file duy nhất** được phép tạo instance của Repository, Service, Controller
+- Wiring theo thứ tự: `db → Repository → Service → Controller`
+- Các module export từ `container.js`, routes import từ đây
+
+```
+db → ScholarshipRepository → ScholarshipService → ScholarshipController
+db → ProfileRepository    → ProfileService    → ProfileController
+db → DocumentRepository   → DocumentService   → DocumentController
+db → ApplicationRepository → ApplicationService
+```
+
+### Quy tắc viết Class
+
+- **Constructor:** nhận dependency qua tham số (không import trực tiếp bên trong class)
+- **Public methods:** arrow functions (`methodName = async (params) => {}`)
+- **Private methods/helpers:** dùng `#methodName` (JS private field syntax)
+- **Error helper:** `#throwError(message, statusCode)` — throw Error có `.statusCode` và `.isOperational = true`
+- **Guard helper:** `#ensureFound(item, message)` — throw 404 nếu item null
+
+### Module: Scholarship (`feature/scholarships-oop`)
+
+**Commits:** `781ebbc` → `6f860c9`
+
+**ScholarshipRepository** — `backend/src/repositories/scholarship.repository.js`
+
+| Method | Mô tả |
+|--------|--------|
+| `findAll(filters, userId)` | Danh sách có filter + pagination + `is_saved`. Trả `{ data, meta }` |
+| `findFeatured()` | Lấy 6 học bổng nổi bật (`is_featured=true`, deadline còn hạn) |
+| `findCountries()` | Danh sách country distinct |
+| `findById(id, userId)` | Chi tiết 1 học bổng + `is_saved` flag |
+| `#buildWhereClause(filters)` | Nội bộ: xây WHERE clause từ filters object |
+| `#attachSavedStatus(rows, userId)` | Nội bộ: batch check saved_scholarships |
+| `#checkSavedStatus(userId, scholarshipId)` | Nội bộ: check 1 scholarship có được save không |
+
+**Filters hỗ trợ:** `country`, `degree`, `field`, `language`, `min_gpa`, `min_ielts`, `deadline_from`, `deadline_to`, `amount_min`, `coverage`, `featured`, `search`, `page`, `limit` (max 50)
+
+**ScholarshipService** — `backend/src/services/scholarship.service.js`
+
+| Method | Mô tả |
+|--------|--------|
+| `getAll(filters, userId)` | Gọi `repo.findAll()` |
+| `getFeatured()` | Gọi `repo.findFeatured()` |
+| `getCountries()` | Gọi `repo.findCountries()` |
+| `getById(id, userId)` | Gọi `repo.findById()`, throw 404 nếu không có |
+
+---
+
+### Module: Profile (`feature/profile-oop`)
+
+**Commits:** `16d0039` → `23fe92f`
+
+**ProfileRepository** — `backend/src/repositories/profile.repository.js`
+
+| Method | Mô tả |
+|--------|--------|
+| `findByUserId(userId)` | Lấy profile + documents, tự tạo profile nếu chưa có (upsert) |
+| `upsertProfile(userId, updates)` | INSERT … ON CONFLICT DO UPDATE. Nếu có `full_name` → sync sang bảng `users` |
+| `#buildProfileUpdateSets(updates)` | Nội bộ: whitelist + extract values từ updates |
+
+**Whitelist fields được phép update:** `bio`, `gpa`, `gpa_scale`, `english_level`, `target_country`, `target_major`, `target_degree`, `target_intake`
+
+**ProfileService** — `backend/src/services/profile.service.js`
+- Không có SQL, chỉ gọi `profileRepo` methods
+- Nhận `profileRepository` qua constructor
+
+**ProfileController** — `backend/src/controllers/profile.controller.js`
+- Class + arrow functions
+- Inject `profileService` qua constructor
+- Import từ `container.js`
+
+---
+
+### Module: Document (`feature/document-oop`)
+
+**Commit:** `f0aff4e` — 20/4/2026 17:02 (commit mới nhất)
+
+**DocumentRepository** — `backend/src/repositories/document.repository.js`
+
+| Method | Mô tả |
+|--------|--------|
+| `findAllByUserId(userId)` | SELECT * documents ORDER BY created_at DESC |
+| `findByIdAndUserId(id, userId)` | Ownership check — trả `null` nếu không tìm thấy |
+| `insertDocument({ userId, docType, fileName, fileUrl, fileSize, mimeType })` | INSERT RETURNING * |
+| `deleteByIdAndUserId(id, userId)` | Tìm + xóa record, trả về `storagePath` để Service xóa file vật lý |
+| `#extractStoragePath(publicUrl)` | Nội bộ: parse Supabase Storage URL → `documents/uuid/type/file.ext` |
+
+**DocumentService** — `backend/src/services/document.service.js`
+
+| Method | Mô tả |
+|--------|--------|
+| `getAll(userId)` | Lấy danh sách documents |
+| `upload(userId, docType, file)` | Validate type + file → upload Storage → insert DB. Nếu DB lỗi → rollback xóa file |
+| `remove(userId, documentId)` | Tìm doc → xóa file Storage → xóa DB record |
+
+**Valid document types:** `cv`, `sop`, `transcript`, `recommendation_letter`, `other`
+
+**Upload rollback pattern:**
+```js
+// Nếu insertDocument thất bại, tự động xóa file đã upload:
+await deleteFile(uploadResult.storagePath);
+```
+
+**DocumentController** — `backend/src/controllers/document.controller.js`
+- Class + arrow functions, inject `documentService` qua constructor
+- Import từ `container.js`
+
+**Document Routes** — `backend/src/routes/document.routes.js`
+
+| Method | Route | Middleware | Handler |
+|--------|-------|------------|---------|
+| GET | `/api/documents` | `auth` | `documentController.getAll` |
+| POST | `/api/documents/upload` | `auth, upload.single('file'), handleUploadError` | `documentController.upload` |
+| DELETE | `/api/documents/:id` | `auth` | `documentController.remove` |
+
+> **Lưu ý `handleUploadError`:** Phải đặt sau `upload.single('file')` để bắt lỗi `MulterError` và format JSON 400 thay vì crash server.
+
+---
+
+### Cấu trúc thư mục Backend (sau OOP refactor)
+
+```
+backend/src/
+├── container.js              ← DI wiring duy nhất
+├── controllers/
+│   ├── document.controller.js
+│   ├── profile.controller.js
+│   └── scholarship.controller.js
+├── services/
+│   ├── document.service.js
+│   ├── profile.service.js
+│   ├── scholarship.service.js
+│   ├── application-v2.service.js
+│   └── storage.service.js    ← uploadFile, deleteFile (Supabase Storage)
+├── repositories/
+│   ├── base.repository.js    ← Base class kế thừa
+│   ├── document.repository.js
+│   ├── profile.repository.js
+│   ├── scholarship.repository.js
+│   └── application.repository.js
+├── routes/
+│   ├── document.routes.js
+│   ├── profile.routes.js
+│   └── scholarship.routes.js
+└── utils/
+    ├── db.js                 ← Raw pg Pool singleton
+    └── responseHelper.js     ← success(), created() helpers
+```
