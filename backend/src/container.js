@@ -9,10 +9,19 @@
  * Wiring: db → ScholarshipRepository → ScholarshipService → ScholarshipController
  *         db → ProfileRepository → ProfileService → ProfileController
  *         db → ApplicationRepository → ApplicationService
+ *         db → SavedRepository → SavedService
  *         db → DocumentRepository → DocumentService → DocumentController
+ *         db → AuthRepository → AuthService → AuthController
+ *
+ * EventBus wiring: eventBus → DocumentService, AuthService
+ *                  registerStorageListeners() → lắng nghe document events
+ *                  registerAuthListeners()    → lắng nghe auth events
  */
 
 const db = require('./utils/db');
+
+// ── EventBus ────────────────────────────────────────────────
+const eventBus = require('./events/eventBus');
 
 // ── Scholarship Module ─────────────────────────────────────
 const ScholarshipRepository = require('./repositories/scholarship.repository');
@@ -34,7 +43,8 @@ const profileController = new ProfileController(profileService);
 
 // ── Application Module ──────────────────────────────────────
 const ApplicationRepository = require('./repositories/application.repository');
-const ApplicationService = require('./services/application-v2.service');
+const ApplicationService = require('./services/application.service');
+const applicationController = require('./controllers/application.controller');
 
 const applicationRepo = new ApplicationRepository(db);
 const applicationService = new ApplicationService(applicationRepo);
@@ -45,8 +55,26 @@ const DocumentService = require('./services/document.service');
 const DocumentController = require('./controllers/document.controller');
 
 const documentRepo = new DocumentRepository(db);
-const documentService = new DocumentService(documentRepo);
+const documentService = new DocumentService(documentRepo, eventBus);
 const documentController = new DocumentController(documentService);
+
+// ── Saved Module ──────────────────────────────────────────
+const SavedRepository = require('./repositories/saved.repository');
+const SavedService = require('./services/saved.service');
+const SavedController = require('./controllers/saved.controller');
+
+const savedRepo = new SavedRepository(db);
+const savedService = new SavedService(savedRepo);
+const savedController = SavedController;
+
+// ── Auth Module ────────────────────────────────────────────
+const AuthRepository = require('./repositories/auth.repository');
+const AuthService = require('./services/auth.service');
+const AuthController = require('./controllers/auth.controller');
+
+const authRepo = new AuthRepository(db);
+const authService = new AuthService(authRepo, eventBus);
+const authController = new AuthController(authService);
 
 module.exports = {
   scholarshipRepo,
@@ -56,7 +84,22 @@ module.exports = {
   profileService,
   profileController,
   applicationService,
+  applicationController,
   documentRepo,
   documentService,
   documentController,
+  savedService,
+  savedController,
+  authRepo,
+  authService,
+  authController,
 };
+
+// ── Event Listeners ─────────────────────────────────────────
+// Đăng ký listeners SAU khi tất cả services được khởi tạo
+// Listeners chỉ chạy khi server start — không block request handling
+const { registerStorageListeners } = require('./events/listeners/storage.listener');
+const { registerAuthListeners } = require('./events/listeners/auth.listener');
+
+registerStorageListeners();
+registerAuthListeners();

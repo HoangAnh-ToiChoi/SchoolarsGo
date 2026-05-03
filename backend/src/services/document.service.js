@@ -7,7 +7,7 @@
  * Storage (uploadFile, deleteFile) vẫn ở đây vì KHÔNG phải SQL.
  * Rollback logic khi DB insert thất bại cũng ở đây.
  *
- * Inject: documentRepo qua constructor
+ * Inject: documentRepo + eventBus qua constructor
  *
  * Public methods — Controller gọi:
  *   getAll(userId)      → documents[]
@@ -19,8 +19,9 @@ const { uploadFile, deleteFile } = require('./storage.service');
 class DocumentService {
   static VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-  constructor(documentRepository) {
+  constructor(documentRepository, eventBus) {
     this.repo = documentRepository;
+    this.eventBus = eventBus;
   }
 
   // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
@@ -44,6 +45,16 @@ class DocumentService {
         fileSize: file.size,
         mimeType: file.mimetype,
       });
+
+      // Emit event — Loose Coupling: DocumentService không biết StorageListener tồn tại
+      this.eventBus.emit('document.uploaded', {
+        userId,
+        documentId: doc.id,
+        docType,
+        fileSize: file.size,
+        fileName: file.originalname,
+      });
+
       return doc;
     } catch (dbErr) {
       await deleteFile(uploadResult.storagePath);
@@ -55,12 +66,21 @@ class DocumentService {
     const doc = await this.repo.findByIdAndUserId(documentId, userId);
     this.#ensureFound(doc, 'Không tìm thấy document hoặc bạn không có quyền xóa');
 
+    const fileSize = doc.file_size;
+
     if (doc.file_url) {
       const path = this.#parseStoragePath(doc.file_url);
       if (path) await deleteFile(path);
     }
 
     await this.repo.deleteByIdAndUserId(documentId, userId);
+
+    // Emit event — Loose Coupling: DocumentService không biết StorageListener tồn tại
+    this.eventBus.emit('document.deleted', {
+      userId,
+      documentId,
+      fileSize,
+    });
   };
 
   // ─── PRIVATE — Storage helpers ────────────────────────────────────────────

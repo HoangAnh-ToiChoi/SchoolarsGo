@@ -15,15 +15,29 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabaseStorage = null;
 
-const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+const getSupabaseStorage = () => {
+  if (supabaseStorage) return supabaseStorage;
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    const err = new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set for storage operations');
+    err.isOperational = true;
+    throw err;
+  }
+
+  supabaseStorage = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return supabaseStorage;
+};
 
 const BUCKET_NAME = 'documents';
 
@@ -97,7 +111,8 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
 
   let uploadData;
   try {
-    const result = await supabaseStorage.storage
+    const storage = getSupabaseStorage();
+    const result = await storage.storage
       .from(BUCKET_NAME)
       .upload(storagePath, fileBuffer, {
         contentType: mimeType,
@@ -128,7 +143,7 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
 
   // getPublicUrl() là hàm đồng bộ — chỉ build string từ config
   // KHÔNG cần try/catch vì không có network call
-  const { data: urlData } = supabaseStorage.storage
+    const { data: urlData } = getSupabaseStorage().storage
     .from(BUCKET_NAME)
     .getPublicUrl(uploadData ? uploadData.path : storagePath);
 
@@ -146,7 +161,7 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
  * @returns {Promise<void>}
  */
 const deleteFile = async (storagePath) => {
-  const { error } = await supabaseStorage.storage
+  const { error } = await getSupabaseStorage().storage
     .from(BUCKET_NAME)
     .remove([storagePath]);
 

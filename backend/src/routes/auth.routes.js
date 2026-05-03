@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const authController = require('../controllers/auth.controller');
+const { authController } = require('../container');
 const { registerSchema, loginSchema } = require('../utils/validators');
 const validate = require('../middlewares/validate');
 const { auth } = require('../middlewares/auth');
