@@ -10,6 +10,7 @@ import ApplicationsPage from './pages/ApplicationsPage';
 import DashboardPage from './pages/DashboardPage';
 import DeadlineTrackerPage from './pages/DeadlineTrackerPage';
 import SavedPage from './pages/SavedPage';
+import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/ProtectedRoute';
 

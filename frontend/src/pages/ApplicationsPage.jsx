@@ -11,8 +11,6 @@ const ApplicationsPage = () => {
   const { data, isLoading } = useApplications(statusFilter ? { status: statusFilter } : {});
   const updateApplication = useUpdateApplication();
 
-  if (isLoading) return <LoadingSpinner />;
-
   const applications = data?.data || [];
 
   const handleChecklistToggle = (applicationId, itemIndex) => {
@@ -76,6 +74,9 @@ const ApplicationsPage = () => {
       </div>
 
       {applications.length === 0 ? (
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : applications.length === 0 ? (
         <EmptyState
           icon={BookOpen}
           title="Chưa có đơn ứng tuyển nào"

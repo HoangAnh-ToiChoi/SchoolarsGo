@@ -3,6 +3,9 @@ import { Heart, Star, MapPin, Calendar, DollarSign, GraduationCap } from 'lucide
 import { useToggleSaveScholarship } from '../hooks/useScholarship';
 import { useAuthStore } from '../stores/authStore';
 import { cn, formatCurrency, formatDate } from '../utils/helpers';
+import { useToggleSaveScholarship, useSavedScholarships } from '../hooks/useScholarship';
+import { useAuthStore } from '../stores/authStore';
+import toast from 'react-hot-toast';
 
 const ScholarshipCard = ({ scholarship }) => {
   const navigate = useNavigate();
