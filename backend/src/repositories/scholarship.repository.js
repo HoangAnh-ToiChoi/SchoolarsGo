@@ -71,7 +71,7 @@ class ScholarshipRepository extends BaseRepository {
     const data = await this.db.query(
       `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
        FROM scholarships
-       WHERE is_active = true AND deadline >= now() AND is_featured = true
+       WHERE is_active = true AND deadline >= NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh' AND is_featured = true
        ORDER BY deadline ASC
        LIMIT 6`
     );
@@ -95,7 +95,7 @@ class ScholarshipRepository extends BaseRepository {
    */
   async findById(id, userId = null) {
     const scholarship = await this.db.queryOne(
-      'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()',
+      'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\'',
       [id]
     );
 
@@ -114,7 +114,7 @@ class ScholarshipRepository extends BaseRepository {
    * @returns {{ conditions: string[], params: any[] }}
    */
   #buildWhereClause(filters) {
-    const conditions = ['is_active = true', 'deadline > NOW()'];
+    const conditions = ['is_active = true', 'deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\''];
     const params = [];
     let idx = 1;
 

@@ -44,10 +44,11 @@ const profileController = new ProfileController(profileService);
 // ── Application Module ──────────────────────────────────────
 const ApplicationRepository = require('./repositories/application.repository');
 const ApplicationService = require('./services/application.service');
-const applicationController = require('./controllers/application.controller');
 
 const applicationRepo = new ApplicationRepository(db);
 const applicationService = new ApplicationService(applicationRepo);
+const ApplicationController = require('./controllers/application.controller');
+const applicationController = new ApplicationController(applicationService);
 
 // ── Document Module ─────────────────────────────────────────
 const DocumentRepository = require('./repositories/document.repository');
@@ -65,7 +66,7 @@ const SavedController = require('./controllers/saved.controller');
 
 const savedRepo = new SavedRepository(db);
 const savedService = new SavedService(savedRepo);
-const savedController = SavedController;
+const savedController = new SavedController(savedService);
 
 // ── Auth Module ────────────────────────────────────────────
 const AuthRepository = require('./repositories/auth.repository');

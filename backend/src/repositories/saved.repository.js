@@ -12,7 +12,6 @@ const BaseRepository = require('./base.repository');
 class SavedRepository extends BaseRepository {
   constructor(db) {
     super(db, 'saved_scholarships');
-    this.db = db;
   }
 
   /**
