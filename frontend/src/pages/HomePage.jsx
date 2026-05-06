@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Modal,
 } from '../components/ui';
 
 const HomePage = () => {
@@ -20,8 +19,8 @@ const HomePage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
+  const { data: recommended, isLoading: recLoading } = useScholarships({ limit: 6 });
   const featuredScholarships = featured?.data || [];
-  const { data: recommended, isLoading: recLoading } = useScholarships({ limit: 3 }); // Mock for recommendations
   const recommendedScholarships = recommended?.data || [];
 
   const handleSearch = (event) => {
@@ -37,69 +36,48 @@ const HomePage = () => {
     { label: 'Gợi ý theo profile', value: 'AI-ready', icon: Brain },
   ];
 
-  const testimonials = [
-    {
-      name: 'Nguyễn Thị Lan',
-      role: 'Sinh viên ngành Kỹ thuật, Học bổng Chevening',
-      quote: 'ScholarsGo giúp tôi tìm được học bổng mơ ước tại Anh. Giao diện dễ sử dụng và gợi ý cá nhân hóa thực sự hữu ích!',
-      image: 'https://via.placeholder.com/64x64?text=Lan',
-    },
-    {
-      name: 'Trần Minh Tuấn',
-      role: 'Nghiên cứu sinh, Học bổng Australia Awards',
-      quote: 'Từ khi dùng ScholarsGo, việc theo dõi deadline trở nên đơn giản. Tôi đã giành được học bổng toàn phần nhờ nền tảng này.',
-      image: 'https://via.placeholder.com/64x64?text=Tuấn',
-    },
-    {
-      name: 'Lê Hoàng Anh',
-      role: 'Học sinh THPT, Học bổng Nhật Bản',
-      quote: 'Ứng dụng gợi ý học bổng phù hợp với profile của tôi. Rất tiện lợi cho việc chuẩn bị hồ sơ du học.',
-      image: 'https://via.placeholder.com/64x64?text=Anh',
-    },
-  ];
-
   const processSteps = [
     {
       title: 'Khám phá cơ hội',
-      description: 'Sử dụng bộ lọc thông minh theo quốc gia, ngành học, bậc học và mức tài trợ để tìm học bổng phù hợp nhất với mục tiêu của bạn.',
+      description: 'Bắt đầu từ bộ lọc theo quốc gia, ngành, bậc học và mức hỗ trợ tài chính.',
       icon: Search,
     },
     {
       title: 'Chuẩn bị hồ sơ',
-      description: 'Tải lên và quản lý CV, bảng điểm, thư giới thiệu và các tài liệu cần thiết trong một giao diện đơn giản, dễ sử dụng.',
+      description: 'Tập trung CV, SOP, bảng điểm và các giấy tờ quan trọng trong một luồng rõ ràng.',
       icon: BookOpen,
     },
     {
       title: 'Theo dõi tiến độ',
-      description: 'Nhận thông báo tự động về deadline, trạng thái ứng tuyển và lời khuyên cá nhân hóa để không bỏ lỡ cơ hội.',
+      description: 'Quản lý deadline và trạng thái ứng tuyển để không bỏ sót từng mốc quan trọng.',
       icon: Trophy,
     },
   ];
 
   const faqs = [
     {
-      question: 'ScholarsGo hỗ trợ tìm học bổng cho những quốc gia nào?',
-      answer: 'Chúng tôi hỗ trợ học bổng từ hơn 50 quốc gia, bao gồm Mỹ, Anh, Úc, Canada, Nhật Bản, Hàn Quốc và nhiều nước châu Âu.',
+      question: 'ScholarsGo là gì?',
+      answer: 'ScholarsGo là nền tảng thông minh giúp bạn tìm, so sánh và quản lý các đơn ứng tuyển học bổng quốc tế. Chúng tôi cung cấp cơ sở dữ liệu rộng lớn về học bổng, công cụ lọc thông minh, và theo dõi tiến độ ứng tuyển.',
     },
     {
-      question: 'Tôi cần chuẩn bị gì để bắt đầu tìm học bổng?',
-      answer: 'Bạn cần có CV, bảng điểm, thư giới thiệu và kế hoạch học tập. ScholarsGo sẽ hướng dẫn bạn từng bước chuẩn bị hồ sơ.',
-    },
-    {
-      question: 'Làm thế nào để nhận gợi ý học bổng cá nhân hóa?',
-      answer: 'Tạo tài khoản và hoàn thiện profile của bạn. Hệ thống AI sẽ phân tích thông tin để gợi ý học bổng phù hợp.',
-    },
-    {
-      question: 'ScholarsGo có miễn phí không?',
-      answer: 'Có, nền tảng cơ bản hoàn toàn miễn phí. Chúng tôi chỉ tính phí cho các dịch vụ tư vấn chuyên sâu.',
-    },
-    {
-      question: 'Tôi có thể theo dõi deadline như thế nào?',
-      answer: 'Sau khi đăng ký, bạn sẽ nhận thông báo tự động về deadline và có thể quản lý tất cả trong dashboard cá nhân.',
+      question: 'Có phí sử dụng ScholarsGo không?',
+      answer: 'Không, ScholarsGo hoàn toàn miễn phí. Bạn có thể tìm kiếm, lưu, và quản lý các đơn ứng tuyển mà không cần chi phí gì.',
     },
     {
       question: 'ScholarsGo hỗ trợ tiếng Việt không?',
       answer: 'Đúng vậy, giao diện và hỗ trợ hoàn toàn bằng tiếng Việt để phục vụ cộng đồng người Việt Nam tốt nhất.',
+    },
+    {
+      question: 'Làm thế nào để nhận gợi ý học bổng cá nhân hóa?',
+      answer: 'Hãy hoàn thiện thông tin profile của bạn bao gồm ngành học, bậc học, điểm GPA và các thông tin khác. ScholarsGo sẽ sử dụng thông tin này để gợi ý những học bổng phù hợp nhất với bạn.',
+    },
+    {
+      question: 'Tôi có thể lưu học bổng yêu thích được không?',
+      answer: 'Có, bạn có thể nhấn icon trái tim trên bất kỳ thẻ học bổng nào để lưu nó. Các học bổng được lưu sẽ hiển thị trong mục "Học bổng đã lưu" để bạn dễ dàng quay lại xem sau.',
+    },
+    {
+      question: 'Làm sao để theo dõi deadline của học bổng?',
+      answer: 'Sau khi ứng tuyển, bạn có thể theo dõi tiến độ và deadline của từng đơn ứng tuyển trong mục "Đơn ứng tuyển". ScholarsGo sẽ tự động nhắc nhở bạn khi deadline sắp tới.',
     },
   ];
 
@@ -120,23 +98,23 @@ const HomePage = () => {
               <p className="mt-6 max-w-2xl text-body-lg text-sky-50/88">
                 Từ việc khám phá hàng nghìn học bổng quốc tế đến theo dõi hồ sơ ứng tuyển cá nhân hóa, ScholarsGo đồng hành cùng bạn trên mọi bước đi để biến giấc mơ du học thành hiện thực.
               </p>
-              <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto_auto]">
+              <form onSubmit={handleSearch} className="mt-8 grid gap-2 rounded-[1.5rem] border border-white/15 bg-white/10 p-3 backdrop-blur-md sm:gap-3 sm:p-4 md:grid-cols-[1fr_auto_auto]">
                 <Input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Thử nhập: Chevening, Australia Awards, Data Science..."
                   icon={Search}
-                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300"
-                  wrapperClassName="sm:min-w-0"
+                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300 text-sm md:text-base"
+                  wrapperClassName="min-w-0"
                 />
-                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800">
+                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800 text-sm md:text-base">
                   Tìm học bổng
                 </Button>
                 <Button
                   size="lg"
                   variant="secondary"
                   onClick={() => setIsRoadmapOpen(true)}
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white text-sm md:text-base"
                 >
                   Xem lộ trình
                 </Button>
@@ -236,7 +214,7 @@ const HomePage = () => {
           {isLoading ? (
             <LoadingSpinner />
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {featuredScholarships.slice(0, 3).map((scholarship) => (
                 <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
               ))}

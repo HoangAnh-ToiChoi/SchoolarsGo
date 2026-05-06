@@ -2,23 +2,56 @@ import { useState } from 'react';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Button, Input, Select, PageHeader, FileUpload } from '../components/ui';
-import { Upload, FileText, Trash2, Eye, Download } from 'lucide-react';
+import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
+import { Upload, FileText, Trash2, Plus } from 'lucide-react';
 
 const ProfilePage = () => {
   const { data, isLoading } = useProfile();
-  const { data: documents } = useDocuments();
+  const { data: documents, isLoading: docsLoading } = useDocuments();
   const updateProfile = useUpdateProfile();
   const uploadDoc = useUploadDocument();
   const deleteDoc = useDeleteDocument();
   const [form, setForm] = useState({});
+  const [errors, setErrors] = useState({});
 
   if (isLoading) return <LoadingSpinner />;
 
   const profile = data?.data;
 
+  // Validate GPA
+  const validateGPA = (value) => {
+    if (!value) return '';
+    const num = parseFloat(value);
+    if (isNaN(num)) return 'GPA phải là số';
+    if (num < 0 || num > 4) return 'GPA phải từ 0 đến 4.0';
+    return '';
+  };
+
+  // Handle form field change with validation
+  const handleFieldChange = (fieldName, value) => {
+    setForm({ ...form, [fieldName]: value });
+    // Clear error for this field when user starts typing
+    if (errors[fieldName]) {
+      setErrors({ ...errors, [fieldName]: '' });
+    }
+  };
+
   const handleSaveProfile = (e) => {
     e.preventDefault();
+    
+    // Validate GPA if provided
+    const newErrors = {};
+    if (form.gpa !== undefined && form.gpa !== '') {
+      const gpaError = validateGPA(form.gpa);
+      if (gpaError) newErrors.gpa = gpaError;
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
     updateProfile.mutate(form);
   };
 
@@ -78,18 +111,64 @@ const ProfilePage = () => {
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="card card-body mb-8 space-y-5">
         <h2 className="text-heading-3 text-gray-900 border-b pb-3">Thông tin cá nhân</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <Input label="GPA (thang 4.0)" type="number" step="0.01" min="0" max="4" value={form.gpa ?? profile.gpa ?? ''} onChange={(e) => setForm({ ...form, gpa: e.target.value })} placeholder="3.5" />
           <Input label="Trình độ tiếng Anh" type="text" value={form.english_level ?? profile.english_level ?? ''} onChange={(e) => setForm({ ...form, english_level: e.target.value })} placeholder="IELTS 7.0" />
           <Input label="Quốc gia muốn đến" type="text" value={form.target_country ?? profile.target_country ?? ''} onChange={(e) => setForm({ ...form, target_country: e.target.value })} placeholder="UK, USA, Australia..." />
           <Select label="Bậc học mong muốn" options={DEGREES} placeholder="Chọn bậc học" value={form.target_degree ?? profile.target_degree ?? ''} onChange={(value) => setForm({ ...form, target_degree: value })} />
+          <Input 
+            label="GPA (thang 4.0)" 
+            type="number" 
+            step="0.01" 
+            min="0" 
+            max="4" 
+            value={form.gpa ?? profile.gpa ?? ''} 
+            onChange={(e) => handleFieldChange('gpa', e.target.value)} 
+            placeholder="3.5"
+            error={errors.gpa}
+          />
+          <Input 
+            label="Trình độ tiếng Anh" 
+            type="text" 
+            value={form.english_level ?? profile.english_level ?? ''} 
+            onChange={(e) => handleFieldChange('english_level', e.target.value)} 
+            placeholder="IELTS 7.0" 
+          />
+          <Input 
+            label="Quốc gia muốn đến" 
+            type="text" 
+            value={form.target_country ?? profile.target_country ?? ''} 
+            onChange={(e) => handleFieldChange('target_country', e.target.value)} 
+            placeholder="UK, USA, Australia..." 
+          />
+          <Select 
+            label="Bậc học mong muốn" 
+            options={DEGREES} 
+            placeholder="Chọn bậc học" 
+            value={form.target_degree ?? profile.target_degree ?? ''} 
+            onChange={(e) => handleFieldChange('target_degree', e.target.value)} 
+          />
           <div className="md:col-span-2">
-            <Input label="Ngành học mong muốn" type="text" value={form.target_major ?? profile.target_major ?? ''} onChange={(e) => setForm({ ...form, target_major: e.target.value })} placeholder="Computer Science" list="majors" />
+            <Input 
+              label="Ngành học mong muốn" 
+              type="text" 
+              value={form.target_major ?? profile.target_major ?? ''} 
+              onChange={(e) => handleFieldChange('target_major', e.target.value)} 
+              placeholder="Computer Science" 
+              list="majors" 
+            />
             <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
           </div>
           <div className="md:col-span-2">
             <label className="input-label">Giới thiệu bản thân</label>
-            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
+            <textarea rows={4} value={form.bio ?? profile.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="input w-full" placeholder="Viết vài dòng về bản thân, mục tiêu du học..." />
+            <textarea 
+              rows={4} 
+              value={form.bio ?? profile.bio ?? ''} 
+              onChange={(e) => handleFieldChange('bio', e.target.value)} 
+              className="input w-full" 
+              placeholder="Viết vài dòng về bản thân, mục tiêu du học..." 
+            />
           </div>
         </div>
         <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>
@@ -168,6 +247,68 @@ const ProfilePage = () => {
             );
           })}
         </div>
+        
+        {docsLoading ? (
+          <LoadingSpinner />
+        ) : !documents?.data || documents.data.length === 0 ? (
+          <EmptyState
+            icon={Plus}
+            title="Chưa tải lên tài liệu nào"
+            description="Tải lên CV, SOP, thư giới thiệu để chuẩn bị hồ sơ ứng tuyển của bạn."
+          />
+        ) : (
+          <div className="space-y-4">
+            {DOCUMENT_TYPES.map((docType) => (
+              <div key={docType.value} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-card">
+                <div className="flex items-start md:items-center gap-3 min-w-0">
+                  <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1 md:mt-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm md:text-base">{docType.label}</p>
+                    <p className="text-caption text-gray-500">PDF, DOC, DOCX — tối đa 10MB</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {documents?.data?.filter((d) => d.type === docType.value).map((d) => (
+                    <div key={d.id} className="flex items-center gap-1 md:gap-2 bg-surface px-2 md:px-3 py-1 rounded-button border text-xs md:text-sm flex-shrink-0">
+                      <span className="text-gray-600 truncate max-w-[100px] md:max-w-[150px]">{d.file_name}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => deleteDoc.mutate(d.id)} 
+                        disabled={deleteDoc.isPending}
+                        className="text-danger-500 hover:text-danger-700 flex-shrink-0 p-0.5 disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="cursor-pointer flex-shrink-0">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept=".pdf,.doc,.docx" 
+                      data-type={docType.value} 
+                      onChange={handleUpload}
+                      disabled={uploadDoc.isPending}
+                    />
+                    <span className="btn-primary btn-sm inline-flex items-center gap-1 whitespace-nowrap disabled:opacity-50">
+                      {uploadDoc.isPending ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Đang tải...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          Tải lên
+                        </>
+                      )}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
