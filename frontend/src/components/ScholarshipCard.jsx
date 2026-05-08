@@ -6,9 +6,14 @@ import { cn, formatCurrency, formatDate } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 const ScholarshipCard = ({ scholarship }) => {
+   // Guard: return null nếu scholarship undefined
+  if (!scholarship) return null;
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { data: savedData } = useSavedScholarships();
   const toggleSave = useToggleSaveScholarship();
+
+  // Guard: return null nếu scholarship undefined (sau hooks để không lỗi React)
+  if (!scholarship) return null;
   const { id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured } = scholarship;
   
   const savedScholarships = savedData?.data || [];
