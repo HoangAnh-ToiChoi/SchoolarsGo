@@ -85,14 +85,16 @@ const ApplicationsPage = () => {
         />
       ) : (
         <div className="space-y-6">
-          {applications.map((app) => (
+          {applications.map((app) =>{
+            if(!app.scholarship) return null; // Skip if scholarship details are missing
+          return (
             <Card key={app.id} className="overflow-hidden">
               <CardContent className="p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <Link
-                      to={`/scholarships/${app.scholarship_id}`}
+                      to={`/scholarships/${app.scholarship?.id}`}
                       className="text-heading-4 font-bold text-gray-900 hover:text-primary-600 transition-colors"
                     >
                       {app.scholarship?.title}
@@ -157,7 +159,8 @@ const ApplicationsPage = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          );
+        })}
         </div>
       )}
     </div>
