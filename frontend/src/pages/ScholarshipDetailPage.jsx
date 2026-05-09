@@ -42,6 +42,15 @@ const ScholarshipDetailPage = () => {
   const toggleSave = useToggleSaveScholarship();
   const createApplication = useCreateApplication();
 
+ if (!id || id === 'undefined') {
+    return (
+      <div className="container-narrow py-16 text-center">
+        <h2 className="mb-4 text-heading-1 text-gray-900">ID học bổng không hợp lệ</h2>
+        <Link to="/scholarships" className="text-primary-600 hover:text-primary-700 font-medium">← Quay lại danh sách</Link>
+      </div>
+    );
+  }
+
   if (isLoading) return <LoadingSpinner />;
 
   if (error || !data?.data) {
