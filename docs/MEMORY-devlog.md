@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DEVELOPER LOG
 # ============================================================
-# Last Updated: 10/4/2026
+# Last Updated: 8/5/2026
 
 ---
 
@@ -16,12 +16,14 @@
 | 10/4/2026 | v0.5 | feat | Profile Manager (Week 4): GET/PUT /api/profile (UPSERT). Document Upload (POST /api/documents/upload) → Supabase Storage + memoryStorage. Document Delete (DELETE /api/documents/:id) → Storage → DB. Rollback khi DB insert fail. |
 | 10/4/2026 | v0.5.1 | fix | Bug handleUploadError: thêm `return` để ngăn "Cannot set headers after they are sent". Khi Multer chặn request, middleware phải return ngay không thì code tiếp tục chạy xuống controller → crash server. |
 | 19/4/2026 | v0.6 | refactor | OOP Refactor Bước 1: **Scholarships Module** (4 APIs) → Repository/Service/Controller/Container theo kiến trúc 4 tầng. Xem chi tiết phần "OOP Refactor" bên dưới. |
+| 8/5/2026 | v0.7 | refactor | OOP Refactor Bước 7: **AI Recommender** (1 API) → RecommendRepository/RecommendService/RecommendController theo kiến trúc 4 tầng. Chi tiết bên dưới. |
 
 ---
 
 ## Bug Fixes
 
 ### 4/4/2026 — scholarship.service.js: getById thiếu điều kiện is_active + deadline
+
 **Vấn đề:** Endpoint `GET /api/scholarships/:id` không kiểm tra `is_active = true` và `deadline > NOW()` → cho phép truy cập học bổng đã hết hạn hoặc bị deactivate.
 
 **Fix:**
@@ -34,6 +36,7 @@ SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW
 ```
 
 ### 4/4/2026 — scholarship.service.js: getAll dùng `deadline >= now()` thay vì `> now()`
+
 **Vấn đề:** Học bổng có deadline trùng với thời điểm hiện tại vẫn hiển thị → có thể gây confusion khi deadline hết vào đúng ngày.
 
 **Fix:**
@@ -101,13 +104,12 @@ const handleUploadError = (err, req, res, next) => {
 
 ```
 Bước 1: Scholarships (4 APIs)     ✅ HOÀN THÀNH 19/4/2026
-Bước 2: Profile (2 APIs)
-Bước 3: Documents (3 APIs)
-Bước 4: Saved Scholarships (3 APIs)
-Bước 5: Applications v1 (4 APIs)
-Bước 6: Applications v2 (5 APIs)
-Bước 7: Auth (5 APIs)
-Bước 8: AI Recommender (1 API)
+Bước 2: Profile (2 APIs)           ✅ HOÀN THÀNH
+Bước 3: Documents (3 APIs)         ✅ HOÀN THÀNH
+Bước 4: Saved Scholarships (3 APIs) ✅ HOÀN THÀNH
+Bước 5: Applications (5 APIs)      ✅ HOÀN THÀNH
+Bước 6: Auth (5 APIs)               ✅ HOÀN THÀNH
+Bước 7: AI Recommender (1 API)      ✅ HOÀN THÀNH 8/5/2026 ← MỚI
 ```
 
 ### Bước 1: Scholarships — Chi tiết
@@ -157,6 +159,58 @@ Bước 8: AI Recommender (1 API)
 ```
 db → ScholarshipRepository(db) → ScholarshipService(repo) → Controller
 ```
+
+### Bước 7: AI Recommender — Chi tiết (8/5/2026)
+
+**Files thay đổi:**
+
+| File | Hành động | Mô tả |
+|---|---|---|
+| `repositories/recommend.repository.js` | TẠO MỚI | 2 methods với SQL tách hoàn toàn |
+| `services/recommend.service.js` | VIẾT LẠI | Class, inject repo, KHÔNG có SQL |
+| `controllers/recommend.controller.js` | VIẾT LẠI | Class, arrow functions, import từ container |
+| `routes/recommend.routes.js` | CẬP NHẬT | Import controller từ container |
+| `container.js` | CẬP NHẬT | Thêm recommendRepo + recommendService + recommendController |
+
+**Repository — Public methods:**
+
+| Method | Signature | SQL |
+|---|---|---|
+| `findProfileByUserId` | `(userId) → profile\|null` | `SELECT * FROM profiles WHERE user_id = $1` |
+| `findActiveScholarships` | `(limit) → rows[]` | `SELECT * FROM scholarships WHERE is_active = true AND deadline >= now() ORDER BY deadline ASC LIMIT $1` |
+
+**Service — Public methods:**
+
+| Method | Logic |
+|---|---|
+| `recommend` | Gọi `repo.findProfileByUserId` → kiểm tra profile → `repo.findActiveScholarships` → tính điểm → sort → topN |
+
+**Service — Private methods:**
+
+| Method | Logic |
+|---|---|
+| `#calculateMatchScore` | Tính điểm phù hợp (GPA 30đ, Degree 20đ, Country 20đ, Major 15đ, IELTS 10đ, Deadline 5đ) |
+| `#throwError` | Throw Error nghiệp vụ với statusCode và isOperational = true |
+
+**Encapsulation đảm bảo:**
+- `#calculateMatchScore` là private method — không thể gọi trực tiếp từ bên ngoài
+- Logic tính điểm được封装 trong class, không leak ra ngoài
+
+**Container wiring:**
+```
+db → RecommendRepository(db) → RecommendService(repo) → RecommendController(service)
+```
+
+**Files mới tạo:**
+- `src/repositories/recommend.repository.js` (47 dòng)
+- `src/controllers/recommend.controller.js` (31 dòng)
+
+**Files sửa:**
+- `src/services/recommend.service.js` (133 dòng)
+- `src/routes/recommend.routes.js` (18 dòng)
+- `src/container.js` (thêm wiring)
+
+---
 
 ### 10/4/2026 — Document Storage: Supabase Storage + memoryStorage (hybrid approach)
 

@@ -5,10 +5,10 @@
  * KHÔNG viết SQL ở bất kỳ tầng nào khác (Service/Controller).
  *
  * Public methods — Service gọi:
- *   findAll(filters, userId)      → { data, meta }
- *   findFeatured()                → rows[]
- *   findCountries()               → string[]
- *   findById(id, userId)          → scholarship object
+ *   findAll(filters, limit, offset, userId) → { data, total }
+ *   findFeatured()                          → rows[]
+ *   findCountries()                         → string[]
+ *   findById(id, userId)                    → scholarship object
  *
  * Private helpers — nội bộ:
  *   #buildWhereClause(filters)    → { conditions[], params[] }
@@ -24,15 +24,15 @@ class ScholarshipRepository extends BaseRepository {
   // ─── PUBLIC — Service gọi ────────────────────────────────────────────────
 
   /**
-   * Lấy danh sách học bổng có filter + pagination + đánh dấu is_saved
+   * Lấy danh sách học bổng có filter + đánh dấu is_saved
+   * Service chịu trách nhiệm tính toán limit, offset và ghép meta.
+   * @param {object} filters - Các bộ lọc (country, degree, ...)
+   * @param {number} limit   - Số bản ghi tối đa cần lấy
+   * @param {number} offset  - Vị trí bắt đầu lấy
+   * @param {string|null} userId - ID user (để đánh dấu is_saved)
+   * @returns {Promise<{ data: object[], total: number }>}
    */
-  async findAll(filters = {}, userId = null) {
-    const page = Math.max(1, Number(filters.page) || 1);
-    const PAGE_SIZE = 20;
-    const MAX_LIMIT = 50;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
-    const offset = (page - 1) * limit;
-
+  async findAll(filters = {}, limit, offset, userId = null) {
     const { conditions, params } = this.#buildWhereClause(filters);
     const where = `WHERE ${conditions.join(' AND ')}`;
 
@@ -42,7 +42,6 @@ class ScholarshipRepository extends BaseRepository {
       params
     );
     const total = parseInt(countResult.total, 10);
-    const totalPages = Math.ceil(total / limit);
 
     // Fetch data
     const selectCols = [
@@ -58,10 +57,7 @@ class ScholarshipRepository extends BaseRepository {
 
     const rows = await this.#attachSavedStatus(data.rows, userId);
 
-    return {
-      data: rows,
-      meta: { page, limit, total, totalPages },
-    };
+    return { data: rows, total };
   }
 
   /**

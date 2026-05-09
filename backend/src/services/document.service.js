@@ -14,14 +14,15 @@
  *   upload(userId, docType, file) → document record
  *   remove(userId, documentId)   → void
  */
-const { uploadFile, deleteFile } = require('./storage.service');
+
 
 class DocumentService {
   static VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-  constructor(documentRepository, eventBus) {
+  constructor(documentRepository, eventBus, storageService) {
     this.repo = documentRepository;
     this.eventBus = eventBus;
+    this.storage = storageService;
   }
 
   // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
@@ -57,7 +58,7 @@ class DocumentService {
 
       return doc;
     } catch (dbErr) {
-      await deleteFile(uploadResult.storagePath);
+      await this.storage.deleteFile(uploadResult.storagePath);
       this.#throwError(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 500);
     }
   };
@@ -70,7 +71,7 @@ class DocumentService {
 
     if (doc.file_url) {
       const path = this.#parseStoragePath(doc.file_url);
-      if (path) await deleteFile(path);
+      if (path) await this.storage.deleteFile(path);
     }
 
     await this.repo.deleteByIdAndUserId(documentId, userId);
@@ -87,7 +88,7 @@ class DocumentService {
 
   #uploadToStorage = async (userId, docType, file) => {
     try {
-      return await uploadFile(userId, docType, file.buffer, file.originalname, file.mimetype);
+      return await this.storage.uploadFile(userId, docType, file.buffer, file.originalname, file.mimetype);
     } catch (err) {
       this.#throwError(`Upload file thất bại: ${err.message}`, 500);
     }

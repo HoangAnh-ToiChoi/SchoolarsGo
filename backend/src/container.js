@@ -12,6 +12,7 @@
  *         db → SavedRepository → SavedService
  *         db → DocumentRepository → DocumentService → DocumentController
  *         db → AuthRepository → AuthService → AuthController
+ *         db → RecommendRepository → RecommendService → RecommendController
  *
  * EventBus wiring: eventBus → DocumentService, AuthService
  *                  registerStorageListeners() → lắng nghe document events
@@ -56,7 +57,8 @@ const DocumentService = require('./services/document.service');
 const DocumentController = require('./controllers/document.controller');
 
 const documentRepo = new DocumentRepository(db);
-const documentService = new DocumentService(documentRepo, eventBus);
+const storageService = require('./services/storage.service');
+const documentService = new DocumentService(documentRepo, eventBus, storageService);
 const documentController = new DocumentController(documentService);
 
 // ── Saved Module ──────────────────────────────────────────
@@ -77,6 +79,15 @@ const authRepo = new AuthRepository(db);
 const authService = new AuthService(authRepo, eventBus);
 const authController = new AuthController(authService);
 
+// ── Recommend Module ─────────────────────────────────────────
+const RecommendRepository = require('./repositories/recommend.repository');
+const RecommendService = require('./services/recommend.service');
+const RecommendController = require('./controllers/recommend.controller');
+
+const recommendRepo = new RecommendRepository(db);
+const recommendService = new RecommendService(recommendRepo);
+const recommendController = new RecommendController(recommendService);
+
 module.exports = {
   scholarshipRepo,
   scholarshipService,
@@ -94,6 +105,9 @@ module.exports = {
   authRepo,
   authService,
   authController,
+  recommendRepo,
+  recommendService,
+  recommendController,
 };
 
 // ── Event Listeners ─────────────────────────────────────────

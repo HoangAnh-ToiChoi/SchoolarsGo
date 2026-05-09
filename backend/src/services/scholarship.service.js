@@ -12,6 +12,10 @@
  *   getCountries()               → string[]
  *   getById(id, userId)          → scholarship object (throw 404 nếu không có)
  */
+
+const PAGE_SIZE = 20;
+const MAX_LIMIT = 50;
+
 class ScholarshipService {
   constructor(scholarshipRepository) {
     this.repo = scholarshipRepository;
@@ -19,8 +23,26 @@ class ScholarshipService {
 
   // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
 
+  /**
+   * Lấy danh sách học bổng có filter + pagination
+   * Business logic phân trang nằm ở đây, Repository chỉ nhận limit/offset.
+   */
   getAll = async (filters = {}, userId = null) => {
-    return this.repo.findAll(filters, userId);
+    // ── Tính toán phân trang (business logic) ──
+    const page  = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
+    const offset = (page - 1) * limit;
+
+    // ── Gọi Repository với limit & offset đã tính ──
+    const { data, total } = await this.repo.findAll(filters, limit, offset, userId);
+
+    // ── Ghép meta phân trang ──
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: { page, limit, total, totalPages },
+    };
   };
 
   getFeatured = async () => {

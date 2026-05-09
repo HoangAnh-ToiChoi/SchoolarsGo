@@ -35,6 +35,6 @@ router.post('/logout', authController.logout);
  * POST /api/auth/refresh
  * @desc Refresh JWT token
  */
-router.post('/refresh', authController.refresh);
+router.post('/refresh', auth, authController.refresh);
 
 module.exports = router;

@@ -5,8 +5,9 @@
  * - Class với constructor nhận repository qua parameter (Dependency Injection)
  * - KHÔNG được import db, KHÔNG được viết SQL
  * - Chỉ: validate input, business logic, gọi repository, format response
- * - Ném lỗi với mã cụ thể (UPPER_SNAKE)
+ * - Ném lỗi qua AppError (statusCode + isOperational)
  */
+const AppError = require('../utils/AppError');
 class ApplicationService {
     constructor(applicationRepository) {
         this.repo = applicationRepository;
@@ -33,7 +34,7 @@ class ApplicationService {
         });
 
         return {
-            data: rows.map((row) => this._formatApplication(row)),
+            data: rows.map((row) => this.#formatApplication(row)),
             meta: { page, limit, total },
         };
     }
@@ -47,9 +48,7 @@ class ApplicationService {
     async create(userId, { scholarshipId, checklist, notes }) {
         const exists = await this.repo.scholarshipExists(scholarshipId);
         if (!exists) {
-            const err = new Error("SCHOLARSHIP_NOT_FOUND");
-            err.isOperational = true;
-            throw err;
+            throw new AppError('Học bổng không tồn tại.', 404);
         }
 
         try {
@@ -58,12 +57,10 @@ class ApplicationService {
                 checklist,
                 notes,
             });
-            return this._formatApplication(app);
+            return this.#formatApplication(app);
         } catch (err) {
             if (err.message === "APPLICATION_ALREADY_EXISTS") {
-                const error = new Error("APPLICATION_ALREADY_EXISTS");
-                error.isOperational = true;
-                throw error;
+                throw new AppError('Bạn đã ứng tuyển học bổng này rồi.', 409);
             }
             throw err;
         }
@@ -76,11 +73,9 @@ class ApplicationService {
     async getById(userId, applicationId) {
         const app = await this.repo.findByIdAndUser(applicationId, userId);
         if (!app) {
-            const err = new Error("NOT_FOUND");
-            err.isOperational = true;
-            throw err;
+            throw new AppError('Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.', 404);
         }
-        return this._formatApplication(app);
+        return this.#formatApplication(app);
     }
 
     /**
@@ -94,9 +89,7 @@ class ApplicationService {
         // Bước 1: lấy đơn hiện tại
         const existing = await this.repo.findByIdAndUser(applicationId, userId);
         if (!existing) {
-            const err = new Error("NOT_FOUND");
-            err.isOperational = true;
-            throw err;
+            throw new AppError('Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.', 404);
         }
 
         // Bước 2: xử lý update status nếu có
@@ -113,9 +106,7 @@ class ApplicationService {
                 "withdrawn",
             ];
             if (!VALID_STATUSES.includes(updates.status)) {
-                const err = new Error("INVALID_STATUS");
-                err.isOperational = true;
-                throw err;
+                throw new AppError('Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.', 400);
             }
 
             const VALID_TRANSITIONS = {
@@ -130,9 +121,7 @@ class ApplicationService {
 
             const allowedNext = VALID_TRANSITIONS[existing.status] || [];
             if (!allowedNext.includes(updates.status)) {
-                const err = new Error("INVALID_STATUS_TRANSITION");
-                err.isOperational = true;
-                throw err;
+                throw new AppError('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 400);
             }
 
             // Tự động ghi applied_at khi chuyển từ draft → submitted
@@ -147,7 +136,7 @@ class ApplicationService {
             userId,
             updates,
         );
-        return this._formatApplication(updated);
+        return this.#formatApplication(updated);
     }
 
     /**
@@ -159,9 +148,7 @@ class ApplicationService {
     async delete(userId, applicationId) {
         const existing = await this.repo.findByIdAndUser(applicationId, userId);
         if (!existing) {
-            const err = new Error("NOT_FOUND");
-            err.isOperational = true;
-            throw err;
+            throw new AppError('Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.', 404);
         }
 
         const UNDELETABLE = [
@@ -171,9 +158,7 @@ class ApplicationService {
             "accepted",
         ];
         if (UNDELETABLE.includes(existing.status)) {
-            const err = new Error("CANNOT_DELETE_SUBMITTED");
-            err.isOperational = true;
-            throw err;
+            throw new AppError('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 400);
         }
 
         await this.repo.deleteByIdAndUser(applicationId, userId);
@@ -184,7 +169,7 @@ class ApplicationService {
      * Format raw row từ DB → object sạch trả về cho Controller.
      * @param {object} row - row từ DB (có thể có scholarship_ prefix fields)
      */
-    _formatApplication(row) {
+    #formatApplication(row) {
         return {
             id: row.id,
             status: row.status,

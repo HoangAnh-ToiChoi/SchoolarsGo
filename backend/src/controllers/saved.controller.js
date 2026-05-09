@@ -4,24 +4,9 @@
  * Quy tắc:
  * - Nhận service qua constructor (tránh circular dependency)
  * - Mỗi method là 1 route handler (nhận req → gọi service → trả res)
- * - Dùng ERROR_MAP object để map error code → HTTP status
+ * - Lỗi đẩy qua next(error) → Global Error Handler xử lý
  */
-const { success } = require('../utils/responseHelper');
-
-const ERROR_MAP = {
-    SCHOLARSHIP_NOT_FOUND: {
-        status: 404,
-        message: "Học bổng không tồn tại.",
-    },
-    SCHOLARSHIP_ALREADY_SAVED: {
-        status: 409,
-        message: "Bạn đã lưu học bổng này rồi.",
-    },
-    SCHOLARSHIP_NOT_SAVED: {
-        status: 404,
-        message: "Học bổng này chưa được lưu.",
-    },
-};
+const { success, created } = require('../utils/responseHelper');
 
 class SavedController {
     constructor(savedService) {
@@ -32,15 +17,12 @@ class SavedController {
      * GET /api/saved
      * Lấy danh sách scholarships đã lưu của user
      */
-    getAll = async (req, res) => {
+    getAll = async (req, res, next) => {
         try {
             const data = await this.savedService.getAll(req.user.id);
-            return res.status(200).json({
-                success: true,
-                data,
-            });
+            return success(res, data);
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -48,7 +30,7 @@ class SavedController {
      * POST /api/saved/:scholarshipId
      * Lưu một scholarship
      */
-    save = async (req, res) => {
+    save = async (req, res, next) => {
         try {
             const { scholarshipId } = req.params;
             const { note } = req.body;
@@ -57,13 +39,9 @@ class SavedController {
                 scholarshipId,
                 note,
             );
-            return res.status(201).json({
-                success: true,
-                data,
-                message: "Scholarship saved successfully.",
-            });
+            return created(res, data, 'Scholarship saved successfully.');
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -71,39 +49,15 @@ class SavedController {
      * DELETE /api/saved/:scholarshipId
      * Bỏ lưu một scholarship
      */
-    remove = async (req, res) => {
+    remove = async (req, res, next) => {
         try {
             const { scholarshipId } = req.params;
             await this.savedService.remove(req.user.id, scholarshipId);
-            return res.status(200).json({
-                success: true,
-                data: null,
-                message: "Scholarship removed from saved list.",
-            });
+            return success(res, null, 'Scholarship removed from saved list.');
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
-
-    /**
-     * Map error code từ Service → HTTP status + JSON response
-     */
-    _handleError(res, err) {
-        const mapped = ERROR_MAP[err.message];
-        if (mapped) {
-            return res.status(mapped.status).json({
-                success: false,
-                message: mapped.message,
-                code: mapped.status,
-            });
-        }
-        console.error("[SavedController] Unhandled error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Lỗi máy chủ, vui lòng thử lại sau.",
-            code: 500,
-        });
-    }
 }
 
 module.exports = SavedController;

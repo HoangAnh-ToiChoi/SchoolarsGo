@@ -4,36 +4,9 @@
  * Quy tắc:
  * - Nhận service qua constructor (tránh circular dependency)
  * - Mỗi method là 1 route handler (nhận req → gọi service → trả res)
- * - Dùng ERROR_MAP object để map error code → HTTP status
+ * - Lỗi đẩy qua next(error) → Global Error Handler xử lý
  */
-const { success } = require('../utils/responseHelper');
-
-const ERROR_MAP = {
-  NOT_FOUND: {
-    status: 404,
-    message: 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.',
-  },
-  SCHOLARSHIP_NOT_FOUND: {
-    status: 404,
-    message: 'Học bổng không tồn tại.',
-  },
-  APPLICATION_ALREADY_EXISTS: {
-    status: 409,
-    message: 'Bạn đã ứng tuyển học bổng này rồi.',
-  },
-  INVALID_STATUS: {
-    status: 400,
-    message: 'Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.',
-  },
-  INVALID_STATUS_TRANSITION: {
-    status: 400,
-    message: 'Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.',
-  },
-  CANNOT_DELETE_SUBMITTED: {
-    status: 400,
-    message: 'Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.',
-  },
-};
+const { success, created } = require('../utils/responseHelper');
 
 class ApplicationController {
     constructor(applicationService) {
@@ -44,16 +17,12 @@ class ApplicationController {
    * GET /api/applications
    * Lấy danh sách đơn của user đang đăng nhập (kèm phân trang).
    */
-    getAll = async (req, res) => {
+    getAll = async (req, res, next) => {
         try {
             const { data, meta } = await this.applicationService.getAll(req.user.id, req.query);
-            return res.status(200).json({
-                success: true,
-                data,
-                meta,
-            });
+            return success(res, data, 'OK', meta);
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -61,7 +30,7 @@ class ApplicationController {
    * POST /api/applications
    * Tạo đơn ứng tuyển mới (mặc định status = 'draft').
    */
-    create = async (req, res) => {
+    create = async (req, res, next) => {
         try {
             const { scholarship_id, checklist, notes } = req.body;
             const data = await this.applicationService.create(req.user.id, {
@@ -69,13 +38,9 @@ class ApplicationController {
                 checklist,
                 notes,
             });
-            return res.status(201).json({
-                success: true,
-                data,
-                message: 'Đơn ứng tuyển đã được tạo thành công.',
-            });
+            return created(res, data, 'Đơn ứng tuyển đã được tạo thành công.');
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -83,15 +48,12 @@ class ApplicationController {
    * GET /api/applications/:id
    * Lấy chi tiết 1 đơn.
    */
-    getById = async (req, res) => {
+    getById = async (req, res, next) => {
         try {
             const data = await this.applicationService.getById(req.user.id, req.params.id);
-            return res.status(200).json({
-                success: true,
-                data,
-            });
+            return success(res, data);
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -99,16 +61,12 @@ class ApplicationController {
    * PATCH /api/applications/:id
    * Cập nhật đơn (status, checklist, notes...).
    */
-    update = async (req, res) => {
+    update = async (req, res, next) => {
         try {
             const data = await this.applicationService.update(req.user.id, req.params.id, req.body);
-            return res.status(200).json({
-                success: true,
-                data,
-                message: 'Cập nhật đơn ứng tuyển thành công.',
-            });
+            return success(res, data, 'Cập nhật đơn ứng tuyển thành công.');
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
 
@@ -116,39 +74,14 @@ class ApplicationController {
    * DELETE /api/applications/:id
    * Xóa đơn ứng tuyển (chỉ khi thuộc user đang đăng nhập).
    */
-    remove = async (req, res) => {
+    remove = async (req, res, next) => {
         try {
             await this.applicationService.delete(req.user.id, req.params.id);
-            return res.status(200).json({
-                success: true,
-                data: null,
-                message: 'Đơn ứng tuyển đã được xóa thành công.',
-            });
+            return success(res, null, 'Đơn ứng tuyển đã được xóa thành công.');
         } catch (err) {
-            return this._handleError(res, err);
+            next(err);
         }
     };
-
-  /**
-   * Map error code từ Service → HTTP status + JSON response.
-   * Nếu error code không nằm trong ERROR_MAP → trả 500.
-   */
-  _handleError(res, err) {
-    const mapped = ERROR_MAP[err.message];
-    if (mapped) {
-      return res.status(mapped.status).json({
-        success: false,
-        message: mapped.message,
-        code: mapped.status,
-      });
-    }
-    console.error('[ApplicationController] Unhandled error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi máy chủ, vui lòng thử lại sau.',
-      code: 500,
-    });
-  }
 }
 
 module.exports = ApplicationController;

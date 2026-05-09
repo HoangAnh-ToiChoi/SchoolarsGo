@@ -5,8 +5,9 @@
  * - Class với constructor nhận repository qua parameter (Dependency Injection)
  * - KHÔNG được import db, KHÔNG được viết SQL
  * - Chỉ: validate input, business logic, gọi repository, format response
- * - Ném lỗi với mã cụ thể (UPPER_SNAKE)
+ * - Ném lỗi qua AppError (statusCode + isOperational)
  */
+const AppError = require('../utils/AppError');
 class SavedService {
   constructor(savedRepository) {
     this.repo = savedRepository;
@@ -30,9 +31,7 @@ class SavedService {
   save = async (userId, scholarshipId, note) => {
     const exists = await this.repo.scholarshipExists(scholarshipId);
     if (!exists) {
-      const err = new Error('SCHOLARSHIP_NOT_FOUND');
-      err.isOperational = true;
-      throw err;
+      throw new AppError('Học bổng không tồn tại.', 404);
     }
 
     try {
@@ -41,9 +40,7 @@ class SavedService {
       return { ...saved, scholarship };
     } catch (err) {
       if (err.message === 'SCHOLARSHIP_ALREADY_SAVED') {
-        const error = new Error('SCHOLARSHIP_ALREADY_SAVED');
-        error.isOperational = true;
-        throw error;
+        throw new AppError('Bạn đã lưu học bổng này rồi.', 409);
       }
       throw err;
     }
@@ -56,9 +53,7 @@ class SavedService {
   remove = async (userId, scholarshipId) => {
     const deleted = await this.repo.deleteByUserAndScholarship(userId, scholarshipId);
     if (deleted === 0) {
-      const err = new Error('SCHOLARSHIP_NOT_SAVED');
-      err.isOperational = true;
-      throw err;
+      throw new AppError('Học bổng này chưa được lưu.', 404);
     }
     return { deleted: true };
   };

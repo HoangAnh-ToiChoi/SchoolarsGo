@@ -7,7 +7,6 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const eventBus = require('../events/eventBus');
 
 const SALT_ROUNDS = 12;
 
@@ -15,8 +14,9 @@ class AuthService {
   /**
    * @param {AuthRepository} authRepository
    */
-  constructor(authRepository) {
+  constructor(authRepository, eventBus) {
     this.repo = authRepository;
+    this.eventBus = eventBus;
   }
 
   // ── Private helpers ─────────────────────────────────────────
@@ -85,7 +85,7 @@ class AuthService {
     });
 
     // Loose Coupling: AuthService không biết AuthListener tồn tại
-    eventBus.emit('user.registered', {
+    this.eventBus.emit('user.registered', {
       userId: user.id,
       email: user.email,
       fullName: user.full_name,
@@ -129,7 +129,7 @@ class AuthService {
     });
 
     // Loose Coupling: AuthService không biết AuthListener tồn tại
-    eventBus.emit('user.login', {
+    this.eventBus.emit('user.login', {
       userId: updatedUser.id,
       email: updatedUser.email,
       role: updatedUser.role,
