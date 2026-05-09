@@ -9,6 +9,9 @@ const ScholarshipCard = ({ scholarship }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { data: savedData } = useSavedScholarships();
   const toggleSave = useToggleSaveScholarship();
+
+  // Guard: return null nếu scholarship undefined (sau hooks để không lỗi React)
+  if (!scholarship || !scholarship.id) return null;
   const { id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured } = scholarship;
   
   const savedScholarships = savedData?.data || [];

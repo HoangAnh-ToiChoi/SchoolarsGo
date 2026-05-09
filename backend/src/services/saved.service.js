@@ -20,7 +20,23 @@ class SavedService {
    */
   getAll = async (userId) => {
     const rows = await this.repo.findAllByUser(userId);
-    return rows;
+    return rows.map((row) => ({
+    id: row.id,
+    note: row.note,
+    created_at: row.created_at,
+    scholarship: {
+      id: row.scholarship_id,
+      title: row.title,
+      provider: row.provider,
+      country: row.country,
+      degree: row.degree,
+      amount: row.amount,
+      currency: row.currency,
+      deadline: row.deadline,
+      image_url: row.image_url,
+      is_featured: row.is_featured,
+    },
+  }));
   };
 
   /**

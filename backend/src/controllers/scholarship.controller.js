@@ -42,8 +42,19 @@ class ScholarshipController {
 
   getById = async (req, res, next) => {
     try {
-      const data = await this.scholarshipService.getById(req.params.id, req.user?.id);
+      const { id } = req.params;
+    
+      // ✅ Validate id trước khi query database
+      if (!id || id === 'undefined' || id === 'null') {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid scholarship ID'
+        });
+      }
+      
+      const data = await this.scholarshipService.getById(id, req.user?.id);
       return success(res, data);
+
     } catch (error) {
       next(error);
     }
