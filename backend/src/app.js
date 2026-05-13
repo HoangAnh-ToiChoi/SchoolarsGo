@@ -15,6 +15,7 @@ const documentRoutes = require('./routes/document.routes');
 const applicationRoutes = require('./routes/application.routes');
 const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {

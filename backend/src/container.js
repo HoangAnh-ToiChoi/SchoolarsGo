@@ -6,23 +6,25 @@
  * - CHỈ THÊM VÀO — không sửa, không xóa dòng cũ
  * - Là Singleton: Node.js cache module, mọi nơi import đều dùng cùng instance
  *
- * Wiring: db → ScholarshipRepository → ScholarshipService → ScholarshipController
- *         db → ProfileRepository → ProfileService → ProfileController
- *         db → ApplicationRepository → ApplicationService
- *         db → SavedRepository → SavedService
- *         db → DocumentRepository → DocumentService → DocumentController
- *         db → AuthRepository → AuthService → AuthController
- *         db → RecommendRepository → RecommendService → RecommendController
+ * Tiêu chí OOP:
+ * [2] Dependency Injection — mọi dependency được truyền qua constructor().
+ *     KHÔNG hard-import Service/Repository bên trong class.
  *
- * EventBus wiring: eventBus → DocumentService, AuthService
- *                  registerStorageListeners() → lắng nghe document events
- *                  registerAuthListeners()    → lắng nghe auth events
+ * Wiring: db → AdminRepository → AdminService → AdminController
  */
-
 const db = require('./utils/db');
 
 // ── EventBus ────────────────────────────────────────────────
 const eventBus = require('./events/eventBus');
+
+// ── Admin Module ──────────────────────────────────────────
+const AdminRepository = require('./repositories/admin.repository');
+const AdminService = require('./services/admin.service');
+const AdminController = require('./controllers/admin.controller');
+
+const adminRepo = new AdminRepository(db);
+const adminService = new AdminService(adminRepo);
+const adminController = new AdminController(adminService);
 
 // ── Scholarship Module ─────────────────────────────────────
 const ScholarshipRepository = require('./repositories/scholarship.repository');
@@ -89,6 +91,11 @@ const recommendService = new RecommendService(recommendRepo);
 const recommendController = new RecommendController(recommendService);
 
 module.exports = {
+  // Admin
+  adminRepo,
+  adminService,
+  adminController,
+  // Existing modules
   scholarshipRepo,
   scholarshipService,
   scholarshipController,
@@ -111,8 +118,6 @@ module.exports = {
 };
 
 // ── Event Listeners ─────────────────────────────────────────
-// Đăng ký listeners SAU khi tất cả services được khởi tạo
-// Listeners chỉ chạy khi server start — không block request handling
 const { registerStorageListeners } = require('./events/listeners/storage.listener');
 const { registerAuthListeners } = require('./events/listeners/auth.listener');
 
