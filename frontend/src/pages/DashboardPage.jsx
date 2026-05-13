@@ -19,6 +19,7 @@ import { useScholarships } from '../hooks/useScholarship';
 import { cn, formatDate, getStatusColor, getStatusLabel, formatCurrency } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
+import { AuroraBackground } from '../components/landing/AuroraBackground';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -134,14 +135,17 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="container-page py-8 space-y-8">
-      {/* Page Header */}
-      <PageHeader
-        title="Dashboard"
-        description="Tổng quan về hoạt động ứng tuyển của bạn"
-      />
+    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
+      <AuroraBackground />
+      
+      <div className="container-page relative z-10 pt-24 md:pt-32 mb-12 space-y-8">
+        {/* Page Header */}
+        <PageHeader
+          title="Dashboard"
+          description="Tổng quan về hoạt động ứng tuyển của bạn"
+        />
 
-      {/* Section 1: Metrics Cards */}
+        {/* Section 1: Metrics Cards */}
       <section>
         <h2 className="heading-3 mb-4">Tổng quan</h2>
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
@@ -322,6 +326,7 @@ const DashboardPage = () => {
           />
         </div>
       )}
+      </div>
     </div>
   );
 };
