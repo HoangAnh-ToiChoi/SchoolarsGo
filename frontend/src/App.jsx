@@ -7,9 +7,12 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import ApplicationsPage from './pages/ApplicationsPage';
+import ApplicationDetailPage from './pages/ApplicationDetailPage';
 import SavedPage from './pages/SavedPage';
 import NotFoundPage from './pages/NotFoundPage';
+import RecommendPage from './pages/RecommendPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ComparisonPage from './pages/ComparisonPage';
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
         <Route path="saved" element={<SavedPage />} />
         <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+        <Route path="applications/:id" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />
+        <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
+        <Route path="compare" element={<ComparisonPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

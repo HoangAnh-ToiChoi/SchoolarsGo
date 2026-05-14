@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Button, Input, Select, PageHeader } from '../components/ui';
-import { Upload, FileText, Trash2 } from 'lucide-react';
+import { Upload, FileText, Trash2, Sparkles } from 'lucide-react';
 
 const ProfilePage = () => {
   const { data, isLoading } = useProfile();
@@ -19,7 +20,7 @@ const ProfilePage = () => {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    updateProfile.mutate(form);
+    updateProfile.mutate(form, { onSuccess: () => setForm({}) });
   };
 
   const handleUpload = async (e) => {
@@ -35,6 +36,31 @@ const ProfilePage = () => {
   return (
     <div className="container-narrow py-8">
       <PageHeader title="Hồ sơ cá nhân" />
+
+      {(() => {
+        const fields = [profile.gpa, profile.english_level, profile.target_country, profile.target_degree, profile.target_major, profile.bio];
+        const filled = fields.filter(Boolean).length;
+        const pct = Math.round((filled / fields.length) * 100);
+        return (
+          <div className="card card-body mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-body-sm font-semibold text-gray-700">Độ hoàn thiện hồ sơ</p>
+                <span className="text-body-sm font-bold text-primary-600">{pct}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full rounded-full bg-primary-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-caption text-gray-500 mt-1.5">Điền đầy đủ để AI gợi ý chính xác hơn</p>
+            </div>
+            {pct >= 50 && (
+              <Link to="/recommend" className="btn-primary shrink-0">
+                <Sparkles className="w-4 h-4" />Nhận gợi ý AI
+              </Link>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="card card-body mb-8 space-y-5">

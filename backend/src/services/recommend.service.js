@@ -1,5 +1,6 @@
 const { query, queryOne } = require('../utils/db');
 const { extractIeltsScore } = require('../utils/helpers');
+const { enrichRecommendations } = require('./gemini.service');
 
 const calculateMatchScore = (profile, scholarship) => {
   let score = 0;
@@ -92,9 +93,10 @@ const recommend = async (userId, topN = 10) => {
 
   const top = scored
     .sort((a, b) => b.match_score - a.match_score)
-    .slice(0, topN);
+    .slice(0, topN)
+    .filter((item) => item.match_score > 0);
 
-  return top.filter((item) => item.match_score > 0);
+  return enrichRecommendations(profile, top);
 };
 
 module.exports = { recommend };

@@ -12,13 +12,11 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Modal,
 } from '../components/ui';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
-  const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
   const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
   const featuredScholarships = featured?.data || [];
 
@@ -30,9 +28,9 @@ const HomePage = () => {
   };
 
   const highlights = [
-    { label: 'Học bổng nổi bật', value: `${featuredScholarships.length || 6}+`, icon: Star },
-    { label: 'Luồng theo dõi hồ sơ', value: '4 bước', icon: Compass },
-    { label: 'Gợi ý theo profile', value: 'AI-ready', icon: Brain },
+    { label: 'Học bổng & Chương trình', value: '1000+', icon: Star },
+    { label: 'Quốc gia & Vùng lãnh thổ', value: '50+', icon: Compass },
+    { label: 'AI Gợi ý cá nhân hóa', value: 'AI', icon: Brain },
   ];
 
   const processSteps = [
@@ -62,15 +60,15 @@ const HomePage = () => {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-tag border border-white/15 bg-white/10 px-4 py-2 text-body-sm font-medium backdrop-blur-sm">
                 <Sparkles className="w-4 h-4 text-amber-300" />
-                Sprint tuần này: dựng UI foundation cho ScholarsGo
+                Nền tảng tìm học bổng thông minh
               </div>
               <h1 className="mt-6 text-4xl font-extrabold leading-tight md:text-display">
-                Một home page đủ lực để dẫn người dùng từ khám phá đến ứng tuyển.
+                Cánh cửa đến học bổng quốc tế của bạn
               </h1>
               <p className="mt-6 max-w-2xl text-body-lg text-sky-50/88">
-                Bản layout đầu tiên tập trung vào thông điệp rõ ràng, lối vào tìm kiếm nhanh và các khối nội dung có thể mở rộng tiếp trong các sprint sau.
+                ScholarsGo giúp sinh viên Việt Nam tìm và ứng tuyển học bổng quốc tế — từ tìm kiếm đến theo dõi hồ sơ, tất cả trong một nơi.
               </p>
-              <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto_auto]">
+              <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto]">
                 <Input
                   value={searchValue}
                   onChange={(event) => setSearchValue(event.target.value)}
@@ -81,14 +79,6 @@ const HomePage = () => {
                 />
                 <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800">
                   Tìm học bổng
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  onClick={() => setIsRoadmapOpen(true)}
-                  className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                >
-                  Xem lộ trình
                 </Button>
               </form>
               <div className="mt-8 flex flex-wrap gap-3 text-body-sm text-sky-100/90">
@@ -123,11 +113,11 @@ const HomePage = () => {
         <div className="container-page">
           <div className="mb-16 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Component-first home</p>
-              <h2 className="section-title mt-2">Các block nền để mở rộng landing page</h2>
+              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Cách hoạt động</p>
+              <h2 className="section-title mt-2">Từ tìm kiếm đến ứng tuyển thành công</h2>
             </div>
             <p className="max-w-2xl text-body text-gray-600">
-              Card, button, input và modal được đưa vào đúng ngữ cảnh sử dụng thay vì dựng rời rạc. Mục tiêu là sprint sau có thể nối tiếp section mới mà không phải đập đi làm lại.
+              Ba bước đơn giản giúp bạn từ việc khám phá cơ hội đến nộp hồ sơ hoàn chỉnh một cách có tổ chức.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -140,11 +130,42 @@ const HomePage = () => {
                   <CardTitle className="mt-5">{title}</CardTitle>
                   <CardDescription>{description}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-2 text-body-sm text-gray-500">
-                  Thiết kế block theo dạng component giúp section này có thể tái dùng ở onboarding hoặc trang giới thiệu tính năng.
-                </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-section bg-surface">
+        <div className="container-page">
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-500">AI Recommend</p>
+              <h2 className="section-title mt-2">Học bổng gợi ý dành riêng cho bạn</h2>
+            </div>
+            <p className="max-w-xl text-body text-gray-600">Điền profile một lần, hệ thống AI phân tích và gợi ý học bổng phù hợp nhất với GPA, IELTS và ngành học của bạn.</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { icon: Brain, title: 'Phân tích profile', desc: 'Hệ thống đọc GPA, IELTS, ngành học và mục tiêu quốc gia của bạn.' },
+              { icon: Sparkles, title: 'AI tìm học bổng phù hợp', desc: 'Gemini AI so sánh profile với hàng trăm học bổng, tính điểm phù hợp và giải thích lý do.' },
+              { icon: Trophy, title: 'Tập trung vào ứng tuyển', desc: 'Chỉ xem những học bổng thực sự phù hợp, tiết kiệm thời gian nghiên cứu.' },
+            ].map(({ icon: Icon, title, desc }) => (
+              <Card key={title} hover>
+                <CardHeader>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <CardTitle className="mt-5">{title}</CardTitle>
+                  <CardDescription>{desc}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Link to="/recommend" className="btn-primary btn-lg">
+              <Sparkles className="w-5 h-5" />Xem gợi ý học bổng của tôi
+            </Link>
           </div>
         </div>
       </section>
@@ -153,8 +174,8 @@ const HomePage = () => {
         <div className="container-page">
           <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Featured scholarships</p>
-              <h2 className="section-title mt-2">Khối nội dung thật cho trang Home</h2>
+              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Học bổng nổi bật</p>
+              <h2 className="section-title mt-2">Cơ hội đang chờ bạn</h2>
             </div>
             <Link to="/scholarships" className="btn-ghost self-start md:self-auto">
               Xem tất cả học bổng
@@ -175,7 +196,7 @@ const HomePage = () => {
           {!isLoading && featuredScholarships.length === 0 && (
             <Card>
               <CardContent className="flex min-h-48 items-center justify-center text-center text-body text-gray-500">
-                Chưa có dữ liệu học bổng nổi bật để hiển thị trong block Home.
+                Chưa có dữ liệu học bổng nổi bật để hiển thị.
               </CardContent>
             </Card>
           )}
@@ -187,49 +208,24 @@ const HomePage = () => {
           <Card className="overflow-hidden border-none bg-gradient-to-r from-slate-950 via-primary-900 to-sky-800 text-white shadow-card-hover">
             <CardContent className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200">Next up</p>
-                <h2 className="mt-3 text-3xl font-bold leading-tight">Home layout đã có khung. Sprint tiếp theo có thể nối sang testimonial, FAQ và recommendation.</h2>
+                <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200">Bắt đầu ngay hôm nay</p>
+                <h2 className="mt-3 text-3xl font-bold leading-tight">Hàng nghìn sinh viên đã tìm được học bổng phù hợp — đến lượt bạn.</h2>
                 <p className="mt-4 max-w-2xl text-body text-sky-100/85">
-                  Phần này dùng chính Card + Button để giữ mạch UI đồng nhất, hạn chế việc section mới mỗi nơi một kiểu trong các tuần sau.
+                  Tạo tài khoản miễn phí, điền profile và để AI ScholarsGo gợi ý những học bổng phù hợp nhất với bạn.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
                 <Link to="/register" className="btn btn-lg bg-white text-primary-700 hover:bg-sky-50">
                   Tạo tài khoản miễn phí
                 </Link>
-                <Button size="lg" variant="secondary" onClick={() => setIsRoadmapOpen(true)} className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                  Mở roadmap UI
-                </Button>
+                <Link to="/scholarships" className="btn btn-lg border-white/20 bg-white/10 text-white hover:bg-white/20">
+                  Khám phá học bổng
+                </Link>
               </div>
             </CardContent>
           </Card>
         </div>
       </section>
-
-      <Modal
-        open={isRoadmapOpen}
-        onClose={() => setIsRoadmapOpen(false)}
-        title="Roadmap cho Home UI"
-        description="Modal này dùng như một phần của component library mới, đồng thời đóng vai trò preview các bước triển khai tiếp theo."
-      >
-        <div className="space-y-4">
-          {[
-            'Chốt visual direction và refine spacing/typography cho toàn bộ landing page.',
-            'Bổ sung testimonial, FAQ và recommendation section để nội dung Home đầy hơn.',
-            'Nối search query từ hero xuống danh sách học bổng để CTA đầu trang có tác dụng tức thời.',
-          ].map((item, index) => (
-            <div key={item} className="flex gap-3 rounded-2xl bg-slate-50 p-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
-                {index + 1}
-              </div>
-              <p className="text-body text-slate-700">{item}</p>
-            </div>
-          ))}
-          <div className="flex justify-end pt-2">
-            <Button onClick={() => setIsRoadmapOpen(false)}>Đóng</Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };
