@@ -8,6 +8,7 @@
  * - Dùng #throwError cho lỗi nghiệp vụ
  */
 const { extractIeltsScore } = require('../utils/helpers');
+const { enrichRecommendations } = require('./gemini.service');
 
 class RecommendService {
   /**
@@ -123,9 +124,10 @@ class RecommendService {
 
     const top = scored
       .sort((a, b) => b.match_score - a.match_score)
-      .slice(0, topN);
+      .slice(0, topN)
+      .filter((item) => item.match_score > 0);
 
-    return top.filter((item) => item.match_score > 0);
+    return enrichRecommendations(profile, top);
   };
 }
 

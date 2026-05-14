@@ -104,7 +104,7 @@ const ApplicationsPage = () => {
         ) : (
           <div className="space-y-6">
             {applications.map((app) =>{
-              if(!app.scholarship) return null; // Skip if scholarship details are missing
+              if(!app.scholarship) return null;
             return (
               <div key={app.id} className="overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(168,85,247,0.05)] transition-all hover:bg-white/10 hover:border-purple-500/30">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
@@ -125,7 +125,7 @@ const ApplicationsPage = () => {
                   </div>
                   <div className="w-full md:w-auto">
                     <Select
-                      options={statusOptions.slice(1)} // Remove "Tất cả" option
+                      options={statusOptions.slice(1)}
                       value={app.status}
                       onChange={(value) => handleStatusChange(app.id, value)}
                       className="w-full md:w-48"

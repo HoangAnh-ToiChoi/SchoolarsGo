@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import ErrorBoundary from './ErrorBoundary';
+import ComparisonBar from './ComparisonBar';
 
 const Layout = () => {
   return (
@@ -13,6 +14,7 @@ const Layout = () => {
         </ErrorBoundary>
       </main>
       <Footer />
+      <ComparisonBar />
     </div>
   );
 };

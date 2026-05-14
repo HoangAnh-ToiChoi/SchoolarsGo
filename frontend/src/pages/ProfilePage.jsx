@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';

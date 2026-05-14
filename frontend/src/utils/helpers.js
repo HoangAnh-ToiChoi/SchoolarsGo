@@ -63,3 +63,19 @@ export const getStatusLabel = (status) => {
   };
   return labels[status] || status;
 };
+
+export const getDaysUntilDeadline = (deadline) => {
+  if (!deadline) return null;
+  const diff = new Date(deadline) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
+export const getDeadlineUrgency = (deadline) => {
+  const days = getDaysUntilDeadline(deadline);
+  if (days === null) return null;
+  if (days < 0) return 'expired';
+  if (days <= 3) return 'critical';
+  if (days <= 7) return 'urgent';
+  if (days <= 30) return 'soon';
+  return null;
+};

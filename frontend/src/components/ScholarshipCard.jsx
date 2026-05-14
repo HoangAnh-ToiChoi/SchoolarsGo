@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Star, MapPin, Calendar, DollarSign, GraduationCap } from 'lucide-react';
+import { Heart, Star, MapPin, Calendar, DollarSign, GraduationCap, GitCompare } from 'lucide-react';
 import { useToggleSaveScholarship, useSavedScholarships } from '../hooks/useScholarship';
 import { useAuthStore } from '../stores/authStore';
 import { cn, formatCurrency, formatDate } from '../utils/helpers';
+import { useComparisonStore } from '../stores/comparisonStore';
 import toast from 'react-hot-toast';
 
 const ScholarshipCard = ({ scholarship, isDark = false }) => {
@@ -37,10 +38,14 @@ const ScholarshipCard = ({ scholarship, isDark = false }) => {
     
     toggleSave.mutate({ scholarshipId: id, isSaved: !nextSavedState }, {
       onError: () => {
-        setOptimisticSaved(serverIsSaved); // Revert on error
+        setOptimisticSaved(serverIsSaved);
       }
     });
   };
+
+  const toggle = useComparisonStore((s) => s.toggle);
+  const isSelected = useComparisonStore((s) => s.isSelected(id));
+  const itemCount = useComparisonStore((s) => s.items.length);
 
   return (
     <Link 
@@ -73,21 +78,35 @@ const ScholarshipCard = ({ scholarship, isDark = false }) => {
               {title}
             </h3>
           </div>
-          <button
-            onClick={handleSaveClick}
-            disabled={toggleSave.isPending}
-            className={cn(
-              "min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 p-2 rounded-full transition-all duration-300 disabled:opacity-50 hover:scale-110 active:scale-90",
-              isSaved 
-                ? (isDark ? "bg-red-500/20 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-danger-50 text-danger-500") 
-                : (isDark ? "bg-white/5 text-white/40 hover:bg-red-500/10 hover:text-red-400" : "bg-gray-50 text-gray-400 hover:bg-danger-50 hover:text-danger-500")
-            )}
-          >
-            <Heart 
-              className={cn("w-5 h-5 transition-transform duration-300", isSaved && "scale-110")} 
-              fill={isSaved ? "currentColor" : "none"} 
-            />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={(e) => { e.preventDefault(); toggle(scholarship); }}
+              disabled={!isSelected && itemCount >= 3}
+              title={isSelected ? 'Bỏ so sánh' : itemCount >= 3 ? 'Tối đa 3 học bổng' : 'So sánh'}
+              className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                isSelected ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50',
+                !isSelected && itemCount >= 3 && 'opacity-30 cursor-not-allowed'
+              )}
+            >
+              <GitCompare className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleSaveClick}
+              disabled={toggleSave.isPending}
+              className={cn(
+                "min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 p-2 rounded-full transition-all duration-300 disabled:opacity-50 hover:scale-110 active:scale-90",
+                isSaved 
+                  ? (isDark ? "bg-red-500/20 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-danger-50 text-danger-500") 
+                  : (isDark ? "bg-white/5 text-white/40 hover:bg-red-500/10 hover:text-red-400" : "bg-gray-50 text-gray-400 hover:bg-danger-50 hover:text-danger-500")
+              )}
+            >
+              <Heart 
+                className={cn("w-5 h-5 transition-transform duration-300", isSaved && "scale-110")} 
+                fill={isSaved ? "currentColor" : "none"} 
+              />
+            </button>
+          </div>
         </div>
         <p className={cn("text-body-sm mb-4 line-clamp-1", isDark ? "text-white/60" : "text-gray-500")}>
           {provider}
