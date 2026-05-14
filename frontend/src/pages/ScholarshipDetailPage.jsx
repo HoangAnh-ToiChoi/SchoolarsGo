@@ -6,14 +6,15 @@ import { useAuthStore } from '../stores/authStore';
 import { cn, formatCurrency, formatDate, formatRelativeTime } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Badge, Button } from '../components/ui';
+import { AuroraBackground } from '../components/landing/AuroraBackground';
 
 const DetailSection = ({ title, content, fallback }) => {
   if (!content && !fallback) return null;
 
   return (
-    <section className="card p-6 sm:p-7">
-      <h2 className="text-heading-3 text-slate-900">{title}</h2>
-      <p className="mt-3 whitespace-pre-line text-body leading-7 text-slate-600">{content || fallback}</p>
+    <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 sm:p-7 transition-all hover:bg-white/10">
+      <h2 className="text-xl font-bold text-white">{title}</h2>
+      <p className="mt-4 whitespace-pre-line text-lg leading-relaxed text-white/70">{content || fallback}</p>
     </section>
   );
 };
@@ -22,13 +23,13 @@ const InfoRow = ({ label, value, icon: Icon }) => {
   if (!value) return null;
 
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-primary-600 shadow-sm">
-        <Icon className="h-5 w-5" />
+    <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 transition-all hover:bg-white/10 hover:border-purple-500/30">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+        <Icon className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-body-sm text-slate-500">{label}</p>
-        <p className="mt-1 text-body font-semibold text-slate-900">{value}</p>
+        <p className="text-sm font-medium text-white/50">{label}</p>
+        <p className="mt-1 text-base font-semibold text-white/90">{value}</p>
       </div>
     </div>
   );
@@ -42,13 +43,22 @@ const ScholarshipDetailPage = () => {
   const toggleSave = useToggleSaveScholarship();
   const createApplication = useCreateApplication();
 
-  if (isLoading) return <LoadingSpinner />;
+ if (!id || id === 'undefined') {
+    return (
+      <div className="landing-theme min-h-screen bg-[#050510] py-16 text-center text-white">
+        <h2 className="mb-4 text-3xl font-bold">ID học bổng không hợp lệ</h2>
+        <Link to="/scholarships" className="text-purple-400 hover:text-purple-300 font-medium">← Quay lại danh sách</Link>
+      </div>
+    );
+  }
+
+  if (isLoading) return <div className="landing-theme min-h-screen bg-[#050510] flex items-center justify-center"><LoadingSpinner /></div>;
 
   if (error || !data?.data) {
     return (
-      <div className="container-narrow py-16 text-center">
-        <h2 className="mb-4 text-heading-1 text-gray-900">Không tìm thấy học bổng</h2>
-        <Link to="/scholarships" className="text-primary-600 hover:text-primary-700 font-medium">← Quay lại danh sách</Link>
+      <div className="landing-theme min-h-screen bg-[#050510] py-16 text-center text-white">
+        <h2 className="mb-4 text-3xl font-bold">Không tìm thấy học bổng</h2>
+        <Link to="/scholarships" className="text-purple-400 hover:text-purple-300 font-medium">← Quay lại danh sách</Link>
       </div>
     );
   }
@@ -100,105 +110,109 @@ const ScholarshipDetailPage = () => {
   };
 
   return (
-    <div className="bg-slate-50 py-8">
-      <div className="container-page">
-        <Link to="/scholarships" className="mb-6 inline-flex items-center gap-2 text-body-sm font-semibold text-slate-500 transition hover:text-slate-800">
+    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
+      <AuroraBackground />
+      <div className="container-page relative z-10 pt-8">
+        <Link to="/scholarships" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-white/60 transition hover:text-white backdrop-blur-sm bg-white/5 px-4 py-2 rounded-full border border-white/10 w-fit">
           <ArrowLeft className="h-4 w-4" />
           Quay lại danh sách
         </Link>
 
-        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-card">
+        <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/40 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)]">
           <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-            <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.18),_transparent_36%),linear-gradient(135deg,_#eff6ff_0%,_#ffffff_46%,_#f8fafc_100%)] p-6 sm:p-8 lg:p-10">
-              <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-primary-100/60 blur-3xl" />
+            <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(168,85,247,0.15),_transparent_40%),linear-gradient(135deg,_rgba(255,255,255,0.02)_0%,_transparent_100%)] p-6 sm:p-8 lg:p-12">
+              <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-cyan-500/20 blur-[100px] pointer-events-none" />
               <div className="relative max-w-3xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  {s.is_featured && <Badge color="yellow">Nổi bật</Badge>}
-                  {s.coverage && <Badge color="blue">{s.coverage}</Badge>}
-                  {s.language && <Badge color="green">{s.language}</Badge>}
+                  {s.is_featured && <span className="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-medium text-amber-300 ring-1 ring-amber-500/30">Nổi bật</span>}
+                  {s.coverage && <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30">{s.coverage}</span>}
+                  {s.language && <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/30">{s.language}</span>}
                 </div>
 
-                <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{s.title}</h1>
-                <p className="mt-3 max-w-2xl text-body-lg text-slate-600">{s.provider}</p>
+                <h1 className="mt-6 text-4xl font-extrabold leading-tight text-white sm:text-5xl drop-shadow-md">{s.title}</h1>
+                <p className="mt-4 max-w-2xl text-xl text-white/70 font-light">{s.provider}</p>
 
-                <div className="mt-6 flex flex-wrap gap-3 text-body-sm text-slate-600">
+                <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/80">
                   {heroFacts.map(({ icon: Icon, label }) => (
-                    <span key={`${Icon.displayName || Icon.name}-${label}`} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-4 py-2 shadow-sm">
-                      <Icon className="h-4 w-4 text-primary-600" />
+                    <span key={`${Icon.displayName || Icon.name}-${label}`} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm px-4 py-2.5 transition hover:bg-white/10">
+                      <Icon className="h-4 w-4 text-cyan-400" />
                       {label}
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Button
-                    size="lg"
+                <div className="mt-10 flex flex-wrap gap-4">
+                  <button
                     onClick={handleCreateApplication}
-                    isLoading={createApplication.isPending}
-                    loadingText="Đang tạo draft..."
+                    disabled={createApplication.isPending}
+                    className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-8 py-3.5 rounded-xl font-bold hover:scale-105 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] disabled:opacity-50"
                   >
-                    Tạo hồ sơ ứng tuyển
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant={s.is_saved ? 'secondary' : 'ghost'}
+                    {createApplication.isPending ? 'Đang tạo draft...' : 'Tạo hồ sơ ứng tuyển'}
+                  </button>
+                  <button
                     onClick={handleToggleSave}
-                    isLoading={toggleSave.isPending}
-                    loadingText={s.is_saved ? 'Đang bỏ lưu...' : 'Đang lưu...'}
-                    leftIcon={Heart}
-                    className={cn(s.is_saved && 'border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100')}
+                    disabled={toggleSave.isPending}
+                    className={cn(
+                      "px-8 py-3.5 rounded-xl font-bold transition-all flex items-center gap-2 disabled:opacity-50",
+                      s.is_saved 
+                        ? "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]" 
+                        : "bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20"
+                    )}
                   >
+                    <Heart className="w-5 h-5" fill={s.is_saved ? "currentColor" : "none"} />
                     {s.is_saved ? 'Đã lưu học bổng' : 'Lưu vào shortlist'}
-                  </Button>
+                  </button>
                   {s.application_url && (
-                    <a href={s.application_url} target="_blank" rel="noopener noreferrer" className="btn-secondary btn-lg">
+                    <a href={s.application_url} target="_blank" rel="noopener noreferrer" className="px-8 py-3.5 rounded-xl font-bold bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2">
                       <ExternalLink className="w-5 h-5" />
                       Mở link nộp đơn
                     </a>
                   )}
                 </div>
 
-                <div className="mt-6 text-body-sm text-slate-500">
+                <div className="mt-8 text-sm text-white/50 bg-white/5 border border-white/10 rounded-xl p-4">
                   {isAuthenticated
-                    ? 'Bạn có thể lưu học bổng hoặc tạo draft application để theo dõi tiến độ ngay trong hệ thống.'
-                    : 'Đăng nhập để lưu học bổng và tạo draft application theo dõi tiến độ.'}
+                    ? '💡 Bạn có thể lưu học bổng hoặc tạo draft application để theo dõi tiến độ ngay trong hệ thống.'
+                    : '💡 Đăng nhập để lưu học bổng và tạo draft application theo dõi tiến độ.'}
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-slate-200 bg-slate-950 p-6 text-white sm:p-8 lg:border-l lg:border-t-0">
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200/90">Nhịp deadline</p>
-              <p className="mt-3 text-3xl font-black">
+            <div className="border-t border-white/10 bg-[#0a0a1a]/80 p-6 sm:p-8 lg:p-12 lg:border-l lg:border-t-0 backdrop-blur-xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-400">Nhịp deadline</p>
+              <p className="mt-4 text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
                 {s.deadline ? formatRelativeTime(s.deadline) : 'Chưa công bố'}
               </p>
-              <p className="mt-3 text-body text-slate-300">
+              <p className="mt-3 text-base text-white/60">
                 {s.deadline
                   ? `Hạn chính thức: ${formatDate(s.deadline, 'dd/MM/yyyy')}`
                   : 'Theo dõi nhà cung cấp để cập nhật mốc thời gian chính thức.'}
               </p>
 
-              <div className="mt-8 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-3 text-body-sm text-slate-300">
+              <div className="mt-10 space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm shadow-inner">
+                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4 text-sm text-white/60">
                   <span>Mức hỗ trợ</span>
-                  <span className="text-right text-base font-semibold text-white">
+                  <span className="text-right text-lg font-bold text-emerald-400">
                     {s.amount ? formatCurrency(s.amount, s.currency) : 'Đang cập nhật'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-3 text-body-sm text-slate-300">
+                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4 text-sm text-white/60">
                   <span>Bậc học</span>
                   <span className="text-right text-base font-semibold text-white">{s.degree || 'Mở'}</span>
                 </div>
-                <div className="flex items-center justify-between gap-4 text-body-sm text-slate-300">
+                <div className="flex items-center justify-between gap-4 text-sm text-white/60">
                   <span>Trạng thái</span>
-                  <span className="text-right text-base font-semibold text-white">{s.is_featured ? 'Ưu tiên hiển thị' : 'Đang mở tuyển'}</span>
+                  <span className="text-right text-base font-semibold text-white">
+                    {s.is_featured ? <span className="text-amber-400">Ưu tiên hiển thị</span> : 'Đang mở tuyển'}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
-          <div className="space-y-6">
+        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+          <div className="space-y-8">
             <DetailSection
               title="Điều kiện ứng tuyển"
               content={s.eligibility}
@@ -216,40 +230,39 @@ const ScholarshipDetailPage = () => {
             />
           </div>
 
-          <aside className="space-y-6">
-            <section className="card p-6 sm:p-7">
-              <h2 className="text-heading-3 text-slate-900">Thông tin nhanh</h2>
-              <div className="mt-5 space-y-3">
+          <aside className="space-y-8">
+            <section className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 sm:p-8">
+              <h2 className="text-xl font-bold text-white mb-6">Thông tin nhanh</h2>
+              <div className="space-y-4">
                 {sidebarFacts.map(({ icon, label, value }) => (
                   <InfoRow key={label} icon={icon} label={label} value={value} />
                 ))}
               </div>
             </section>
 
-            <section className="card overflow-hidden border-slate-900/5 bg-slate-900 text-white">
-              <div className="p-6 sm:p-7">
-                <p className="text-body-sm font-semibold uppercase tracking-[0.16em] text-sky-200">Action plan</p>
-                <h3 className="mt-3 text-2xl font-black leading-tight">Chốt cơ hội này trước khi deadline tới gần.</h3>
-                <p className="mt-3 text-body text-slate-300">
+            <section className="relative overflow-hidden rounded-2xl border border-purple-500/30 bg-purple-900/20 backdrop-blur-md p-6 sm:p-8 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 blur-[50px]" />
+              <div className="relative z-10">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">Action plan</p>
+                <h3 className="mt-3 text-2xl font-black leading-tight text-white">Chốt cơ hội này trước khi deadline tới gần.</h3>
+                <p className="mt-3 text-sm text-white/70 leading-relaxed">
                   Lưu shortlist nếu còn phân vân. Nếu đã sẵn sàng, tạo draft application để theo dõi checklist hồ sơ ngay từ bây giờ.
                 </p>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Button
-                    variant="secondary"
-                    onClick={handleToggleSave}
-                    isLoading={toggleSave.isPending}
-                    loadingText="Đang cập nhật..."
-                    className="border-white/10 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                  >
-                    {s.is_saved ? 'Bỏ khỏi shortlist' : 'Lưu shortlist'}
-                  </Button>
-                  <Button
+                <div className="mt-6 flex flex-col gap-3">
+                  <button
                     onClick={handleCreateApplication}
-                    isLoading={createApplication.isPending}
-                    loadingText="Đang tạo..."
+                    disabled={createApplication.isPending}
+                    className="w-full bg-white text-[#050510] font-bold py-3 rounded-xl hover:bg-white/90 transition-colors"
                   >
                     Tạo draft
-                  </Button>
+                  </button>
+                  <button
+                    onClick={handleToggleSave}
+                    disabled={toggleSave.isPending}
+                    className="w-full bg-white/10 text-white font-semibold py-3 rounded-xl hover:bg-white/20 border border-white/10 transition-colors"
+                  >
+                    {s.is_saved ? 'Bỏ khỏi shortlist' : 'Lưu shortlist'}
+                  </button>
                 </div>
               </div>
             </section>

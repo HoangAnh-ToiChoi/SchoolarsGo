@@ -7,20 +7,22 @@
  * Storage (uploadFile, deleteFile) vẫn ở đây vì KHÔNG phải SQL.
  * Rollback logic khi DB insert thất bại cũng ở đây.
  *
- * Inject: documentRepo qua constructor
+ * Inject: documentRepo + eventBus qua constructor
  *
  * Public methods — Controller gọi:
  *   getAll(userId)      → documents[]
  *   upload(userId, docType, file) → document record
  *   remove(userId, documentId)   → void
  */
-const { uploadFile, deleteFile } = require('./storage.service');
+
 
 class DocumentService {
   static VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-  constructor(documentRepository) {
+  constructor(documentRepository, eventBus, storageService) {
     this.repo = documentRepository;
+    this.eventBus = eventBus;
+    this.storage = storageService;
   }
 
   // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
@@ -44,9 +46,19 @@ class DocumentService {
         fileSize: file.size,
         mimeType: file.mimetype,
       });
+
+      // Emit event — Loose Coupling: DocumentService không biết StorageListener tồn tại
+      this.eventBus.emit('document.uploaded', {
+        userId,
+        documentId: doc.id,
+        docType,
+        fileSize: file.size,
+        fileName: file.originalname,
+      });
+
       return doc;
     } catch (dbErr) {
-      await deleteFile(uploadResult.storagePath);
+      await this.storage.deleteFile(uploadResult.storagePath);
       this.#throwError(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 500);
     }
   };
@@ -55,19 +67,28 @@ class DocumentService {
     const doc = await this.repo.findByIdAndUserId(documentId, userId);
     this.#ensureFound(doc, 'Không tìm thấy document hoặc bạn không có quyền xóa');
 
+    const fileSize = doc.file_size;
+
     if (doc.file_url) {
       const path = this.#parseStoragePath(doc.file_url);
-      if (path) await deleteFile(path);
+      if (path) await this.storage.deleteFile(path);
     }
 
     await this.repo.deleteByIdAndUserId(documentId, userId);
+
+    // Emit event — Loose Coupling: DocumentService không biết StorageListener tồn tại
+    this.eventBus.emit('document.deleted', {
+      userId,
+      documentId,
+      fileSize,
+    });
   };
 
   // ─── PRIVATE — Storage helpers ────────────────────────────────────────────
 
   #uploadToStorage = async (userId, docType, file) => {
     try {
-      return await uploadFile(userId, docType, file.buffer, file.originalname, file.mimetype);
+      return await this.storage.uploadFile(userId, docType, file.buffer, file.originalname, file.mimetype);
     } catch (err) {
       this.#throwError(`Upload file thất bại: ${err.message}`, 500);
     }

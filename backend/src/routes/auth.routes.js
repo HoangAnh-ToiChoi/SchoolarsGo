@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const authController = require('../controllers/auth.controller');
+const { authController } = require('../container');
 const { registerSchema, loginSchema } = require('../utils/validators');
 const validate = require('../middlewares/validate');
 const { auth } = require('../middlewares/auth');
@@ -35,6 +35,6 @@ router.post('/logout', authController.logout);
  * POST /api/auth/refresh
  * @desc Refresh JWT token
  */
-router.post('/refresh', authController.refresh);
+router.post('/refresh', auth, authController.refresh);
 
 module.exports = router;

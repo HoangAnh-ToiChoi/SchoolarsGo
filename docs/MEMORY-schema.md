@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — DATABASE SCHEMA
 # ============================================================
-# Last Updated: 20/4/2026
+# Last Updated: 2/5/2026
 
 ---
 
@@ -26,10 +26,14 @@
 | avatar_url | text | NULLABLE | URL avatar |
 | phone | varchar(20) | NULLABLE | Số điện thoại |
 | date_of_birth | date | NULLABLE | Ngày sinh |
+| role | varchar(20) | NOT NULL, DEFAULT 'user' | Vai trò: `user`, `admin` |
+| last_login_at | timestamptz | NULLABLE | Thời điểm đăng nhập gần nhất |
 | created_at | timestamp | DEFAULT now() | Thời điểm tạo |
 | updated_at | timestamp | DEFAULT now() | Thời điểm cập nhật |
 
 **Indexes:** `CREATE INDEX idx_users_email ON users(email);`
+
+**Mặc định role:** Mọi user mới đăng ký đều có `role = 'user'`. Chỉ `admin` mới có quyền truy cập dashboard quản trị.
 
 ---
 
@@ -214,6 +218,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 | 26/3/2026 | v0.1 | Initial schema — 6 tables created |
 | 27/3/2026 | v0.2 | Deploy lên Supabase local Docker. Thêm: RLS policies đầy đủ, auto-update `updated_at` trigger, indexes mở rộng. 6 tables + 16 indexes + 20 policies. |
 | 20/4/2026 | v0.3 | Refactor toàn bộ backend sang OOP 4-layer architecture (Scholarship, Profile, Document modules). Thêm DocumentRepository, container.js wiring đầy đủ. |
+| 2/5/2026 | v0.4 | Thêm 2 cột vào bảng `users`: `role` (varchar, DEFAULT 'user') và `last_login_at` (timestamptz). Refactor Auth module hoàn tất OOP 4 tầng với EventBus. Hợp nhất Auth V1+V2 tại `/api/auth/*`. |
 
 ## Local Docker Setup
 
@@ -406,6 +411,11 @@ await deleteFile(uploadResult.storagePath);
 ```
 backend/src/
 ├── container.js              ← DI wiring duy nhất
+├── events/
+│   ├── eventBus.js            ← Singleton EventEmitter
+│   └── listeners/
+│       ├── auth.listener.js   ← lắng nghe user.registered, user.login
+│       └── storage.listener.js ← lắng nghe document.uploaded, document.deleted
 ├── controllers/
 │   ├── document.controller.js
 │   ├── profile.controller.js

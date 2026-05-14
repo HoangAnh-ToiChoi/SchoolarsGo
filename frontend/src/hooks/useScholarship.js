@@ -15,7 +15,7 @@ export const useScholarship = (id) => {
   return useQuery({
     queryKey: ['scholarship', id],
     queryFn: () => scholarshipService.getById(id).then((res) => res.data),
-    enabled: !!id,
+    enabled: !!id && id !== 'undefined',
   });
 };
 

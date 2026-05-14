@@ -62,6 +62,28 @@ export default {
           primary: '#1f2933',     // Chữ chính
           secondary: '#52606d',   // Chữ phụ
           tertiary: '#9aa5b1',    // Chữ mờ/placeholder
+        },
+        // Landing Page Specific Colors
+        landing: {
+          background: 'var(--landing-background)',
+          foreground: 'var(--landing-foreground)',
+          card: 'var(--landing-card)',
+          'card-foreground': 'var(--landing-card-foreground)',
+          popover: 'var(--landing-popover)',
+          'popover-foreground': 'var(--landing-popover-foreground)',
+          primary: 'var(--landing-primary)',
+          'primary-foreground': 'var(--landing-primary-foreground)',
+          secondary: 'var(--landing-secondary)',
+          'secondary-foreground': 'var(--landing-secondary-foreground)',
+          muted: 'var(--landing-muted)',
+          'muted-foreground': 'var(--landing-muted-foreground)',
+          accent: 'var(--landing-accent)',
+          'accent-foreground': 'var(--landing-accent-foreground)',
+          destructive: 'var(--landing-destructive)',
+          'destructive-foreground': 'var(--landing-destructive-foreground)',
+          border: 'var(--landing-border)',
+          input: 'var(--landing-input)',
+          ring: 'var(--landing-ring)',
         }
       },
       fontFamily: {

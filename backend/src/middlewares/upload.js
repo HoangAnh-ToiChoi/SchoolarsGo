@@ -46,18 +46,12 @@ const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
   const docType = req.body && req.body.type;
 
-  // DEBUG: Log chi tiết để debug lỗi 400
-  console.log('[Upload Debug] req.body.type:', docType, '| file:', file.originalname, '| mimetype:', file.mimetype);
-  console.log('[Upload Debug] req.body:', JSON.stringify(req.body));
-
   if (!docType) {
-    console.log('[Upload Debug] ❌ FAIL: Thiếu field "type" trong request body');
     return cb(new Error('Thiếu field "type" trong request'), false);
   }
 
   const allowedExts = ALLOWED_EXTS_BY_TYPE[docType];
   if (!allowedExts) {
-    console.log('[Upload Debug] ❌ FAIL: Loại document không hợp lệ:', docType);
     return cb(
       new Error(`Loại document không hợp lệ. Chỉ chấp nhận: cv, sop, transcript, recommendation_letter, other`),
       false
@@ -65,10 +59,8 @@ const fileFilter = (req, file, cb) => {
   }
 
   const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
-  console.log('[Upload Debug] Extension:', ext, '| Allowed for', docType + ':', allowedExts);
 
   if (!allowedExts.includes(ext)) {
-    console.log('[Upload Debug] ❌ FAIL: Extension không cho phép');
     return cb(
       new Error(`File "${docType}" chỉ chấp nhận đuôi: ${allowedExts.join(', ')}`),
       false
@@ -77,11 +69,9 @@ const fileFilter = (req, file, cb) => {
 
   const expectedMime = MIME_MAP[ext];
   if (expectedMime && file.mimetype !== expectedMime) {
-    console.log('[Upload Debug] ❌ FAIL: MIME type không khớp');
     return cb(new Error('Đuôi file không khớp với nội dung file'), false);
   }
 
-  console.log('[Upload Debug] ✅ PASS: File hợp lệ');
   cb(null, true);
 };
 
