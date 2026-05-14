@@ -13,6 +13,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import RecommendPage from './pages/RecommendPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
+import ChatPage from './pages/ChatPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="applications/:id" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />
         <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
         <Route path="compare" element={<ComparisonPage />} />
+        <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

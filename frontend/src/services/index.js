@@ -51,3 +51,8 @@ export const savedService = {
 export const recommendService = {
   recommend: (topN) => api.post('/recommend', { top_n: topN }),
 };
+
+// Chat
+export const chatService = {
+  send: (messages) => api.post('/chat', { messages }),
+};
