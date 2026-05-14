@@ -48,31 +48,40 @@ AN TOÀN THÔNG TIN:
 - Mỗi học bổng: Tên | Quốc gia | Deadline | Điều kiện chính
 - Cuối mỗi phản hồi: 1 câu gợi ý bước tiếp theo`;
 
-const extractFilters = (messages) => {
-  const fullText = messages.map((m) => m.content).join(' ').toLowerCase();
-  const filters = {};
+const extractFilters = async (messages, genAI) => {
+  const conversationText = messages.slice(-8).map((m) => `${m.role}: ${m.content}`).join('\n');
+  const extractModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  // GPA
-  const gpaMatch = fullText.match(/gpa[:\s]+(\d+\.?\d*)/i);
-  if (gpaMatch) filters.min_gpa = parseFloat(gpaMatch[1]) - 0.5;
+  const prompt = `Extract scholarship search filters from this conversation. Return ONLY valid JSON with these fields (use null for unknown):
+{
+  "country": "Australia|USA|UK|Japan|South Korea|Canada|Germany|France|Singapore|New Zealand|null",
+  "degree": "Bachelor|Master|PhD|null",
+  "min_gpa": <number 0-4 or null>,
+  "min_ielts": <number 0-9 or null>
+}
 
-  // IELTS
-  const ieltsMatch = fullText.match(/ielts[:\s]+(\d+\.?\d*)/i);
-  if (ieltsMatch) filters.min_ielts = parseFloat(ieltsMatch[1]);
+Conversation:
+${conversationText}
 
-  // Quoc gia
-  const countries = ['úc', 'australia', 'mỹ', 'usa', 'america', 'anh', 'uk', 'england', 'nhật', 'japan', 'hàn', 'korea', 'canada', 'đức', 'germany', 'pháp', 'france', 'singapore', 'new zealand'];
-  const countryMap = { 'úc': 'Australia', 'australia': 'Australia', 'mỹ': 'USA', 'usa': 'USA', 'america': 'USA', 'anh': 'UK', 'uk': 'UK', 'england': 'UK', 'nhật': 'Japan', 'japan': 'Japan', 'hàn': 'South Korea', 'korea': 'South Korea', 'canada': 'Canada', 'đức': 'Germany', 'germany': 'Germany', 'pháp': 'France', 'france': 'France', 'singapore': 'Singapore', 'new zealand': 'New Zealand' };
-  for (const c of countries) {
-    if (fullText.includes(c)) { filters.country = countryMap[c]; break; }
+JSON only, no explanation:`;
+
+  try {
+    const result = await extractModel.generateContent(prompt);
+    const text = result.response.text().trim();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return {};
+    const parsed = JSON.parse(jsonMatch[0]);
+    const filters = {};
+    if (parsed.country && parsed.country !== 'null') filters.country = parsed.country;
+    if (parsed.degree && parsed.degree !== 'null') filters.degree = parsed.degree;
+    const gpa = Number(parsed.min_gpa);
+    if (!isNaN(gpa) && gpa > 0 && gpa <= 4) filters.min_gpa = gpa;
+    const ielts = Number(parsed.min_ielts);
+    if (!isNaN(ielts) && ielts > 0 && ielts <= 9) filters.min_ielts = ielts;
+    return filters;
+  } catch {
+    return {};
   }
-
-  // Bac hoc
-  if (fullText.match(/thạc\s*sĩ|master/)) filters.degree = 'Master';
-  else if (fullText.match(/tiến\s*sĩ|phd|doctorate/)) filters.degree = 'PhD';
-  else if (fullText.match(/đại\s*học|bachelor|undergraduate/)) filters.degree = 'Bachelor';
-
-  return filters;
 };
 
 const queryScholarships = async (filters) => {
@@ -82,7 +91,7 @@ const queryScholarships = async (filters) => {
 
   if (filters.country) { conditions.push(`country ILIKE $${idx++}`); params.push(`%${filters.country}%`); }
   if (filters.degree) { conditions.push(`(degree = $${idx++} OR degree = 'Any')`); params.push(filters.degree); }
-  if (filters.min_gpa) { conditions.push(`(min_gpa IS NULL OR min_gpa <= $${idx++})`); params.push(filters.min_gpa + 0.5); }
+  if (filters.min_gpa) { conditions.push(`(min_gpa IS NULL OR min_gpa <= $${idx++})`); params.push(filters.min_gpa); }
 
   const result = await query(
     `SELECT title, provider, country, degree, amount, currency, deadline, min_gpa, min_ielts, field_of_study, coverage, application_url
@@ -93,7 +102,7 @@ const queryScholarships = async (filters) => {
 };
 
 const formatScholarships = (scholarships) => {
-  if (!scholarships.length) return '';
+  if (!scholarships.length) return '\n\n[DB: Không tìm thấy học bổng phù hợp trong hệ thống. Không được bịa hoặc gợi ý học bổng ngoài danh sách này. Hãy thông báo cho user và đề nghị thay đổi tiêu chí tìm kiếm.]';
   const list = scholarships.map((s) => {
     const deadline = s.deadline ? new Date(s.deadline).toLocaleDateString('vi-VN') : 'Chưa rõ';
     const conditions = [s.min_gpa && `GPA ≥ ${s.min_gpa}`, s.min_ielts && `IELTS ≥ ${s.min_ielts}`, s.field_of_study && `Ngành: ${s.field_of_study}`].filter(Boolean).join(' | ');
@@ -120,13 +129,13 @@ const chat = async (messages) => {
   // Inject scholarship context nếu cần
   let scholarshipContext = '';
   if (isScholarshipQuery(messages)) {
-    const filters = extractFilters(messages);
+    const filters = await extractFilters(messages, genAI);
     const scholarships = await queryScholarships(filters);
     scholarshipContext = formatScholarships(scholarships);
   }
 
-  // Convert sang Gemini format
-  const history = messages.slice(0, -1).map((m) => ({
+  // Convert sang Gemini format — giới hạn 20 turns để tránh vượt token limit
+  const history = messages.slice(-20, -1).map((m) => ({
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content }],
   }));

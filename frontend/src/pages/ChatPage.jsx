@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Sparkles, BookOpen } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { chatService } from '../services';
 import { cn } from '../utils/helpers';
 
@@ -27,10 +28,11 @@ const MessageBubble = ({ message }) => {
   const isUser = message.role === 'user';
 
   const formatContent = (text) => {
-    return text
+    const html = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/^• /gm, '&bull; ')
       .replace(/\n/g, '<br/>');
+    return DOMPurify.sanitize(html, { ALLOWED_TAGS: ['strong', 'br'], ALLOWED_ATTR: [] });
   };
 
   return (
@@ -74,6 +76,11 @@ const ChatPage = () => {
   const sendMessage = async (text) => {
     const content = text.trim();
     if (!content || isLoading) return;
+    if (content.length > 1000) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Tin nhắn quá dài. Vui lòng giới hạn dưới 1000 ký tự.' }]);
+      setInput('');
+      return;
+    }
 
     const userMessage = { role: 'user', content };
     const newMessages = [...messages, userMessage];
@@ -87,7 +94,13 @@ const ChatPage = () => {
       const reply = res.data?.data?.reply || 'Mình gặp sự cố, bạn thử lại nhé.';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: err.message || 'Có lỗi xảy ra, vui lòng thử lại.' }]);
+      const status = err.response?.status;
+      const friendlyMsg =
+        status === 429 ? 'Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ 1 phút rồi thử lại.' :
+        status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' :
+        status === 503 ? 'Dịch vụ AI đang bảo trì. Vui lòng thử lại sau.' :
+        'Mình gặp sự cố kết nối. Bạn thử lại nhé.';
+      setMessages((prev) => [...prev, { role: 'assistant', content: friendlyMsg }]);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
