@@ -1,4 +1,4 @@
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log lỗi ra console trong development
   if (process.env.NODE_ENV !== 'production') {
     console.error('Error:', err);
@@ -55,6 +55,15 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Body-parser JSON parse error (invalid JSON body từ client)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body không phải JSON hợp lệ',
+      code: 400,
+    });
+  }
+
   // Lỗi tùy chỉnh từ service layer
   if (err.isOperational) {
     return res.status(err.statusCode || 400).json({
@@ -82,12 +91,13 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Multer errors — bắt các lỗi validation từ fileFilter
-  if (err.message && (
-    err.message.includes('Thiếu field "type"') ||
-    err.message.includes('không hợp lệ') ||
-    err.message.includes('chỉ chấp nhận đuôi') ||
-    err.message.includes('Đuôi file không khớp')
-  )) {
+  if (
+    err.message &&
+    (err.message.includes('Thiếu field "type"') ||
+      err.message.includes('không hợp lệ') ||
+      err.message.includes('chỉ chấp nhận đuôi') ||
+      err.message.includes('Đuôi file không khớp'))
+  ) {
     return res.status(400).json({
       success: false,
       message: err.message,
