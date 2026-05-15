@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ScholarshipsPage from './pages/ScholarshipsPage';
@@ -15,6 +16,17 @@ import NotFoundPage from './pages/NotFoundPage';
 import RecommendPage from './pages/RecommendPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminScholarshipsPage from './pages/admin/AdminScholarshipsPage';
+
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/" replace />;
+  return children;
+};
 
 function App() {
   return (
@@ -34,7 +46,13 @@ function App() {
         <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
         <Route path="compare" element={<ComparisonPage />} />
         <Route path="*" element={<NotFoundPage />} />
-      </Route>  
+      </Route>
+
+      <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+        <Route index element={<AdminDashboardPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="scholarships" element={<AdminScholarshipsPage />} />
+      </Route>
     </Routes>
   );
 }
