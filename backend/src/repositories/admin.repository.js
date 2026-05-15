@@ -21,7 +21,7 @@ class AdminRepository {
   // ═══════════════════════════════════════════════════════════
 
   async countTotalUsers() {
-    const sql = 'SELECT COUNT(*) AS total FROM users WHERE is_active = true';
+    const sql = 'SELECT COUNT(*) AS total FROM users';
     const result = await this.#queryOne(sql);
     return parseInt(result.total, 10);
   }
@@ -29,8 +29,7 @@ class AdminRepository {
   async countNewUsersThisWeek() {
     const sql = `
       SELECT COUNT(*) AS total FROM users
-      WHERE is_active = true
-        AND created_at >= DATE_TRUNC('week', NOW())
+      WHERE created_at >= DATE_TRUNC('week', NOW())
     `;
     const result = await this.#queryOne(sql);
     return parseInt(result.total, 10);
@@ -92,18 +91,14 @@ class AdminRepository {
   // ═══════════════════════════════════════════════════════════
 
   async findUsers(filters) {
-    const { page = 1, limit = 20, role, search, status } = filters;
+    const { page = 1, limit = 20, role, search } = filters;
     const params = [];
-    const conditions = ['is_active = true'];
+    const conditions = [];
     let idx = 1;
 
     if (role) {
       conditions.push(`role = $${idx++}`);
       params.push(role);
-    }
-    if (status !== undefined) {
-      conditions.push(`is_active = $${idx++}`);
-      params.push(status === 'active');
     }
     if (search) {
       conditions.push(`(email ILIKE $${idx} OR full_name ILIKE $${idx})`);
@@ -111,20 +106,20 @@ class AdminRepository {
       idx++;
     }
 
-    const whereClause = conditions.join(' AND ');
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const countResult = await this.#queryOne(
-      `SELECT COUNT(*) AS total FROM users WHERE ${whereClause}`,
+      `SELECT COUNT(*) AS total FROM users ${whereClause}`,
       params
     );
     const total = parseInt(countResult.total, 10);
 
     params.push(limit, (page - 1) * limit);
     const users = await this.#query(
-      `SELECT id, email, full_name, role, is_active, avatar_url, phone,
+      `SELECT id, email, full_name, role, avatar_url, phone,
               date_of_birth, last_login_at, created_at, updated_at
        FROM users
-       WHERE ${whereClause}
+       ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${idx++} OFFSET $${idx}`,
       params
@@ -135,10 +130,10 @@ class AdminRepository {
 
   async findUserById(id) {
     const sql = `
-      SELECT id, email, full_name, role, is_active, avatar_url, phone,
+      SELECT id, email, full_name, role, avatar_url, phone,
              date_of_birth, last_login_at, created_at, updated_at
       FROM users
-      WHERE id = $1 AND is_active = true
+      WHERE id = $1
     `;
     return this.#queryOne(sql, [id]);
   }
@@ -147,8 +142,8 @@ class AdminRepository {
     const sql = `
       UPDATE users
       SET role = $1, updated_at = NOW()
-      WHERE id = $2 AND is_active = true
-      RETURNING id, email, full_name, role, is_active, created_at
+      WHERE id = $2
+      RETURNING id, email, full_name, role, created_at
     `;
     return this.#queryOne(sql, [role, id]);
   }

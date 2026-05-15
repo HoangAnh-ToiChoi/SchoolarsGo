@@ -140,11 +140,11 @@ const AdminUsersPage = () => {
                       <td className="px-4 py-4">
                         <span className={cn(
                           'px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                          user.is_active
+                          user.is_active !== false
                             ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                             : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white/40'
                         )}>
-                          {user.is_active ? 'Hoạt động' : 'Vô hiệu'}
+                          {user.is_active === false ? 'Vô hiệu' : 'Hoạt động'}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-gray-500 dark:text-white/50 text-xs">
@@ -177,12 +177,12 @@ const AdminUsersPage = () => {
                             title={user.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
                             className={cn(
                               'p-1.5 rounded-lg transition-colors disabled:opacity-40',
-                              user.is_active
+                              user.is_active !== false
                                 ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
                                 : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
                             )}
                           >
-                            {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            {user.is_active !== false ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                           </button>
                         </div>
                       </td>
