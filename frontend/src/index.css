@@ -457,6 +457,24 @@ body {
 html { color-scheme: light; }
 html.dark { color-scheme: dark; }
 
+/* ===== LIGHT MODE — Input / Label (unlayered, html:not(.dark) for max priority) ===== */
+html:not(.dark) .input,
+html:not(.dark) .input-with-icon {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+html:not(.dark) .input::placeholder {
+  color: #9ca3af;
+}
+html:not(.dark) .input-label {
+  color: #374151;
+}
+html:not(.dark) select.input option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
 /* ===== LIGHT MODE CALENDAR ===== */
 /* html:not(.dark) gives specificity (0,3,1) — beats dark mode's (0,3,0) and only matches when .dark is absent */
 html:not(.dark) .calendar-container .react-calendar {
