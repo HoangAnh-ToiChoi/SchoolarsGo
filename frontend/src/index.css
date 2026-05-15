@@ -457,36 +457,40 @@ body {
 html { color-scheme: light; }
 html.dark { color-scheme: dark; }
 
-/* ===== LIGHT MODE CALENDAR (unlayered — overrides react-calendar base CSS by specificity) ===== */
-.calendar-container .react-calendar {
+/* ===== LIGHT MODE CALENDAR ===== */
+/* html:not(.dark) gives specificity (0,3,1) — beats dark mode's (0,3,0) and only matches when .dark is absent */
+html:not(.dark) .calendar-container .react-calendar {
   width: 100%;
   background-color: white;
+  color: #111827;
   border: 1px solid #e5e7eb;
   border-radius: 1rem;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   font-family: inherit;
 }
-.calendar-container .react-calendar__navigation {
+html:not(.dark) .calendar-container .react-calendar__navigation {
   background-color: #f9fafb;
   border-radius: 1rem 1rem 0 0;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #e5e7eb;
 }
-.calendar-container .react-calendar__navigation button {
+html:not(.dark) .calendar-container .react-calendar__navigation button {
   color: #374151;
   font-weight: 500;
   transition: color 0.2s;
   min-width: 44px;
+  background: none;
 }
-.calendar-container .react-calendar__navigation button:hover {
+html:not(.dark) .calendar-container .react-calendar__navigation button:hover,
+html:not(.dark) .calendar-container .react-calendar__navigation button:focus {
   color: #486581;
   background-color: #f3f4f6;
 }
-.calendar-container .react-calendar__navigation button:disabled {
+html:not(.dark) .calendar-container .react-calendar__navigation button:disabled {
   color: #9ca3af;
   background-color: transparent;
 }
-.calendar-container .react-calendar__month-view__weekdays {
+html:not(.dark) .calendar-container .react-calendar__month-view__weekdays {
   background-color: #f9fafb;
   color: #4b5563;
   font-weight: 500;
@@ -494,33 +498,37 @@ html.dark { color-scheme: dark; }
   padding: 0.5rem 0;
   text-transform: uppercase;
 }
-.calendar-container .react-calendar__month-view__weekdays__weekday abbr {
+html:not(.dark) .calendar-container .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
+  color: #4b5563;
 }
-.calendar-container .react-calendar__tile {
+html:not(.dark) .calendar-container .react-calendar__tile {
   color: #111827;
+  background: none;
   transition: background-color 0.2s;
   border-radius: 0.5rem;
 }
-.calendar-container .react-calendar__tile:hover {
+html:not(.dark) .calendar-container .react-calendar__tile:hover {
   background-color: #f0f4f8;
+  color: #111827;
 }
-.calendar-container .react-calendar__month-view__days__day--neighboringMonth {
+html:not(.dark) .calendar-container .react-calendar__month-view__days__day--neighboringMonth {
   color: #9ca3af;
 }
-.calendar-container .react-calendar__tile--now {
+html:not(.dark) .calendar-container .react-calendar__tile--now {
   background-color: #f0f4f8;
   color: #334e68;
   font-weight: 600;
 }
-.calendar-container .react-calendar__tile--active {
+html:not(.dark) .calendar-container .react-calendar__tile--active {
   background-color: #486581;
   color: white;
   font-weight: 600;
 }
-.calendar-container .react-calendar__tile--active:hover {
+html:not(.dark) .calendar-container .react-calendar__tile--active:hover {
   background-color: #334e68;
+  color: white;
 }
-.calendar-container .react-calendar__tile.has-deadline {
+html:not(.dark) .calendar-container .react-calendar__tile.has-deadline {
   font-weight: 600;
 }
