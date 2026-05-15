@@ -15,8 +15,11 @@ const EventEmitter = require('events');
 class EventBus extends EventEmitter {
   constructor() {
     super();
-    // Đảm bảo listener không rò rỉ memory khi có quá nhiều listeners
     this.setMaxListeners(50);
+
+    this.on('error', (error, context) => {
+      console.error('EventBus error:', { err: error.message, context });
+    });
   }
 }
 

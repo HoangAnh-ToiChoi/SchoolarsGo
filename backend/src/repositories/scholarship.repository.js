@@ -1,70 +1,59 @@
-/**
- * ScholarshipRepository — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Lớp này CHỨA TOÀN BỘ SQL của module Scholarships.
- * KHÔNG viết SQL ở bất kỳ tầng nào khác (Service/Controller).
- *
- * Public methods — Service gọi:
- *   findAll(filters, limit, offset, userId) → { data, total }
- *   findFeatured()                          → rows[]
- *   findCountries()                         → string[]
- *   findById(id, userId)                    → scholarship object
- *
- * Private helpers — nội bộ:
- *   #buildWhereClause(filters)    → { conditions[], params[] }
- *   #attachSavedStatus(rows, userId) → rows with is_saved
- */
 const BaseRepository = require('./base.repository');
 
 class ScholarshipRepository extends BaseRepository {
+  #db;
+
   constructor(db) {
     super(db, 'scholarships');
+    this.#db = db;
   }
 
-  // ─── PUBLIC — Service gọi ────────────────────────────────────────────────
+  #query(sql, params) {
+    return this.#db.query(sql, params);
+  }
 
-  /**
-   * Lấy danh sách học bổng có filter + đánh dấu is_saved
-   * Service chịu trách nhiệm tính toán limit, offset và ghép meta.
-   * @param {object} filters - Các bộ lọc (country, degree, ...)
-   * @param {number} limit   - Số bản ghi tối đa cần lấy
-   * @param {number} offset  - Vị trí bắt đầu lấy
-   * @param {string|null} userId - ID user (để đánh dấu is_saved)
-   * @returns {Promise<{ data: object[], total: number }>}
-   */
+  #queryOne(sql, params) {
+    return this.#db.queryOne(sql, params);
+  }
+
   async findAll(filters = {}, limit, offset, userId = null) {
     const { conditions, params } = this.#buildWhereClause(filters);
     const where = `WHERE ${conditions.join(' AND ')}`;
 
-    // Count total
-    const countResult = await this.db.queryOne(
+    const countResult = await this.#queryOne(
       `SELECT COUNT(*) as total FROM scholarships ${where}`,
       params
     );
     const total = parseInt(countResult.total, 10);
 
-    // Fetch data
     const selectCols = [
-      'id', 'title', 'provider', 'country', 'degree', 'amount', 'currency',
-      'coverage', 'deadline', 'language', 'min_gpa', 'image_url', 'is_featured',
+      'id',
+      'title',
+      'provider',
+      'country',
+      'degree',
+      'amount',
+      'currency',
+      'coverage',
+      'deadline',
+      'language',
+      'min_gpa',
+      'image_url',
+      'is_featured',
     ].join(', ');
 
     const paramIdx = params.length + 1;
-    const data = await this.db.query(
+    const data = await this.#query(
       `SELECT ${selectCols} FROM scholarships ${where} ORDER BY deadline ASC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
       [...params, limit, offset]
     );
 
     const rows = await this.#attachSavedStatus(data.rows, userId);
-
     return { data: rows, total };
   }
 
-  /**
-   * Lấy 6 học bổng nổi bật
-   */
   async findFeatured() {
-    const data = await this.db.query(
+    const data = await this.#query(
       `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
        FROM scholarships
        WHERE is_active = true AND deadline >= NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh' AND is_featured = true
@@ -74,43 +63,29 @@ class ScholarshipRepository extends BaseRepository {
     return data.rows;
   }
 
-  /**
-   * Lấy danh sách quốc gia có học bổng
-   */
   async findCountries() {
-    const data = await this.db.query(
+    const data = await this.#query(
       `SELECT DISTINCT country FROM scholarships
        WHERE is_active = true AND country IS NOT NULL
        ORDER BY country ASC`
     );
-    return data.rows.map((r) => r.country);
+    return data.rows.map(r => r.country);
   }
 
-  /**
-   * Lấy chi tiết 1 học bổng + is_saved
-   */
   async findById(id, userId = null) {
-    const scholarship = await this.db.queryOne(
-      'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\'',
+    const scholarship = await this.#queryOne(
+      `SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'`,
       [id]
     );
 
-    if (!scholarship) {
-      return null;
-    }
+    if (!scholarship) return null;
 
     const isSaved = await this.#checkSavedStatus(userId, id);
     return { ...scholarship, is_saved: isSaved };
   }
 
-  // ─── PRIVATE ─────────────────────────────────────────────────────────────
-
-  /**
-   * Xây câu WHERE từ filters
-   * @returns {{ conditions: string[], params: any[] }}
-   */
   #buildWhereClause(filters) {
-    const conditions = ['is_active = true', 'deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\''];
+    const conditions = ['is_active = true', `deadline > NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'`];
     const params = [];
     let idx = 1;
 
@@ -165,30 +140,24 @@ class ScholarshipRepository extends BaseRepository {
     return { conditions, params };
   }
 
-  /**
-   * Gắn is_saved vào từng row dựa trên userId
-   */
   async #attachSavedStatus(rows, userId) {
     if (!userId || rows.length === 0) {
-      return rows.map((row) => ({ ...row, is_saved: false }));
+      return rows.map(row => ({ ...row, is_saved: false }));
     }
 
-    const savedRows = await this.db.query(
+    const savedRows = await this.#query(
       `SELECT scholarship_id
        FROM saved_scholarships
        WHERE user_id = $1 AND scholarship_id = ANY($2::uuid[])`,
-      [userId, rows.map((row) => row.id)]
+      [userId, rows.map(row => row.id)]
     );
-    const savedIds = new Set(savedRows.rows.map((row) => row.scholarship_id));
-    return rows.map((row) => ({ ...row, is_saved: savedIds.has(row.id) }));
+    const savedIds = new Set(savedRows.rows.map(row => row.scholarship_id));
+    return rows.map(row => ({ ...row, is_saved: savedIds.has(row.id) }));
   }
 
-  /**
-   * Kiểm tra học bổng có được lưu không
-   */
   async #checkSavedStatus(userId, scholarshipId) {
     if (!userId) return false;
-    const saved = await this.db.queryOne(
+    const saved = await this.#queryOne(
       'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
       [userId, scholarshipId]
     );

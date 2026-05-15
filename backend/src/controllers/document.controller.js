@@ -1,22 +1,20 @@
-/**
- * DocumentController — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
- * Inject: documentService qua constructor.
- */
-
 const { success, created } = require('../utils/responseHelper');
 
 class DocumentController {
+  #service;
+
   constructor(documentService) {
-    this.documentService = documentService;
+    this.#service = documentService;
+    this.#validateService();
   }
 
-  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
+  #validateService() {
+    if (!this.#service) throw new Error('DocumentService is required');
+  }
 
   getAll = async (req, res, next) => {
     try {
-      const data = await this.documentService.getAll(req.user.id);
+      const data = await this.#service.getAll(req.user.id);
       return success(res, data);
     } catch (error) {
       next(error);
@@ -25,7 +23,7 @@ class DocumentController {
 
   upload = async (req, res, next) => {
     try {
-      const data = await this.documentService.upload(req.user.id, req.body.type, req.file);
+      const data = await this.#service.upload(req.user.id, req.body.type, req.file);
       return created(res, data, 'Document uploaded');
     } catch (error) {
       next(error);
@@ -34,7 +32,7 @@ class DocumentController {
 
   remove = async (req, res, next) => {
     try {
-      await this.documentService.remove(req.user.id, req.params.id);
+      await this.#service.remove(req.user.id, req.params.id);
       return success(res, null, 'Document deleted');
     } catch (error) {
       next(error);

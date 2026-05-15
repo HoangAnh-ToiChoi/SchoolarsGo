@@ -10,6 +10,7 @@
  * [6] Abstraction — service gọi repo không biết bên dưới dùng SQL hay thư viện gì.
  * [7] Tell, Don't Ask — không lôi data lên check rồi mới lưu. Ra lệnh xử lý.
  */
+const AppError = require('../utils/AppError');
 class AdminService {
   /**
    * @param {AdminRepository} adminRepository
@@ -62,16 +63,21 @@ class AdminService {
   // USER MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════
 
-  paginateUsers = async (filters) => {
+  paginateUsers = async filters => {
     const { users, total } = await this.#repo.findUsers(filters);
     const { page = 1, limit = 20 } = filters;
     return {
       data: users,
-      meta: { page: parseInt(page, 10), limit: parseInt(limit, 10), total, totalPages: Math.ceil(total / limit) },
+      meta: {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   };
 
-  getUserById = async (userId) => {
+  getUserById = async userId => {
     const user = await this.#repo.findUserById(userId);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
     return user;
@@ -90,7 +96,12 @@ class AdminService {
     this.#validateRole(newRole);
 
     const user = await this.#repo.updateUserRole(targetUserId, newRole);
-    this.#guardFound(user, 'Không tìm thấy user hoặc user đã bị vô hiệu hóa', 404, 'USER_NOT_FOUND');
+    this.#guardFound(
+      user,
+      'Không tìm thấy user hoặc user đã bị vô hiệu hóa',
+      404,
+      'USER_NOT_FOUND'
+    );
     return user;
   };
 
@@ -114,8 +125,11 @@ class AdminService {
   // SCHOLARSHIP MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════
 
-  addScholarship = async (data) => {
-    const scholarshipData = { ...data, is_active: data.is_active !== undefined ? data.is_active : true };
+  addScholarship = async data => {
+    const scholarshipData = {
+      ...data,
+      is_active: data.is_active !== undefined ? data.is_active : true,
+    };
     const scholarship = await this.#repo.createScholarship(scholarshipData);
     this.#guardFound(scholarship, 'Không thể tạo học bổng', 500, 'CREATE_SCHOLARSHIP_FAILED');
     return scholarship;
@@ -123,19 +137,34 @@ class AdminService {
 
   modifyScholarship = async (id, data) => {
     const scholarship = await this.#repo.updateScholarship(id, data);
-    this.#guardFound(scholarship, 'Không tìm thấy học bổng hoặc học bổng đã bị xóa', 404, 'SCHOLARSHIP_NOT_FOUND');
+    this.#guardFound(
+      scholarship,
+      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
+      404,
+      'SCHOLARSHIP_NOT_FOUND'
+    );
     return scholarship;
   };
 
   toggleScholarshipFeatured = async (id, isFeatured) => {
     const scholarship = await this.#repo.updateScholarshipFeatured(id, isFeatured);
-    this.#guardFound(scholarship, 'Không tìm thấy học bổng hoặc học bổng đã bị xóa', 404, 'SCHOLARSHIP_NOT_FOUND');
+    this.#guardFound(
+      scholarship,
+      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
+      404,
+      'SCHOLARSHIP_NOT_FOUND'
+    );
     return scholarship;
   };
 
-  removeScholarship = async (id) => {
+  removeScholarship = async id => {
     const scholarship = await this.#repo.softDeleteScholarship(id);
-    this.#guardFound(scholarship, 'Không tìm thấy học bổng hoặc học bổng đã bị xóa', 404, 'SCHOLARSHIP_NOT_FOUND');
+    this.#guardFound(
+      scholarship,
+      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
+      404,
+      'SCHOLARSHIP_NOT_FOUND'
+    );
     return { id: scholarship.id, title: scholarship.title };
   };
 
@@ -150,7 +179,7 @@ class AdminService {
    */
   #normalizeStatusCounts(rows) {
     const map = { saved: 0, in_progress: 0, submitted: 0, accepted: 0, rejected: 0 };
-    rows.forEach((row) => {
+    rows.forEach(row => {
       if (row.status in map) map[row.status] = parseInt(row.count, 10);
     });
     return map;
@@ -165,7 +194,11 @@ class AdminService {
    */
   #guardSelfModification(targetUserId, adminId) {
     if (targetUserId === adminId) {
-      throw new AppError('Không thể tự thay đổi quyền hoặc vô hiệu hóa chính mình', 400, 'SELF_MODIFICATION_FORBIDDEN');
+      throw new AppError(
+        'Không thể tự thay đổi quyền hoặc vô hiệu hóa chính mình',
+        400,
+        'SELF_MODIFICATION_FORBIDDEN'
+      );
     }
   }
 
@@ -176,7 +209,11 @@ class AdminService {
   #validateRole(role) {
     const validRoles = ['user', 'admin'];
     if (!validRoles.includes(role)) {
-      throw new AppError('Role không hợp lệ. Chỉ chấp nhận "user" hoặc "admin"', 400, 'INVALID_ROLE');
+      throw new AppError(
+        'Role không hợp lệ. Chỉ chấp nhận "user" hoặc "admin"',
+        400,
+        'INVALID_ROLE'
+      );
     }
   }
 

@@ -1,12 +1,12 @@
 // Extract IELTS score từ string như "IELTS 7.5" hoặc "TOEFL 100"
-const extractIeltsScore = (englishLevel) => {
+const extractIeltsScore = englishLevel => {
   if (!englishLevel) return null;
 
   // IELTS pattern: IELTS X.Y or IELTS X
   const ieltsMatch = englishLevel.match(/IELTS\s*(\d+\.?\d*)/i);
   if (ieltsMatch) {
     const score = parseFloat(ieltsMatch[1]);
-    return (score >= 0 && score <= 9) ? score : null;
+    return score >= 0 && score <= 9 ? score : null;
   }
 
   // TOEFL pattern: TOEFL XXX (paper) or TOEFL iBT XXX
@@ -37,7 +37,7 @@ const formatCurrency = (amount, currency = 'USD') => {
   }).format(amount);
 };
 
-const formatDeadline = (deadline) => {
+const formatDeadline = deadline => {
   if (!deadline) return '';
   const date = new Date(deadline);
   const now = new Date();
@@ -51,7 +51,7 @@ const formatDeadline = (deadline) => {
   return `Còn ${Math.ceil(diffDays / 30)} tháng`;
 };
 
-const isUuid = (str) => {
+const isUuid = str => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 };

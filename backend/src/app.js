@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const { swaggerSpec } = require('./utils/swagger');
 const errorHandler = require('./middlewares/errorHandler');
+const { apiLimiter } = require('./middlewares/rateLimiter');
 const authRoutes = require('./routes/auth.routes');
 const scholarshipRoutes = require('./routes/scholarship.routes');
 const profileRoutes = require('./routes/profile.routes');
@@ -21,10 +22,12 @@ const app = express();
 
 // ── Security & Middleware ──────────────────────────────
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -40,6 +43,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ── API Routes ─────────────────────────────────────────
+app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/profile', profileRoutes);
@@ -49,17 +53,16 @@ app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/admin', adminRoutes);
 
-// ── Health Check ───────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'ScholarsGo API is running', timestamp: new Date().toISOString() });
-});
-
 // ── Swagger UI ─────────────────────────────────────────
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'ScholarsGo API Docs',
-  swaggerOptions: { persistAuthorization: true },
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'ScholarsGo API Docs',
+    swaggerOptions: { persistAuthorization: true },
+  })
+);
 
 // ── 404 Handler ───────────────────────────────────────
 app.use((req, res) => {

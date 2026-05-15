@@ -28,12 +28,16 @@ const enrichRecommendations = async (profile, recommendations) => {
       profile.target_country && `Quốc gia mục tiêu: ${profile.target_country}`,
       profile.target_degree && `Bậc học: ${profile.target_degree}`,
       profile.target_major && `Ngành: ${profile.target_major}`,
-    ].filter(Boolean).join(', ');
+    ]
+      .filter(Boolean)
+      .join(', ');
 
-    const scholarshipList = recommendations.map((r, i) => {
-      const s = r.scholarship;
-      return `${i + 1}. ${s.title} (${s.provider}, ${s.country}, ${s.degree}, GPA tối thiểu: ${s.min_gpa || 'không yêu cầu'}, IELTS tối thiểu: ${s.min_ielts || 'không yêu cầu'}, điểm phù hợp: ${Math.round(r.match_score * 100)}%)`;
-    }).join('\n');
+    const scholarshipList = recommendations
+      .map((r, i) => {
+        const s = r.scholarship;
+        return `${i + 1}. ${s.title} (${s.provider}, ${s.country}, ${s.degree}, GPA tối thiểu: ${s.min_gpa || 'không yêu cầu'}, IELTS tối thiểu: ${s.min_ielts || 'không yêu cầu'}, điểm phù hợp: ${Math.round(r.match_score * 100)}%)`;
+      })
+      .join('\n');
 
     const prompt = `Bạn là chuyên gia tư vấn học bổng. Sinh viên có hồ sơ: ${profileSummary}.
 
@@ -52,7 +56,9 @@ Hãy viết cho mỗi học bổng một câu lý do ngắn gọn (1-2 câu, t�
 
     const aiReasons = JSON.parse(jsonMatch[0]);
     const reasonMap = {};
-    aiReasons.forEach((r) => { reasonMap[r.index] = r.ai_reason; });
+    aiReasons.forEach(r => {
+      reasonMap[r.index] = r.ai_reason;
+    });
 
     return recommendations.map((rec, i) => ({
       ...rec,

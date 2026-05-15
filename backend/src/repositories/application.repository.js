@@ -1,25 +1,21 @@
-/**
- * ApplicationRepository — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Quy tắc:
- * - extends BaseRepository
- * - Toàn bộ SQL nằm ở đây — KHÔNG nơi nào khác được viết SQL
- * - Nhận `db` qua constructor, KHÔNG tự require db
- * - Ném lỗi với mã cụ thể (UPPER_SNAKE) để Service/Controller bắt và xử lý
- */
 const BaseRepository = require('./base.repository');
 
-const APPLICATION_STATUSES = ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'];
-
 class ApplicationRepository extends BaseRepository {
+  #db;
+
   constructor(db) {
     super(db, 'applications');
-    this.db = db;
+    this.#db = db;
   }
 
-  /**
-   * Lấy danh sách đơn của user (kèm phân trang, lọc theo status)
-   */
+  #query(sql, params) {
+    return this.#db.query(sql, params);
+  }
+
+  #queryOne(sql, params) {
+    return this.#db.queryOne(sql, params);
+  }
+
   async findAllByUser(userId, { page = 1, limit = 20, status = null } = {}) {
     const offset = (page - 1) * limit;
     const params = [userId];
@@ -33,14 +29,14 @@ class ApplicationRepository extends BaseRepository {
 
     const where = `WHERE ${conditions.join(' AND ')}`;
 
-    const countResult = await this.db.queryOne(
+    const countResult = await this.#queryOne(
       `SELECT COUNT(*) AS total FROM applications a ${where}`,
       params
     );
     const total = parseInt(countResult.total, 10);
 
     params.push(limit, offset);
-    const data = await this.db.query(
+    const data = await this.#query(
       `SELECT a.id, a.status, a.applied_at, a.notes, a.checklist,
               a.documents_used, a.result, a.created_at, a.updated_at,
               s.id AS scholarship_id, s.title AS scholarship_title,
@@ -53,16 +49,9 @@ class ApplicationRepository extends BaseRepository {
       params
     );
 
-    return {
-      rows: data.rows,
-      total,
-    };
+    return { rows: data.rows, total };
   }
 
-  /**
-   * Tạo đơn ứng tuyển mới (mặc định status = 'draft').
-   * Bắt lỗi UNIQUE(user_id, scholarship_id) từ DB — ném 'APPLICATION_ALREADY_EXISTS'.
-   */
   async create(userId, { scholarshipId, checklist, notes }) {
     const defaultChecklist = [
       { item: 'CV', done: false },
@@ -73,9 +62,6 @@ class ApplicationRepository extends BaseRepository {
       { item: 'Hộ chiếu', done: false },
     ];
 
-    const payload = [userId, scholarshipId];
-    const cols = 'user_id, scholarship_id, checklist, notes, status';
-    const vals = '$1, $2, $3, $4, $5';
     const params = [
       userId,
       scholarshipId,
@@ -85,11 +71,11 @@ class ApplicationRepository extends BaseRepository {
     ];
 
     try {
-      const result = await this.db.queryOne(
-        `INSERT INTO applications (${cols}) VALUES (${vals}) RETURNING *`,
+      return await this.#queryOne(
+        `INSERT INTO applications (user_id, scholarship_id, checklist, notes, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         params
       );
-      return result;
     } catch (err) {
       if (err.code === '23505' || err.constraint === 'applications_user_id_scholarship_id_key') {
         const error = new Error('APPLICATION_ALREADY_EXISTS');
@@ -100,11 +86,8 @@ class ApplicationRepository extends BaseRepository {
     }
   }
 
-  /**
-   * Tìm đơn theo id và user_id (bảo mật — chỉ user sở hữu mới xem được).
-   */
   async findByIdAndUser(applicationId, userId) {
-    return this.db.queryOne(
+    return this.#queryOne(
       `SELECT a.*,
               s.id AS scholarship_id, s.title AS scholarship_title,
               s.country, s.deadline, s.amount, s.image_url
@@ -115,10 +98,6 @@ class ApplicationRepository extends BaseRepository {
     );
   }
 
-  /**
-   * Cập nhật đơn (chỉ cập nhật các trường được truyền).
-   * KHÔNG validate status ở tầng này — Service loại bỏ.
-   */
   async updateByIdAndUser(applicationId, userId, updates) {
     const allowedFields = ['status', 'notes', 'checklist', 'documents_used', 'result', 'applied_at'];
     const fields = [];
@@ -128,9 +107,7 @@ class ApplicationRepository extends BaseRepository {
     for (const key of allowedFields) {
       if (updates[key] !== undefined) {
         fields.push(`${key} = $${idx++}`);
-        values.push(
-          typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]
-        );
+        values.push(typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
       }
     }
 
@@ -141,7 +118,7 @@ class ApplicationRepository extends BaseRepository {
     fields.push(`updated_at = now()`);
     values.push(applicationId, userId);
 
-    return this.db.queryOne(
+    return this.#queryOne(
       `UPDATE applications SET ${fields.join(', ')}
        WHERE id = $${idx++} AND user_id = $${idx}
        RETURNING *`,
@@ -149,26 +126,16 @@ class ApplicationRepository extends BaseRepository {
     );
   }
 
-  /**
-   * Xóa đơn (kèm điều kiện user_id để bảo mật).
-   * Trả về số dòng bị ảnh hưởng.
-   */
   async deleteByIdAndUser(applicationId, userId) {
-    const result = await this.db.query(
+    const result = await this.#query(
       `DELETE FROM applications WHERE id = $1 AND user_id = $2 RETURNING id`,
       [applicationId, userId]
     );
     return result.rowCount;
   }
 
-  /**
-   * Kiểm tra học bổng có tồn tại không (dùng trong Service để validate trước khi tạo).
-   */
   async scholarshipExists(scholarshipId) {
-    const result = await this.db.queryOne(
-      `SELECT id FROM scholarships WHERE id = $1`,
-      [scholarshipId]
-    );
+    const result = await this.#queryOne(`SELECT id FROM scholarships WHERE id = $1`, [scholarshipId]);
     return result !== null;
   }
 }

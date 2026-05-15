@@ -13,7 +13,7 @@ const AppError = require('../utils/AppError');
  * @param {string} role - Role cần kiểm tra (VD: 'admin')
  * @returns {Function} Express middleware
  */
-const requireRole = (role) => (req, res, next) => {
+const requireRole = role => (req, res, next) => {
   if (!req.user) {
     return next(new AppError('Vui lòng đăng nhập để tiếp tục', 401, 'UNAUTHORIZED'));
   }

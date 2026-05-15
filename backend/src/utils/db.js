@@ -23,7 +23,7 @@ const pool = new Pool({
   family: parseInt(process.env.PG_DNS_FAMILY || '0', 10),
 });
 
-pool.on('error', (err) => {
+pool.on('error', err => {
   console.error('Unexpected pg pool error:', err.message);
 });
 
@@ -49,7 +49,7 @@ const queryOne = async (text, params) => {
 /**
  * Execute a transaction (array of {text, params}).
  */
-const transaction = async (queries) => {
+const transaction = async queries => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

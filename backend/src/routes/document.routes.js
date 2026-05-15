@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { documentController } = require('../container');
 const { auth } = require('../middlewares/auth');
 const { upload, handleUploadError } = require('../middlewares/upload');
+const { uploadLimiter } = require('../middlewares/rateLimiter');
 
 const router = Router();
 
@@ -24,7 +25,14 @@ router.get('/', auth, documentController.getAll);
  * Nếu không có handleUploadError: lỗi từ fileFilter (MulterError hoặc Error thường)
  * sẽ không được format JSON, client nhận "Failed to fetch" thay vì message rõ ràng.
  */
-router.post('/upload', auth, upload.single('file'), handleUploadError, documentController.upload);
+router.post(
+  '/upload',
+  uploadLimiter,
+  auth,
+  upload.single('file'),
+  handleUploadError,
+  documentController.upload
+);
 
 /**
  * DELETE /api/documents/:id

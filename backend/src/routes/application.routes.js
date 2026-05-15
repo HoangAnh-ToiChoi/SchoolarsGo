@@ -11,7 +11,11 @@ const { Router } = require('express');
 const { applicationController } = require('../container');
 const { auth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
-const { applicationCreateSchema, applicationUpdateSchema, applicationQuerySchema } = require('../utils/validators');
+const {
+  applicationCreateSchema,
+  applicationUpdateSchema,
+  applicationQuerySchema,
+} = require('../utils/validators');
 
 const router = Router();
 
@@ -20,12 +24,7 @@ const router = Router();
  * Lấy danh sách đơn của user đang đăng nhập (kèm phân trang).
  * Query params: page, limit, status
  */
-router.get(
-  '/',
-  auth,
-  validate(applicationQuerySchema, 'query'),
-  applicationController.getAll
-);
+router.get('/', auth, validate(applicationQuerySchema, 'query'), applicationController.getAll);
 
 /**
  * POST /api/applications
@@ -50,31 +49,18 @@ router.post(
  * GET /api/applications/:id
  * Lấy chi tiết 1 đơn.
  */
-router.get(
-  '/:id',
-  auth,
-  applicationController.getById
-);
+router.get('/:id', auth, applicationController.getById);
 
 /**
  * PATCH /api/applications/:id
  * Cập nhật đơn (status, checklist, notes...).
  */
-router.patch(
-  '/:id',
-  auth,
-  validate(applicationUpdateSchema),
-  applicationController.update
-);
+router.patch('/:id', auth, validate(applicationUpdateSchema), applicationController.update);
 
 /**
  * DELETE /api/applications/:id
  * Xóa đơn ứng tuyển (chỉ khi thuộc user đang đăng nhập).
  */
-router.delete(
-  '/:id',
-  auth,
-  applicationController.remove
-);
+router.delete('/:id', auth, applicationController.remove);
 
 module.exports = router;
