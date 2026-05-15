@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Star, StarOff, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import AnimatedItem from '../../components/ui/AnimatedItem';
 import {
   useAdminCreateScholarship, useAdminUpdateScholarship,
   useAdminToggleFeatured, useAdminDeleteScholarship,
@@ -55,8 +57,20 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#0d0d1a] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div
+        className="bg-white dark:bg-[#0d0d1a] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/10">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {isEdit ? 'Chỉnh sửa học bổng' : 'Thêm học bổng mới'}
@@ -125,8 +139,8 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -203,7 +217,7 @@ const AdminScholarshipsPage = () => {
                   </tr>
                 ) : (
                   scholarships.map((s) => (
-                    <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <AnimatedItem key={s.id} as="tr" standalone className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-4 py-4 max-w-xs">
                         <p className="font-semibold text-gray-900 dark:text-white truncate">{s.title}</p>
                         <p className="text-xs text-gray-500 dark:text-white/40 mt-0.5">{s.provider}</p>
@@ -246,7 +260,7 @@ const AdminScholarshipsPage = () => {
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </AnimatedItem>
                   ))
                 )}
               </tbody>
@@ -279,14 +293,16 @@ const AdminScholarshipsPage = () => {
         )}
       </div>
 
-      {modal && (
-        <ScholarshipModal
-          scholarship={modal.mode === 'edit' ? modal.scholarship : null}
-          onClose={() => setModal(null)}
-          onSave={handleSave}
-          isSaving={isSaving}
-        />
-      )}
+      <AnimatePresence>
+        {modal && (
+          <ScholarshipModal
+            scholarship={modal.mode === 'edit' ? modal.scholarship : null}
+            onClose={() => setModal(null)}
+            onSave={handleSave}
+            isSaving={isSaving}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

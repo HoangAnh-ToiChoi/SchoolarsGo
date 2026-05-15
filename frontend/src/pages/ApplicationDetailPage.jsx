@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, CheckCircle, Circle, Trash2, Save, ChevronRight, FileText } from 'lucide-react';
 import { useApplication, useUpdateApplication, useDeleteApplication } from '../hooks/useApplication';
 import { useDocuments, useUploadDocument, useDeleteDocument } from '../hooks/useProfile';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { DOCUMENT_TYPES } from '../utils/constants';
 import { cn, formatDate, getStatusLabel } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -117,7 +118,7 @@ const ApplicationDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12">
@@ -361,7 +362,7 @@ const ApplicationDetailPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

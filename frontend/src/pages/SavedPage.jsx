@@ -4,6 +4,7 @@ import ScholarshipCard from '../components/ScholarshipCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { useThemeStore } from '../stores/themeStore';
 
 const SavedPage = () => {
@@ -14,7 +15,7 @@ const SavedPage = () => {
   const saved = data?.data || [];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12">
@@ -54,7 +55,7 @@ const SavedPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

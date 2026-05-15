@@ -20,6 +20,7 @@ import { cn, formatDate, getStatusColor, getStatusLabel, formatCurrency } from '
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -135,7 +136,7 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12 space-y-8">
@@ -327,7 +328,7 @@ const DashboardPage = () => {
         </div>
       )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

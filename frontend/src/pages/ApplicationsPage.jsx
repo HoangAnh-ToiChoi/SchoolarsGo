@@ -6,6 +6,9 @@ import { cn, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Select } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
+import AnimatedList from '../components/ui/AnimatedList';
+import AnimatedItem from '../components/ui/AnimatedItem';
 
 const ApplicationsPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
@@ -49,7 +52,7 @@ const ApplicationsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12">
@@ -102,11 +105,12 @@ const ApplicationsPage = () => {
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <AnimatedList className="space-y-6">
             {applications.map((app) => {
               if (!app.scholarship) return null;
               return (
-                <div key={app.id} className="overflow-hidden bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-[0_0_30px_rgba(168,85,247,0.03)] transition-all hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-purple-500/30">
+                <AnimatedItem key={app.id}>
+                <div className="overflow-hidden bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-[0_0_30px_rgba(168,85,247,0.03)] transition-all hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-purple-500/30">
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                     <div className="flex-1">
                       <Link
@@ -173,12 +177,13 @@ const ApplicationsPage = () => {
                     </Link>
                   </div>
                 </div>
+                </AnimatedItem>
               );
             })}
-          </div>
+          </AnimatedList>
         )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

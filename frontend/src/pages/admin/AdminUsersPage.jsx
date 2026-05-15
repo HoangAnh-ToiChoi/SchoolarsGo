@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Shield, ShieldOff, UserCheck, UserX, ChevronLeft, ChevronRight } from 'lucide-react';
+import AnimatedItem from '../../components/ui/AnimatedItem';
 import { useAdminUsers, useUpdateUserRole, useUpdateUserStatus } from '../../hooks/useAdmin';
 import { cn, formatDate } from '../../utils/helpers';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -122,7 +123,7 @@ const AdminUsersPage = () => {
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <AnimatedItem key={user.id} as="tr" standalone className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-4 py-4">
                         <p className="font-semibold text-gray-900 dark:text-white">{user.full_name || '—'}</p>
                         <p className="text-xs text-gray-500 dark:text-white/40 mt-0.5">{user.email}</p>
@@ -186,7 +187,7 @@ const AdminUsersPage = () => {
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </AnimatedItem>
                   ))
                 )}
               </tbody>

@@ -4,6 +4,7 @@ import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDelet
 import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '../utils/constants';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FileUpload from '../components/ui/FileUpload';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
 import { Upload, FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
@@ -97,7 +98,7 @@ const ProfilePage = () => {
   if (!profile) return <div className="p-8 text-center text-body text-gray-600 dark:text-gray-400">Vui lòng đăng nhập để xem profile</div>;
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-narrow relative z-10 py-8">
@@ -252,7 +253,7 @@ const ProfilePage = () => {
           )}
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

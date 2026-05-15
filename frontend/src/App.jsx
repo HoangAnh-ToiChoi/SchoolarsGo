@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -29,8 +30,13 @@ const AdminRoute = ({ children }) => {
 };
 
 function App() {
+  const location = useLocation();
+  // Admin sub-routes share one key so the sidebar doesn't remount between /admin pages.
+  // Each individual admin page animates via AdminLayout's inner AnimatePresence.
+  const routeKey = location.pathname.startsWith('/admin') ? '/admin' : location.pathname;
   return (
-    <Routes>
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={routeKey}>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="scholarships" element={<ScholarshipsPage />} />
@@ -53,7 +59,8 @@ function App() {
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="scholarships" element={<AdminScholarshipsPage />} />
       </Route>
-    </Routes>
+      </Routes>
+    </AnimatePresence>
   );
 }
 

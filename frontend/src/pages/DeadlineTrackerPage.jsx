@@ -9,6 +9,7 @@ import { useScholarships } from '../hooks/useScholarship';
 import { cn } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 
 const DeadlineTrackerPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -122,7 +123,7 @@ const DeadlineTrackerPage = () => {
   );
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
 
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12">
@@ -267,7 +268,7 @@ const DeadlineTrackerPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 
