@@ -338,3 +338,149 @@ body {
 .landing-theme .calendar-container .react-calendar__tile.has-deadline {
   @apply font-bold;
 }
+
+/* ===== DARK MODE — input overrides via Tailwind dark class ===== */
+.dark .input {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dark .input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .input:focus {
+  border-color: rgb(168 85 247);
+  box-shadow: 0 0 0 2px rgb(168 85 247 / 0.2);
+}
+
+.dark .input-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dark select.input option {
+  background-color: #0a0a1a;
+  color: white;
+}
+
+/* ===== DARK MODE — component class overrides ===== */
+/* Card */
+.dark .card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.dark .card-title { color: white; }
+.dark .card-description { color: rgba(255, 255, 255, 0.6); }
+
+/* Page Header */
+.dark .page-header h1 { color: white; }
+.dark .page-header p { color: rgba(255, 255, 255, 0.6); }
+
+/* Empty State */
+.dark .empty-state {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.dark .empty-state-icon { color: rgba(255, 255, 255, 0.2); }
+.dark .empty-state h3 { color: white; }
+.dark .empty-state p { color: rgba(255, 255, 255, 0.6); }
+
+/* Dark mode number spin buttons */
+.dark input[type="number"]::-webkit-inner-spin-button,
+.dark input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  width: 28px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='36' viewBox='0 0 28 36'%3E%3Cpath d='M9 14l5-5 5 5' stroke='rgba(255,255,255,0.5)' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9 22l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 28px 36px;
+}
+
+/* Dark Calendar */
+.dark .calendar-container {
+  background: transparent;
+  border: none;
+}
+.dark .calendar-container .react-calendar {
+  background: transparent;
+  border: none;
+  width: 100%;
+  color: white;
+  font-family: inherit;
+  box-shadow: none;
+}
+.dark .calendar-container .react-calendar__navigation {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+}
+.dark .calendar-container .react-calendar__navigation button {
+  color: white;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  min-width: 44px;
+}
+.dark .calendar-container .react-calendar__navigation button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+.dark .calendar-container .react-calendar__navigation button:disabled {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.3);
+}
+.dark .calendar-container .react-calendar__month-view__weekdays {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.dark .calendar-container .react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+.dark .calendar-container .react-calendar__tile {
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+  transition: background-color 0.2s;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.dark .calendar-container .react-calendar__tile:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+.dark .calendar-container .react-calendar__month-view__days__day--neighboringMonth {
+  color: rgba(255, 255, 255, 0.3);
+}
+.dark .calendar-container .react-calendar__month-view__days__day--neighboringMonth:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.dark .calendar-container .react-calendar__tile--now {
+  background-color: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #22d3ee;
+}
+.dark .calendar-container .react-calendar__tile--now:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #67e8f9;
+}
+.dark .calendar-container .react-calendar__tile--active {
+  background: linear-gradient(135deg, #a855f7, #06b6d4);
+  color: white;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+}
+.dark .calendar-container .react-calendar__tile.has-deadline {
+  font-weight: 700;
+}

@@ -11,7 +11,7 @@ const HomePage = () => {
   const featuredScholarships = featured?.data || [];
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-landing-background selection:bg-landing-primary/30">
+    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] selection:bg-purple-500/30">
       {/* Animated Aurora Background */}
       <AuroraBackground />
 

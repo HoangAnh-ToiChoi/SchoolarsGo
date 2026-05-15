@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 
-// Inline SVG Icons
 const CalendarIcon = () => (
-  <svg className="h-4 w-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="h-4 w-4 text-cyan-500 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
   </svg>
 )
@@ -20,9 +19,7 @@ const ArrowRightIcon = ({ className }) => (
   </svg>
 )
 
-// This component will accept dynamic data from HomePage
 export function ScholarshipPreview({ scholarships = [] }) {
-  // Use dummy data if none provided (for preview)
   const displayScholarships = scholarships.length > 0 ? scholarships : [
     {
       id: "chevening",
@@ -58,10 +55,10 @@ export function ScholarshipPreview({ scholarships = [] }) {
       <div className="mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
             Học bổng nổi bật
           </h2>
-          <p className="mx-auto max-w-2xl text-white/60">
+          <p className="mx-auto max-w-2xl text-gray-600 dark:text-white/60">
             Khám phá các học bổng hàng đầu thế giới đang chờ đón bạn
           </p>
         </div>
@@ -71,22 +68,22 @@ export function ScholarshipPreview({ scholarships = [] }) {
           {displayScholarships.slice(0, 3).map((scholarship) => (
             <div
               key={scholarship.id}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:border-purple-500/30 hover:shadow-2xl hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-sm shadow-sm dark:shadow-none transition-all duration-300 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-purple-300 dark:hover:border-purple-500/30 hover:shadow-xl hover:-translate-y-1"
             >
               {/* Card Header */}
-              <div className="relative border-b border-white/10 p-6">
+              <div className="relative border-b border-gray-100 dark:border-white/10 p-6">
                 <div className="mb-4 flex items-start justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-2xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-white/10 text-2xl">
                     {scholarship.flag || "🎓"}
                   </div>
-                  <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs font-medium text-purple-300 ring-1 ring-purple-500/30">
+                  <span className="rounded-full bg-purple-100 dark:bg-purple-500/20 px-3 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 ring-1 ring-purple-300 dark:ring-purple-500/30">
                     {scholarship.degreeLevel || scholarship.degree}
                   </span>
                 </div>
-                <h3 className="mb-1 text-lg font-semibold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
+                <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors line-clamp-2">
                   {scholarship.title || scholarship.name}
                 </h3>
-                <div className="flex items-center gap-1 text-sm text-white/50">
+                <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-white/50">
                   <MapPinIcon />
                   {scholarship.country}
                 </div>
@@ -94,15 +91,15 @@ export function ScholarshipPreview({ scholarships = [] }) {
 
               {/* Card Body */}
               <div className="p-6">
-                <p className="mb-4 text-sm text-white/60 leading-relaxed line-clamp-3">
+                <p className="mb-4 text-sm text-gray-600 dark:text-white/60 leading-relaxed line-clamp-3">
                   {scholarship.description}
                 </p>
 
                 {/* Deadline */}
-                <div className="mb-6 flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
+                <div className="mb-6 flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-white/5 px-3 py-2">
                   <CalendarIcon />
-                  <span className="text-sm text-white/70">
-                    Deadline: <span className="font-medium text-cyan-400">
+                  <span className="text-sm text-gray-600 dark:text-white/70">
+                    Deadline: <span className="font-medium text-cyan-600 dark:text-cyan-400">
                       {new Date(scholarship.deadline).toLocaleDateString('vi-VN')}
                     </span>
                   </span>
@@ -115,7 +112,6 @@ export function ScholarshipPreview({ scholarships = [] }) {
                 </Link>
               </div>
 
-              {/* Hover glow */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-purple-500/5 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           ))}
@@ -123,7 +119,7 @@ export function ScholarshipPreview({ scholarships = [] }) {
 
         {/* View All Button */}
         <div className="mt-12 text-center">
-          <Link to="/scholarships" className="group inline-flex items-center gap-2 text-purple-400 transition-colors hover:text-purple-300">
+          <Link to="/scholarships" className="group inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 transition-colors hover:text-purple-700 dark:hover:text-purple-300">
             Xem tất cả học bổng
             <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>

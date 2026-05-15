@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Sparkles, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn } from 'lucide-react';
 import { useLogin } from '../hooks/useAuth';
 import { Input } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
@@ -16,26 +16,26 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white flex items-center justify-center pt-20 pb-12 px-4">
+    <div className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white flex items-center justify-center pt-20 pb-12 px-4">
       <AuroraBackground />
-      
+
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 mb-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
-            <LogIn className="w-8 h-8 text-cyan-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-gray-200 dark:border-white/10 mb-6 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+            <LogIn className="w-8 h-8 text-cyan-500 dark:text-cyan-400" />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70">
+          <h1 className="text-4xl font-extrabold tracking-tight mb-3 text-gray-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:via-white dark:to-white/70">
             Đăng Nhập
           </h1>
-          <p className="text-white/60 text-lg font-light">
+          <p className="text-gray-500 dark:text-white/60 text-lg font-light">
             Chào mừng bạn quay trở lại ScholarsGo
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_40px_rgba(168,85,247,0.1)] space-y-6 relative overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-[2rem] p-8 shadow-sm dark:shadow-[0_0_40px_rgba(168,85,247,0.1)] space-y-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[50px] pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/10 blur-[50px] pointer-events-none" />
-          
+
           <div className="relative z-10 space-y-5">
             <Input
               label="Email"
@@ -55,9 +55,9 @@ const LoginPage = () => {
               placeholder="••••••••"
               required
             />
-            
-            <button 
-              type="submit" 
+
+            <button
+              type="submit"
               disabled={isPending}
               className={cn(
                 "w-full py-3.5 px-6 rounded-xl font-bold text-white transition-all duration-300",
@@ -77,9 +77,9 @@ const LoginPage = () => {
             </button>
           </div>
 
-          <p className="text-center text-white/50 text-sm mt-8 relative z-10">
+          <p className="text-center text-gray-500 dark:text-white/50 text-sm mt-8 relative z-10">
             Chưa có tài khoản?{' '}
-            <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+            <Link to="/register" className="text-cyan-500 dark:text-cyan-400 hover:text-cyan-600 dark:hover:text-cyan-300 font-bold transition-colors">
               Đăng ký ngay
             </Link>
           </p>
