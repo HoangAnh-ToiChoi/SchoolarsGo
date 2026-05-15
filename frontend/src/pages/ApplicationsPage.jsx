@@ -165,7 +165,7 @@ const ApplicationsPage = () => {
                       Cập nhật: {formatDate(app.updated_at)}
                     </div>
                     <Link
-                      to={`/scholarships/${app.scholarship?.id}`}
+                      to={`/applications/${app.id}`}
                       className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 text-sm font-bold bg-cyan-500/10 px-4 py-2 rounded-full transition-all hover:bg-cyan-500/20"
                     >
                       Xem chi tiết
