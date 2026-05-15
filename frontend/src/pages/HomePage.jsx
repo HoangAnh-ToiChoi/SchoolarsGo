@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useScholarships } from '../hooks/useScholarship';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { Hero } from '../components/landing/Hero';
 import { Features } from '../components/landing/Features';
 import { ScholarshipPreview } from '../components/landing/ScholarshipPreview';
@@ -11,7 +12,7 @@ const HomePage = () => {
   const featuredScholarships = featured?.data || [];
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-landing-background selection:bg-landing-primary/30">
+    <AnimatedPage className="landing-theme min-h-screen relative overflow-hidden bg-landing-background selection:bg-landing-primary/30">
       {/* Animated Aurora Background */}
       <AuroraBackground />
 
@@ -29,7 +30,7 @@ const HomePage = () => {
       ) : (
         <ScholarshipPreview scholarships={featuredScholarships} />
       )}
-    </div>
+    </AnimatedPage>
   );
 };
 

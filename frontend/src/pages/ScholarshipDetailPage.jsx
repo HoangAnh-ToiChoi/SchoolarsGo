@@ -7,6 +7,7 @@ import { cn, formatCurrency, formatDate, formatRelativeTime } from '../utils/hel
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Badge, Button } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 
 const DetailSection = ({ title, content, fallback }) => {
   if (!content && !fallback) return null;
@@ -110,7 +111,7 @@ const ScholarshipDetailPage = () => {
   };
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
+    <AnimatedPage className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
       <AuroraBackground />
       <div className="container-page relative z-10 pt-8">
         <Link to="/scholarships" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-white/60 transition hover:text-white backdrop-blur-sm bg-white/5 px-4 py-2 rounded-full border border-white/10 w-fit">
@@ -269,7 +270,7 @@ const ScholarshipDetailPage = () => {
           </aside>
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

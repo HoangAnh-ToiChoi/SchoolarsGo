@@ -4,6 +4,7 @@ import { Mail, Lock, Sparkles, LogIn } from 'lucide-react';
 import { useLogin } from '../hooks/useAuth';
 import { Input } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { cn } from '../utils/helpers';
 
 const LoginPage = () => {
@@ -16,7 +17,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white flex items-center justify-center pt-20 pb-12 px-4">
+    <AnimatedPage className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white flex items-center justify-center pt-20 pb-12 px-4">
       <AuroraBackground />
       
       <div className="w-full max-w-md relative z-10">
@@ -85,7 +86,7 @@ const LoginPage = () => {
           </p>
         </form>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

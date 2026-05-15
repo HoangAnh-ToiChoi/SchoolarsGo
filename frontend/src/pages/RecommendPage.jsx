@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Sparkles, MapPin, GraduationCap, ChevronRight, Brain, AlertCircle } from 'lucide-react';
 import { useRecommend } from '../hooks/useRecommend';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { useAuthStore } from '../stores/authStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { EmptyState } from '../components/ui';
@@ -25,7 +26,7 @@ const RecommendPage = () => {
   const recommendations = data?.data || [];
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <AnimatedPage className="bg-slate-50 min-h-screen">
       <div className="bg-gradient-to-br from-slate-900 via-primary-900 to-slate-800 text-white py-14">
         <div className="container-page">
           <div className="flex items-center gap-3 mb-4">
@@ -101,7 +102,7 @@ const RecommendPage = () => {
           </>
         )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

@@ -7,6 +7,7 @@ import FileUpload from '../components/ui/FileUpload';
 import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
 import { Upload, FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 
 const ProfilePage = () => {
   const { data, isLoading } = useProfile();
@@ -97,7 +98,7 @@ const ProfilePage = () => {
   if (!profile) return <div className="p-8 text-center text-body text-gray-600">Vui lòng đăng nhập để xem profile</div>;
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
+    <AnimatedPage className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
       <AuroraBackground />
       
       <div className="container-narrow relative z-10 py-8">
@@ -252,7 +253,7 @@ const ProfilePage = () => {
           )}
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

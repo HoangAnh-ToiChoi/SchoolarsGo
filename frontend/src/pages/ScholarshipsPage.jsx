@@ -8,6 +8,9 @@ import ScholarshipCard from '../components/ScholarshipCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Button, Input, Select } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
+import AnimatedList from '../components/ui/AnimatedList';
+import AnimatedItem from '../components/ui/AnimatedItem';
 
 const FILTER_KEYS = ['search', 'country', 'degree', 'language', 'coverage', 'field', 'min_gpa', 'min_ielts', 'amount_min'];
 const ADVANCED_FILTER_KEYS = FILTER_KEYS.filter((key) => key !== 'search');
@@ -139,7 +142,7 @@ const ScholarshipsPage = () => {
   };
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-16">
+    <AnimatedPage className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-16">
       <AuroraBackground />
       
       {/* Premium Hero Search Section */}
@@ -363,11 +366,13 @@ const ScholarshipsPage = () => {
             </button>
           </div>
         ) : (
-          <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300', isFetching && 'opacity-60 blur-[2px] scale-[0.99] pointer-events-none')}>
+          <AnimatedList className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300', isFetching && 'opacity-60 blur-[2px] scale-[0.99] pointer-events-none')}>
             {scholarships.map((s) => (
-              <ScholarshipCard key={s.id} scholarship={s} isDark={true} />
+              <AnimatedItem key={s.id}>
+                <ScholarshipCard scholarship={s} isDark={true} />
+              </AnimatedItem>
             ))}
-          </div>
+          </AnimatedList>
         )}
 
         {/* Pagination */}
@@ -413,7 +418,7 @@ const ScholarshipsPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

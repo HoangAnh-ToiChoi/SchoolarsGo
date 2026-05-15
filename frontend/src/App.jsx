@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ScholarshipsPage from './pages/ScholarshipsPage';
@@ -17,8 +18,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
 
 function App() {
+  const location = useLocation();
   return (
-    <Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="scholarships" element={<ScholarshipsPage />} />
@@ -34,8 +37,9 @@ function App() {
         <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
         <Route path="compare" element={<ComparisonPage />} />
         <Route path="*" element={<NotFoundPage />} />
-      </Route>  
-    </Routes>
+      </Route>
+      </Routes>
+    </AnimatePresence>
   );
 }
 

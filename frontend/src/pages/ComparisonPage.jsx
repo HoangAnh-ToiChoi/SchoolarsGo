@@ -1,6 +1,7 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { Check, X, MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
 import { useScholarship } from '../hooks/useScholarship';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -57,7 +58,7 @@ const ComparisonPage = () => {
   }
 
   return (
-    <div className="container-page py-8">
+    <AnimatedPage className="container-page py-8">
       <Link to="/scholarships" className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 font-medium mb-6">
         <ArrowLeft className="w-4 h-4" />Quay lại
       </Link>
@@ -109,7 +110,7 @@ const ComparisonPage = () => {
           </table>
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, CheckSquare, Square, Trash2, Save, ChevronRight } from 'lucide-react';
 import { useApplication, useUpdateApplication, useDeleteApplication } from '../hooks/useApplication';
 import { cn, formatDate, getStatusColor, getStatusLabel } from '../utils/helpers';
+import AnimatedPage from '../components/ui/AnimatedPage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Button, Badge, PageHeader } from '../components/ui';
 
@@ -63,7 +64,7 @@ const ApplicationDetailPage = () => {
   const checklistPct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
 
   return (
-    <div className="container-narrow py-8">
+    <AnimatedPage className="container-narrow py-8">
       <Link to="/applications" className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 font-medium mb-6">
         <ArrowLeft className="w-4 h-4" />Quay lại đơn ứng tuyển
       </Link>
@@ -169,7 +170,7 @@ const ApplicationDetailPage = () => {
           )}
         </div>
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 
