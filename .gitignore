@@ -32,3 +32,6 @@ coverage/
 .cursorrules
 .cursor/
 
+# Claude Code
+.claude/
+
