@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, Brain, Compass, Search, Sparkles, Star, Trophy } from 'lucide-react';
-import { useScholarships } from '../hooks/useScholarship';
-import ScholarshipCard from '../components/ScholarshipCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { BookOpen, Brain, Compass, Search, Sparkles, Star, Trophy } from 'lucide-react';
+import LatestNewsSection from '../components/LatestNewsSection';
 import {
   Button,
   Card,
@@ -17,8 +15,6 @@ import {
 const HomePage = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
-  const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
-  const featuredScholarships = featured?.data || [];
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -170,38 +166,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="py-section bg-slate-50">
-        <div className="container-page">
-          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-primary-600">Học bổng nổi bật</p>
-              <h2 className="section-title mt-2">Cơ hội đang chờ bạn</h2>
-            </div>
-            <Link to="/scholarships" className="btn-ghost self-start md:self-auto">
-              Xem tất cả học bổng
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {featuredScholarships.slice(0, 3).map((scholarship) => (
-                <ScholarshipCard key={scholarship.id} scholarship={scholarship} />
-              ))}
-            </div>
-          )}
-
-          {!isLoading && featuredScholarships.length === 0 && (
-            <Card>
-              <CardContent className="flex min-h-48 items-center justify-center text-center text-body text-gray-500">
-                Chưa có dữ liệu học bổng nổi bật để hiển thị.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
+      <LatestNewsSection />
 
       <section className="py-section bg-surface-muted">
         <div className="container-page">

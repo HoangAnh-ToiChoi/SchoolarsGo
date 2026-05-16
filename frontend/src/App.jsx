@@ -14,6 +14,7 @@ import RecommendPage from './pages/RecommendPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
 import ChatPage from './pages/ChatPage';
+import NewsPage from './pages/NewsPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
         <Route path="compare" element={<ComparisonPage />} />
         <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="news" element={<NewsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
