@@ -308,6 +308,7 @@ function extractLinks(html, baseUrl, urlPattern) {
     if (
       full.startsWith(domain) &&
       !full.includes('?') &&
+      !full.includes('#') &&
       !MEDIA_EXT.test(full) &&
       !SKIP_PATHS.some(p => full.includes(p)) &&
       full !== baseUrl &&
@@ -323,16 +324,17 @@ function extractLinks(html, baseUrl, urlPattern) {
 
 // ── Source definitions ────────────────────────────────────────────────────────
 // Tested & working:
-//   scholars4dev.com           ✅ reliable, no rate limit
-//   scholarship-positions.com  ✅ works with 3s+ delay between articles (rate-limit 429 after 2-3 pages)
-//   scholarships360.org        ✅ static HTML, individual scholarship pages at /scholarship/<slug>/
-//   youthop.com                ✅ blog-style scholarship articles, article URLs at /<year>/<slug>/
-//   studyqa.com                ✅ scholarship listings with /scholarships/page/<n>/ pagination
+//   scholars4dev.com                ✅ reliable, no rate limit
+//   scholarship-positions.com       ✅ works with 3s+ delay (rate-limit 429 after 2-3 pages)
+//   opportunitiesforafricans.com    ✅ WordPress blog, 82 links/page, cheerio parses correctly
 // Tested & rejected:
-//   scholarshipdb.net          ❌ HTTP 403 blocked
-//   afterschoolalpha.com       ❌ DNS ENOTFOUND (domain dead)
-//   worldscholarshipforum.com  ❌ many article URLs return 404
-//   opportunitydesk.org        ❌ serves gambling/ad content for bot requests (22Bet injection)
+//   scholarshipdb.net               ❌ HTTP 403 blocked
+//   afterschoolalpha.com            ❌ DNS ENOTFOUND (domain dead)
+//   worldscholarshipforum.com       ❌ many article URLs return 404
+//   opportunitydesk.org             ❌ serves gambling/ad content for bot requests (22Bet injection)
+//   scholarships360.org             ❌ JS-rendered SPA, cheerio gets no article links
+//   youthop.com                     ❌ JS-rendered, 0 links extracted
+//   studyqa.com                     ❌ JS-rendered, 0 links extracted
 const SOURCES = [
   {
     name: 'scholars4dev',
@@ -398,49 +400,22 @@ const SOURCES = [
     ],
   },
   {
-    name: 'scholarships360',
+    name: 'opportunitiesforafricans',
     type: 'listing',
     delayExtra: 1000,
-    // Individual scholarship pages at /scholarship/<slug>/ — filter with urlPattern
-    urlPattern: /\/scholarship\//,
+    // WordPress blog — clean slug URLs, no urlPattern needed
+    // 82 article links per listing page, cheerio parses title/deadline/degree well
     listingPages: [
-      'https://scholarships360.org/scholarships/international-scholarships/',
-      'https://scholarships360.org/scholarships/graduate-scholarships/',
-      'https://scholarships360.org/scholarships/college-scholarships/',
-      'https://scholarships360.org/scholarships/stem-scholarships/',
-      'https://scholarships360.org/scholarships/undergraduate-scholarships/',
-    ],
-  },
-  {
-    name: 'youthop',
-    type: 'listing',
-    delayExtra: 1000,
-    // Blog-style scholarship articles; article URLs contain year segment
-    urlPattern: /\/\d{4}\//,
-    listingPages: [
-      'https://youthop.com/scholarships',
-      'https://youthop.com/scholarships/page/2',
-      'https://youthop.com/scholarships/page/3',
-      'https://youthop.com/scholarships/page/4',
-      'https://youthop.com/scholarships/page/5',
-      'https://youthop.com/fellowships',
-      'https://youthop.com/fellowships/page/2',
-      'https://youthop.com/fellowships/page/3',
-    ],
-  },
-  {
-    name: 'studyqa',
-    type: 'listing',
-    delayExtra: 1000,
-    // Individual scholarship pages at /scholarships/<slug>
-    urlPattern: /\/scholarships\/[^/]+$/,
-    listingPages: [
-      'https://studyqa.com/scholarships',
-      'https://studyqa.com/scholarships/page/2',
-      'https://studyqa.com/scholarships/page/3',
-      'https://studyqa.com/scholarships/page/4',
-      'https://studyqa.com/scholarships/page/5',
-      'https://studyqa.com/scholarships/page/6',
+      'https://www.opportunitiesforafricans.com/category/scholarships/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/2/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/3/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/4/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/5/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/6/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/7/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/8/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/9/',
+      'https://www.opportunitiesforafricans.com/category/scholarships/page/10/',
     ],
   },
 ];
