@@ -105,22 +105,6 @@ class AdminService {
     return user;
   };
 
-  /**
-   * Thay đổi trạng thái tài khoản.
-   * Tiêu chí 7: So sánh ID từ payload, throw ngay nếu trùng.
-   *
-   * @param {string} targetUserId - UUID string
-   * @param {boolean} isActive
-   * @param {string} adminId - UUID string
-   */
-  changeUserStatus = async (targetUserId, isActive, adminId) => {
-    this.#guardSelfModification(targetUserId, adminId);
-
-    const user = await this.#repo.updateUserStatus(targetUserId, isActive);
-    this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
-    return user;
-  };
-
   // ═══════════════════════════════════════════════════════════
   // SCHOLARSHIP MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════

@@ -87,6 +87,9 @@ const upload = multer({
  */
 const handleUploadError = (err, req, res, next) => {
   if (err) {
+    // Drain request body before responding — prevents ERR_CONNECTION_RESET on the client
+    // when multer rejects the file before the full body has been received.
+    req.resume();
     return res.status(400).json({
       success: false,
       message: err.message || 'Upload file không hợp lệ',
