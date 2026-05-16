@@ -1,4 +1,4 @@
-const { query, queryOne } = require('../utils/db');
+const getSupabase = require('../utils/supabase');
 const { extractIeltsScore } = require('../utils/helpers');
 const { enrichRecommendations } = require('./gemini.service');
 
@@ -6,7 +6,6 @@ const calculateMatchScore = (profile, scholarship) => {
   let score = 0;
   const reasons = [];
 
-  // GPA match (30 điểm)
   if (profile.gpa && scholarship.min_gpa) {
     if (parseFloat(profile.gpa) >= parseFloat(scholarship.min_gpa)) {
       score += 30;
@@ -14,7 +13,6 @@ const calculateMatchScore = (profile, scholarship) => {
     }
   }
 
-  // Degree match (20 điểm)
   if (profile.target_degree && scholarship.degree && scholarship.degree !== 'Any') {
     if (profile.target_degree.toLowerCase() === scholarship.degree.toLowerCase()) {
       score += 20;
@@ -22,7 +20,6 @@ const calculateMatchScore = (profile, scholarship) => {
     }
   }
 
-  // Country match (20 điểm)
   if (profile.target_country && scholarship.country) {
     if (profile.target_country.toLowerCase() === scholarship.country.toLowerCase()) {
       score += 20;
@@ -30,7 +27,6 @@ const calculateMatchScore = (profile, scholarship) => {
     }
   }
 
-  // Major match (15 điểm)
   if (profile.target_major && scholarship.field_of_study) {
     const targetMajor = profile.target_major.toLowerCase();
     const fieldOfStudy = (scholarship.field_of_study || '').toLowerCase();
@@ -40,7 +36,6 @@ const calculateMatchScore = (profile, scholarship) => {
     }
   }
 
-  // English level match (10 điểm)
   if (profile.english_level && scholarship.min_ielts) {
     const userIelts = extractIeltsScore(profile.english_level);
     if (userIelts && userIelts >= parseFloat(scholarship.min_ielts)) {
@@ -49,28 +44,21 @@ const calculateMatchScore = (profile, scholarship) => {
     }
   }
 
-  // Deadline proximity (5 điểm)
   if (scholarship.deadline) {
-    const deadline = new Date(scholarship.deadline);
-    const now = new Date();
-    const daysUntilDeadline = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
-    if (daysUntilDeadline > 0 && daysUntilDeadline <= 90) {
+    const daysLeft = Math.ceil((new Date(scholarship.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+    if (daysLeft > 0 && daysLeft <= 90) {
       score += 5;
-      reasons.push(`Còn ${daysUntilDeadline} ngày đến hạn nộp`);
+      reasons.push(`Còn ${daysLeft} ngày đến hạn nộp`);
     }
   }
 
-  return {
-    score: Math.min(1, score / 100),
-    reasons,
-  };
+  return { score: Math.min(1, score / 100), reasons };
 };
 
 const recommend = async (userId, topN = 10) => {
-  const profile = await queryOne(
-    'SELECT * FROM profiles WHERE user_id = $1',
-    [userId]
-  );
+  const sb = getSupabase();
+
+  const { data: profile } = await sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
 
   if (!profile) {
     const err = new Error('Vui lòng cập nhật profile trước khi sử dụng gợi ý');
@@ -79,14 +67,14 @@ const recommend = async (userId, topN = 10) => {
     throw err;
   }
 
-  const scholarshipsResult = await query(
-    `SELECT * FROM scholarships
-     WHERE is_active = true AND deadline >= now()
-     ORDER BY deadline ASC
-     LIMIT 200`
-  );
+  const { data: scholarships } = await sb.from('scholarships')
+    .select('*')
+    .eq('is_active', true)
+    .gte('deadline', new Date().toISOString())
+    .order('deadline', { ascending: true })
+    .limit(200);
 
-  const scored = scholarshipsResult.rows.map((scholarship) => {
+  const scored = (scholarships || []).map((scholarship) => {
     const { score, reasons } = calculateMatchScore(profile, scholarship);
     return { scholarship, match_score: score, reasons };
   });

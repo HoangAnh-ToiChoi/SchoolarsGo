@@ -1,40 +1,27 @@
-const { query, queryOne } = require('../utils/db');
+const getSupabase = require('../utils/supabase');
 
 const getAll = async (userId) => {
-  const data = await query(
-    `SELECT ss.id, ss.note, ss.created_at,
-            s.id as scholarship_id, s.title, s.provider, s.country, s.degree,
-            s.amount, s.currency, s.deadline, s.image_url, s.is_featured
-     FROM saved_scholarships ss
-     JOIN scholarships s ON ss.scholarship_id = s.id
-     WHERE ss.user_id = $1
-     ORDER BY ss.created_at DESC`,
-    [userId]
-  );
-  return data.rows.map((row) => ({
+  const { data, error } = await getSupabase().from('saved_scholarships')
+    .select(`id, note, created_at,
+             scholarships ( id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured )`)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map((row) => ({
     id: row.id,
     note: row.note,
     created_at: row.created_at,
-    scholarship: {
-      id: row.scholarship_id,
-      title: row.title,
-      provider: row.provider,
-      country: row.country,
-      degree: row.degree,
-      amount: row.amount,
-      currency: row.currency,
-      deadline: row.deadline,
-      image_url: row.image_url,
-      is_featured: row.is_featured,
-    },
+    scholarship: row.scholarships,
   }));
 };
 
 const save = async (userId, scholarshipId, note) => {
-  const scholarship = await queryOne(
-    'SELECT id, title FROM scholarships WHERE id = $1',
-    [scholarshipId]
-  );
+  const sb = getSupabase();
+
+  const { data: scholarship } = await sb.from('scholarships')
+    .select('id, title').eq('id', scholarshipId).maybeSingle();
 
   if (!scholarship) {
     const err = new Error('Không tìm thấy học bổng');
@@ -43,10 +30,8 @@ const save = async (userId, scholarshipId, note) => {
     throw err;
   }
 
-  const existing = await queryOne(
-    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarshipId]
-  );
+  const { data: existing } = await sb.from('saved_scholarships')
+    .select('id').eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
 
   if (existing) {
     const err = new Error(`Bạn đã lưu học bổng "${scholarship.title}" rồi`);
@@ -55,28 +40,24 @@ const save = async (userId, scholarshipId, note) => {
     throw err;
   }
 
-  const saved = await queryOne(
-    `INSERT INTO saved_scholarships (user_id, scholarship_id, note)
-     VALUES ($1, $2, $3)
-     RETURNING *`,
-    [userId, scholarshipId, note || null]
-  );
+  const { data: saved, error } = await sb.from('saved_scholarships')
+    .insert({ user_id: userId, scholarship_id: scholarshipId, note: note || null })
+    .select().single();
 
-  // Lấy scholarship details
-  const scholarshipDetails = await queryOne(
-    `SELECT id as scholarship_id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-     FROM scholarships WHERE id = $1`,
-    [scholarshipId]
-  );
+  if (error) throw error;
 
-  return { ...saved, scholarship: scholarshipDetails };
+  const { data: details } = await sb.from('scholarships')
+    .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+    .eq('id', scholarshipId).single();
+
+  return { ...saved, scholarship: details };
 };
 
 const remove = async (userId, scholarshipId) => {
-  const existing = await queryOne(
-    'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarshipId]
-  );
+  const sb = getSupabase();
+
+  const { data: existing } = await sb.from('saved_scholarships')
+    .select('id').eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
 
   if (!existing) {
     const err = new Error('Không tìm thấy scholarship trong danh sách đã lưu');
@@ -85,7 +66,10 @@ const remove = async (userId, scholarshipId) => {
     throw err;
   }
 
-  await query('DELETE FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2', [userId, scholarshipId]);
+  const { error } = await sb.from('saved_scholarships')
+    .delete().eq('user_id', userId).eq('scholarship_id', scholarshipId);
+
+  if (error) throw error;
 };
 
 module.exports = { getAll, save, remove };

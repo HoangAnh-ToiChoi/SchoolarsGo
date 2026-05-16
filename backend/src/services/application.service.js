@@ -1,6 +1,5 @@
-const { query, queryOne } = require('../utils/db');
+const getSupabase = require('../utils/supabase');
 
-const APPLICATION_STATUSES = ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'];
 const VALID_STATUS_TRANSITIONS = {
   draft: ['submitted', 'withdrawn'],
   submitted: ['under_review', 'rejected', 'withdrawn'],
@@ -11,72 +10,56 @@ const VALID_STATUS_TRANSITIONS = {
   withdrawn: [],
 };
 
+const DEFAULT_CHECKLIST = [
+  { item: 'CV', done: false },
+  { item: 'SOP', done: false },
+  { item: 'Bảng điểm', done: false },
+  { item: 'Thư giới thiệu', done: false },
+  { item: 'IELTS Certificate', done: false },
+  { item: 'Hộ chiếu', done: false },
+];
+
+const shapeRow = (row) => ({
+  id: row.id,
+  status: row.status,
+  applied_at: row.applied_at,
+  notes: row.notes,
+  checklist: row.checklist,
+  documents_used: row.documents_used,
+  result: row.result,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+  scholarship: row.scholarships
+    ? { id: row.scholarships.id, title: row.scholarships.title, country: row.scholarships.country, deadline: row.scholarships.deadline, amount: row.scholarships.amount, image_url: row.scholarships.image_url }
+    : null,
+});
+
 const getAll = async (userId, filters) => {
+  const sb = getSupabase();
   const page = Math.max(1, Number(filters.page) || 1);
   const limit = Math.min(50, Math.max(1, Number(filters.limit) || 20));
   const offset = (page - 1) * limit;
 
-  const conditions = ['a.user_id = $1'];
-  const params = [userId];
-  let idx = 2;
+  let q = sb.from('applications')
+    .select('*, scholarships ( id, title, country, deadline, amount, image_url )', { count: 'exact' })
+    .eq('user_id', userId);
 
-  if (filters.status) {
-    conditions.push(`a.status = $${idx++}`);
-    params.push(filters.status);
-  }
+  if (filters.status) q = q.eq('status', filters.status);
 
-  const where = `WHERE ${conditions.join(' AND ')}`;
-
-  const countResult = await queryOne(
-    `SELECT COUNT(*) as total FROM applications a ${where}`,
-    params
-  );
-  const total = parseInt(countResult.total, 10);
-
-  const data = await query(
-    `SELECT a.id, a.status, a.applied_at, a.notes, a.checklist, a.documents_used, a.result,
-            a.created_at, a.updated_at,
-            s.id as scholarship_id, s.title as scholarship_title, s.country, s.deadline, s.amount, s.image_url
-     FROM applications a
-     JOIN scholarships s ON a.scholarship_id = s.id
-     ${where}
-     ORDER BY a.created_at DESC
-     LIMIT $${idx++} OFFSET $${idx}`,
-    [...params, limit, offset]
-  );
+  const { data, count, error } = await q.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+  if (error) throw error;
 
   return {
-    data: data.rows.map((row) => ({
-      id: row.id,
-      status: row.status,
-      applied_at: row.applied_at,
-      notes: row.notes,
-      checklist: row.checklist,
-      documents_used: row.documents_used,
-      result: row.result,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      scholarship: {
-        id: row.scholarship_id,
-        title: row.scholarship_title,
-        country: row.country,
-        deadline: row.deadline,
-        amount: row.amount,
-        image_url: row.image_url,
-      },
-    })),
-    meta: { page, limit, total },
+    data: (data || []).map(shapeRow),
+    meta: { page, limit, total: count ?? 0 },
   };
 };
 
 const create = async (userId, payload) => {
+  const sb = getSupabase();
   const { scholarship_id, checklist, notes } = payload;
 
-  const scholarship = await queryOne(
-    'SELECT id, title FROM scholarships WHERE id = $1',
-    [scholarship_id]
-  );
-
+  const { data: scholarship } = await sb.from('scholarships').select('id, title').eq('id', scholarship_id).maybeSingle();
   if (!scholarship) {
     const err = new Error('Không tìm thấy học bổng');
     err.statusCode = 404;
@@ -84,11 +67,8 @@ const create = async (userId, payload) => {
     throw err;
   }
 
-  const existing = await queryOne(
-    'SELECT id FROM applications WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarship_id]
-  );
-
+  const { data: existing } = await sb.from('applications')
+    .select('id').eq('user_id', userId).eq('scholarship_id', scholarship_id).maybeSingle();
   if (existing) {
     const err = new Error(`Bạn đã ứng tuyển học bổng "${scholarship.title}" rồi`);
     err.statusCode = 409;
@@ -96,56 +76,35 @@ const create = async (userId, payload) => {
     throw err;
   }
 
-  const defaultChecklist = [
-    { item: 'CV', done: false },
-    { item: 'SOP', done: false },
-    { item: 'Bảng điểm', done: false },
-    { item: 'Thư giới thiệu', done: false },
-    { item: 'IELTS Certificate', done: false },
-    { item: 'Hộ chiếu', done: false },
-  ];
+  const { data: newApp, error } = await sb.from('applications')
+    .insert({ user_id: userId, scholarship_id, checklist: checklist || DEFAULT_CHECKLIST, notes: notes || null, status: 'draft' })
+    .select('*, scholarships ( id, title, country, deadline, amount, image_url )')
+    .single();
 
-  const newApp = await queryOne(
-    `INSERT INTO applications (user_id, scholarship_id, checklist, notes, status)
-     VALUES ($1, $2, $3, $4, 'draft')
-     RETURNING *`,
-    [userId, scholarship_id, JSON.stringify(checklist || defaultChecklist), notes || null]
-  );
-
-  const scholarshipDetails = await queryOne(
-    'SELECT id, title, country, deadline, amount, image_url FROM scholarships WHERE id = $1',
-    [scholarship_id]
-  );
-
-  return { ...newApp, scholarship: scholarshipDetails };
+  if (error) throw error;
+  return shapeRow(newApp);
 };
 
 const getById = async (userId, applicationId) => {
-  const app = await queryOne(
-    `SELECT a.*,
-            s.id as scholarship_id, s.title as scholarship_title,
-            s.country, s.deadline, s.amount, s.image_url
-     FROM applications a
-     JOIN scholarships s ON a.scholarship_id = s.id
-     WHERE a.id = $1 AND a.user_id = $2`,
-    [applicationId, userId]
-  );
+  const { data: app, error } = await getSupabase().from('applications')
+    .select('*, scholarships ( id, title, country, deadline, amount, image_url )')
+    .eq('id', applicationId).eq('user_id', userId).maybeSingle();
 
+  if (error) throw error;
   if (!app) {
     const err = new Error('Không tìm thấy application');
     err.statusCode = 404;
     err.isOperational = true;
     throw err;
   }
-
-  return app;
+  return shapeRow(app);
 };
 
 const update = async (userId, applicationId, updates) => {
-  const existing = await queryOne(
-    'SELECT status FROM applications WHERE id = $1 AND user_id = $2',
-    [applicationId, userId]
-  );
+  const sb = getSupabase();
+
+  const { data: existing } = await sb.from('applications')
+    .select('status').eq('id', applicationId).eq('user_id', userId).maybeSingle();
 
   if (!existing) {
     const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
@@ -167,42 +126,24 @@ const update = async (userId, applicationId, updates) => {
     }
   }
 
-  const fields = [];
-  const values = [];
-  let idx = 1;
+  const UPDATABLE = ['status', 'notes', 'checklist', 'documents_used', 'result', 'applied_at'];
+  const patch = UPDATABLE.reduce((acc, k) => { if (updates[k] !== undefined) acc[k] = updates[k]; return acc; }, {});
+  if (Object.keys(patch).length === 0) return existing;
 
-  for (const key of ['status', 'notes', 'checklist', 'documents_used', 'result', 'applied_at']) {
-    if (updates[key] !== undefined) {
-      fields.push(`${key} = $${idx++}`);
-      values.push(typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
-    }
-  }
+  patch.updated_at = new Date().toISOString();
 
-  if (fields.length === 0) return existing;
+  const { data: updated, error } = await sb.from('applications')
+    .update(patch).eq('id', applicationId).eq('user_id', userId).select().single();
 
-  fields.push('updated_at = now()');
-  values.push(applicationId, userId);
-
-  const updated = await queryOne(
-    `UPDATE applications SET ${fields.join(', ')} WHERE id = $${idx++} AND user_id = $${idx} RETURNING *`,
-    values
-  );
-
-  if (!updated) {
-    const err = new Error('Không thể cập nhật application');
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
-  }
-
+  if (error) throw error;
   return updated;
 };
 
 const remove = async (userId, applicationId) => {
-  const existing = await queryOne(
-    'SELECT id, status FROM applications WHERE id = $1 AND user_id = $2',
-    [applicationId, userId]
-  );
+  const sb = getSupabase();
+
+  const { data: existing } = await sb.from('applications')
+    .select('id, status').eq('id', applicationId).eq('user_id', userId).maybeSingle();
 
   if (!existing) {
     const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
@@ -218,7 +159,8 @@ const remove = async (userId, applicationId) => {
     throw err;
   }
 
-  await query('DELETE FROM applications WHERE id = $1 AND user_id = $2', [applicationId, userId]);
+  const { error } = await sb.from('applications').delete().eq('id', applicationId).eq('user_id', userId);
+  if (error) throw error;
 };
 
 module.exports = { getAll, create, getById, update, remove };

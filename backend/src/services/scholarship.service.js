@@ -1,119 +1,80 @@
-const { query, queryOne } = require('../utils/db');
+const getSupabase = require('../utils/supabase');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
 
+const LIST_COLS = 'id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured';
+
 const getAll = async (filters) => {
+  const sb = getSupabase();
   const page = Math.max(1, Number(filters.page) || 1);
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
   const offset = (page - 1) * limit;
+  const now = new Date().toISOString();
 
-  const conditions = ['is_active = true', 'deadline > NOW()'];
-  const params = [];
-  let idx = 1;
+  let q = sb.from('scholarships').select(LIST_COLS, { count: 'exact' })
+    .eq('is_active', true)
+    .gt('deadline', now);
 
-  if (filters.country) {
-    conditions.push(`country ILIKE $${idx++}`);
-    params.push(`%${filters.country}%`);
-  }
-  if (filters.degree) {
-    conditions.push(`degree = $${idx++}`);
-    params.push(filters.degree);
-  }
-  if (filters.field) {
-    conditions.push(`field_of_study ILIKE $${idx++}`);
-    params.push(`%${filters.field}%`);
-  }
-  if (filters.language) {
-    conditions.push(`language = $${idx++}`);
-    params.push(filters.language);
-  }
-  if (filters.min_gpa) {
-    conditions.push(`min_gpa <= $${idx++}`);
-    params.push(Number(filters.min_gpa));
-  }
-  if (filters.min_ielts) {
-    conditions.push(`min_ielts <= $${idx++}`);
-    params.push(Number(filters.min_ielts));
-  }
-  if (filters.deadline_from) {
-    conditions.push(`deadline >= $${idx++}`);
-    params.push(filters.deadline_from);
-  }
-  if (filters.deadline_to) {
-    conditions.push(`deadline <= $${idx++}`);
-    params.push(filters.deadline_to);
-  }
-  if (filters.amount_min) {
-    conditions.push(`amount >= $${idx++}`);
-    params.push(Number(filters.amount_min));
-  }
-  if (filters.coverage) {
-    conditions.push(`coverage = $${idx++}`);
-    params.push(filters.coverage);
-  }
-  if (filters.featured === 'true' || filters.featured === true) {
-    conditions.push(`is_featured = true`);
-  }
-  if (filters.search) {
-    conditions.push(`(title ILIKE $${idx} OR provider ILIKE $${idx})`);
-    params.push(`%${filters.search}%`);
-    idx++;
-  }
+  if (filters.country)      q = q.ilike('country', `%${filters.country}%`);
+  if (filters.degree)       q = q.eq('degree', filters.degree);
+  if (filters.field)        q = q.ilike('field_of_study', `%${filters.field}%`);
+  if (filters.language)     q = q.eq('language', filters.language);
+  if (filters.min_gpa)      q = q.lte('min_gpa', Number(filters.min_gpa));
+  if (filters.min_ielts)    q = q.lte('min_ielts', Number(filters.min_ielts));
+  if (filters.deadline_from) q = q.gte('deadline', filters.deadline_from);
+  if (filters.deadline_to)   q = q.lte('deadline', filters.deadline_to);
+  if (filters.amount_min)   q = q.gte('amount', Number(filters.amount_min));
+  if (filters.coverage)     q = q.eq('coverage', filters.coverage);
+  if (filters.featured === 'true' || filters.featured === true) q = q.eq('is_featured', true);
+  if (filters.search)       q = q.or(`title.ilike.%${filters.search}%,provider.ilike.%${filters.search}%`);
 
-  const where = `WHERE ${conditions.join(' AND ')}`;
+  const { data, count, error } = await q.order('deadline', { ascending: true }).range(offset, offset + limit - 1);
 
-  // Count total
-  const countResult = await queryOne(
-    `SELECT COUNT(*) as total FROM scholarships ${where}`,
-    params
-  );
-  const total = parseInt(countResult.total, 10);
-  const totalPages = Math.ceil(total / limit);
+  if (error) throw error;
 
-  // Fetch data
-  const selectCols = [
-    'id', 'title', 'provider', 'country', 'degree', 'amount', 'currency',
-    'coverage', 'deadline', 'language', 'min_gpa', 'image_url', 'is_featured',
-  ].join(', ');
-
-  const data = await query(
-    `SELECT ${selectCols} FROM scholarships ${where} ORDER BY deadline ASC LIMIT $${idx++} OFFSET $${idx}`,
-    [...params, limit, offset]
-  );
-
+  const total = count ?? 0;
   return {
-    data: data.rows,
-    meta: { page, limit, total, totalPages },
+    data: data || [],
+    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
   };
 };
 
 const getFeatured = async () => {
-  const data = await query(
-    `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-     FROM scholarships
-     WHERE is_active = true AND deadline >= now() AND is_featured = true
-     ORDER BY deadline ASC
-     LIMIT 6`
-  );
-  return data.rows;
+  const { data, error } = await getSupabase().from('scholarships')
+    .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .gte('deadline', new Date().toISOString())
+    .order('deadline', { ascending: true })
+    .limit(6);
+
+  if (error) throw error;
+  return data || [];
 };
 
 const getCountries = async () => {
-  const data = await query(
-    `SELECT DISTINCT country FROM scholarships
-     WHERE is_active = true AND country IS NOT NULL
-     ORDER BY country ASC`
-  );
-  return data.rows.map((r) => r.country);
+  const { data, error } = await getSupabase().from('scholarships')
+    .select('country')
+    .eq('is_active', true)
+    .not('country', 'is', null)
+    .order('country', { ascending: true });
+
+  if (error) throw error;
+  const unique = [...new Set((data || []).map(r => r.country).filter(Boolean))];
+  return unique;
 };
 
 const getById = async (id, userId) => {
-  const scholarship = await queryOne(
-    'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()',
-    [id]
-  );
+  const sb = getSupabase();
+  const { data: scholarship, error } = await sb.from('scholarships')
+    .select('*')
+    .eq('id', id)
+    .eq('is_active', true)
+    .gt('deadline', new Date().toISOString())
+    .maybeSingle();
 
+  if (error) throw error;
   if (!scholarship) {
     const err = new Error('Không tìm thấy học bổng');
     err.statusCode = 404;
@@ -123,10 +84,8 @@ const getById = async (id, userId) => {
 
   let isSaved = false;
   if (userId) {
-    const saved = await queryOne(
-      'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-      [userId, id]
-    );
+    const { data: saved } = await sb.from('saved_scholarships')
+      .select('id').eq('user_id', userId).eq('scholarship_id', id).maybeSingle();
     isSaved = !!saved;
   }
 

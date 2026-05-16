@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { query } = require('../utils/db');
+const getSupabase = require('../utils/supabase');
 
 const SYSTEM_PROMPT = `Bạn là ScholarsBot — trợ lý AI của ScholarsGo, nền tảng tìm học bổng quốc tế cho sinh viên Việt Nam.
 
@@ -85,20 +85,19 @@ JSON only, no explanation:`;
 };
 
 const queryScholarships = async (filters) => {
-  const conditions = ['is_active = true', 'deadline >= now()'];
-  const params = [];
-  let idx = 1;
+  const sb = getSupabase();
+  const cols = 'title, provider, country, degree, amount, currency, deadline, min_gpa, min_ielts, field_of_study, coverage, application_url';
 
-  if (filters.country) { conditions.push(`country ILIKE $${idx++}`); params.push(`%${filters.country}%`); }
-  if (filters.degree) { conditions.push(`(degree = $${idx++} OR degree = 'Any')`); params.push(filters.degree); }
-  if (filters.min_gpa) { conditions.push(`(min_gpa IS NULL OR min_gpa <= $${idx++})`); params.push(filters.min_gpa); }
+  let q = sb.from('scholarships').select(cols)
+    .eq('is_active', true)
+    .gte('deadline', new Date().toISOString());
 
-  const result = await query(
-    `SELECT title, provider, country, degree, amount, currency, deadline, min_gpa, min_ielts, field_of_study, coverage, application_url
-     FROM scholarships WHERE ${conditions.join(' AND ')} ORDER BY deadline ASC LIMIT 8`,
-    params
-  );
-  return result.rows;
+  if (filters.country) q = q.ilike('country', `%${filters.country}%`);
+  if (filters.degree)  q = q.or(`degree.eq.${filters.degree},degree.eq.Any`);
+  if (filters.min_gpa) q = q.or(`min_gpa.is.null,min_gpa.lte.${filters.min_gpa}`);
+
+  const { data } = await q.order('deadline', { ascending: true }).limit(8);
+  return data || [];
 };
 
 const formatScholarships = (scholarships) => {
@@ -147,8 +146,19 @@ const chat = async (messages) => {
     ? `${lastMsg.content}${scholarshipContext}`
     : lastMsg.content;
 
-  const result = await chatSession.sendMessage(prompt);
-  return result.response.text();
+  try {
+    const result = await chatSession.sendMessage(prompt);
+    return result.response.text();
+  } catch (e) {
+    const is429 = e.status === 429 || (e.message && e.message.includes('429'));
+    if (is429) {
+      const err = new Error('ScholarsBot đang bận, vui lòng thử lại sau vài giây nhé 😊');
+      err.statusCode = 503;
+      err.isOperational = true;
+      throw err;
+    }
+    throw e;
+  }
 };
 
 module.exports = { chat };
