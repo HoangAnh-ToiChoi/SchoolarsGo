@@ -11,6 +11,7 @@ const chatLimiter = rateLimit({
 
 const router = Router();
 
+router.get('/history', auth, chatController.getChatHistory);
 router.post('/', auth, chatLimiter, chatController.sendMessage);
 
 module.exports = router;

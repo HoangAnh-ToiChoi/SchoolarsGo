@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { chatService } from '../services';
+import { useAuthStore } from '../stores/authStore';
 import { cn } from '../utils/helpers';
 
 const WELCOME_MESSAGE = {
@@ -62,12 +63,38 @@ const TypingIndicator = () => (
   </div>
 );
 
+const HistorySeparator = () => (
+  <div className="flex items-center gap-3 my-4 px-2">
+    <div className="flex-1 h-px bg-gray-200" />
+    <span className="text-xs text-gray-400 shrink-0">Cuộc trò chuyện trước</span>
+    <div className="flex-1 h-px bg-gray-200" />
+  </div>
+);
+
 const ChatPage = () => {
+  const { isAuthenticated } = useAuthStore();
   const [messages, setMessages] = useState([WELCOME_MESSAGE]);
+  const [hasHistory, setHasHistory] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Load lịch sử chat khi mount (chỉ khi đã đăng nhập)
+  useEffect(() => {
+    if (!isAuthenticated) { setHistoryLoaded(true); return; }
+    chatService.getHistory()
+      .then((res) => {
+        const history = res.data?.data?.messages || [];
+        if (history.length > 0) {
+          setMessages([WELCOME_MESSAGE, ...history]);
+          setHasHistory(true);
+        }
+      })
+      .catch(() => { /* history unavailable — table chưa migrate */ })
+      .finally(() => setHistoryLoaded(true));
+  }, [isAuthenticated]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,15 +166,19 @@ const ChatPage = () => {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-0">
         <div className="max-w-3xl mx-auto">
           {messages.map((msg, i) => (
-            <MessageBubble key={i} message={msg} />
+            <div key={i}>
+              {/* Separator giữa welcome message và lịch sử cũ */}
+              {hasHistory && i === 1 && <HistorySeparator />}
+              <MessageBubble message={msg} />
+            </div>
           ))}
           {isLoading && <TypingIndicator />}
           <div ref={bottomRef} />
         </div>
       </div>
 
-      {/* Quick replies — chỉ hiện khi chưa có conversation */}
-      {messages.length === 1 && !isLoading && (
+      {/* Quick replies — chỉ hiện khi chưa có conversation (kể cả history) */}
+      {historyLoaded && messages.length === 1 && !isLoading && (
         <div className="px-4 pb-2 shrink-0">
           <div className="max-w-3xl mx-auto flex flex-wrap gap-2">
             {QUICK_REPLIES.map((qr) => (

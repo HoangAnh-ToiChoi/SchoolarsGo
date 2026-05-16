@@ -55,4 +55,5 @@ export const recommendService = {
 // Chat
 export const chatService = {
   send: (messages) => api.post('/chat', { messages }),
+  getHistory: () => api.get('/chat/history'),
 };

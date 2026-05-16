@@ -1,4 +1,4 @@
-const chatService = require('../services/chat.service');
+const { chat, saveMessages, getHistory } = require('../services/chat.service');
 const { success } = require('../utils/responseHelper');
 
 const sendMessage = async (req, res, next) => {
@@ -22,11 +22,27 @@ const sendMessage = async (req, res, next) => {
       throw err;
     }
 
-    const reply = await chatService.chat(messages);
+    const reply = await chat(messages);
+
+    // Lưu cặp (user message cuối + assistant reply) vào DB — fire-and-forget
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    if (lastUserMsg) {
+      saveMessages(req.user?.id, lastUserMsg.content, reply);
+    }
+
     return success(res, { reply });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { sendMessage };
+const getChatHistory = async (req, res, next) => {
+  try {
+    const history = await getHistory(req.user.id);
+    return success(res, { messages: history });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { sendMessage, getChatHistory };

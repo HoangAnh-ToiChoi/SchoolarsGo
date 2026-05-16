@@ -161,4 +161,37 @@ const chat = async (messages) => {
   }
 };
 
-module.exports = { chat };
+// ── Chat history persistence ───────────────────────────────────────────────────
+
+const saveMessages = async (userId, userContent, assistantContent) => {
+  if (!userId) return;
+  try {
+    const sb = getSupabase();
+    await sb.from('chat_messages').insert([
+      { user_id: userId, role: 'user',      content: userContent      },
+      { user_id: userId, role: 'assistant', content: assistantContent },
+    ]);
+  } catch {
+    // Bỏ qua lỗi persistence (table chưa tồn tại, quota exceeded...)
+  }
+};
+
+const getHistory = async (userId, limit = 40) => {
+  if (!userId) return [];
+  try {
+    const sb = getSupabase();
+    const { data, error } = await sb
+      .from('chat_messages')
+      .select('role, content, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) return [];
+    // Trả về theo thứ tự chronological (cũ → mới)
+    return (data || []).reverse().map(({ role, content }) => ({ role, content }));
+  } catch {
+    return [];
+  }
+};
+
+module.exports = { chat, saveMessages, getHistory };
