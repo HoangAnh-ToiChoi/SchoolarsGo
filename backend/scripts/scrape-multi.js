@@ -433,15 +433,17 @@ function normalize(s) {
   };
 }
 
+const DEADLINE_UNKNOWN = new Date('2099-01-01'); // sentinel: "no known deadline"
+
 function parseDeadline(raw) {
-  if (!raw || raw === 'null') return null;
+  if (!raw || raw === 'null') return DEADLINE_UNKNOWN;
   try {
     const d = new Date(raw);
-    if (isNaN(d.getTime())) return null;
-    if (d < new Date()) return null;
+    if (isNaN(d.getTime())) return DEADLINE_UNKNOWN;
+    if (d < new Date()) return DEADLINE_UNKNOWN; // treat expired as "unknown, not rolling"
     return d;
   } catch {
-    return null;
+    return DEADLINE_UNKNOWN;
   }
 }
 
