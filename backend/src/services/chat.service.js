@@ -50,7 +50,7 @@ AN TOÀN THÔNG TIN:
 
 const extractFilters = async (messages, genAI) => {
   const conversationText = messages.slice(-8).map((m) => `${m.role}: ${m.content}`).join('\n');
-  const extractModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const extractModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `Extract scholarship search filters from this conversation. Return ONLY valid JSON with these fields (use null for unknown):
 {
@@ -122,7 +122,7 @@ const chat = async (messages) => {
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     systemInstruction: SYSTEM_PROMPT,
   });
 

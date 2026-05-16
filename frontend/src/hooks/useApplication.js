@@ -37,9 +37,10 @@ export const useUpdateApplication = () => {
 
   return useMutation({
     mutationFn: ({ id, ...data }) => applicationService.update(id, data),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
-      toast.success('Cập nhật application thành công');
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      toast.success('Cập nhật thành công');
     },
     onError: (error) => {
       toast.error(error.message || 'Cập nhật thất bại');

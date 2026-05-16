@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, Menu, X, User, LogOut, BookOpen, MessageSquare } from 'lucide-react';
+import { GraduationCap, Menu, X, User, LogOut, BookOpen, MessageSquare, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 
@@ -56,6 +56,10 @@ const Header = () => {
                 <Link to="/applications" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
                   <BookOpen className="w-4 h-4" />
                   <span className="font-medium">Đơn ứng tuyển</span>
+                </Link>
+                <Link to="/recommend" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium">Gợi ý AI</span>
                 </Link>
                 <Link to="/chat" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
                   <MessageSquare className="w-4 h-4" />
@@ -119,6 +123,9 @@ const Header = () => {
                   </Link>
                   <Link to="/applications" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
                     Đơn ứng tuyển
+                  </Link>
+                  <Link to="/recommend" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
+                    Gợi ý AI
                   </Link>
                   <Link to="/chat" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
                     Chat AI

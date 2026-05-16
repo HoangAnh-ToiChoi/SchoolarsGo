@@ -13,7 +13,12 @@
     "scrape": "node scripts/seed-scholarships.js --scrape-only",
     "seed:cloud": "node scripts/seed-cloud.js",
     "seed:cloud:dry": "node scripts/seed-cloud.js --dry-run",
-    "seed:cloud:limit": "node scripts/seed-cloud.js --limit=20"
+    "seed:cloud:limit": "node scripts/seed-cloud.js --limit=20",
+    "scrape:multi": "node scripts/scrape-multi.js",
+    "scrape:multi:dry": "node scripts/scrape-multi.js --dry-run",
+    "scrape:multi:fast": "node scripts/scrape-multi.js --limit=100",
+    "scrape:multi:cheerio": "node scripts/scrape-multi.js --no-gemini",
+    "scrape:multi:cheerio:dry": "node scripts/scrape-multi.js --no-gemini --dry-run"
   },
   "keywords": [
     "scholarship",
@@ -39,6 +44,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.1",
     "pg": "^8.20.0",
     "rss-parser": "^3.13.0",
     "swagger-jsdoc": "^6.2.8",

@@ -18,12 +18,11 @@ const crypto = require('crypto');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabaseStorage = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+const supabaseStorage = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+  : null;
 
 const BUCKET_NAME = 'documents';
 
@@ -86,6 +85,12 @@ const slugifyFileName = (fileName) => {
  * @returns {Promise<{publicUrl: string, storagePath: string}>}
  */
 const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) => {
+  if (!supabaseStorage) {
+    const err = new Error('Chức năng upload chưa được cấu hình (thiếu SUPABASE_SERVICE_ROLE_KEY)');
+    err.statusCode = 503;
+    err.isOperational = true;
+    throw err;
+  }
   // Slugify tên file để tránh lỗi path từ ký tự đặc biệt / tiếng Việt
   const slugifiedName = slugifyFileName(originalName);
   const randomSuffix = crypto.randomUUID().slice(0, 8);
@@ -146,6 +151,7 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
  * @returns {Promise<void>}
  */
 const deleteFile = async (storagePath) => {
+  if (!supabaseStorage) return;
   const { error } = await supabaseStorage.storage
     .from(BUCKET_NAME)
     .remove([storagePath]);
