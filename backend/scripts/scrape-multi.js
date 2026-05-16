@@ -324,7 +324,10 @@ function extractLinks(html, baseUrl, urlPattern) {
 // ── Source definitions ────────────────────────────────────────────────────────
 // Tested & working:
 //   scholars4dev.com           ✅ reliable, no rate limit
-//   scholarship-positions.com  ✅ works with 3s+ delay between articles
+//   scholarship-positions.com  ✅ works with 3s+ delay between articles (rate-limit 429 after 2-3 pages)
+//   scholarships360.org        ✅ static HTML, individual scholarship pages at /scholarship/<slug>/
+//   youthop.com                ✅ blog-style scholarship articles, article URLs at /<year>/<slug>/
+//   studyqa.com                ✅ scholarship listings with /scholarships/page/<n>/ pagination
 // Tested & rejected:
 //   scholarshipdb.net          ❌ HTTP 403 blocked
 //   afterschoolalpha.com       ❌ DNS ENOTFOUND (domain dead)
@@ -392,6 +395,52 @@ const SOURCES = [
       'https://scholarship-positions.com/category/phd-scholarships/',
       'https://scholarship-positions.com/category/phd-scholarships/page/2/',
       'https://scholarship-positions.com/category/scholarships-for-developing-countries/',
+    ],
+  },
+  {
+    name: 'scholarships360',
+    type: 'listing',
+    delayExtra: 1000,
+    // Individual scholarship pages at /scholarship/<slug>/ — filter with urlPattern
+    urlPattern: /\/scholarship\//,
+    listingPages: [
+      'https://scholarships360.org/scholarships/international-scholarships/',
+      'https://scholarships360.org/scholarships/graduate-scholarships/',
+      'https://scholarships360.org/scholarships/college-scholarships/',
+      'https://scholarships360.org/scholarships/stem-scholarships/',
+      'https://scholarships360.org/scholarships/undergraduate-scholarships/',
+    ],
+  },
+  {
+    name: 'youthop',
+    type: 'listing',
+    delayExtra: 1000,
+    // Blog-style scholarship articles; article URLs contain year segment
+    urlPattern: /\/\d{4}\//,
+    listingPages: [
+      'https://youthop.com/scholarships',
+      'https://youthop.com/scholarships/page/2',
+      'https://youthop.com/scholarships/page/3',
+      'https://youthop.com/scholarships/page/4',
+      'https://youthop.com/scholarships/page/5',
+      'https://youthop.com/fellowships',
+      'https://youthop.com/fellowships/page/2',
+      'https://youthop.com/fellowships/page/3',
+    ],
+  },
+  {
+    name: 'studyqa',
+    type: 'listing',
+    delayExtra: 1000,
+    // Individual scholarship pages at /scholarships/<slug>
+    urlPattern: /\/scholarships\/[^/]+$/,
+    listingPages: [
+      'https://studyqa.com/scholarships',
+      'https://studyqa.com/scholarships/page/2',
+      'https://studyqa.com/scholarships/page/3',
+      'https://studyqa.com/scholarships/page/4',
+      'https://studyqa.com/scholarships/page/5',
+      'https://studyqa.com/scholarships/page/6',
     ],
   },
 ];

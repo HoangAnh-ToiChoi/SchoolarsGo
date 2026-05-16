@@ -20,7 +20,7 @@ const enrichRecommendations = async (profile, recommendations) => {
   if (!client || recommendations.length === 0) return recommendations;
 
   try {
-    const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const profileSummary = [
       profile.gpa && `GPA: ${profile.gpa}/4.0`,
@@ -35,13 +35,21 @@ const enrichRecommendations = async (profile, recommendations) => {
       return `${i + 1}. ${s.title} (${s.provider}, ${s.country}, ${s.degree}, GPA tối thiểu: ${s.min_gpa || 'không yêu cầu'}, IELTS tối thiểu: ${s.min_ielts || 'không yêu cầu'}, điểm phù hợp: ${Math.round(r.match_score * 100)}%)`;
     }).join('\n');
 
-    const prompt = `Bạn là chuyên gia tư vấn học bổng. Sinh viên có hồ sơ: ${profileSummary}.
+    const prompt = `Bạn là chuyên gia tư vấn học bổng du học cho sinh viên Việt Nam.
 
-Danh sách học bổng phù hợp (xếp hạng theo điểm số):
+Hồ sơ sinh viên: ${profileSummary}.
+
+Danh sách học bổng được gợi ý (xếp hạng theo mức độ phù hợp):
 ${scholarshipList}
 
-Hãy viết cho mỗi học bổng một câu lý do ngắn gọn (1-2 câu, tối đa 100 ký tự mỗi câu) tại sao học bổng này phù hợp với sinh viên này. Trả lời theo định dạng JSON array chính xác, không thêm bất kỳ text nào khác:
-[{"index": 1, "ai_reason": "lý do..."}, {"index": 2, "ai_reason": "lý do..."}, ...]`;
+Nhiệm vụ: Viết lý do gợi ý cho từng học bổng, giải thích tự nhiên và thuyết phục tại sao học bổng này phù hợp với hồ sơ của sinh viên. Tập trung vào điểm mạnh của sinh viên so với yêu cầu, cơ hội học tập, và lợi ích cụ thể.
+
+Yêu cầu:
+- Mỗi lý do 1-2 câu, khoảng 80-150 ký tự, tiếng Việt tự nhiên
+- Không lặp lại thông tin kỹ thuật khô khan (ví dụ tránh "GPA 3.5 đạt yêu cầu 3.0")
+- Nhấn mạnh cơ hội và sự phù hợp thực sự
+- Trả về JSON array chính xác, không thêm text nào khác:
+[{"index": 1, "ai_reason": "..."}, {"index": 2, "ai_reason": "..."}, ...]`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
