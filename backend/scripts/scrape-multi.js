@@ -397,7 +397,7 @@ const SOURCES = [
 ];
 
 // ── Scrape one listing source ─────────────────────────────────────────────────
-async function scrapeListingSource(source, collected) {
+async function scrapeListingSource(source, collected, globalFetchedUrls) {
   log(`\n📡 [${source.name}] Bắt đầu cào ${source.listingPages.length} trang...`);
   let sourceCount = 0;
 
@@ -407,10 +407,12 @@ async function scrapeListingSource(source, collected) {
       log(`   → Fetching: ${pageUrl}`);
       const html = await fetchHtml(pageUrl);
       const links = extractLinks(html, pageUrl, source.urlPattern);
-      log(`   → Found ${links.length} article links`);
+      const newLinks = links.filter(l => !globalFetchedUrls.has(l));
+      log(`   → Found ${links.length} article links (${links.length - newLinks.length} already fetched, ${newLinks.length} new)`);
 
-      for (const link of links) {
+      for (const link of newLinks) {
         if (collected.length >= MAX_ITEMS) break;
+        globalFetchedUrls.add(link);
         try {
           await delay(source.delayExtra || 0);
           const detailHtml = await fetchHtml(link, pageUrl);
@@ -558,9 +560,10 @@ async function main() {
   }
 
   const collected = [];
+  const globalFetchedUrls = new Set(); // dedup across all listing pages and sources
 
   for (const source of activeSources) {
-    await scrapeListingSource(source, collected);
+    await scrapeListingSource(source, collected, globalFetchedUrls);
     log(`\n📊 Tổng collected: ${collected.length}`);
   }
 
