@@ -60,6 +60,16 @@ const randDate = (start, end) => {
 // ── Helper: sleep (rate limiting) ────────────────────────────────
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// ── Helper: strip HTML tags + normalize whitespace ───────────────
+const cleanText = (str) =>
+  str ? str.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : null;
+
+// ── Helper: truncate để tránh varchar(255) overflow ──────────────
+const trunc = (str, n = 255) => (str && str.length > n ? str.substring(0, n) : str);
+
+// ── Listicle pattern (dùng chung cho mọi scraper) ────────────────
+const LISTICLE_RE = /\b(top|best|list\s+of|how\s+to)\b/i;
+
 // ═══════════════════════════════════════════════════════════════
 // SECTION 1: SCRAPING FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
@@ -80,10 +90,10 @@ function parseDeadline(deadlineStr) {
       (v) => str.includes(v)
     )
   ) {
-    // Fallback: lấy ngày cuối cùng của tháng hiện tại + 3 tháng
+    // Fallback: lấy ngày cuối tháng hiện tại + 4 tháng
     const d = new Date();
-    d.setMonth(d.getMonth() + 4);
-    d.setDate(0); // last day of previous month = last day of (month+3)
+    d.setMonth(d.getMonth() + 5);
+    d.setDate(0); // setDate(0) lùi về last day of month+4
     return d.toISOString();
   }
 
@@ -248,6 +258,11 @@ async function scrapeScholarshipListPage(pageUrl) {
 
     // Get adjacent context for each entry (provider, degree, deadline, country)
     for (const entry of uniqueEntries) {
+      if (LISTICLE_RE.test(entry.title)) {
+        console.log(`  ⏭️  Skipping listicle: "${entry.title.substring(0, 60)}"`);
+        continue;
+      }
+
       // Navigate to the parent container to extract metadata
       const response2 = await axios.get(entry.url, {
         headers: {
@@ -382,43 +397,45 @@ async function scrapeScholarshipListPage(pageUrl) {
       }
 
       // Build scholarship object
+      const parsedDeadline = parseDeadline(deadline);
+
+      // Hard deadline filter: bỏ qua nếu không parse được hoặc đã hết hạn
+      if (!parsedDeadline) {
+        console.log(`  ⏭️  No parseable deadline — skipping: "${entry.title.substring(0, 60)}"`);
+        await sleep(400);
+        continue;
+      }
+      if (new Date(parsedDeadline) <= new Date()) {
+        console.log(`  ⏭️  Expired deadline — skipping: "${entry.title.substring(0, 60)}"`);
+        await sleep(400);
+        continue;
+      }
+
       const scholarship = {
-        title: entry.title,
-        provider: provider || 'Various Institutions',
-        country: country || 'Multiple Countries',
+        title: trunc(cleanText(entry.title)),
+        provider: trunc(cleanText(provider) || 'Various Institutions'),
+        country: trunc(cleanText(country) || 'Multiple Countries'),
         city: null,
         university: null,
         degree: mapDegree(degree),
-        field_of_study: fieldOfStudy,
+        field_of_study: trunc(cleanText(fieldOfStudy)),
         amount: null,
         currency: 'USD',
         coverage: null,
-        deadline: parseDeadline(deadline),
+        deadline: parsedDeadline,
         intake: null,
         language: null,
         min_gpa: null,
         min_ielts: null,
-        eligibility,
-        requirements,
-        benefits,
-        application_url: applicationUrl,
-        image_url: imageUrl,
+        eligibility: cleanText(eligibility),
+        requirements: cleanText(requirements),
+        benefits: cleanText(benefits),
+        application_url: trunc(applicationUrl),
+        image_url: trunc(imageUrl),
         is_featured: false,
-        is_active: null, // set after deadline check
+        is_active: true,
         source: 'scholars4dev',
       };
-
-      // Set is_active
-      if (scholarship.deadline) {
-        scholarship.is_active = new Date(scholarship.deadline) > new Date();
-      } else {
-        // Nếu không parse được deadline rõ ràng → coi là active
-        scholarship.is_active = true;
-        // Fallback deadline 1 năm tới
-        const fallbackDeadline = new Date();
-        fallbackDeadline.setFullYear(fallbackDeadline.getFullYear() + 1);
-        scholarship.deadline = fallbackDeadline.toISOString();
-      }
 
       scholarships.push(scholarship);
       await sleep(1200); // Rate limit: 1.2s giữa mỗi detail page
@@ -445,12 +462,21 @@ async function scrapeScholarships4Dev() {
     return [];
   }
 
-  // Các trang danh mục của scholars4dev để scrape
-  const categoryPages = [
+  // Base categories (undergraduate-scholarships thay cho fully-funded-scholarships đã 404)
+  const BASE_CATEGORIES = [
     'https://www.scholars4dev.com/category/masters-scholarships/',
     'https://www.scholars4dev.com/category/phd-scholarships/',
-    'https://www.scholars4dev.com/category/fully-funded-scholarships/',
+    'https://www.scholars4dev.com/category/undergraduate-scholarships/',
   ];
+
+  // Sinh paginated URLs: page 1 là base URL, page N là /page/N/
+  const MAX_PAGES_PER_CAT = 6;
+  const categoryPages = [];
+  for (const base of BASE_CATEGORIES) {
+    for (let p = 1; p <= MAX_PAGES_PER_CAT; p++) {
+      categoryPages.push(p === 1 ? base : `${base}page/${p}/`);
+    }
+  }
 
   const allScholarships = [];
   const seen = new Set();
@@ -473,6 +499,20 @@ async function scrapeScholarships4Dev() {
     if (allScholarships.length >= SCRAPE_COUNT) break;
   }
 
+  // Supplement từ scholarshippositions.com nếu chưa đủ count
+  if (allScholarships.length < SCRAPE_COUNT) {
+    console.log('\n🌐 Supplementing with afterschoolafrica.com...');
+    const posScraped = await scrapeScholarshipPositions();
+    for (const s of posScraped) {
+      const key = s.title.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        allScholarships.push(s);
+      }
+      if (allScholarships.length >= SCRAPE_COUNT) break;
+    }
+  }
+
   // Limit to requested count
   const result = allScholarships.slice(0, SCRAPE_COUNT);
 
@@ -487,6 +527,148 @@ async function scrapeScholarships4Dev() {
   });
 
   return result;
+}
+
+// ── Scraper: scholarshippositions.com ───────────────────────────
+async function scrapeScholarshipPositions() {
+  if (!axios || !cheerio) return [];
+
+  // afterschoolafrica.com — WordPress scholarship blog, cùng cấu trúc HTML
+  const BASE = 'https://afterschoolafrica.com';
+  const HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+  const categoryPages = [
+    `${BASE}/category/scholarships/`,
+    `${BASE}/category/scholarships/page/2/`,
+    `${BASE}/category/scholarships/page/3/`,
+  ];
+
+  const scholarships = [];
+  const seen = new Set();
+
+  for (const pageUrl of categoryPages) {
+    if (scholarships.length >= SCRAPE_COUNT) break;
+    console.log(`\n📄 [afterschoolafrica] Scraping: ${pageUrl}`);
+    await sleep(2000);
+
+    try {
+      const res = await axios.get(pageUrl, { headers: HEADERS, timeout: 15000 });
+      const $ = cheerio.load(res.data);
+
+      const entries = [];
+      $('h2.entry-title a, article h2 a, .post-title a').each((_, el) => {
+        const title = cleanText($(el).text());
+        const url = $(el).attr('href');
+        if (!title || !url || seen.has(url)) return;
+        seen.add(url);
+        entries.push({ title, url });
+      });
+      console.log(`  🔍 Found ${entries.length} links`);
+
+      for (const entry of entries) {
+        if (scholarships.length >= SCRAPE_COUNT) break;
+
+        if (LISTICLE_RE.test(entry.title)) {
+          console.log(`  ⏭️  Skipping listicle: "${entry.title.substring(0, 60)}"`);
+          continue;
+        }
+
+        try {
+          await sleep(1200);
+          const detail = await axios.get(entry.url, { headers: HEADERS, timeout: 15000 });
+          const $$ = cheerio.load(detail.data);
+
+          let provider = null, country = null, degree = null, deadline = null;
+          let fieldOfStudy = null, benefits = null, applicationUrl = null, imageUrl = null;
+
+          $$('table tr, .scholarship-info li, .entry-content p').each((_, el) => {
+            const text = $$(el).text();
+            const lower = text.toLowerCase();
+
+            if (!provider && /host\s*(university|institution|organization)/i.test(lower))
+              provider = cleanText(text.replace(/host\s*(university|institution|organization):?\s*/i, ''));
+            if (!country && /\b(country|study\s+in|location)\b/i.test(lower))
+              country = cleanText(text.replace(/\b(country|study\s+in|location):?\s*/i, '').split(/[,\/]/)[0]);
+            if (!degree && /\b(level|degree|scholarship\s+type)\b/i.test(lower))
+              degree = cleanText(text.replace(/\b(level|degree|scholarship\s+type):?\s*/i, ''));
+            if (!deadline && /\b(deadline|apply\s+by|closing\s+date)\b/i.test(lower))
+              deadline = cleanText(text.replace(/\b(deadline|apply\s+by|closing\s+date):?\s*/i, ''));
+            if (!fieldOfStudy && /\b(field|subject|discipline)\b/i.test(lower))
+              fieldOfStudy = cleanText(text.replace(/\b(field of study|subject|discipline):?\s*/i, ''));
+            if (!benefits && /\b(benefits?|coverage|award|funding)\b/i.test(lower))
+              benefits = cleanText(text.replace(/\b(benefits?|coverage|award|funding):?\s*/i, ''));
+          });
+
+          $$('a').each((_, el) => {
+            if (applicationUrl) return;
+            const href = $$(el).attr('href') || '';
+            const txt = $$(el).text().toLowerCase();
+            if (
+              href.startsWith('http') &&
+              !href.includes('scholarshippositions') &&
+              (txt.includes('apply') || txt.includes('official'))
+            ) {
+              applicationUrl = href;
+            }
+          });
+
+          imageUrl =
+            $$('meta[property="og:image"]').attr('content') ||
+            $$('article img').first().attr('src') ||
+            null;
+
+          const parsedDeadline = parseDeadline(deadline);
+
+          if (!parsedDeadline) {
+            console.log(`  ⏭️  No deadline — skipping: "${entry.title.substring(0, 60)}"`);
+            continue;
+          }
+          if (new Date(parsedDeadline) <= new Date()) {
+            console.log(`  ⏭️  Expired — skipping: "${entry.title.substring(0, 60)}"`);
+            continue;
+          }
+
+          scholarships.push({
+            title: trunc(cleanText(entry.title)),
+            provider: trunc(provider || 'Various Institutions'),
+            country: trunc(country || 'Multiple Countries'),
+            city: null,
+            university: null,
+            degree: mapDegree(degree),
+            field_of_study: trunc(fieldOfStudy),
+            amount: null,
+            currency: 'USD',
+            coverage: null,
+            deadline: parsedDeadline,
+            intake: null,
+            language: null,
+            min_gpa: null,
+            min_ielts: null,
+            eligibility: null,
+            requirements: null,
+            benefits,
+            application_url: trunc(applicationUrl),
+            image_url: trunc(imageUrl),
+            is_featured: false,
+            is_active: true,
+            source: 'scholarshippositions',
+          });
+
+          if (scholarships.length % 5 === 0)
+            console.log(`  ⏳ Scraped ${scholarships.length} scholarships (positions)...`);
+        } catch (err) {
+          console.warn(`  ⚠️  Error fetching ${entry.url}: ${err.message}`);
+        }
+      }
+    } catch (err) {
+      console.error(`  ❌ Error scraping ${pageUrl}: ${err.message}`);
+    }
+  }
+
+  console.log(`\n✅ afterschoolafrica: ${scholarships.length} scholarships scraped`);
+  return scholarships;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2042,6 +2224,17 @@ async function seed() {
   } catch (err) {
     console.error('❌ Cannot connect to PostgreSQL:', err.message);
     process.exit(1);
+  }
+
+  // 3b. Dọn rác: đánh dấu học bổng hết hạn là inactive
+  console.log('🗑️  Deactivating expired scholarships...');
+  try {
+    const deactivated = await pgClient.query(
+      `UPDATE scholarships SET is_active = false WHERE deadline < NOW()`
+    );
+    console.log(`✅ Expired scholarships deactivated (${deactivated.rowCount} rows)\n`);
+  } catch (err) {
+    console.warn('⚠️  Could not deactivate expired scholarships:', err.message);
   }
 
   // 4. Check if scholarships table exists
