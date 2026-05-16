@@ -50,7 +50,7 @@ const MAX_ITEMS  = limitArg ? parseInt(limitArg) : 1000;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const sleep  = ms => new Promise(r => setTimeout(r, ms));
-const delay  = () => sleep(1500 + Math.floor(Math.random() * 1500)); // 1.5–3s
+const delay  = (extra = 0) => sleep(1500 + extra + Math.floor(Math.random() * 1500)); // 1.5–3s base + optional extra
 const geminiDelay = () => sleep(4500 + Math.floor(Math.random() * 1000)); // 4.5–5.5s — stay under 15 rpm free tier
 const log    = (...a) => console.log(...a);
 const warn   = (...a) => console.warn('⚠️ ', ...a);
@@ -290,7 +290,7 @@ const SKIP_PATHS = ['/category/', '/tag/', '/page/', '/author/', '/wp-content/',
 // Link text must contain at least one scholarship-signal word
 const LINK_TEXT_RE = /scholar|fellowship|grant|award|fund|opportunit|study|internship|bursary|program|apply/i;
 
-function extractLinks(html, baseUrl) {
+function extractLinks(html, baseUrl, urlPattern) {
   const $ = cheerio.load(html);
   const links = new Set();
   const domain = new URL(baseUrl).origin;
@@ -303,6 +303,8 @@ function extractLinks(html, baseUrl) {
     const urlPath = href.replace(/^https?:\/\/[^/]+/, '');
     if (linkText && linkText.length > 0 && !LINK_TEXT_RE.test(linkText) && !LINK_TEXT_RE.test(urlPath)) return;
     const full = href.startsWith('http') ? href : `${domain}${href.startsWith('/') ? '' : '/'}${href}`;
+    // If source defines a URL pattern, only accept matching links (e.g. date-based article URLs)
+    if (urlPattern && !urlPattern.test(full)) return;
     if (
       full.startsWith(domain) &&
       !full.includes('?') &&
@@ -320,22 +322,22 @@ function extractLinks(html, baseUrl) {
 }
 
 // ── Source definitions ────────────────────────────────────────────────────────
+// Tested & working:
+//   scholars4dev.com           ✅ reliable, no rate limit
+//   scholarship-positions.com  ✅ works with 3s+ delay between articles
 // Tested & rejected:
-//   scholarshipdb.net          → HTTP 403 blocked
-//   scholarship-positions.com  → HTTP 429 rate-limited
-//   afterschoolalpha.com       → DNS ENOTFOUND (domain dead)
-//   worldscholarshipforum.com  → many article URLs return 404
-//   opportunitydesk.org        → serves gambling/ad content for bot requests (22Bet injection)
-//
-// Strategy: scholars4dev verified reliable — expand to 18 listing pages
-//   ~22 links/page × 18 pages = ~400 articles → ~300-350 unique scholarships after dedup
+//   scholarshipdb.net          ❌ HTTP 403 blocked
+//   afterschoolalpha.com       ❌ DNS ENOTFOUND (domain dead)
+//   worldscholarshipforum.com  ❌ many article URLs return 404
+//   opportunitydesk.org        ❌ serves gambling/ad content for bot requests (22Bet injection)
 const SOURCES = [
   {
     name: 'scholars4dev',
     type: 'listing',
-    // Verified pages (200 OK). ~22 links/page × 16 pages = ~352 articles
+    delayExtra: 0, // 1.5-3s base
+    // Pages 1-7 mostly in seed; pages 8-15 provide ~20% new entries
     listingPages: [
-      // Masters — pages 1-7 verified
+      // Masters — pages 1-15 verified (pages 1-7 likely already seeded, 8-15 new)
       'https://www.scholars4dev.com/category/masters-scholarships/',
       'https://www.scholars4dev.com/category/masters-scholarships/page/2/',
       'https://www.scholars4dev.com/category/masters-scholarships/page/3/',
@@ -343,17 +345,53 @@ const SOURCES = [
       'https://www.scholars4dev.com/category/masters-scholarships/page/5/',
       'https://www.scholars4dev.com/category/masters-scholarships/page/6/',
       'https://www.scholars4dev.com/category/masters-scholarships/page/7/',
-      // PhD — pages 1-5 verified
+      'https://www.scholars4dev.com/category/masters-scholarships/page/8/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/9/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/10/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/11/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/12/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/13/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/14/',
+      'https://www.scholars4dev.com/category/masters-scholarships/page/15/',
+      // PhD — pages 1-12 verified
       'https://www.scholars4dev.com/category/phd-scholarships/',
       'https://www.scholars4dev.com/category/phd-scholarships/page/2/',
       'https://www.scholars4dev.com/category/phd-scholarships/page/3/',
       'https://www.scholars4dev.com/category/phd-scholarships/page/4/',
       'https://www.scholars4dev.com/category/phd-scholarships/page/5/',
-      // Undergraduate — pages 1-4 verified
+      'https://www.scholars4dev.com/category/phd-scholarships/page/6/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/7/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/8/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/9/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/10/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/11/',
+      'https://www.scholars4dev.com/category/phd-scholarships/page/12/',
+      // Undergraduate — pages 1-8 verified
       'https://www.scholars4dev.com/category/undergraduate-scholarships/',
       'https://www.scholars4dev.com/category/undergraduate-scholarships/page/2/',
       'https://www.scholars4dev.com/category/undergraduate-scholarships/page/3/',
       'https://www.scholars4dev.com/category/undergraduate-scholarships/page/4/',
+      'https://www.scholars4dev.com/category/undergraduate-scholarships/page/5/',
+      'https://www.scholars4dev.com/category/undergraduate-scholarships/page/6/',
+      'https://www.scholars4dev.com/category/undergraduate-scholarships/page/7/',
+      'https://www.scholars4dev.com/category/undergraduate-scholarships/page/8/',
+    ],
+  },
+  {
+    name: 'scholarship-positions',
+    type: 'listing',
+    delayExtra: 3000, // 4.5-6s total — avoid 429 rate limit
+    // Rate-limited after ~2-3 listing pages. Use urlPattern to filter nav sidebar links.
+    // Article URLs follow date pattern: /slug/YYYY/MM/DD/
+    urlPattern: /\/\d{4}\/\d{2}\/\d{2}\//,
+    listingPages: [
+      'https://scholarship-positions.com/category/masters-scholarships/',
+      'https://scholarship-positions.com/category/masters-scholarships/page/2/',
+      'https://scholarship-positions.com/category/under-graduate-scholarship/',
+      'https://scholarship-positions.com/category/under-graduate-scholarship/page/2/',
+      'https://scholarship-positions.com/category/phd-scholarships/',
+      'https://scholarship-positions.com/category/phd-scholarships/page/2/',
+      'https://scholarship-positions.com/category/scholarships-for-developing-countries/',
     ],
   },
 ];
@@ -368,13 +406,13 @@ async function scrapeListingSource(source, collected) {
     try {
       log(`   → Fetching: ${pageUrl}`);
       const html = await fetchHtml(pageUrl);
-      const links = extractLinks(html, pageUrl);
+      const links = extractLinks(html, pageUrl, source.urlPattern);
       log(`   → Found ${links.length} article links`);
 
       for (const link of links) {
         if (collected.length >= MAX_ITEMS) break;
         try {
-          await delay();
+          await delay(source.delayExtra || 0);
           const detailHtml = await fetchHtml(link, pageUrl);
           const items = await parsePage(detailHtml, link);
           if (items.length > 0) {
@@ -393,7 +431,7 @@ async function scrapeListingSource(source, collected) {
         }
       }
 
-      await delay();
+      await delay(source.delayExtra || 0);
     } catch (e) {
       warn(`Listing fetch failed: ${pageUrl} — ${e.message?.substring(0, 80)}`);
     }
