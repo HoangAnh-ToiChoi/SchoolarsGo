@@ -57,6 +57,15 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Body-parser JSON parse error (invalid JSON body từ client)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body không phải JSON hợp lệ',
+      code: 400,
+    });
+  }
+
   // Lỗi tùy chỉnh từ service layer
   if (err.isOperational) {
     return res.status(err.statusCode || 400).json({

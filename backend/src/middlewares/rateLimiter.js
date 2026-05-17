@@ -16,4 +16,10 @@ const rateLimiter = (maxRequests = 100, windowMs = 60, message = 'Too many reque
   });
 };
 
+// Named export cho app.js global limiter
+const apiLimiter = rateLimiter(100, 60, 'Quá nhiều yêu cầu, vui lòng thử lại sau.');
+const authLimiter = rateLimiter(5, 15 * 60, 'Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau 15 phút.');
+
 module.exports = rateLimiter;
+module.exports.apiLimiter = apiLimiter;
+module.exports.authLimiter = authLimiter;

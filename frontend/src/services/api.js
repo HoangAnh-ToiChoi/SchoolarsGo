@@ -30,8 +30,11 @@ api.interceptors.response.use(
 
       // Xử lý 401 — token hết hạn hoặc không hợp lệ
       if (status === 401) {
-        useAuthStore.getState().logout();
-        window.location.href = '/login';
+        const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
+        if (!onAuthPage) {
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }
         return Promise.reject(new Error(data.message || 'Phiên đăng nhập đã hết hạn'));
       }
 
@@ -40,9 +43,10 @@ api.interceptors.response.use(
         return Promise.reject(new Error('Quá nhiều yêu cầu, vui lòng thử lại sau'));
       }
 
-      // Trả về message từ server nếu có
+      // Trả về message từ server nếu có — giữ nguyên error object để status code không bị mất
       if (data.message) {
-        return Promise.reject(new Error(data.message));
+        error.message = data.message;
+        return Promise.reject(error);
       }
     }
 

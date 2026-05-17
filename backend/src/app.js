@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const { swaggerSpec } = require('./utils/swagger');
 const errorHandler = require('./middlewares/errorHandler');
+const { apiLimiter } = require('./middlewares/rateLimiter');
 const authRoutes = require('./routes/auth.routes');
 const scholarshipRoutes = require('./routes/scholarship.routes');
 const profileRoutes = require('./routes/profile.routes');
@@ -17,6 +18,7 @@ const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
 const chatRoutes = require('./routes/chat.routes');
 const newsRoutes = require('./routes/news.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -41,6 +43,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ── API Routes ─────────────────────────────────────────
+app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/profile', profileRoutes);
@@ -50,6 +53,7 @@ app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {
