@@ -20,6 +20,7 @@ import { cn, formatDate, getStatusColor, getStatusLabel, formatCurrency } from '
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
 import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AnimatedPage from '../components/ui/AnimatedPage';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -135,9 +136,9 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
+    <AnimatedPage className="min-h-screen relative overflow-hidden bg-gray-50 dark:bg-[#050510] text-gray-900 dark:text-white pb-24">
       <AuroraBackground />
-      
+
       <div className="container-page relative z-10 pt-24 md:pt-32 mb-12 space-y-8">
         {/* Page Header */}
         <PageHeader
@@ -147,17 +148,17 @@ const DashboardPage = () => {
 
         {/* Section 1: Metrics Cards */}
       <section>
-        <h2 className="heading-3 mb-4">Tổng quan</h2>
+        <h2 className="text-heading-3 mb-4">Tổng quan</h2>
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
           {metrics.map(metric => {
             const Icon = metric.icon;
             return (
-              <Card key={metric.id} className="hover">
+              <Card key={metric.id}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-2">{metric.label}</p>
-                      <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                      <p className="text-sm text-gray-600 dark:text-white/60 mb-2">{metric.label}</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{metric.value}</p>
                     </div>
                     <Icon className={cn('w-8 h-8', metric.color)} />
                   </div>
@@ -170,7 +171,7 @@ const DashboardPage = () => {
 
       {/* Section 2: Quick Actions */}
       <section>
-        <h2 className="heading-3 mb-4">Hành động nhanh</h2>
+        <h2 className="text-heading-3 mb-4">Hành động nhanh</h2>
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Button
             fullWidth
@@ -209,13 +210,13 @@ const DashboardPage = () => {
       {/* Section 3: Application Status Breakdown */}
       {applications.length > 0 && (
         <section>
-          <h2 className="heading-3 mb-4">Phân bố trạng thái</h2>
+          <h2 className="text-heading-3 mb-4">Phân bố trạng thái</h2>
           <Card>
             <CardContent className="p-6">
               <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {Object.entries(statusLabels).map(([status, label]) => (
                   <div key={status} className="text-center">
-                    <p className="text-2xl font-bold text-gray-900 mb-1">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                       {statusCounts[status] ?? 0}
                     </p>
                     <Badge color={statusColors[status]} className="w-full justify-center">
@@ -232,27 +233,27 @@ const DashboardPage = () => {
       {/* Section 4: Recent Applications Timeline */}
       {recentApplications.length > 0 ? (
         <section>
-          <h2 className="heading-3 mb-4">Ứng tuyển gần đây</h2>
+          <h2 className="text-heading-3 mb-4">Ứng tuyển gần đây</h2>
           <div className="space-y-3">
-            {recentApplications.map((app, idx) => (
-              <Card key={app.id} className="hover">
+            {recentApplications.map((app) => (
+              <Card key={app.id}>
                 <CardContent className="p-4 md:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <Circle className="w-2 h-2 flex-shrink-0 text-primary-600" />
-                        <p className="font-semibold text-gray-900 truncate">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">
                           {app.scholarship?.title || 'Không xác định'}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-sm text-gray-600 dark:text-white/60 mb-3">
                         Ứng tuyển lúc: {formatDate(app.created_at, 'dd/MM/yyyy HH:mm')}
                       </p>
                       <Badge color={statusColors[app.status]}>
                         {statusLabels[app.status]}
                       </Badge>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
+                    <ArrowRight className="w-5 h-5 text-gray-400 dark:text-white/30 flex-shrink-0 mt-1" />
                   </div>
                 </CardContent>
               </Card>
@@ -264,14 +265,14 @@ const DashboardPage = () => {
       {/* Section 5: Upcoming Deadlines Alert */}
       {upcomingDeadlines.length > 0 ? (
         <section>
-          <h2 className="heading-3 mb-4">Sắp tới hạn</h2>
+          <h2 className="text-heading-3 mb-4">Sắp tới hạn</h2>
           <div className="space-y-3">
             {upcomingDeadlines.map(scholarship => {
               const daysUntil = getDaysUntil(scholarship.deadline);
               const borderColorClass = getBorderColor(scholarship.deadline);
 
               return (
-                <Card key={scholarship.id} className={cn('hover', borderColorClass)}>
+                <Card key={scholarship.id} className={borderColorClass}>
                   <CardContent className="p-4 md:p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
@@ -286,11 +287,11 @@ const DashboardPage = () => {
                                   : 'text-gray-400'
                             )}
                           />
-                          <p className="font-semibold text-gray-900 truncate">
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">
                             {scholarship.title}
                           </p>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
+                        <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-white/60 mb-2">
                           <span className="flex items-center gap-1">
                             <MapPin className="w-4 h-4" />
                             {scholarship.country}
@@ -327,7 +328,7 @@ const DashboardPage = () => {
         </div>
       )}
       </div>
-    </div>
+    </AnimatedPage>
   );
 };
 
