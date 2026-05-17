@@ -1,3 +1,5 @@
+const Sentry = require('@sentry/node');
+
 const errorHandler = (err, req, res, _next) => {
   // Log lỗi ra console trong development
   if (process.env.NODE_ENV !== 'production') {
@@ -105,7 +107,8 @@ const errorHandler = (err, req, res, _next) => {
     });
   }
 
-  // Lỗi không xác định — không leak internal details
+  // Lỗi không xác định — capture Sentry + không leak internal details
+  if (process.env.SENTRY_DSN) Sentry.captureException(err);
   console.error('Unhandled error:', err);
   return res.status(500).json({
     success: false,

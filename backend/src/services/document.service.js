@@ -70,13 +70,17 @@ class DocumentService {
         mimeType: file.mimetype,
       });
 
-      this.#eventBus.emit('document.uploaded', {
-        userId,
-        documentId: doc.id,
-        docType,
-        fileSize: file.size,
-        fileName: file.originalname,
-      });
+      try {
+        this.#eventBus.emit('document.uploaded', {
+          userId,
+          documentId: doc.id,
+          docType,
+          fileSize: file.size,
+          fileName: file.originalname,
+        });
+      } catch (emitErr) {
+        console.error('[DocumentService] EventBus emit error (document.uploaded):', emitErr.message);
+      }
 
       return doc;
     } catch (dbErr) {
@@ -96,11 +100,15 @@ class DocumentService {
 
     await this.#repo.deleteByIdAndUserId(documentId, userId);
 
-    this.#eventBus.emit('document.deleted', {
-      userId,
-      documentId,
-      fileSize: doc.file_size,
-    });
+    try {
+      this.#eventBus.emit('document.deleted', {
+        userId,
+        documentId,
+        fileSize: doc.file_size,
+      });
+    } catch (emitErr) {
+      console.error('[DocumentService] EventBus emit error (document.deleted):', emitErr.message);
+    }
   };
 }
 

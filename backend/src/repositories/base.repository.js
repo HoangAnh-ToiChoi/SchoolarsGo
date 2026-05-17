@@ -45,22 +45,30 @@ class BaseRepository {
     return this.db.queryOne(sql, values);
   }
 
-  async update(id, data, conditions = '', returning = '*') {
+  async update(id, data, conditions = '', returning = '*', conditionParams = []) {
     const keys = Object.keys(data);
     const values = Object.values(data);
     const setClause = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
-    const offset = keys.length + 1;
-    let sql = `UPDATE ${this.table} SET ${setClause} WHERE id = $${offset}`;
-    if (conditions) sql += ` AND ${conditions}`;
+    const idOffset = keys.length + 1;
+    let sql = `UPDATE ${this.table} SET ${setClause} WHERE id = $${idOffset}`;
+    if (conditions) {
+      // Shift $N placeholders in conditions to start after SET params + id param
+      const shifted = conditions.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n, 10) + idOffset}`);
+      sql += ` AND ${shifted}`;
+    }
     sql += ` RETURNING ${returning}`;
-    return this.db.queryOne(sql, [...values, id]);
+    return this.db.queryOne(sql, [...values, id, ...conditionParams]);
   }
 
-  async delete(id, conditions = '', returning = 'id') {
+  async delete(id, conditions = '', returning = 'id', conditionParams = []) {
     let sql = `DELETE FROM ${this.table} WHERE id = $1`;
-    if (conditions) sql += ` AND ${conditions}`;
+    if (conditions) {
+      // Shift $N placeholders in conditions to start after id param ($1)
+      const shifted = conditions.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n, 10) + 1}`);
+      sql += ` AND ${shifted}`;
+    }
     sql += ` RETURNING ${returning}`;
-    return this.db.queryOne(sql, [id]);
+    return this.db.queryOne(sql, [id, ...conditionParams]);
   }
 }
 
