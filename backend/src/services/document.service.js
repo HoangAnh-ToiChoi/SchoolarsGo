@@ -1,72 +1,115 @@
-const getSupabase = require('../utils/supabase');
-const { uploadFile, deleteFile } = require('./storage.service');
+const AppError = require('../utils/AppError');
 
-const VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
+class DocumentService {
+  #repo;
+  #eventBus;
+  #storage;
 
-const getAll = async (userId) => {
-  const { data, error } = await getSupabase().from('documents')
-    .select('*').eq('user_id', userId).order('created_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
-};
+  static #VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-const upload = async (userId, docType, file) => {
-  if (!VALID_TYPES.includes(docType)) {
-    const err = new Error(`Loại document không hợp lệ. Chỉ chấp nhận: ${VALID_TYPES.join(', ')}`);
-    err.statusCode = 400;
-    err.isOperational = true;
-    throw err;
-  }
-  if (!file) {
-    const err = new Error('Không có file được upload');
-    err.statusCode = 400;
-    err.isOperational = true;
-    throw err;
+  constructor(documentRepository, eventBus, storageService) {
+    this.#repo = documentRepository;
+    this.#eventBus = eventBus;
+    this.#storage = storageService;
   }
 
-  let uploadResult;
-  try {
-    uploadResult = await uploadFile(userId, docType, file.buffer, file.originalname, file.mimetype);
-  } catch (storageErr) {
-    const err = new Error(`Upload file thất bại: ${storageErr.message}`);
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
+  #guardFound(item, message = 'Không tìm thấy document hoặc bạn không có quyền xóa') {
+    if (!item) throw new AppError(message, 404, 'DOCUMENT_NOT_FOUND');
   }
 
-  const { data: doc, error } = await getSupabase().from('documents')
-    .insert({ user_id: userId, type: docType, file_name: file.originalname, file_url: uploadResult.publicUrl, file_size: file.size, mime_type: file.mimetype })
-    .select().single();
-
-  if (error) {
-    await deleteFile(uploadResult.storagePath);
-    const err = new Error(`Lưu metadata thất bại, file đã được gỡ: ${error.message}`);
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
+  #validateType(docType) {
+    if (!DocumentService.#VALID_TYPES.includes(docType))
+      throw new AppError(
+        `Loại document không hợp lệ. Chỉ chấp nhận: ${DocumentService.#VALID_TYPES.join(', ')}`,
+        400,
+        'INVALID_DOC_TYPE'
+      );
   }
 
-  return doc;
-};
-
-const remove = async (userId, documentId) => {
-  const sb = getSupabase();
-
-  const { data: doc } = await sb.from('documents')
-    .select('*').eq('id', documentId).eq('user_id', userId).maybeSingle();
-
-  if (!doc) {
-    const err = new Error('Không tìm thấy document hoặc bạn không có quyền xóa');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+  #ensureFile(file) {
+    if (!file) throw new AppError('Không có file được upload', 400, 'NO_FILE');
   }
 
-  const match = doc.file_url?.match(/\/documents\/(.+)/);
-  if (match) await deleteFile(`documents/${match[1]}`);
+  #parseStoragePath(publicUrl) {
+    if (!publicUrl) return null;
+    const match = publicUrl.match(/\/documents\/(.+)/);
+    return match ? `documents/${match[1]}` : null;
+  }
 
-  const { error } = await sb.from('documents').delete().eq('id', documentId).eq('user_id', userId);
-  if (error) throw error;
-};
+  async #uploadToStorage(userId, docType, file) {
+    try {
+      return await this.#storage.uploadFile(
+        userId,
+        docType,
+        file.buffer,
+        file.originalname,
+        file.mimetype
+      );
+    } catch (err) {
+      throw new AppError(`Upload file thất bại: ${err.message}`, 500, 'UPLOAD_FAILED');
+    }
+  }
 
-module.exports = { getAll, upload, remove };
+  getAll = async userId => {
+    return this.#repo.findAllByUserId(userId);
+  };
+
+  upload = async (userId, docType, file) => {
+    this.#validateType(docType);
+    this.#ensureFile(file);
+
+    const uploadResult = await this.#uploadToStorage(userId, docType, file);
+
+    try {
+      const doc = await this.#repo.insertDocument({
+        userId,
+        docType,
+        fileName: file.originalname,
+        fileUrl: uploadResult.publicUrl,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+      });
+
+      try {
+        this.#eventBus.emit('document.uploaded', {
+          userId,
+          documentId: doc.id,
+          docType,
+          fileSize: file.size,
+          fileName: file.originalname,
+        });
+      } catch (emitErr) {
+        console.error('[DocumentService] EventBus emit error (document.uploaded):', emitErr.message);
+      }
+
+      return doc;
+    } catch (dbErr) {
+      await this.#storage.deleteFile(uploadResult.storagePath);
+      throw new AppError(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 500, 'DB_INSERT_FAILED');
+    }
+  };
+
+  remove = async (userId, documentId) => {
+    const doc = await this.#repo.findByIdAndUserId(documentId, userId);
+    this.#guardFound(doc);
+
+    if (doc.file_url) {
+      const path = this.#parseStoragePath(doc.file_url);
+      if (path) await this.#storage.deleteFile(path);
+    }
+
+    await this.#repo.deleteByIdAndUserId(documentId, userId);
+
+    try {
+      this.#eventBus.emit('document.deleted', {
+        userId,
+        documentId,
+        fileSize: doc.file_size,
+      });
+    } catch (emitErr) {
+      console.error('[DocumentService] EventBus emit error (document.deleted):', emitErr.message);
+    }
+  };
+}
+
+module.exports = DocumentService;

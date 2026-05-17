@@ -1,166 +1,129 @@
-const getSupabase = require('../utils/supabase');
+const AppError = require('../utils/AppError');
 
-const VALID_STATUS_TRANSITIONS = {
-  draft: ['submitted', 'withdrawn'],
-  submitted: ['under_review', 'rejected', 'withdrawn'],
-  under_review: ['interview', 'rejected', 'withdrawn'],
-  interview: ['accepted', 'rejected', 'withdrawn'],
-  accepted: [],
-  rejected: [],
-  withdrawn: [],
-};
+class ApplicationService {
+  #repo;
 
-const DEFAULT_CHECKLIST = [
-  { item: 'CV', done: false },
-  { item: 'SOP', done: false },
-  { item: 'Bảng điểm', done: false },
-  { item: 'Thư giới thiệu', done: false },
-  { item: 'IELTS Certificate', done: false },
-  { item: 'Hộ chiếu', done: false },
-];
-
-const shapeRow = (row) => ({
-  id: row.id,
-  status: row.status,
-  applied_at: row.applied_at,
-  notes: row.notes,
-  checklist: row.checklist,
-  documents_used: row.documents_used,
-  result: row.result,
-  created_at: row.created_at,
-  updated_at: row.updated_at,
-  scholarship: row.scholarships
-    ? { id: row.scholarships.id, title: row.scholarships.title, country: row.scholarships.country, deadline: row.scholarships.deadline, amount: row.scholarships.amount, image_url: row.scholarships.image_url }
-    : null,
-});
-
-const getAll = async (userId, filters) => {
-  const sb = getSupabase();
-  const page = Math.max(1, Number(filters.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 20));
-  const offset = (page - 1) * limit;
-
-  let q = sb.from('applications')
-    .select('*, scholarships ( id, title, country, deadline, amount, image_url )', { count: 'exact' })
-    .eq('user_id', userId);
-
-  if (filters.status) q = q.eq('status', filters.status);
-
-  const { data, count, error } = await q.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
-  if (error) throw error;
-
-  return {
-    data: (data || []).map(shapeRow),
-    meta: { page, limit, total: count ?? 0 },
+  static #VALID_TRANSITIONS = {
+    draft: ['submitted', 'withdrawn'],
+    submitted: ['under_review', 'rejected', 'withdrawn'],
+    under_review: ['interview', 'rejected', 'withdrawn'],
+    interview: ['accepted', 'rejected', 'withdrawn'],
+    accepted: [],
+    rejected: [],
+    withdrawn: [],
   };
-};
 
-const create = async (userId, payload) => {
-  const sb = getSupabase();
-  const { scholarship_id, checklist, notes } = payload;
+  static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
 
-  const { data: scholarship } = await sb.from('scholarships').select('id, title').eq('id', scholarship_id).maybeSingle();
-  if (!scholarship) {
-    const err = new Error('Không tìm thấy học bổng');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+  constructor(applicationRepository) {
+    this.#repo = applicationRepository;
   }
 
-  const { data: existing } = await sb.from('applications')
-    .select('id').eq('user_id', userId).eq('scholarship_id', scholarship_id).maybeSingle();
-  if (existing) {
-    const err = new Error(`Bạn đã ứng tuyển học bổng "${scholarship.title}" rồi`);
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
+  #guardFound(entity, message = 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.') {
+    if (!entity) throw new AppError(message, 404, 'APPLICATION_NOT_FOUND');
   }
 
-  const { data: newApp, error } = await sb.from('applications')
-    .insert({ user_id: userId, scholarship_id, checklist: checklist || DEFAULT_CHECKLIST, notes: notes || null, status: 'draft' })
-    .select('*, scholarships ( id, title, country, deadline, amount, image_url )')
-    .single();
-
-  if (error) throw error;
-  return shapeRow(newApp);
-};
-
-const getById = async (userId, applicationId) => {
-  const { data: app, error } = await getSupabase().from('applications')
-    .select('*, scholarships ( id, title, country, deadline, amount, image_url )')
-    .eq('id', applicationId).eq('user_id', userId).maybeSingle();
-
-  if (error) throw error;
-  if (!app) {
-    const err = new Error('Không tìm thấy application');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-  return shapeRow(app);
-};
-
-const update = async (userId, applicationId, updates) => {
-  const sb = getSupabase();
-
-  const { data: existing } = await sb.from('applications')
-    .select('status').eq('id', applicationId).eq('user_id', userId).maybeSingle();
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+  #assertValidTransition(from, to) {
+    const allowed = ApplicationService.#VALID_TRANSITIONS[from] || [];
+    if (!allowed.includes(to)) {
+      throw new AppError('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 400, 'INVALID_STATUS_TRANSITION');
+    }
   }
 
-  if (updates.status) {
-    const allowed = VALID_STATUS_TRANSITIONS[existing.status] || [];
-    if (!allowed.includes(updates.status)) {
-      const err = new Error(`Không thể chuyển từ "${existing.status}" sang "${updates.status}"`);
-      err.statusCode = 400;
-      err.isOperational = true;
+  #assertDeletable(status) {
+    if (ApplicationService.#UNDELETABLE.includes(status)) {
+      throw new AppError('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 400, 'CANNOT_DELETE');
+    }
+  }
+
+  #formatApplication(row) {
+    return {
+      id: row.id,
+      status: row.status,
+      applied_at: row.applied_at,
+      notes: row.notes,
+      checklist: row.checklist,
+      documents_used: row.documents_used,
+      result: row.result,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      scholarship: {
+        id: row.scholarship_id,
+        title: row.scholarship_title,
+        country: row.country,
+        deadline: row.deadline,
+        amount: row.amount,
+        image_url: row.image_url,
+      },
+    };
+  }
+
+  async getAll(userId, filters = {}) {
+    const page = Math.max(1, parseInt(filters.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 20));
+    const status = filters.status || null;
+
+    const { rows, total } = await this.#repo.findAllByUser(userId, { page, limit, status });
+
+    return {
+      data: rows.map(row => this.#formatApplication(row)),
+      meta: { page, limit, total },
+    };
+  }
+
+  async create(userId, { scholarshipId, checklist, notes }) {
+    const exists = await this.#repo.scholarshipExists(scholarshipId);
+    if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
+
+    try {
+      const app = await this.#repo.create(userId, { scholarshipId, checklist, notes });
+      return this.#formatApplication(app);
+    } catch (err) {
+      if (err.message === 'APPLICATION_ALREADY_EXISTS') {
+        throw new AppError('Bạn đã ứng tuyển học bổng này rồi.', 409, 'APPLICATION_ALREADY_EXISTS');
+      }
       throw err;
     }
-    if (updates.status === 'submitted' && existing.status === 'draft') {
-      updates.applied_at = new Date().toISOString();
+  }
+
+  async getById(userId, applicationId) {
+    const app = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(app);
+    return this.#formatApplication(app);
+  }
+
+  async update(userId, applicationId, rawUpdates) {
+    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(existing);
+
+    const updates = { ...rawUpdates };
+
+    if (updates.status !== undefined) {
+      if (!(updates.status in ApplicationService.#VALID_TRANSITIONS)) {
+        throw new AppError(
+          'Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.',
+          400,
+          'INVALID_STATUS'
+        );
+      }
+      this.#assertValidTransition(existing.status, updates.status);
+
+      if (existing.status === 'draft' && updates.status === 'submitted') {
+        updates.applied_at = new Date().toISOString();
+      }
     }
+
+    const updated = await this.#repo.updateByIdAndUser(applicationId, userId, updates);
+    return this.#formatApplication(updated);
   }
 
-  const UPDATABLE = ['status', 'notes', 'checklist', 'documents_used', 'result', 'applied_at'];
-  const patch = UPDATABLE.reduce((acc, k) => { if (updates[k] !== undefined) acc[k] = updates[k]; return acc; }, {});
-  if (Object.keys(patch).length === 0) return existing;
-
-  patch.updated_at = new Date().toISOString();
-
-  const { data: updated, error } = await sb.from('applications')
-    .update(patch).eq('id', applicationId).eq('user_id', userId).select().single();
-
-  if (error) throw error;
-  return updated;
-};
-
-const remove = async (userId, applicationId) => {
-  const sb = getSupabase();
-
-  const { data: existing } = await sb.from('applications')
-    .select('id, status').eq('id', applicationId).eq('user_id', userId).maybeSingle();
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+  async delete(userId, applicationId) {
+    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(existing);
+    this.#assertDeletable(existing.status);
+    await this.#repo.deleteByIdAndUser(applicationId, userId);
+    return { deleted: true };
   }
+}
 
-  if (existing.status === 'submitted' || existing.status === 'under_review') {
-    const err = new Error('Không thể xóa application đã nộp. Hãy rút đơn thay vì xóa.');
-    err.statusCode = 400;
-    err.isOperational = true;
-    throw err;
-  }
-
-  const { error } = await sb.from('applications').delete().eq('id', applicationId).eq('user_id', userId);
-  if (error) throw error;
-};
-
-module.exports = { getAll, create, getById, update, remove };
+module.exports = ApplicationService;

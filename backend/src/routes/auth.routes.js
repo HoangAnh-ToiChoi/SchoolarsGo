@@ -1,9 +1,10 @@
 const { Router } = require('express');
-const authController = require('../controllers/auth.controller');
+const { authController } = require('../container');
 const { registerSchema, loginSchema } = require('../utils/validators');
 const validate = require('../middlewares/validate');
 const { auth } = require('../middlewares/auth');
 const rateLimiter = require('../middlewares/rateLimiter');
+const { authLimiter } = rateLimiter;
 
 const router = Router();
 
@@ -11,13 +12,13 @@ const router = Router();
  * POST /api/auth/register
  * @desc Register new user
  */
-router.post('/register', rateLimiter(3, 60, 'Too many registrations, please try again later.'), validate(registerSchema), authController.register);
+router.post('/register', authLimiter, validate(registerSchema), authController.register);
 
 /**
  * POST /api/auth/login
  * @desc Login with email/password
  */
-router.post('/login', rateLimiter(5, 60, 'Too many login attempts, please try again later.'), validate(loginSchema), authController.login);
+router.post('/login', authLimiter, validate(loginSchema), authController.login);
 
 /**
  * GET /api/auth/me
@@ -35,6 +36,6 @@ router.post('/logout', authController.logout);
  * POST /api/auth/refresh
  * @desc Refresh JWT token
  */
-router.post('/refresh', authController.refresh);
+router.post('/refresh', auth, authController.refresh);
 
 module.exports = router;

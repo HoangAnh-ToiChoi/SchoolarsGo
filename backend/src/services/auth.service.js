@@ -1,95 +1,130 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const getSupabase = require('../utils/supabase');
+const AppError = require('../utils/AppError');
 
 const SALT_ROUNDS = 12;
 
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET || 'scholarsgo-dev-secret-fallback-32chars',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-  );
-};
+class AuthService {
+  #repo;
+  #eventBus;
 
-const register = async (email, password, fullName) => {
-  const sb = getSupabase();
-
-  const { data: existing } = await sb.from('users').select('id').eq('email', email).maybeSingle();
-  if (existing) {
-    const err = new Error('Email đã được sử dụng');
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
+  constructor(authRepository, eventBus) {
+    this.#repo = authRepository;
+    this.#eventBus = eventBus;
   }
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  #hashPassword = async plain => {
+    return bcrypt.hash(plain, SALT_ROUNDS);
+  };
 
-  const { data: user, error } = await sb.from('users')
-    .insert({ email, password_hash: passwordHash, full_name: fullName })
-    .select('id, email, full_name, avatar_url, phone, date_of_birth, created_at')
-    .single();
+  #comparePassword = async (plain, hash) => {
+    return bcrypt.compare(plain, hash);
+  };
 
-  if (error || !user) {
-    const err = new Error('Không thể tạo user');
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
+  #generateToken(payload) {
+    return jwt.sign(payload, process.env.JWT_SECRET || 'scholarsgo-dev-secret-fallback-32chars', {
+      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    });
   }
 
-  return { user: { id: user.id, email: user.email, full_name: user.full_name }, token: generateToken(user) };
-};
-
-const login = async (email, password) => {
-  const sb = getSupabase();
-
-  const { data: user } = await sb.from('users')
-    .select('id, email, password_hash, full_name, avatar_url, phone, date_of_birth')
-    .eq('email', email)
-    .maybeSingle();
-
-  if (!user) {
-    const err = new Error('Email hoặc mật khẩu không đúng');
-    err.statusCode = 401;
-    err.isOperational = true;
-    throw err;
+  #guardFound(entity, message = 'Không tìm thấy') {
+    if (!entity) throw new AppError(message, 404);
   }
 
-  const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) {
-    const err = new Error('Email hoặc mật khẩu không đúng');
-    err.statusCode = 401;
-    err.isOperational = true;
-    throw err;
+  #buildUserPublic(user) {
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      phone: user.phone,
+      date_of_birth: user.date_of_birth,
+    };
   }
 
-  return { user: { id: user.id, email: user.email, full_name: user.full_name }, token: generateToken(user) };
-};
+  register = async (email, password, fullName) => {
+    const existing = await this.#repo.findByEmail(email);
+    if (existing) {
+      throw new AppError('Email đã được sử dụng', 409, 'USER_EXISTS');
+    }
 
-const getMe = async (userId) => {
-  const { data: user } = await getSupabase().from('users')
-    .select('id, email, full_name, avatar_url, phone, date_of_birth, created_at')
-    .eq('id', userId)
-    .maybeSingle();
+    const passwordHash = await this.#hashPassword(password);
 
-  if (!user) {
-    const err = new Error('Không tìm thấy user');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-  return user;
-};
+    const user = await this.#repo.createUser({ email, passwordHash, fullName });
+    if (!user) {
+      throw new AppError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
+    }
 
-const refreshToken = async (userId) => {
-  const { data: user } = await getSupabase().from('users').select('id, email').eq('id', userId).maybeSingle();
-  if (!user) {
-    const err = new Error('Không tìm thấy user');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-  return generateToken(user);
-};
+    const token = this.#generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-module.exports = { register, login, getMe, refreshToken };
+    this.#eventBus.emit('user.registered', {
+      userId: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      role: user.role,
+    });
+
+    return {
+      user: this.#buildUserPublic(user),
+      token,
+    };
+  };
+
+  login = async (email, password) => {
+    const user = await this.#repo.findByEmailWithCredentials(email);
+    if (!user) {
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+    }
+
+    const valid = await this.#comparePassword(password, user.password_hash);
+    if (!valid) {
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+    }
+
+    const updatedUser = await this.#repo.updateLastLogin(user.id);
+    if (!updatedUser) {
+      throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
+    }
+
+    const token = this.#generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    this.#eventBus.emit('user.login', {
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    });
+
+    return {
+      user: this.#buildUserPublic(updatedUser),
+      token,
+    };
+  };
+
+  getMe = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
+    return user;
+  };
+
+  refreshToken = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
+
+    return this.#generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+  };
+}
+
+module.exports = AuthService;

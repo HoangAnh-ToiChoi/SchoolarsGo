@@ -1,48 +1,50 @@
-const getSupabase = require('../utils/supabase');
+const AppError = require('../utils/AppError');
 
-const ALLOWED_FIELDS = [
-  'bio', 'gpa', 'gpa_scale', 'english_level',
-  'target_country', 'target_major', 'target_degree', 'target_intake',
-];
+class ProfileService {
+  #repo;
 
-const getProfile = async (userId) => {
-  const sb = getSupabase();
-
-  let { data: profile } = await sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
-
-  if (!profile) {
-    const { data: created } = await sb.from('profiles')
-      .upsert({ user_id: userId }, { onConflict: 'user_id' })
-      .select().single();
-    profile = created;
+  constructor(profileRepository) {
+    this.#repo = profileRepository;
   }
 
-  const { data: documents } = await sb.from('documents')
-    .select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  getProfile = async userId => {
+    return this.#repo.findByUserId(userId);
+  };
 
-  return { ...profile, documents: documents || [] };
-};
+  updateProfile = async (userId, updates) => {
+    this.#validateUpdate(updates);
+    return this.#repo.upsertProfile(userId, updates);
+  };
 
-const updateProfile = async (userId, updates) => {
-  const sb = getSupabase();
-  const fieldsToUpdate = ALLOWED_FIELDS.reduce((acc, k) => {
-    if (updates[k] !== undefined) acc[k] = updates[k];
-    return acc;
-  }, {});
+  #validateUpdate(updates) {
+    if (updates.gpa !== undefined) {
+      const gpa = parseFloat(updates.gpa);
+      if (Number.isNaN(gpa)) throw new AppError('GPA phải là số', 400, 'INVALID_GPA');
+      const maxGpa = updates.gpa_scale || 4.0;
+      if (gpa < 0 || gpa > maxGpa)
+        throw new AppError(`GPA phải nằm trong khoảng 0 - ${maxGpa}`, 400, 'INVALID_GPA');
+    }
 
-  const { data: profile, error } = await sb.from('profiles')
-    .upsert({ user_id: userId, ...fieldsToUpdate, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
-    .select().single();
+    if (updates.english_level !== undefined) {
+      const validLevels = ['none', 'basic', 'intermediate', 'advanced', 'proficient'];
+      if (!validLevels.includes(updates.english_level))
+        throw new AppError(
+          `english_level không hợp lệ. Giá trị được chấp nhận: ${validLevels.join(', ')}`,
+          400,
+          'INVALID_ENGLISH_LEVEL'
+        );
+    }
 
-  if (error) throw error;
-
-  if (updates.full_name) {
-    await sb.from('users')
-      .update({ full_name: updates.full_name, updated_at: new Date().toISOString() })
-      .eq('id', userId);
+    if (updates.target_degree !== undefined) {
+      const validDegrees = ['Bachelor', 'Master', 'PhD', 'Any'];
+      if (!validDegrees.includes(updates.target_degree))
+        throw new AppError(
+          `target_degree không hợp lệ. Giá trị được chấp nhận: ${validDegrees.join(', ')}`,
+          400,
+          'INVALID_DEGREE'
+        );
+    }
   }
+}
 
-  return profile;
-};
-
-module.exports = { getProfile, updateProfile };
+module.exports = ProfileService;

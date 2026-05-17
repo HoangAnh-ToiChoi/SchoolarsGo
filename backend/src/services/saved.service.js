@@ -1,75 +1,54 @@
-const getSupabase = require('../utils/supabase');
+const AppError = require('../utils/AppError');
 
-const getAll = async (userId) => {
-  const { data, error } = await getSupabase().from('saved_scholarships')
-    .select(`id, note, created_at,
-             scholarships ( id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured )`)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+class SavedService {
+  #repo;
 
-  if (error) throw error;
-
-  return (data || []).map((row) => ({
-    id: row.id,
-    note: row.note,
-    created_at: row.created_at,
-    scholarship: row.scholarships,
-  }));
-};
-
-const save = async (userId, scholarshipId, note) => {
-  const sb = getSupabase();
-
-  const { data: scholarship } = await sb.from('scholarships')
-    .select('id, title').eq('id', scholarshipId).maybeSingle();
-
-  if (!scholarship) {
-    const err = new Error('Không tìm thấy học bổng');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+  constructor(savedRepository) {
+    this.#repo = savedRepository;
   }
 
-  const { data: existing } = await sb.from('saved_scholarships')
-    .select('id').eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
+  getAll = async userId => {
+    const rows = await this.#repo.findAllByUser(userId);
+    return rows.map(row => ({
+      id: row.id,
+      note: row.note,
+      created_at: row.created_at,
+      scholarship: {
+        id: row.scholarship_id,
+        title: row.title,
+        provider: row.provider,
+        country: row.country,
+        degree: row.degree,
+        amount: row.amount,
+        currency: row.currency,
+        deadline: row.deadline,
+        image_url: row.image_url,
+        is_featured: row.is_featured,
+      },
+    }));
+  };
 
-  if (existing) {
-    const err = new Error(`Bạn đã lưu học bổng "${scholarship.title}" rồi`);
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
-  }
+  save = async (userId, scholarshipId, note) => {
+    const exists = await this.#repo.scholarshipExists(scholarshipId);
+    if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
 
-  const { data: saved, error } = await sb.from('saved_scholarships')
-    .insert({ user_id: userId, scholarship_id: scholarshipId, note: note || null })
-    .select().single();
+    try {
+      const saved = await this.#repo.create({ userId, scholarshipId, note });
+      const scholarship = await this.#repo.getScholarshipDetails(scholarshipId);
+      return { ...saved, scholarship };
+    } catch (err) {
+      if (err.message === 'SCHOLARSHIP_ALREADY_SAVED') {
+        throw new AppError('Bạn đã lưu học bổng này rồi.', 409, 'SCHOLARSHIP_ALREADY_SAVED');
+      }
+      throw err;
+    }
+  };
 
-  if (error) throw error;
+  remove = async (userId, scholarshipId) => {
+    const deleted = await this.#repo.deleteByUserAndScholarship(userId, scholarshipId);
+    if (deleted === 0) throw new AppError('Học bổng này chưa được lưu.', 404, 'NOT_SAVED');
+    return { deleted: true };
+  };
+}
 
-  const { data: details } = await sb.from('scholarships')
-    .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
-    .eq('id', scholarshipId).single();
-
-  return { ...saved, scholarship: details };
-};
-
-const remove = async (userId, scholarshipId) => {
-  const sb = getSupabase();
-
-  const { data: existing } = await sb.from('saved_scholarships')
-    .select('id').eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy scholarship trong danh sách đã lưu');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  const { error } = await sb.from('saved_scholarships')
-    .delete().eq('user_id', userId).eq('scholarship_id', scholarshipId);
-
-  if (error) throw error;
-};
-
-module.exports = { getAll, save, remove };
+module.exports = SavedService;

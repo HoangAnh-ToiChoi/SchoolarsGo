@@ -15,14 +15,31 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabaseStorage = null;
 
-const supabaseStorage = supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
-  : null;
+const getSupabaseStorage = () => {
+  if (supabaseStorage) return supabaseStorage;
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    const err = new Error(
+      'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set for storage operations'
+    );
+    err.isOperational = true;
+    throw err;
+  }
+
+  supabaseStorage = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return supabaseStorage;
+};
 
 const BUCKET_NAME = 'documents';
 
@@ -44,7 +61,7 @@ const BUCKET_NAME = 'documents';
  * @param {string} fileName - Tên file gốc từ client
  * @returns {string} Tên file đã sanitize, an toàn cho Supabase Storage
  */
-const slugifyFileName = (fileName) => {
+const slugifyFileName = fileName => {
   if (!fileName || typeof fileName !== 'string') {
     return `file_${Date.now()}`;
   }
@@ -85,12 +102,6 @@ const slugifyFileName = (fileName) => {
  * @returns {Promise<{publicUrl: string, storagePath: string}>}
  */
 const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) => {
-  if (!supabaseStorage) {
-    const err = new Error('Chức năng upload chưa được cấu hình (thiếu SUPABASE_SERVICE_ROLE_KEY)');
-    err.statusCode = 503;
-    err.isOperational = true;
-    throw err;
-  }
   // Slugify tên file để tránh lỗi path từ ký tự đặc biệt / tiếng Việt
   const slugifiedName = slugifyFileName(originalName);
   const randomSuffix = crypto.randomUUID().slice(0, 8);
@@ -102,12 +113,11 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
 
   let uploadData;
   try {
-    const result = await supabaseStorage.storage
-      .from(BUCKET_NAME)
-      .upload(storagePath, fileBuffer, {
-        contentType: mimeType,
-        upsert: false,
-      });
+    const storage = getSupabaseStorage();
+    const result = await storage.storage.from(BUCKET_NAME).upload(storagePath, fileBuffer, {
+      contentType: mimeType,
+      upsert: false,
+    });
 
     if (result.error) {
       console.error('[Supabase Upload Error]:', result.error);
@@ -133,8 +143,8 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
 
   // getPublicUrl() là hàm đồng bộ — chỉ build string từ config
   // KHÔNG cần try/catch vì không có network call
-  const { data: urlData } = supabaseStorage.storage
-    .from(BUCKET_NAME)
+  const { data: urlData } = getSupabaseStorage()
+    .storage.from(BUCKET_NAME)
     .getPublicUrl(uploadData ? uploadData.path : storagePath);
 
   return {
@@ -150,11 +160,8 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
  * @param {string} storagePath - Đường dẫn file trong bucket (VD: userId/docType/filename)
  * @returns {Promise<void>}
  */
-const deleteFile = async (storagePath) => {
-  if (!supabaseStorage) return;
-  const { error } = await supabaseStorage.storage
-    .from(BUCKET_NAME)
-    .remove([storagePath]);
+const deleteFile = async storagePath => {
+  const { error } = await getSupabaseStorage().storage.from(BUCKET_NAME).remove([storagePath]);
 
   if (error) {
     // Chỉ warn — không throw để không chặn luồng xóa chính
