@@ -17,6 +17,8 @@ const applicationRoutes = require('./routes/application.routes');
 const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
 const adminRoutes = require('./routes/admin.routes');
+const chatRoutes = require('./routes/chat.routes');
+const newsRoutes = require('./routes/news.routes');
 
 const app = express();
 
@@ -52,6 +54,8 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/news', newsRoutes);
 
 // ── Swagger UI ─────────────────────────────────────────
 app.use(
