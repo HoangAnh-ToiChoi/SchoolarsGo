@@ -43,9 +43,10 @@ api.interceptors.response.use(
         return Promise.reject(new Error('Quá nhiều yêu cầu, vui lòng thử lại sau'));
       }
 
-      // Trả về message từ server nếu có
+      // Trả về message từ server nếu có — giữ nguyên error object để status code không bị mất
       if (data.message) {
-        return Promise.reject(new Error(data.message));
+        error.message = data.message;
+        return Promise.reject(error);
       }
     }
 

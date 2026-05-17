@@ -1,134 +1,147 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Star, MapPin, Calendar, DollarSign, GraduationCap, GitCompare } from 'lucide-react';
+import { cn, formatCurrency, formatDate, getDaysUntilDeadline, getDeadlineUrgency } from '../utils/helpers';
+import { useComparisonStore } from '../stores/comparisonStore';
 import { useToggleSaveScholarship, useSavedScholarships } from '../hooks/useScholarship';
 import { useAuthStore } from '../stores/authStore';
-import { cn, formatCurrency, formatDate } from '../utils/helpers';
-import { useComparisonStore } from '../stores/comparisonStore';
-import toast from 'react-hot-toast';
 
-const ScholarshipCard = ({ scholarship, isDark = false }) => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const { data: savedData } = useSavedScholarships();
-  const toggleSave = useToggleSaveScholarship();
+const ACCENT = {
+  critical: 'from-danger-500 to-danger-400',
+  urgent:   'from-warning-500 to-warning-400',
+  soon:     'from-yellow-400 to-yellow-300',
+  expired:  'from-gray-300 to-gray-200',
+  default:  'from-primary-500 to-secondary-400',
+};
 
-  const [optimisticSaved, setOptimisticSaved] = useState(null);
-  
-  // Guard: return null nếu scholarship undefined
-  if (!scholarship || !scholarship.id) return null;
+const DEADLINE_BADGE = {
+  critical: { cls: 'bg-danger-50 text-danger-700 animate-pulse' },
+  urgent:   { cls: 'bg-warning-50 text-warning-700' },
+  soon:     { cls: 'bg-yellow-50 text-yellow-700' },
+  expired:  { cls: 'bg-gray-100 text-gray-400' },
+};
+
+const ScholarshipCard = ({ scholarship, index = 0 }) => {
   const { id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured } = scholarship;
-  
-  const savedScholarships = savedData?.data || [];
-  const serverIsSaved = savedScholarships.some(
-    (item) => item.scholarship?.id === id || item.scholarship_id === id
-  );
-  const isSaved = optimisticSaved !== null ? optimisticSaved : serverIsSaved;
-
-  const handleSaveClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để lưu học bổng');
-      return;
-    }
-    
-    const nextSavedState = !isSaved;
-    setOptimisticSaved(nextSavedState);
-    
-    toggleSave.mutate({ scholarshipId: id, isSaved: !nextSavedState }, {
-      onError: () => {
-        setOptimisticSaved(serverIsSaved);
-      }
-    });
-  };
-
   const toggle = useComparisonStore((s) => s.toggle);
   const isSelected = useComparisonStore((s) => s.isSelected(id));
   const itemCount = useComparisonStore((s) => s.items.length);
+  const { isAuthenticated } = useAuthStore();
+  const { data: savedData } = useSavedScholarships();
+  const toggleSave = useToggleSaveScholarship();
+  const navigate = useNavigate();
+
+  const isSaved = savedData?.data?.some((item) => item.scholarship?.id === id);
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    toggleSave.mutate({ scholarshipId: id, isSaved });
+  };
+
+  const urgency = getDeadlineUrgency(deadline);
+  const days = getDaysUntilDeadline(deadline);
+  const accentGradient = ACCENT[urgency] || ACCENT.default;
+  const badge = urgency && DEADLINE_BADGE[urgency];
+  const badgeText = urgency === 'expired' ? 'Hết hạn' : `Còn ${days} ngày${urgency === 'critical' ? '!' : ''}`;
 
   return (
-    <Link 
-      to={`/scholarships/${id}`} 
-      className={cn(
-        "block overflow-hidden group transition-all duration-300",
-        isDark 
-          ? "rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] hover:-translate-y-1" 
-          : "card-hover"
-      )}
+    <div
+      className="animate-fade-in-up"
+      style={{ animationDelay: `${index * 0.06}s`, animationFillMode: 'both' }}
     >
-      {image_url && (
-        <div className={cn("aspect-video overflow-hidden", isDark ? "bg-white/5" : "bg-gray-100")}>
-          <img src={image_url} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-        </div>
-      )}
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex-1 min-w-0">
-            {is_featured && (
-              <span className={cn(
-                "mb-1 inline-flex whitespace-nowrap text-xs font-medium px-2.5 py-0.5 rounded-full items-center gap-1",
-                isDark ? "bg-amber-500/20 text-amber-300 border border-amber-500/30" : "bg-warning-50 text-warning-700"
-              )}>
-                <Star className={cn("w-3 h-3", isDark ? "fill-amber-300" : "fill-warning-500")} />
-                Nổi bật
-              </span>
-            )}
-            <h3 className={cn("font-bold leading-tight line-clamp-2 text-sm sm:text-base", isDark ? "text-white group-hover:text-primary-300 transition-colors" : "text-gray-900")}>
-              {title}
-            </h3>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={(e) => { e.preventDefault(); toggle(scholarship); }}
-              disabled={!isSelected && itemCount >= 3}
-              title={isSelected ? 'Bỏ so sánh' : itemCount >= 3 ? 'Tối đa 3 học bổng' : 'So sánh'}
-              className={cn(
-                'p-1.5 rounded-lg transition-colors',
-                isSelected ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-primary-500 hover:bg-primary-50',
-                !isSelected && itemCount >= 3 && 'opacity-30 cursor-not-allowed'
-              )}
-            >
-              <GitCompare className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleSaveClick}
-              disabled={toggleSave.isPending}
-              className={cn(
-                "min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0 p-2 rounded-full transition-all duration-300 disabled:opacity-50 hover:scale-110 active:scale-90",
-                isSaved 
-                  ? (isDark ? "bg-red-500/20 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "bg-danger-50 text-danger-500") 
-                  : (isDark ? "bg-white/5 text-white/40 hover:bg-red-500/10 hover:text-red-400" : "bg-gray-50 text-gray-400 hover:bg-danger-50 hover:text-danger-500")
-              )}
-            >
-              <Heart 
-                className={cn("w-5 h-5 transition-transform duration-300", isSaved && "scale-110")} 
-                fill={isSaved ? "currentColor" : "none"} 
-              />
-            </button>
-          </div>
-        </div>
-        <p className={cn("text-body-sm mb-4 line-clamp-1", isDark ? "text-white/60" : "text-gray-500")}>
-          {provider}
-        </p>
-        <div className="flex flex-wrap gap-2 mb-4">
-          <span className={cn("inline-flex items-center gap-1 text-xs sm:text-sm px-2.5 py-1 rounded-md", isDark ? "bg-white/10 text-white/80" : "tag")}>
-            <MapPin className="w-3 h-3 flex-shrink-0" /><span className="truncate">{country}</span>
-          </span>
-          <span className={cn("inline-flex items-center gap-1 text-xs sm:text-sm px-2.5 py-1 rounded-md", isDark ? "bg-white/10 text-white/80" : "tag")}>
-            <GraduationCap className="w-3 h-3 flex-shrink-0" /><span className="truncate">{degree}</span>
-          </span>
-          <span className={cn("inline-flex items-center gap-1 text-xs sm:text-sm px-2.5 py-1 rounded-md", isDark ? "bg-white/10 text-white/80" : "tag")}>
-            <Calendar className="w-3 h-3 flex-shrink-0" /><span className="truncate">{formatDate(deadline, 'dd/MM/yyyy')}</span>
-          </span>
-        </div>
-        {amount && (
-          <div className={cn("flex items-center gap-1 font-bold text-sm", isDark ? "text-emerald-400" : "text-success-600")}>
-            <DollarSign className="w-4 h-4 flex-shrink-0" />{formatCurrency(amount, currency)}
+      <Link
+        to={`/scholarships/${id}`}
+        className="flex flex-col h-full card overflow-hidden group hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300"
+      >
+        {/* Gradient accent bar — màu theo deadline urgency */}
+        <div className={`h-1 shrink-0 bg-gradient-to-r ${accentGradient}`} />
+
+        {/* Cover image */}
+        {image_url && (
+          <div className="aspect-video bg-gray-100 overflow-hidden shrink-0">
+            <img
+              src={image_url}
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
           </div>
         )}
-      </div>
-    </Link>
+
+        <div className="flex flex-col flex-1 p-5 gap-3">
+          {/* Title + action buttons */}
+          <div className="flex items-start gap-2">
+            <div className="flex-1 min-w-0">
+              {is_featured && (
+                <span className="badge bg-warning-50 text-warning-700 mb-1.5">
+                  <Star className="w-3 h-3 fill-warning-500" />Nổi bật
+                </span>
+              )}
+              <h3 className="font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-primary-700 transition-colors duration-200">
+                {title}
+              </h3>
+              <p className="text-caption text-gray-400 mt-0.5 truncate">{provider}</p>
+            </div>
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                onClick={(e) => { e.preventDefault(); toggle(scholarship); }}
+                disabled={!isSelected && itemCount >= 3}
+                title={isSelected ? 'Bỏ so sánh' : itemCount >= 3 ? 'Tối đa 3 học bổng' : 'So sánh'}
+                className={cn(
+                  'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+                  isSelected
+                    ? 'bg-primary-100 text-primary-600'
+                    : 'text-gray-300 hover:text-primary-500 hover:bg-primary-50',
+                  !isSelected && itemCount >= 3 && 'opacity-30 cursor-not-allowed'
+                )}
+              >
+                <GitCompare className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleSave}
+                title={!isAuthenticated ? 'Đăng nhập để lưu' : isSaved ? 'Bỏ lưu' : 'Lưu học bổng'}
+                className={cn(
+                  'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+                  isSaved
+                    ? 'text-danger-500 bg-danger-50 hover:bg-danger-100'
+                    : 'text-gray-300 hover:text-danger-500 hover:bg-danger-50'
+                )}
+              >
+                <Heart className={cn('w-4 h-4', isSaved && 'fill-danger-500')} />
+              </button>
+            </div>
+          </div>
+
+          {/* Location + Degree tags */}
+          <div className="flex flex-wrap gap-1.5">
+            <span className="tag"><MapPin className="w-3 h-3" />{country}</span>
+            <span className="tag"><GraduationCap className="w-3 h-3" />{degree}</span>
+          </div>
+
+          {/* Deadline row */}
+          <div className="flex items-center gap-2 text-caption text-gray-400">
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span>{formatDate(deadline, 'dd/MM/yyyy')}</span>
+            {badge && (
+              <span className={cn('ml-auto px-2 py-0.5 rounded-badge text-caption font-semibold shrink-0', badge.cls)}>
+                {badgeText}
+              </span>
+            )}
+          </div>
+
+          {/* Amount */}
+          {amount && (
+            <div className="mt-auto pt-3 border-t border-gray-50 flex items-center gap-1.5 text-success-600 font-bold">
+              <DollarSign className="w-4 h-4 shrink-0" />
+              <span>{formatCurrency(amount, currency)}</span>
+            </div>
+          )}
+        </div>
+      </Link>
+    </div>
   );
 };
 

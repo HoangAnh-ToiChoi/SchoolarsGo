@@ -37,8 +37,8 @@ export const useUploadDocument = () => {
   return useMutation({
     mutationFn: ({ file, type }) => {
       const formData = new FormData();
-      formData.append('type', type);
       formData.append('file', file);
+      formData.append('type', type);
       return documentService.upload(formData);
     },
     onSuccess: () => {

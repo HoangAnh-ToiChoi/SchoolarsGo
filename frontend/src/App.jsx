@@ -9,12 +9,13 @@ import ProfilePage from './pages/ProfilePage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import ApplicationDetailPage from './pages/ApplicationDetailPage';
 import SavedPage from './pages/SavedPage';
-import DashboardPage from './pages/DashboardPage';
-import DeadlineTrackerPage from './pages/DeadlineTrackerPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RecommendPage from './pages/RecommendPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
+import ChatPage from './pages/ChatPage';
+import NewsPage from './pages/NewsPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
 
 function App() {
   return (
@@ -28,13 +29,14 @@ function App() {
         <Route path="saved" element={<SavedPage />} />
         <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
-        <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="deadlines" element={<ProtectedRoute><DeadlineTrackerPage /></ProtectedRoute>} />
         <Route path="applications/:id" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />
         <Route path="recommend" element={<ProtectedRoute><RecommendPage /></ProtectedRoute>} />
         <Route path="compare" element={<ComparisonPage />} />
+        <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="news" element={<NewsPage />} />
+        <Route path="admin/users" element={<ProtectedRoute requireAdmin><AdminUsersPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
-      </Route>  
+      </Route>
     </Routes>
   );
 }

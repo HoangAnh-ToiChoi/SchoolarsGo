@@ -4,6 +4,7 @@ export default {
     './index.html',
     './src/**/*.{js,jsx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -62,28 +63,6 @@ export default {
           primary: '#1f2933',     // Chữ chính
           secondary: '#52606d',   // Chữ phụ
           tertiary: '#9aa5b1',    // Chữ mờ/placeholder
-        },
-        // Landing Page Specific Colors
-        landing: {
-          background: 'var(--landing-background)',
-          foreground: 'var(--landing-foreground)',
-          card: 'var(--landing-card)',
-          'card-foreground': 'var(--landing-card-foreground)',
-          popover: 'var(--landing-popover)',
-          'popover-foreground': 'var(--landing-popover-foreground)',
-          primary: 'var(--landing-primary)',
-          'primary-foreground': 'var(--landing-primary-foreground)',
-          secondary: 'var(--landing-secondary)',
-          'secondary-foreground': 'var(--landing-secondary-foreground)',
-          muted: 'var(--landing-muted)',
-          'muted-foreground': 'var(--landing-muted-foreground)',
-          accent: 'var(--landing-accent)',
-          'accent-foreground': 'var(--landing-accent-foreground)',
-          destructive: 'var(--landing-destructive)',
-          'destructive-foreground': 'var(--landing-destructive-foreground)',
-          border: 'var(--landing-border)',
-          input: 'var(--landing-input)',
-          ring: 'var(--landing-ring)',
         }
       },
       fontFamily: {
@@ -120,6 +99,7 @@ export default {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
+        'fade-in-up': 'fadeInUp 0.45s ease-out both',
       },
       keyframes: {
         fadeIn: {
@@ -132,6 +112,10 @@ export default {
         },
         slideDown: {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },

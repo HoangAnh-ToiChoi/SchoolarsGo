@@ -6,7 +6,6 @@ export const useScholarships = (filters) => {
   return useQuery({
     queryKey: ['scholarships', filters],
     queryFn: () => scholarshipService.getAll(filters).then((res) => res.data),
-    placeholderData: (previousData) => previousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
@@ -15,7 +14,7 @@ export const useScholarship = (id) => {
   return useQuery({
     queryKey: ['scholarship', id],
     queryFn: () => scholarshipService.getById(id).then((res) => res.data),
-    enabled: !!id && id !== 'undefined',
+    enabled: !!id,
   });
 };
 
@@ -48,7 +47,6 @@ export const useToggleSaveScholarship = () => {
     },
     onSuccess: (_, { isSaved }) => {
       queryClient.invalidateQueries({ queryKey: ['scholarships'] });
-      queryClient.invalidateQueries({ queryKey: ['scholarship'] });
       queryClient.invalidateQueries({ queryKey: ['saved'] });
       toast.success(isSaved ? 'Đã bỏ lưu học bổng' : 'Đã lưu học bổng');
     },

@@ -1,11 +1,7 @@
 import { cn } from '../../utils/helpers';
 
-const Select = ({ label, options, placeholder, className, id, onChange, ...props }) => {
+const Select = ({ label, options, placeholder, className, id, ...props }) => {
   const selectId = id || props.name;
-
-  const handleChange = (e) => {
-    if (onChange) onChange(e.target.value);
-  };
 
   return (
     <div>
@@ -17,7 +13,6 @@ const Select = ({ label, options, placeholder, className, id, onChange, ...props
       <select
         id={selectId}
         className={cn('input', className)}
-        onChange={handleChange}
         {...props}
       >
         {placeholder && <option value="">{placeholder}</option>}

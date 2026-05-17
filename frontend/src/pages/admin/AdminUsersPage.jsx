@@ -45,7 +45,7 @@ const AdminUsersPage = () => {
   };
 
   return (
-    <div className="p-6 lg:p-10">
+    <div className="container-page py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Quản lý người dùng</h1>
         <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
@@ -65,7 +65,7 @@ const AdminUsersPage = () => {
               className="input w-full pl-9"
             />
           </div>
-          <button type="submit" className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-semibold transition-colors">
+          <button type="submit" className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-semibold transition-colors">
             Tìm
           </button>
         </form>
@@ -79,7 +79,7 @@ const AdminUsersPage = () => {
       {/* Table */}
       <div className="bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
         {error ? (
-          <div className="p-12 text-center text-rose-500 dark:text-rose-400">
+          <div className="p-12 text-center text-red-500 dark:text-red-400">
             Không thể tải dữ liệu. Kiểm tra quyền admin.
           </div>
         ) : (
@@ -113,7 +113,7 @@ const AdminUsersPage = () => {
                         <span className={cn(
                           'px-2.5 py-0.5 rounded-full text-xs font-semibold',
                           user.role === 'admin'
-                            ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300'
+                            ? 'bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300'
                             : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/60'
                         )}>
                           {user.role}
@@ -129,7 +129,7 @@ const AdminUsersPage = () => {
                               onClick={() => handleRoleChange(user.id, 'admin')}
                               disabled={updateRole.isPending}
                               title="Nâng lên Admin"
-                              className="p-1.5 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors disabled:opacity-40"
+                              className="p-1.5 rounded-lg text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors disabled:opacity-40"
                             >
                               <Shield className="w-4 h-4" />
                             </button>

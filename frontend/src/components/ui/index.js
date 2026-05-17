@@ -6,4 +6,3 @@ export { default as EmptyState } from './EmptyState';
 export { default as PageHeader } from './PageHeader';
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
 export { default as Modal } from './Modal';
-export { default as FileUpload } from './FileUpload';
