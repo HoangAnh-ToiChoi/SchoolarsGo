@@ -94,7 +94,7 @@ class AdminRepository extends BaseRepository {
   // ═══════════════════════════════════════════════════════════
 
   async findUsers(filters) {
-    const { page = 1, limit = 20, role, search } = filters;
+    const { page = 1, limit = 20, role, search, status } = filters;
     const params = [];
     const conditions = [];
     let idx = 1;
