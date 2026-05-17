@@ -5,7 +5,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-gray-400">
+    <footer className="bg-gray-900 dark:bg-[#050510] text-gray-400 dark:text-gray-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -16,7 +16,7 @@ const Footer = () => {
               </div>
               <span className="text-white text-lg font-bold">ScholarsGo</span>
             </Link>
-            <p className="text-sm max-w-md">
+            <p className="text-sm max-w-md text-gray-400 dark:text-gray-400">
               Nền tảng tìm kiếm học bổng và quản lý hồ sơ du học dành cho sinh viên Việt Nam.
               Hỗ trợ bạn từ việc tìm học bổng phù hợp đến khi nhận được kết quả.
             </p>
@@ -49,7 +49,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-800 text-sm text-center">
+        <div className="mt-8 pt-8 border-t border-gray-800 dark:border-white/10 text-sm text-center text-gray-400 dark:text-gray-500">
           <p>&copy; {currentYear} ScholarsGo. All rights reserved.</p>
         </div>
       </div>

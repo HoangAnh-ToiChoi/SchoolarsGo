@@ -105,6 +105,14 @@ class AdminService {
     return user;
   };
 
+  changeUserStatus = async (targetUserId, isActive, adminId) => {
+    this.#guardSelfModification(targetUserId, adminId);
+
+    const user = await this.#repo.updateUserStatus(targetUserId, isActive);
+    this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    return user;
+  };
+
   // ═══════════════════════════════════════════════════════════
   // SCHOLARSHIP MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════

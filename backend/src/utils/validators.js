@@ -152,6 +152,10 @@ const adminUpdateUserRoleSchema = z.object({
   role: z.enum(['user', 'admin'], { message: 'Role phải là "user" hoặc "admin"' }),
 });
 
+const adminUpdateUserStatusSchema = z.object({
+  isActive: z.boolean({ required_error: 'isActive là bắt buộc' }),
+});
+
 const adminUpdateScholarshipFeaturedSchema = z.object({
   isFeatured: z.boolean({ required_error: 'isFeatured là bắt buộc' }),
 });
@@ -159,7 +163,8 @@ const adminUpdateScholarshipFeaturedSchema = z.object({
 const adminUserQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
-  role: z.enum(['user', 'admin']).optional(),
+  role: z.preprocess(v => (v === '' ? undefined : v), z.enum(['user', 'admin']).optional()),
+  status: z.preprocess(v => (v === '' ? undefined : v), z.enum(['active', 'inactive']).optional()),
   search: z.string().max(255).optional(),
 });
 
@@ -175,6 +180,7 @@ module.exports = {
   adminCreateScholarshipSchema,
   adminUpdateScholarshipSchema,
   adminUpdateUserRoleSchema,
+  adminUpdateUserStatusSchema,
   adminUpdateScholarshipFeaturedSchema,
   adminUserQuerySchema,
 };

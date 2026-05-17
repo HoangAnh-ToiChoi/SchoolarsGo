@@ -97,16 +97,20 @@ class AdminRepository extends BaseRepository {
   async findUsers(filters) {
     const { page = 1, limit = 20, role, search, status } = filters;
     const params = [];
-    const conditions = ['is_active = true'];
+    const conditions = [];
     let idx = 1;
+
+    // status filter xác định is_active; mặc định chỉ lấy active users
+    if (status !== undefined) {
+      conditions.push(`is_active = $${idx++}`);
+      params.push(status === 'active');
+    } else {
+      conditions.push('is_active = true');
+    }
 
     if (role) {
       conditions.push(`role = $${idx++}`);
       params.push(role);
-    }
-    if (status !== undefined) {
-      conditions.push(`is_active = $${idx++}`);
-      params.push(status === 'active');
     }
     if (search) {
       conditions.push(`(email ILIKE $${idx} OR full_name ILIKE $${idx})`);
@@ -154,6 +158,16 @@ class AdminRepository extends BaseRepository {
       RETURNING id, email, full_name, role, is_active, created_at
     `;
     return this.#queryOne(sql, [role, id]);
+  }
+
+  async updateUserStatus(id, isActive) {
+    const sql = `
+      UPDATE users
+      SET is_active = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, email, full_name, role, is_active, created_at
+    `;
+    return this.#queryOne(sql, [isActive, id]);
   }
 
   // ═══════════════════════════════════════════════════════════

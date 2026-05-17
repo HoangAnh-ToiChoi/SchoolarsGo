@@ -14,7 +14,7 @@ const SavedPage = () => {
   return (
     <div>
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-900 to-primary-700 text-white">
+      <div className="bg-gradient-to-r from-primary-900 to-primary-700 dark:bg-none dark:bg-transparent text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center shrink-0">

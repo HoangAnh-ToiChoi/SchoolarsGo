@@ -40,12 +40,11 @@ html.dark .bg-white {
 html.dark .card {
   background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 html.dark .card-hover:hover {
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 0 24px rgba(139, 92, 246, 0.35);
 }
 
 html.dark .card-title,
@@ -134,6 +133,11 @@ html.dark .bg-slate-100 {
   background-color: rgba(255, 255, 255, 0.07);
 }
 
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Inputs */
 html.dark .input {
   background-color: rgba(255, 255, 255, 0.07);
@@ -163,6 +167,16 @@ html.dark .btn-ghost {
 html.dark .btn-ghost:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.95);
+}
+
+html.dark .btn-primary {
+  background-image: linear-gradient(to right, #9333ea, #06b6d4);
+  background-color: transparent;
+}
+
+html.dark .btn-primary:hover {
+  background-image: linear-gradient(to right, #a855f7, #22d3ee);
+  background-color: transparent;
 }
 
 /* Tags */
@@ -201,6 +215,11 @@ html.dark .empty-state p {
 html.dark .hover\:bg-gray-50:hover,
 html.dark .hover\:bg-gray-100:hover {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Section label accent text */
@@ -282,7 +301,7 @@ body {
   }
 
   .card-hover {
-    @apply card hover:shadow-card-hover hover:-translate-y-2 hover:border-primary-100 transition-all duration-300;
+    @apply card hover:shadow-card-hover hover:-translate-y-2 hover:border-primary-100 transition-transform duration-300 ease-out;
   }
 
   .card-body {
@@ -290,7 +309,7 @@ body {
   }
 
   .card-header {
-    @apply px-6 sm:px-8 pt-6 sm:pt-8;
+    @apply px-6 sm:px-8 py-6 sm:py-8;
   }
 
   .card-title {
@@ -302,7 +321,7 @@ body {
   }
 
   .card-footer {
-    @apply px-6 sm:px-8 pb-6 sm:pb-8 pt-3;
+    @apply px-6 sm:px-8 py-6 sm:py-8;
   }
 
   /* Inputs */
@@ -398,3 +417,4 @@ body {
     text-wrap: balance;
   }
 }
+

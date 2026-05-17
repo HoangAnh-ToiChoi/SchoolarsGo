@@ -48,9 +48,8 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="bg-slate-50">
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-primary-900 to-sky-800 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.18),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(125,211,252,0.22),_transparent_24%)]" />
+    <div className="bg-slate-50 dark:bg-transparent">
+      <section className="relative overflow-hidden text-white bg-gradient-to-br from-slate-900 via-primary-900 to-sky-800 dark:bg-none dark:bg-transparent">
         <div className="container-page relative py-20 md:py-28">
           <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="max-w-3xl">
@@ -59,9 +58,11 @@ const HomePage = () => {
                 Nền tảng tìm học bổng thông minh
               </div>
               <h1 className="mt-6 text-4xl font-extrabold leading-tight md:text-display">
-                Cánh cửa đến học bổng quốc tế của bạn
+                <span className="dark:bg-gradient-to-r dark:from-purple-300 dark:via-pink-300 dark:to-cyan-300 dark:bg-clip-text dark:text-transparent">
+                  Cánh cửa đến học bổng quốc tế của bạn
+                </span>
               </h1>
-              <p className="mt-6 max-w-2xl text-body-lg text-sky-50/88">
+              <p className="mt-6 max-w-2xl text-body-lg text-white/80">
                 ScholarsGo giúp sinh viên Việt Nam tìm và ứng tuyển học bổng quốc tế — từ tìm kiếm đến theo dõi hồ sơ, tất cả trong một nơi.
               </p>
               <form onSubmit={handleSearch} className="mt-8 grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:grid-cols-[1fr_auto]">
@@ -70,10 +71,10 @@ const HomePage = () => {
                   onChange={(event) => setSearchValue(event.target.value)}
                   placeholder="Thử nhập: Chevening, Australia Awards, Data Science..."
                   icon={Search}
-                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300"
+                  className="border-white/15 bg-white text-slate-900 placeholder:text-slate-400 focus:ring-sky-300 dark:bg-white/10 dark:text-white dark:placeholder:text-white/50 dark:focus:ring-white/30"
                   wrapperClassName="sm:min-w-0"
                 />
-                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800">
+                <Button type="submit" size="lg" leftIcon={Search} className="bg-slate-950 text-white hover:bg-slate-800 transition-all duration-300">
                   Tìm học bổng
                 </Button>
               </form>
@@ -89,12 +90,12 @@ const HomePage = () => {
                 <Card key={label} className="border-white/10 bg-white/10 text-white shadow-none backdrop-blur-md">
                   <CardContent className="p-5 sm:p-6">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/12">
-                        <Icon className="w-5 h-5 text-sky-100" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 dark:bg-purple-500/15">
+                        <Icon className="w-5 h-5 text-sky-100 dark:text-purple-100" />
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{value}</p>
-                        <p className="text-body-sm text-sky-100/80">{label}</p>
+                        <p className="text-body-sm text-sky-100/80 dark:text-purple-100/80">{label}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -168,27 +169,32 @@ const HomePage = () => {
 
       <LatestNewsSection />
 
-      <section className="py-section bg-surface-muted">
+      <section className="py-section bg-surface-muted dark:bg-transparent">
         <div className="container-page">
-          <Card className="overflow-hidden border-none bg-gradient-to-r from-slate-950 via-primary-900 to-sky-800 text-white shadow-card-hover">
-            <CardContent className="grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200">Bắt đầu ngay hôm nay</p>
-                <h2 className="mt-3 text-3xl font-bold leading-tight">Hàng nghìn sinh viên đã tìm được học bổng phù hợp — đến lượt bạn.</h2>
-                <p className="mt-4 max-w-2xl text-body text-sky-100/85">
+          <div className="group relative overflow-hidden rounded-2xl border border-white/10 dark:border-white/10 bg-gradient-to-r from-slate-950 via-primary-900 to-sky-800 dark:bg-none dark:bg-transparent text-white dark:text-white shadow-card-hover transition-all duration-300 hover:shadow-purple-glow dark:hover:shadow-purple-glow-dark">
+            <div className="absolute inset-0 bg-white/[0.03] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative grid gap-8 p-8 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="[&_*]:transition-all [&_*]:duration-300">
+                <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-sky-200 dark:text-purple-300 group-hover:text-sky-100 dark:group-hover:text-purple-200">
+                  Bắt đầu ngay hôm nay
+                </p>
+                <h2 className="mt-3 text-3xl font-bold leading-tight text-white/90 group-hover:text-white">
+                  Hàng nghìn sinh viên đã tìm được học bổng phù hợp — đến lượt bạn.
+                </h2>
+                <p className="mt-4 max-w-2xl text-body text-sky-100/85 dark:text-gray-400">
                   Tạo tài khoản miễn phí, điền profile và để AI ScholarsGo gợi ý những học bổng phù hợp nhất với bạn.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <Link to="/register" className="btn btn-lg bg-white text-primary-700 hover:bg-sky-50">
+                <Link to="/register" className="btn btn-lg bg-white text-primary-700 hover:bg-sky-50 dark:bg-purple-500 dark:text-white dark:hover:bg-purple-400 shadow-lg hover:shadow-xl">
                   Tạo tài khoản miễn phí
                 </Link>
-                <Link to="/scholarships" className="btn btn-lg border-white/20 bg-white/10 text-white hover:bg-white/20">
+                <Link to="/scholarships" className="btn btn-lg border-white/20 bg-white/10 text-white hover:bg-white/20 hover:border-white/30 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10">
                   Khám phá học bổng
                 </Link>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
     </div>

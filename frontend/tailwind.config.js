@@ -90,6 +90,8 @@ export default {
         'card': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
         'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03)',
         'button': '0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+        'purple-glow': '0 0 20px rgba(139, 92, 246, 0.25)',
+        'purple-glow-dark': '0 0 24px rgba(139, 92, 246, 0.35)',
       },
       spacing: {
         'page': '2rem',

@@ -78,7 +78,7 @@ const Header = () => {
                   <span className="font-medium">Chat AI</span>
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin/users" className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-white transition-colors">
+                  <Link to="/admin" className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-white transition-colors">
                     <Shield className="w-4 h-4" />
                     <span className="font-medium">Admin</span>
                   </Link>
@@ -157,7 +157,7 @@ const Header = () => {
                     Chat AI
                   </Link>
                   {isAdmin && (
-                    <Link to="/admin/users" className="block text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-white font-medium py-2" onClick={() => setMobileOpen(false)}>
+                    <Link to="/admin" className="block text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-white font-medium py-2" onClick={() => setMobileOpen(false)}>
                       Admin
                     </Link>
                   )}

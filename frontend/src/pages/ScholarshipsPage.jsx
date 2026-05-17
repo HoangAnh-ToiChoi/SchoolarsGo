@@ -22,17 +22,17 @@ const FILTER_LABELS = {
 
 const SkeletonCard = () => (
   <div className="card overflow-hidden animate-pulse">
-    <div className="h-1 bg-gray-200 w-full" />
+    <div className="h-1 bg-gray-200 dark:bg-gray-700 w-full" />
     <div className="p-5 space-y-3">
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
-      <div className="h-3 bg-gray-100 rounded w-1/2" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+      <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2" />
       <div className="flex gap-2 mt-2">
-        <div className="h-6 bg-gray-100 rounded-full w-20" />
-        <div className="h-6 bg-gray-100 rounded-full w-16" />
+        <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded-full w-20" />
+        <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded-full w-16" />
       </div>
-      <div className="h-3 bg-gray-100 rounded w-2/3" />
-      <div className="pt-3 border-t border-gray-50">
-        <div className="h-5 bg-gray-100 rounded w-1/3" />
+      <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+      <div className="pt-3 border-t border-gray-50 dark:border-gray-700">
+        <div className="h-5 bg-gray-100 dark:bg-gray-800 rounded w-1/3" />
       </div>
     </div>
   </div>
@@ -91,12 +91,12 @@ const ScholarshipsPage = () => {
   return (
     <div>
       {/* Hero Search Banner */}
-      <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white">
+      <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white dark:bg-[#050510] dark:[background:radial-gradient(ellipse_at_top,_#1a1a2e_0%,_#050510_70%)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <h1 className="text-heading-1 font-bold text-white mb-1 animate-fade-in">
             Khám phá học bổng quốc tế
           </h1>
-          <p className="text-primary-200 mb-6 animate-fade-in" style={{ animationDelay: '0.08s' }}>
+          <p className="text-primary-200 dark:text-purple-200/70 mb-6 animate-fade-in" style={{ animationDelay: '0.08s' }}>
             Hơn 1,000+ học bổng từ 50+ quốc gia — tìm cơ hội phù hợp với bạn
           </p>
           <form
@@ -105,13 +105,13 @@ const ScholarshipsPage = () => {
             style={{ animationDelay: '0.14s' }}
           >
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-400" />
               <input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 type="text"
                 placeholder="Tìm tên học bổng, trường, quốc gia..."
-                className="w-full pl-11 pr-4 py-3 rounded-button text-gray-900 text-body placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg"
+                className="w-full pl-11 pr-4 py-3 rounded-button text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-white/10 border border-transparent dark:border-white/15 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg"
               />
             </div>
             <Button type="submit" className="shrink-0 shadow-lg">Tìm kiếm</Button>
@@ -129,10 +129,10 @@ const ScholarshipsPage = () => {
               key={pill.value}
               onClick={() => handleFilterChange('degree', filters.degree === pill.value ? '' : pill.value)}
               className={cn(
-                'px-4 py-1.5 rounded-tag text-body-sm font-medium border transition-all duration-200 active:scale-95',
+                'px-4 py-1.5 rounded-tag text-body-sm font-medium border transition-colors duration-200 active:scale-95',
                 filters.degree === pill.value
-                  ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700'
+                  ? 'bg-primary-600 text-white border-primary-600 shadow-sm dark:bg-purple-500 dark:border-purple-500 dark:hover:bg-purple-400'
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700 dark:bg-white/5 dark:border-white/15 dark:text-gray-300 dark:hover:border-purple-400/50 dark:hover:text-purple-300'
               )}
             >
               {pill.label}
@@ -141,10 +141,10 @@ const ScholarshipsPage = () => {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              'ml-auto flex items-center gap-2 px-4 py-1.5 rounded-tag text-body-sm font-medium border transition-all duration-200',
+              'ml-auto flex items-center gap-2 px-4 py-1.5 rounded-tag text-body-sm font-medium border transition-colors duration-200',
               showFilters
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700'
+                ? 'bg-primary-600 text-white border-primary-600 dark:bg-purple-500 dark:border-purple-500'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700 dark:bg-white/5 dark:border-white/15 dark:text-gray-300 dark:hover:border-purple-400/50 dark:hover:text-purple-300'
             )}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -192,17 +192,17 @@ const ScholarshipsPage = () => {
         )}
 
         {/* Active filter chips */}
-        {activeFilters.length > 0 && (
+            {activeFilters.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4 animate-fade-in">
             {activeFilters.map(([key, value]) => (
               <span
                 key={key}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-50 text-primary-700 rounded-tag text-body-sm border border-primary-100"
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-50 text-primary-700 rounded-tag text-body-sm border border-primary-100 dark:bg-purple-500/20 dark:text-purple-200 dark:border-purple-500/30"
               >
                 {FILTER_LABELS[key]?.(value) ?? value}
                 <button
                   onClick={() => removeFilter(key)}
-                  className="hover:text-primary-900 transition-colors"
+                  className="hover:text-primary-900 transition-colors dark:hover:text-purple-100"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -210,7 +210,7 @@ const ScholarshipsPage = () => {
             ))}
             <button
               onClick={handleReset}
-              className="text-body-sm text-gray-400 hover:text-gray-600 transition-colors underline underline-offset-2"
+              className="text-body-sm text-gray-400 hover:text-gray-600 transition-colors underline underline-offset-2 dark:text-gray-500 dark:hover:text-gray-300"
             >
               Xóa tất cả
             </button>
@@ -218,15 +218,15 @@ const ScholarshipsPage = () => {
         )}
 
         {/* Result count */}
-        <div className="flex items-center gap-2 mb-5 text-body-sm text-gray-500">
+        <div className="flex items-center gap-2 mb-5 text-body-sm text-gray-500 dark:text-gray-400">
           {isFetching ? (
-            <span className="flex items-center gap-2 text-primary-600">
+            <span className="flex items-center gap-2 text-primary-600 dark:text-purple-400">
               <span className="w-3.5 h-3.5 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin inline-block" />
               Đang tải...
             </span>
           ) : (
             <span>
-              Tìm thấy <strong className="text-gray-900">{meta.total || 0}</strong> học bổng
+              Tìm thấy <strong className="text-gray-900 dark:text-white">{meta.total || 0}</strong> học bổng
             </span>
           )}
         </div>
@@ -263,7 +263,7 @@ const ScholarshipsPage = () => {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="p-2 rounded-button border border-gray-200 bg-white text-gray-600 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-button border border-gray-200 bg-white text-gray-600 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/5 dark:border-white/15 dark:text-gray-400 dark:hover:border-purple-400/50 dark:hover:text-purple-300"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -276,10 +276,10 @@ const ScholarshipsPage = () => {
                       key={p}
                       onClick={() => setPage(p)}
                       className={cn(
-                        'w-9 h-9 rounded-button text-body-sm font-medium border transition-all duration-150 active:scale-95',
+                        'w-9 h-9 rounded-button text-body-sm font-medium border transition-colors duration-150 active:scale-95',
                         p === page
-                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700'
+                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm dark:bg-purple-500 dark:border-purple-500'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-primary-400 hover:text-primary-700 dark:bg-white/5 dark:border-white/15 dark:text-gray-400 dark:hover:border-purple-400/50 dark:hover:text-purple-300'
                       )}
                     >
                       {p}
@@ -290,7 +290,7 @@ const ScholarshipsPage = () => {
                 <button
                   onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                   disabled={page === meta.totalPages}
-                  className="p-2 rounded-button border border-gray-200 bg-white text-gray-600 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-2 rounded-button border border-gray-200 bg-white text-gray-600 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors dark:bg-white/5 dark:border-white/15 dark:text-gray-400 dark:hover:border-purple-400/50 dark:hover:text-purple-300"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
