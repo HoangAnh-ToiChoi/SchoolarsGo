@@ -8,7 +8,7 @@ import { DOCUMENT_TYPES } from '../utils/constants';
 import { cn, formatDate, getStatusLabel } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FileUpload from '../components/ui/FileUpload';
-import { AuroraBackground } from '../components/landing/AuroraBackground';
+import AuroraBackground from '../components/landing/AuroraBackground';
 
 const STATUS_TRANSITIONS = {
   draft: [
