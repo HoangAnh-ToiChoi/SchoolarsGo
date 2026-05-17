@@ -7,6 +7,12 @@ import * as Sentry from '@sentry/react';
 import App from './App';
 import './index.css';
 
+// Restore theme before first render to avoid flash of wrong theme
+const savedTheme = localStorage.getItem('scholarsgo-theme');
+if (savedTheme === 'dark') {
+  document.documentElement.classList.add('dark');
+}
+
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,

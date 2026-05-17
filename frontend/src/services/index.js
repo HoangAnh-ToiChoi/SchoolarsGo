@@ -57,3 +57,9 @@ export const chatService = {
   send: (messages) => api.post('/chat', { messages }),
   getHistory: () => api.get('/chat/history'),
 };
+
+// Admin
+export const adminService = {
+  getUsers: (params) => api.get('/admin/users', { params }),
+  updateUserRole: (id, role) => api.patch(`/admin/users/${id}/role`, { role }),
+};

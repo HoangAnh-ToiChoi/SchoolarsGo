@@ -10,6 +10,96 @@
   --radius-input: 0.75rem;
 }
 
+/* ===== DARK MODE — Aurora theme ===== */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: oklch(0.08 0.01 270);
+  color: oklch(0.98 0 0);
+}
+
+/* Dark mode overrides cho các component class */
+.dark .card {
+  background-color: oklch(0.12 0.01 270);
+  border-color: oklch(0.25 0.02 270);
+}
+
+.dark .card-hover:hover {
+  border-color: oklch(0.65 0.25 280 / 0.4);
+}
+
+.dark .card-title,
+.dark .page-header h1,
+.dark .section-title,
+.dark .modal-title {
+  color: oklch(0.98 0 0);
+}
+
+.dark .card-description,
+.dark .page-header p,
+.dark .section-subtitle,
+.dark .modal-description {
+  color: oklch(0.7 0.02 270);
+}
+
+.dark .input {
+  background-color: oklch(0.15 0.01 270);
+  border-color: oklch(0.3 0.02 270);
+  color: oklch(0.98 0 0);
+}
+
+.dark .input::placeholder {
+  color: oklch(0.5 0.02 270);
+}
+
+.dark .input-label {
+  color: oklch(0.8 0.02 270);
+}
+
+.dark .tag {
+  background-color: oklch(0.2 0.02 270);
+  color: oklch(0.8 0 0);
+}
+
+.dark .modal-overlay {
+  background-color: oklch(0 0 0 / 0.7);
+}
+
+.dark .modal-content {
+  background-color: oklch(0.12 0.01 270);
+  border-color: oklch(0.25 0.02 270);
+}
+
+.dark .btn-secondary {
+  background-color: oklch(0.18 0.01 270);
+  color: oklch(0.9 0 0);
+  border-color: oklch(0.3 0.02 270);
+}
+
+.dark .btn-ghost {
+  color: oklch(0.8 0 0);
+}
+
+.dark .btn-ghost:hover {
+  background-color: oklch(0.18 0.01 270);
+  color: oklch(0.98 0 0);
+}
+
+.dark .empty-state {
+  background-color: oklch(0.12 0.01 270);
+  border-color: oklch(0.25 0.02 270);
+}
+
+.dark .empty-state h3 {
+  color: oklch(0.8 0 0);
+}
+
+.dark .empty-state p {
+  color: oklch(0.6 0.02 270);
+}
+
 * {
   margin: 0;
   padding: 0;

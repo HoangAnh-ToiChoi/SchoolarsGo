@@ -15,6 +15,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ComparisonPage from './pages/ComparisonPage';
 import ChatPage from './pages/ChatPage';
 import NewsPage from './pages/NewsPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="compare" element={<ComparisonPage />} />
         <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
         <Route path="news" element={<NewsPage />} />
+        <Route path="admin/users" element={<ProtectedRoute requireAdmin><AdminUsersPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
