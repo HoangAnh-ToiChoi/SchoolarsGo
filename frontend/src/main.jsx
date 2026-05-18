@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,30 +6,16 @@ import { Toaster } from 'react-hot-toast';
 import * as Sentry from '@sentry/react';
 import App from './App';
 import './index.css';
-import { useThemeStore } from './stores/themeStore';
 
 // Apply theme before React renders to avoid flash of unstyled content
-try {
-  const stored = JSON.parse(localStorage.getItem('scholarsgo-theme') || '{}');
-  const theme = stored?.state?.theme ?? 'dark';
-  document.documentElement.classList.toggle('dark', theme !== 'light');
-} catch {
-  document.documentElement.classList.add('dark');
-}
-
-function ThemeApplier() {
-  const theme = useThemeStore((s) => s.theme);
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
-  return null;
-}
-
-// Restore theme before first render to avoid flash of wrong theme
-const savedTheme = localStorage.getItem('scholarsgo-theme');
-if (savedTheme === 'dark') {
-  document.documentElement.classList.add('dark');
-}
+const _raw = localStorage.getItem('scholarsgo-theme');
+const _initialTheme = (() => {
+  if (!_raw) return 'light';
+  if (_raw === 'dark' || _raw === 'light') return _raw;
+  try { return JSON.parse(_raw)?.state?.theme ?? 'light'; } catch { return 'light'; }
+})();
+document.documentElement.classList.toggle('dark', _initialTheme === 'dark');
+if (_raw !== _initialTheme) localStorage.setItem('scholarsgo-theme', _initialTheme);
 
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
@@ -54,7 +40,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeApplier />
         <App />
         <Toaster
           position="top-right"
