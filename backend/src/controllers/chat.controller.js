@@ -22,6 +22,14 @@ const sendMessage = async (req, res, next) => {
       throw err;
     }
 
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.content.length > 1000) {
+      const err = new Error('Tin nhắn không được vượt quá 1000 ký tự');
+      err.statusCode = 400;
+      err.isOperational = true;
+      throw err;
+    }
+
     const reply = await chat(messages);
 
     // Lưu cặp (user message cuối + assistant reply) vào DB — fire-and-forget

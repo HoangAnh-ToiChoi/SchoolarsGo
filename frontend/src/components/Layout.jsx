@@ -3,10 +3,11 @@ import Header from './Header';
 import Footer from './Footer';
 import ErrorBoundary from './ErrorBoundary';
 import ComparisonBar from './ComparisonBar';
+import ChatFAB from './ChatFAB';
 
 const Layout = () => {
   return (
-    <div className="landing-theme min-h-screen bg-landing-background flex flex-col">
+    <div className="min-h-screen bg-ink-950 flex flex-col">
       <Header />
       <main className="flex-1">
         <ErrorBoundary>
@@ -15,6 +16,7 @@ const Layout = () => {
       </main>
       <Footer />
       <ComparisonBar />
+      <ChatFAB />
     </div>
   );
 };

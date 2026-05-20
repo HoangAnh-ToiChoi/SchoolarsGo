@@ -12,8 +12,8 @@ const useScholarships = (ids) => {
 };
 
 const Cell = ({ children, highlight }) => (
-  <td className={`px-4 py-4 text-body-sm text-center align-top ${highlight ? 'bg-primary-50' : ''}`}>
-    {children ?? <span className="text-gray-300">—</span>}
+  <td className={`px-4 py-4 text-body-sm text-ink-300 text-center align-top ${highlight ? 'bg-primary-400/8' : ''}`}>
+    {children ?? <span className="text-ink-700">—</span>}
   </td>
 );
 
@@ -21,7 +21,7 @@ const BoolCell = ({ value, highlight }) => (
   <Cell highlight={highlight}>
     {value
       ? <Check className="w-4 h-4 text-success-500 mx-auto" />
-      : <X className="w-4 h-4 text-gray-300 mx-auto" />}
+      : <X className="w-4 h-4 text-ink-700 mx-auto" />}
   </Cell>
 );
 
@@ -49,42 +49,42 @@ const ComparisonPage = () => {
 
   if (scholarships.length < 2) {
     return (
-      <div className="container-page py-16 text-center">
-        <p className="text-body text-gray-500 mb-4">Cần ít nhất 2 học bổng để so sánh</p>
+      <div className="container-page py-16 text-center bg-ink-950 min-h-screen">
+        <p className="text-body text-ink-400 mb-4">Cần ít nhất 2 học bổng để so sánh</p>
         <Link to="/scholarships" className="btn-primary">Chọn học bổng</Link>
       </div>
     );
   }
 
   return (
-    <div className="container-page py-8">
-      <Link to="/scholarships" className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 font-medium mb-6">
+    <div className="container-page py-8 bg-ink-950 min-h-screen">
+      <Link to="/scholarships" className="inline-flex items-center gap-1 text-ink-500 hover:text-ink-100 font-medium mb-6">
         <ArrowLeft className="w-4 h-4" />Quay lại
       </Link>
 
-      <h1 className="text-heading-1 text-gray-900 mb-8">So sánh học bổng</h1>
+      <h1 className="text-heading-1 text-ink-100 mb-8">So sánh học bổng</h1>
 
-      <div className="card overflow-hidden">
+      <div className="bg-ink-900 border border-ink-800 rounded-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-4 py-4 text-left text-body-sm font-semibold text-gray-500 w-36">Tiêu chí</th>
+              <tr className="border-b border-ink-800">
+                <th className="px-4 py-4 text-left text-body-sm font-semibold text-ink-400 w-36">Tiêu chí</th>
                 {scholarships.map((s, i) => (
-                  <th key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-50' : ''}`}>
-                    <Link to={`/scholarships/${s.id}`} className="text-body-sm font-bold text-gray-900 hover:text-primary-600 line-clamp-2">
+                  <th key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-400/8' : ''}`}>
+                    <Link to={`/scholarships/${s.id}`} className="text-body-sm font-bold text-ink-100 hover:text-primary-400 line-clamp-2">
                       {s.title}
                     </Link>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-ink-800">
               {ROWS.map(({ label, key, format, icon: Icon }) => (
-                <tr key={key} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-4 text-body-sm font-medium text-gray-600">
+                <tr key={key} className="hover:bg-ink-800/50">
+                  <td className="px-4 py-4 text-body-sm font-medium text-ink-300">
                     <div className="flex items-center gap-1.5">
-                      {Icon && <Icon className="w-3.5 h-3.5 text-gray-400" />}
+                      {Icon && <Icon className="w-3.5 h-3.5 text-ink-500" />}
                       {label}
                     </div>
                   </td>
@@ -95,13 +95,13 @@ const ComparisonPage = () => {
                   ))}
                 </tr>
               ))}
-              <tr className="border-t border-gray-100">
-                <td className="px-4 py-4 text-body-sm font-medium text-gray-600">Nộp đơn</td>
+              <tr className="border-t border-ink-800">
+                <td className="px-4 py-4 text-body-sm font-medium text-ink-300">Nộp đơn</td>
                 {scholarships.map((s, i) => (
-                  <td key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-50' : ''}`}>
+                  <td key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-400/8' : ''}`}>
                     {s.application_url
                       ? <a href={s.application_url} target="_blank" rel="noopener noreferrer" className="btn-primary btn-sm">Nộp đơn</a>
-                      : <span className="text-gray-300 text-body-sm">—</span>}
+                      : <span className="text-ink-700 text-body-sm">—</span>}
                   </td>
                 ))}
               </tr>

@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
+const { sendResetEmail } = require('../utils/mailer');
 
 const SALT_ROUNDS = 12;
 
@@ -22,7 +24,9 @@ class AuthService {
   };
 
   #generateToken(payload) {
-    return jwt.sign(payload, process.env.JWT_SECRET || 'scholarsgo-dev-secret-fallback-32chars', {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new AppError('JWT_SECRET env var is required', 500);
+    return jwt.sign(payload, secret, {
       expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     });
   }
@@ -124,6 +128,35 @@ class AuthService {
       email: user.email,
       role: user.role,
     });
+  };
+
+  forgotPassword = async (email) => {
+    const user = await this.#repo.findByEmail(email);
+    // Always succeed to prevent email enumeration
+    if (!user) return;
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    await this.#repo.saveResetToken(user.id, tokenHash, expiresAt);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+    await sendResetEmail(email, resetLink);
+  };
+
+  resetPassword = async (rawToken, newPassword) => {
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const user = await this.#repo.findByResetToken(tokenHash);
+
+    if (!user) throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400, 'INVALID_RESET_TOKEN');
+    if (new Date(user.reset_token_expires) < new Date()) {
+      throw new AppError('Link đã hết hạn. Vui lòng yêu cầu lại.', 400, 'EXPIRED_RESET_TOKEN');
+    }
+
+    const passwordHash = await this.#hashPassword(newPassword);
+    await this.#repo.clearResetToken(user.id, passwordHash);
   };
 }
 

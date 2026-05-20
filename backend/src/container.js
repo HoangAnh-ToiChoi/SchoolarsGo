@@ -12,7 +12,8 @@
  *
  * Wiring: db → AdminRepository → AdminService → AdminController
  */
-const db = require('./utils/db');
+const getSupabase = require('./utils/supabase');
+const sb = getSupabase();
 
 // ── EventBus ────────────────────────────────────────────────
 const eventBus = require('./events/eventBus');
@@ -22,7 +23,7 @@ const AdminRepository = require('./repositories/admin.repository');
 const AdminService = require('./services/admin.service');
 const AdminController = require('./controllers/admin.controller');
 
-const adminRepo = new AdminRepository(db);
+const adminRepo = new AdminRepository(sb);
 const adminService = new AdminService(adminRepo);
 const adminController = new AdminController(adminService);
 
@@ -31,7 +32,7 @@ const ScholarshipRepository = require('./repositories/scholarship.repository');
 const ScholarshipService = require('./services/scholarship.service');
 const ScholarshipController = require('./controllers/scholarship.controller');
 
-const scholarshipRepo = new ScholarshipRepository(db);
+const scholarshipRepo = new ScholarshipRepository(sb);
 const scholarshipService = new ScholarshipService(scholarshipRepo);
 const scholarshipController = new ScholarshipController(scholarshipService);
 
@@ -40,7 +41,7 @@ const ProfileRepository = require('./repositories/profile.repository');
 const ProfileService = require('./services/profile.service');
 const ProfileController = require('./controllers/profile.controller');
 
-const profileRepo = new ProfileRepository(db);
+const profileRepo = new ProfileRepository(sb);
 const profileService = new ProfileService(profileRepo);
 const profileController = new ProfileController(profileService);
 
@@ -48,7 +49,7 @@ const profileController = new ProfileController(profileService);
 const ApplicationRepository = require('./repositories/application.repository');
 const ApplicationService = require('./services/application.service');
 
-const applicationRepo = new ApplicationRepository(db);
+const applicationRepo = new ApplicationRepository(sb);
 const applicationService = new ApplicationService(applicationRepo);
 const ApplicationController = require('./controllers/application.controller');
 const applicationController = new ApplicationController(applicationService);
@@ -58,7 +59,7 @@ const DocumentRepository = require('./repositories/document.repository');
 const DocumentService = require('./services/document.service');
 const DocumentController = require('./controllers/document.controller');
 
-const documentRepo = new DocumentRepository(db);
+const documentRepo = new DocumentRepository(sb);
 const storageService = require('./services/storage.service');
 const documentService = new DocumentService(documentRepo, eventBus, storageService);
 const documentController = new DocumentController(documentService);
@@ -68,7 +69,7 @@ const SavedRepository = require('./repositories/saved.repository');
 const SavedService = require('./services/saved.service');
 const SavedController = require('./controllers/saved.controller');
 
-const savedRepo = new SavedRepository(db);
+const savedRepo = new SavedRepository(sb);
 const savedService = new SavedService(savedRepo);
 const savedController = new SavedController(savedService);
 
@@ -77,7 +78,7 @@ const AuthRepository = require('./repositories/auth.repository');
 const AuthService = require('./services/auth.service');
 const AuthController = require('./controllers/auth.controller');
 
-const authRepo = new AuthRepository(db);
+const authRepo = new AuthRepository(sb);
 const authService = new AuthService(authRepo, eventBus);
 const authController = new AuthController(authService);
 
@@ -86,7 +87,7 @@ const RecommendRepository = require('./repositories/recommend.repository');
 const RecommendService = require('./services/recommend.service');
 const RecommendController = require('./controllers/recommend.controller');
 
-const recommendRepo = new RecommendRepository(db);
+const recommendRepo = new RecommendRepository(sb);
 const recommendService = new RecommendService(recommendRepo);
 const recommendController = new RecommendController(recommendService);
 

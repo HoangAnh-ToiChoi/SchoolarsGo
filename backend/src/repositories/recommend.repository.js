@@ -1,34 +1,25 @@
-const BaseRepository = require('./base.repository');
+class RecommendRepository {
+  #sb;
 
-class RecommendRepository extends BaseRepository {
-  #db;
-
-  constructor(db) {
-    super(db, 'profiles');
-    this.#db = db;
-  }
-
-  #query(sql, params) {
-    return this.#db.query(sql, params);
-  }
-
-  #queryOne(sql, params) {
-    return this.#db.queryOne(sql, params);
+  constructor(sb) {
+    this.#sb = sb;
   }
 
   async findProfileByUserId(userId) {
-    return this.#queryOne('SELECT * FROM profiles WHERE user_id = $1', [userId]);
+    const { data } = await this.#sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    return data;
   }
 
   async findActiveScholarships(limit = 200) {
-    const result = await this.#query(
-      `SELECT * FROM scholarships
-       WHERE is_active = true AND deadline >= now()
-       ORDER BY deadline ASC
-       LIMIT $1`,
-      [limit]
-    );
-    return result.rows;
+    const { data, error } = await this.#sb
+      .from('scholarships')
+      .select('*')
+      .eq('is_active', true)
+      .gte('deadline', new Date().toISOString())
+      .order('deadline', { ascending: true })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
   }
 }
 

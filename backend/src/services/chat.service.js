@@ -209,7 +209,7 @@ const chat = async (messages) => {
       const result = await session.sendMessage(prompt);
       return result.response.text();
     } catch (e) {
-      if (is429(e)) { console.warn(`[Chat] ${modelName} quota exceeded, trying next...`); continue; }
+      if (is429(e)) { console.info(`[Chat] ${modelName} quota exceeded, trying next...`); continue; }
       throw e;
     }
   }
@@ -217,22 +217,22 @@ const chat = async (messages) => {
   // 2. Fallback to Groq
   if (process.env.GROQ_API_KEY) {
     try {
-      console.warn('[Chat] All Gemini models quota exceeded, falling back to Groq...');
+      console.info('[Chat] All Gemini models quota exceeded, falling back to Groq...');
       return await callGroq(messages, prompt);
     } catch (e) {
       if (!is429(e)) throw e;
-      console.warn('[Chat] Groq also quota exceeded.');
+      console.info('[Chat] Groq also quota exceeded.');
     }
   }
 
   // 3. Fallback to Zhipu GLM-4-Flash
   if (process.env.ZHIPU_API_KEY) {
     try {
-      console.warn('[Chat] Falling back to Zhipu GLM-4-Flash...');
+      console.info('[Chat] Falling back to Zhipu GLM-4-Flash...');
       return await callZhipu(messages, prompt);
     } catch (e) {
       if (!is429(e)) throw e;
-      console.warn('[Chat] Zhipu also quota exceeded.');
+      console.info('[Chat] Zhipu also quota exceeded.');
     }
   }
 

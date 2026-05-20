@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { authController } = require('../container');
-const { registerSchema, loginSchema } = require('../utils/validators');
+const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../utils/validators');
 const validate = require('../middlewares/validate');
 const { auth } = require('../middlewares/auth');
 const rateLimiter = require('../middlewares/rateLimiter');
@@ -37,5 +37,17 @@ router.post('/logout', authController.logout);
  * @desc Refresh JWT token
  */
 router.post('/refresh', auth, authController.refresh);
+
+/**
+ * POST /api/auth/forgot-password
+ * @desc Send password reset email
+ */
+router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+
+/**
+ * POST /api/auth/reset-password
+ * @desc Reset password with token
+ */
+router.post('/reset-password', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
 module.exports = router;

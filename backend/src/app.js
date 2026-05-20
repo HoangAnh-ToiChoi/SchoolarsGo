@@ -42,6 +42,11 @@ if (process.env.NODE_ENV !== 'production') {
 // ── Static Files ───────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// ── Health Check ──────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // ── API Routes ─────────────────────────────────────────
 app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);

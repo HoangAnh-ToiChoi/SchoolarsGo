@@ -101,7 +101,7 @@ const FileUpload = ({
       {label && (
         <label className="input-label">
           {label}
-          {description && <span className="text-caption text-gray-500 ml-2">({description})</span>}
+          {description && <span className="text-caption text-ink-500 ml-2">({description})</span>}
         </label>
       )}
 
@@ -113,9 +113,9 @@ const FileUpload = ({
         onClick={() => !disabled && fileInputRef.current?.click()}
         className={cn(
           'relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
-          isDragOver ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-primary-400',
+          isDragOver ? 'border-primary-400 bg-primary-400/10' : 'border-ink-700 hover:border-primary-400/60 hover:bg-primary-400/5',
           disabled && 'cursor-not-allowed opacity-50',
-          error && 'border-danger-500 bg-danger-50'
+          error && 'border-danger-500 bg-danger-500/10'
         )}
       >
         <input
@@ -131,13 +131,13 @@ const FileUpload = ({
         <div className="flex flex-col items-center gap-2">
           <Upload className={cn(
             'w-8 h-8',
-            isDragOver ? 'text-primary-500' : 'text-gray-400'
+            isDragOver ? 'text-primary-400' : 'text-ink-600'
           )} />
           <div>
-            <p className="text-body font-medium text-gray-900">
+            <p className="text-body font-medium text-ink-200">
               {isDragOver ? 'Thả file vào đây' : 'Kéo thả file hoặc click để chọn'}
             </p>
-            <p className="text-caption text-gray-500 mt-1">
+            <p className="text-caption text-ink-500 mt-1">
               {accept.replace(/\./g, '').toUpperCase()} • Tối đa {Math.round(maxSize / 1024 / 1024)}MB
             </p>
           </div>
@@ -158,15 +158,15 @@ const FileUpload = ({
           {files.map((file, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+              className="flex items-center justify-between p-3 bg-ink-950 rounded-lg border border-ink-800"
             >
               <div className="flex items-center gap-3">
                 {getFileIcon(file.name || file.file_name)}
                 <div>
-                  <p className="text-body-sm font-medium text-gray-900">
+                  <p className="text-body-sm font-medium text-ink-100">
                     {file.name || file.file_name}
                   </p>
-                  <p className="text-caption text-gray-500">
+                  <p className="text-caption text-ink-500">
                     {formatFileSize(file.size)}
                   </p>
                 </div>

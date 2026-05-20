@@ -1,77 +1,131 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowRight, Sparkles, Globe, GraduationCap, Users, Star } from 'lucide-react';
+import { useInView } from '../../hooks/useInView';
+import { useCounter } from '../../hooks/useCounter';
 
-// Inline SVG Icons
-const SparklesIcon = () => (
-  <svg className="h-4 w-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-  </svg>
-)
+const StatItem = ({ value, suffix = '', label, delay, icon: Icon }) => {
+  const [ref, inView] = useInView();
+  const count = useCounter(inView ? value : 0, 1400);
 
-const ArrowRightIcon = ({ className }) => (
-  <svg className={className || "h-5 w-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-  </svg>
-)
-
-export function Hero() {
   return (
-    <section className="relative flex min-h-[90vh] items-center justify-center px-4 pt-20 z-10">
-      <div className="mx-auto max-w-5xl text-center">
-        {/* Badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 backdrop-blur-sm">
-          <SparklesIcon />
-          <span className="text-sm text-purple-300">
-            Nền tảng AI hỗ trợ săn học bổng #1 Việt Nam
-          </span>
-        </div>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 16 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay, duration: 0.5, ease: 'easeOut' }}
+      className="flex flex-col items-center gap-1"
+    >
+      <div className="flex items-center gap-1.5 text-3xl sm:text-4xl font-extrabold text-primary-400 tabular-nums glow-text">
+        {count.toLocaleString()}{suffix}
+      </div>
+      <div className="text-xs text-ink-500 font-medium tracking-wide uppercase">{label}</div>
+    </motion.div>
+  );
+};
 
-        {/* Main Heading with Animated Gradient */}
-        <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          <span className="text-white">ScholarsGo — </span>
-          <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-            Chạm tay đến học bổng mơ ước.
-          </span>
-        </h1>
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+const itemVariants = {
+  hidden:  { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+};
 
-        {/* Subheading */}
-        <p className="mx-auto mb-10 max-w-2xl text-lg text-white/60 sm:text-xl">
-          Nền tảng AI hỗ trợ săn học bổng và quản lý lộ trình du học toàn diện
-          cho sinh viên Việt Nam.
-        </p>
+export function Hero({ totalScholarships }) {
+  return (
+    <section className="relative overflow-hidden bg-ink-950 border-b border-ink-800 py-24 sm:py-32">
+      {/* Grid pattern */}
+      <div className="absolute inset-0 bg-grid pointer-events-none" />
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link to="/scholarships" className="group relative flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 px-8 py-4 text-lg font-semibold text-white shadow-2xl shadow-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-purple-500/50">
-            {/* Glow effect */}
-            <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-500 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-50" />
-            <span className="relative flex items-center gap-2">
-              Khám phá học bổng ngay
-              <ArrowRightIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+      {/* Ambient orbs */}
+      <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-primary-400/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-primary-400/[0.08] rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container-page relative z-10">
+        <motion.div
+          className="text-center max-w-4xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Eyebrow badge */}
+          <motion.div variants={itemVariants} className="mb-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary-400/25 bg-primary-400/8 px-4 py-1.5 text-sm font-medium text-primary-300">
+              <Sparkles className="w-3.5 h-3.5" />
+              Nền tảng tìm học bổng #1 cho sinh viên Việt Nam
             </span>
-          </Link>
+          </motion.div>
 
-          <a href="#features" className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 text-lg font-medium text-white backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white/10">
-            Tìm hiểu thêm
-          </a>
-        </div>
+          {/* Heading */}
+          <motion.h1
+            variants={itemVariants}
+            className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink-100 leading-[1.05] tracking-tight mb-6"
+          >
+            Chạm tay đến<br />
+            <span className="text-gradient-cyan glow-text">học bổng mơ ước</span>
+          </motion.h1>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 gap-8 sm:grid-cols-4">
-          {[
-            { value: "500+", label: "Học bổng" },
-            { value: "50+", label: "Quốc gia" },
-            { value: "10K+", label: "Người dùng" },
-            { value: "95%", label: "Hài lòng" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-3xl font-bold text-white sm:text-4xl">
-                {stat.value}
-              </div>
-              <div className="mt-1 text-sm text-white/50">{stat.label}</div>
+          {/* Subheadline */}
+          <motion.p
+            variants={itemVariants}
+            className="text-lg sm:text-xl text-ink-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+          >
+            Khám phá hàng nghìn học bổng toàn cầu, nhận gợi ý AI cá nhân hóa và
+            quản lý toàn bộ hồ sơ ứng tuyển — tất cả trong một nền tảng.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+          >
+            <Link
+              to="/scholarships"
+              className="btn-primary btn-lg group"
+            >
+              Khám phá học bổng
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              to="/recommend"
+              className="btn-secondary btn-lg"
+            >
+              <Sparkles className="w-4 h-4 text-primary-400" />
+              Gợi ý AI cho tôi
+            </Link>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            variants={itemVariants}
+            className="inline-grid grid-cols-3 gap-8 sm:gap-12 border border-ink-800 rounded-2xl bg-ink-900/80 backdrop-blur-sm px-8 sm:px-12 py-6 w-full max-w-lg mx-auto"
+          >
+            <StatItem value={totalScholarships || 500} suffix="+" label="Học bổng" delay={0.4} icon={GraduationCap} />
+            <StatItem value={50} suffix="+" label="Quốc gia" delay={0.5} icon={Globe} />
+            <StatItem value={10000} suffix="+" label="Sinh viên" delay={0.6} icon={Users} />
+          </motion.div>
+
+          {/* Social proof */}
+          <motion.div
+            variants={itemVariants}
+            className="mt-8 flex items-center justify-center gap-2 text-sm text-ink-500"
+          >
+            <div className="flex -space-x-1.5">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-7 h-7 rounded-full bg-ink-800 border-2 border-ink-950 flex items-center justify-center text-xs font-bold text-ink-300">
+                  {String.fromCharCode(65 + i)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-warning-400 text-warning-400" />)}
+            </div>
+            <span>Được tin dùng bởi <strong className="text-ink-300">10,000+</strong> sinh viên</span>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
-  )
+  );
 }

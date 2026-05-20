@@ -21,25 +21,26 @@ const createLimiter = (maxRequests, windowSeconds, message) => {
   });
 };
 
-/**
- * Tier 1 — Auth: Rất strict (chống brute-force)
- * 5 requests / 15 phút — cho login, register
- */
-const authLimiter = createLimiter(
-  5,
-  15 * 60,
-  'Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau 15 phút.'
-);
+const isProd = process.env.NODE_ENV === 'production';
 
 /**
- * Tier 2 — API: Standard (bảo vệ server)
- * 100 requests / 1 phút — áp dụng cho tất cả API routes
+ * Tier 1 — Auth: strict in production, lenient in dev/test
+ * prod: 5 req / 15 min | dev: 200 req / min
  */
-const apiLimiter = createLimiter(100, 60, 'Quá nhiều yêu cầu, vui lòng thử lại sau.');
+const authLimiter = isProd
+  ? createLimiter(5, 15 * 60, 'Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau 15 phút.')
+  : createLimiter(200, 60, 'Quá nhiều yêu cầu đăng nhập.');
 
 /**
- * Tier 3 — Upload: Moderate (tránh spam upload)
- * 20 requests / 1 phút — cho upload documents
+ * Tier 2 — API: Standard
+ * prod: 100 req / min | dev: 500 req / min
+ */
+const apiLimiter = isProd
+  ? createLimiter(100, 60, 'Quá nhiều yêu cầu, vui lòng thử lại sau.')
+  : createLimiter(500, 60, 'Quá nhiều yêu cầu, vui lòng thử lại sau.');
+
+/**
+ * Tier 3 — Upload: Moderate
  */
 const uploadLimiter = createLimiter(20, 60, 'Quá nhiều yêu cầu tải lên, vui lòng thử lại sau.');
 

@@ -1,79 +1,66 @@
-const BaseRepository = require('./base.repository');
+class SavedRepository {
+  #sb;
 
-class SavedRepository extends BaseRepository {
-  #db;
-
-  constructor(db) {
-    super(db, 'saved_scholarships');
-    this.#db = db;
-  }
-
-  #query(sql, params) {
-    return this.#db.query(sql, params);
-  }
-
-  #queryOne(sql, params) {
-    return this.#db.queryOne(sql, params);
+  constructor(sb) {
+    this.#sb = sb;
   }
 
   async findAllByUser(userId) {
-    const result = await this.#query(
-      `SELECT ss.id, ss.note, ss.created_at,
-              s.id as scholarship_id, s.title, s.provider, s.country, s.degree,
-              s.amount, s.currency, s.deadline, s.image_url, s.is_featured
-       FROM saved_scholarships ss
-       JOIN scholarships s ON ss.scholarship_id = s.id
-       WHERE ss.user_id = $1
-       ORDER BY ss.created_at DESC`,
-      [userId]
-    );
-    return result.rows;
+    const { data, error } = await this.#sb
+      .from('saved_scholarships')
+      .select('id, note, created_at, scholarships(id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id: r.id, note: r.note, created_at: r.created_at,
+      scholarship_id: r.scholarships?.id, ...r.scholarships,
+    }));
   }
 
   async findByUserAndScholarship(userId, scholarshipId) {
-    return this.#queryOne(
-      `SELECT * FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2`,
-      [userId, scholarshipId]
-    );
+    const { data } = await this.#sb
+      .from('saved_scholarships').select('*')
+      .eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
+    return data;
   }
 
   async create({ userId, scholarshipId, note }) {
-    try {
-      return await this.#queryOne(
-        `INSERT INTO saved_scholarships (user_id, scholarship_id, note)
-         VALUES ($1, $2, $3)
-         RETURNING *`,
-        [userId, scholarshipId, note || null]
-      );
-    } catch (err) {
-      if (err.code === '23505' || err.constraint === 'saved_scholarships_user_id_scholarship_id_key') {
-        const error = new Error('SCHOLARSHIP_ALREADY_SAVED');
-        error.isOperational = true;
-        throw error;
+    const { data, error } = await this.#sb
+      .from('saved_scholarships')
+      .insert({ user_id: userId, scholarship_id: scholarshipId, note: note || null })
+      .select('*').single();
+    if (error) {
+      if (error.code === '23505') {
+        const err = new Error('SCHOLARSHIP_ALREADY_SAVED');
+        err.isOperational = true;
+        throw err;
       }
-      throw err;
+      throw error;
     }
+    return data;
   }
 
   async deleteByUserAndScholarship(userId, scholarshipId) {
-    const result = await this.#query(
-      `DELETE FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2 RETURNING id`,
-      [userId, scholarshipId]
-    );
-    return result.rowCount;
+    const { error, count } = await this.#sb
+      .from('saved_scholarships')
+      .delete({ count: 'exact' })
+      .eq('user_id', userId).eq('scholarship_id', scholarshipId);
+    if (error) throw error;
+    return count;
   }
 
   async scholarshipExists(scholarshipId) {
-    const result = await this.#queryOne(`SELECT id FROM scholarships WHERE id = $1`, [scholarshipId]);
-    return result !== null;
+    const { data } = await this.#sb.from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+    return !!data;
   }
 
   async getScholarshipDetails(scholarshipId) {
-    return this.#queryOne(
-      `SELECT id as scholarship_id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-       FROM scholarships WHERE id = $1`,
-      [scholarshipId]
-    );
+    const { data } = await this.#sb
+      .from('scholarships')
+      .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+      .eq('id', scholarshipId).maybeSingle();
+    return data;
   }
 }
 

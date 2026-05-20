@@ -2,9 +2,12 @@ const AppError = require('../utils/AppError');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
+const COUNTRIES_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 class ScholarshipService {
   #repo;
+  #countriesCache = null;
+  #countriesCachedAt = 0;
 
   constructor(scholarshipRepository) {
     this.#repo = scholarshipRepository;
@@ -39,7 +42,14 @@ class ScholarshipService {
   };
 
   getCountries = async () => {
-    return this.#repo.findCountries();
+    const now = Date.now();
+    if (this.#countriesCache && now - this.#countriesCachedAt < COUNTRIES_TTL_MS) {
+      return this.#countriesCache;
+    }
+    const result = await this.#repo.findCountries();
+    this.#countriesCache = result;
+    this.#countriesCachedAt = now;
+    return result;
   };
 
   getById = async (id, userId = null) => {

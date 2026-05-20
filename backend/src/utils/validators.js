@@ -163,9 +163,20 @@ const adminUserQuerySchema = z.object({
   search: z.string().max(255).optional(),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Email không hợp lệ'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token là bắt buộc'),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').max(128),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   scholarshipQuerySchema,
   profileUpdateSchema,
   applicationCreateSchema,

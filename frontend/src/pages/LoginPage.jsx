@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, Sparkles, LogIn } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useLogin } from '../hooks/useAuth';
 import { Input } from '../components/ui';
-import { AuroraBackground } from '../components/landing/AuroraBackground';
 import { cn } from '../utils/helpers';
 
 const LoginPage = () => {
@@ -16,27 +16,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white flex items-center justify-center pt-20 pb-12 px-4">
-      <AuroraBackground />
-      
-      <div className="w-full max-w-md relative z-10">
+    <motion.div className="min-h-screen bg-ink-950 flex items-center justify-center px-4 py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 mb-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
-            <LogIn className="w-8 h-8 text-cyan-400" />
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70">
-            Đăng Nhập
-          </h1>
-          <p className="text-white/60 text-lg font-light">
-            Chào mừng bạn quay trở lại ScholarsGo
-          </p>
+          <h1 className="text-3xl font-bold text-ink-100 mb-2">Đăng nhập</h1>
+          <p className="text-ink-400">Chào mừng bạn quay trở lại ScholarsGo</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_40px_rgba(168,85,247,0.1)] space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[50px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/10 blur-[50px] pointer-events-none" />
-          
-          <div className="relative z-10 space-y-5">
+        <div className="bg-ink-900 border border-ink-800 rounded-card p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Email"
               icon={Mail}
@@ -46,46 +34,50 @@ const LoginPage = () => {
               placeholder="your@email.com"
               required
             />
-            <Input
-              label="Mật khẩu"
-              icon={Lock}
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="••••••••"
-              required
-            />
-            
-            <button 
-              type="submit" 
+            <div>
+              <Input
+                label="Mật khẩu"
+                icon={Lock}
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="••••••••"
+                required
+              />
+              <div className="mt-1.5 text-right">
+                <Link to="/forgot-password" className="text-xs text-ink-500 hover:text-primary-400 transition-colors">
+                  Quên mật khẩu?
+                </Link>
+              </div>
+            </div>
+
+            <button
+              type="submit"
               disabled={isPending}
               className={cn(
-                "w-full py-3.5 px-6 rounded-xl font-bold text-white transition-all duration-300",
-                "bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500",
-                "shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] hover:scale-[1.02] active:scale-[0.98]",
-                "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex justify-center items-center gap-2 mt-4"
+                'w-full py-3 px-6 rounded-button font-semibold transition-colors mt-2',
+                'bg-primary-400 text-ink-950 hover:bg-primary-300 hover:shadow-glow',
+                'disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2'
               )}
             >
               {isPending ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-ink-950/30 border-t-ink-950 rounded-full animate-spin" />
                   Đang xử lý...
                 </>
-              ) : (
-                'Đăng Nhập'
-              )}
+              ) : 'Đăng nhập'}
             </button>
-          </div>
+          </form>
 
-          <p className="text-center text-white/50 text-sm mt-8 relative z-10">
+          <p className="text-center text-ink-400 text-sm mt-6">
             Chưa có tài khoản?{' '}
-            <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">
+            <Link to="/register" className="text-primary-400 hover:text-primary-400 font-semibold transition-colors">
               Đăng ký ngay
             </Link>
           </p>
-        </form>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

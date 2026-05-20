@@ -7,137 +7,128 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary: Chuyển sang tông Xanh Slate/Indigo dịu mắt hơn
+        // Cyan accent (primary actions, links, highlights)
         primary: {
-          50: '#f0f4f8',
-          100: '#d9e2ec',
-          200: '#bcccdc',
-          300: '#9fb3c8',
-          400: '#829ab1',
-          500: '#627d98', // Màu chủ đạo trầm, chuyên nghiệp
-          600: '#486581',
-          700: '#334e68',
-          800: '#243b53',
-          900: '#102a43',
+          50:  '#ecfeff',
+          100: '#cffafe',
+          200: '#a5f3fc',
+          300: '#67e8f9',
+          400: '#22d3ee',
+          500: '#06b6d4',
+          600: '#0891b2',
+          700: '#0e7490',
+          800: '#155e75',
+          900: '#164e63',
         },
-        // Secondary: Tông tím khói (Muted Purple)
-        secondary: {
-          50: '#f5f3f7',
-          100: '#e8e4ec',
-          200: '#d0c9d6',
-          300: '#b6acc0',
-          400: '#9c8eaa',
-          500: '#827094',
-          600: '#6a597a',
-          700: '#53465f',
-          800: '#3c3345',
-          900: '#25202b',
+        // Dark UI surfaces (GitHub Dark inspired)
+        ink: {
+          950: '#0D1117',
+          900: '#161B22',
+          800: '#21262D',
+          700: '#30363D',
+          600: '#484F58',
+          500: '#6E7681',
+          400: '#8B949E',
+          300: '#B1BAC4',
+          200: '#C9D1D9',
+          100: '#E6EDF3',
         },
         success: {
-          50: '#f2f9f1',
-          500: '#62a46e', // Xanh lá xám dịu
-          600: '#498a54',
-          700: '#34703f',
+          50:  '#f0fdf4',
+          100: '#dcfce7',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
         },
         warning: {
-          50: '#fff9f2',
-          500: '#d99430', // Cam đất thay vì cam tươi
-          600: '#bc791d',
-          700: '#9c6010',
+          50:  '#fffbeb',
+          100: '#fef3c7',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
         },
         danger: {
-          50: '#fff5f5',
-          500: '#bc5454', // Đỏ đô nhẹ
-          600: '#a33c3c',
-          700: '#892727',
+          50:  '#fef2f2',
+          100: '#fee2e2',
+          400: '#f87171',
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c',
         },
-        // Surface: Tránh dùng màu trắng tinh (Pure White #FFFFFF)
-        surface: {
-          DEFAULT: '#ffffff',      // Nền card trắng tinh khôi
-          sunken: '#f7f9fb',      // Nền body hơi xám xanh để dịu mắt
-          muted: '#e4e7eb',       // Cho các thành phần phụ
-        },
-        // Text: Giảm độ đen tuyệt đối để tăng tính thẩm mỹ
-        content: {
-          primary: '#1f2933',     // Chữ chính
-          secondary: '#52606d',   // Chữ phụ
-          tertiary: '#9aa5b1',    // Chữ mờ/placeholder
-        },
-        // Landing Page Specific Colors
-        landing: {
-          background: 'var(--landing-background)',
-          foreground: 'var(--landing-foreground)',
-          card: 'var(--landing-card)',
-          'card-foreground': 'var(--landing-card-foreground)',
-          popover: 'var(--landing-popover)',
-          'popover-foreground': 'var(--landing-popover-foreground)',
-          primary: 'var(--landing-primary)',
-          'primary-foreground': 'var(--landing-primary-foreground)',
-          secondary: 'var(--landing-secondary)',
-          'secondary-foreground': 'var(--landing-secondary-foreground)',
-          muted: 'var(--landing-muted)',
-          'muted-foreground': 'var(--landing-muted-foreground)',
-          accent: 'var(--landing-accent)',
-          'accent-foreground': 'var(--landing-accent-foreground)',
-          destructive: 'var(--landing-destructive)',
-          'destructive-foreground': 'var(--landing-destructive-foreground)',
-          border: 'var(--landing-border)',
-          input: 'var(--landing-input)',
-          ring: 'var(--landing-ring)',
-        }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'display': ['3.5rem', { lineHeight: '1.1', fontWeight: '800' }],
-        'heading-1': ['2rem', { lineHeight: '1.2', fontWeight: '700' }],
-        'heading-2': ['1.5rem', { lineHeight: '1.3', fontWeight: '700' }],
-        'heading-3': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }],
-        'body-lg': ['1.125rem', { lineHeight: '1.6' }],
-        'body': ['1rem', { lineHeight: '1.6' }],
-        'body-sm': ['0.875rem', { lineHeight: '1.5' }],
-        'caption': ['0.75rem', { lineHeight: '1.4' }],
+        'display':   ['3.5rem', { lineHeight: '1.05', fontWeight: '800' }],
+        'heading-1': ['2rem',   { lineHeight: '1.2',  fontWeight: '700' }],
+        'heading-2': ['1.5rem', { lineHeight: '1.3',  fontWeight: '700' }],
+        'heading-3': ['1.25rem',{ lineHeight: '1.4',  fontWeight: '600' }],
+        'body-lg':   ['1.125rem',{ lineHeight: '1.6' }],
+        'body':      ['1rem',   { lineHeight: '1.6' }],
+        'body-sm':   ['0.875rem',{ lineHeight: '1.5' }],
+        'caption':   ['0.75rem', { lineHeight: '1.4' }],
       },
       borderRadius: {
-        'card': '1rem',
-        'button': '0.75rem',
-        'input': '0.75rem',
-        'badge': '0.5rem',
-        'tag': '9999px',
-      },
-      boxShadow: {
-        // Đổ bóng mềm hơn với độ mờ cao hơn
-        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03)',
-        'button': '0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+        'card':   '0.75rem',
+        'button': '0.5rem',
+        'input':  '0.5rem',
+        'badge':  '0.25rem',
+        'tag':    '9999px',
       },
       spacing: {
-        'page': '2rem',
+        'page':    '2rem',
         'section': '5rem',
       },
+      boxShadow: {
+        'glow':    '0 0 20px rgba(34,211,238,0.25)',
+        'glow-lg': '0 0 40px rgba(34,211,238,0.35)',
+        'glow-sm': '0 0 10px rgba(34,211,238,0.15)',
+        'card':    '0 1px 3px rgba(0,0,0,0.4)',
+        'card-hover': '0 8px 24px rgba(0,0,0,0.5)',
+      },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'fade-in-up': 'fadeInUp 0.45s ease-out both',
+        'fade-in':        'fadeIn 0.25s ease-out',
+        'slide-up':       'slideUp 0.3s ease-out',
+        'slide-down':     'slideDown 0.3s ease-out',
+        'fade-in-up':     'fadeInUp 0.5s ease-out both',
+        'fade-in-up-1':   'fadeInUp 0.5s 0.1s ease-out both',
+        'fade-in-up-2':   'fadeInUp 0.5s 0.2s ease-out both',
+        'fade-in-up-3':   'fadeInUp 0.5s 0.3s ease-out both',
+        'pulse-glow':     'pulseGlow 3s ease-in-out infinite',
+        'shimmer':        'shimmer 2s linear infinite',
+        'float':          'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0' },
+          '0%':   { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '0%':   { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '0%':   { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '0%':   { opacity: '0', transform: 'translateY(24px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 15px rgba(34,211,238,0.15)' },
+          '50%':      { boxShadow: '0 0 35px rgba(34,211,238,0.45)' },
+        },
+        shimmer: {
+          '0%':   { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%':      { transform: 'translateY(-8px)' },
         },
       },
     },

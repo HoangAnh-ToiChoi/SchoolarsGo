@@ -1,12 +1,12 @@
 import { cn } from '../../utils/helpers';
 
 const colorMap = {
-  gray: 'bg-gray-100 text-gray-700',
-  blue: 'bg-primary-50 text-primary-700',
-  green: 'bg-success-50 text-success-700',
-  yellow: 'bg-warning-50 text-warning-700',
-  red: 'bg-danger-50 text-danger-700',
-  purple: 'bg-secondary-50 text-secondary-700',
+  gray:   'bg-ink-800 text-ink-300 border border-ink-700',
+  blue:   'bg-primary-400/10 text-primary-300 border border-primary-400/20',
+  green:  'bg-success-500/10 text-success-400 border border-success-500/20',
+  yellow: 'bg-warning-500/10 text-warning-400 border border-warning-500/20',
+  red:    'bg-danger-500/10 text-danger-400 border border-danger-500/20',
+  purple: 'bg-primary-400/10 text-primary-300 border border-primary-400/20',
 };
 
 const Badge = ({ children, color = 'gray', className, ...props }) => {

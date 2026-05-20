@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useScholarships } from '../hooks/useScholarship';
-import { AuroraBackground } from '../components/landing/AuroraBackground';
 import { Hero } from '../components/landing/Hero';
 import { Features } from '../components/landing/Features';
 import { ScholarshipPreview } from '../components/landing/ScholarshipPreview';
@@ -8,20 +7,14 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const HomePage = () => {
   const { data: featured, isLoading } = useScholarships({ featured: 'true', limit: 6 });
+  const { data: allScholarships } = useScholarships({ limit: 1 });
   const featuredScholarships = featured?.data || [];
+  const totalScholarships = allScholarships?.meta?.total ?? null;
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-landing-background selection:bg-landing-primary/30">
-      {/* Animated Aurora Background */}
-      <AuroraBackground />
-
-      {/* Hero Section */}
-      <Hero />
-
-      {/* Features Section */}
+    <motion.div className="min-h-screen bg-ink-950" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <Hero totalScholarships={totalScholarships} />
       <Features />
-
-      {/* Scholarship Preview */}
       {isLoading ? (
         <div className="py-24 flex justify-center">
           <LoadingSpinner />
@@ -29,7 +22,7 @@ const HomePage = () => {
       ) : (
         <ScholarshipPreview scholarships={featuredScholarships} />
       )}
-    </div>
+    </motion.div>
   );
 };
 
