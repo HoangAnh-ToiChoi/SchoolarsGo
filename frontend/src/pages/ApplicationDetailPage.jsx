@@ -14,6 +14,7 @@ const DOC_TYPE_CHECKLIST_MATCH = {
   sop: (item) => /^sop$/i.test(item.trim()),
   transcript: (item) => /bảng\s*điểm|transcript/i.test(item),
   recommendation_letter: (item) => /thư\s*giới\s*thiệu|recommendation/i.test(item),
+  other: (item) => /ielts|toefl|gre|gmat|hộ\s*chiếu|passport|chứng\s*chỉ/i.test(item),
 };
 
 const STATUS_TRANSITIONS = {
