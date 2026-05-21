@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, X, Sparkles } from 'lucide-react';
+import { Bot, Sparkles } from 'lucide-react';
 
 const ChatFAB = () => {
   const [hovered, setHovered] = useState(false);

@@ -15,6 +15,9 @@ const ScholarshipCard = ({ scholarship, index = 0 }) => {
   const toggleSave = useToggleSaveScholarship();
   const [optimisticSaved, setOptimisticSaved] = useState(null);
   const [ref, inView] = useInView();
+  const toggle = useComparisonStore((s) => s.toggle);
+  const isSelected = useComparisonStore((s) => s.isSelected(scholarship?.id));
+  const itemCount = useComparisonStore((s) => s.items.length);
 
   if (!scholarship || !scholarship.id) return null;
   const { id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured } = scholarship;
@@ -38,10 +41,6 @@ const ScholarshipCard = ({ scholarship, index = 0 }) => {
       onError: () => setOptimisticSaved(serverIsSaved),
     });
   };
-
-  const toggle = useComparisonStore((s) => s.toggle);
-  const isSelected = useComparisonStore((s) => s.isSelected(id));
-  const itemCount = useComparisonStore((s) => s.items.length);
 
   return (
     <motion.div

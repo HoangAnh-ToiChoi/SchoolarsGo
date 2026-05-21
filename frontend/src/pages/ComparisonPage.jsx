@@ -1,5 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { Check, X, MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
+import { MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
 import { useScholarship } from '../hooks/useScholarship';
 import { formatCurrency, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -17,13 +17,6 @@ const Cell = ({ children, highlight }) => (
   </td>
 );
 
-const BoolCell = ({ value, highlight }) => (
-  <Cell highlight={highlight}>
-    {value
-      ? <Check className="w-4 h-4 text-success-500 mx-auto" />
-      : <X className="w-4 h-4 text-ink-700 mx-auto" />}
-  </Cell>
-);
 
 const ROWS = [
   { label: 'Nhà cung cấp', key: 'provider' },

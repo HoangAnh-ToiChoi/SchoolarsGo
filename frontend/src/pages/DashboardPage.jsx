@@ -1,13 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  BarChart3,
   BookmarkIcon,
   ClipboardCheck,
   AlertCircle,
   TrendingUp,
   ArrowRight,
   Clock,
-  CheckCircle2,
   Circle,
   MapPin,
   Calendar as CalendarIcon,
@@ -17,7 +15,7 @@ import { useProfile } from '../hooks/useProfile';
 import { useApplications } from '../hooks/useApplication';
 import { useSavedScholarships } from '../hooks/useScholarship';
 import { useScholarships } from '../hooks/useScholarship';
-import { cn, formatDate, getStatusColor, getStatusLabel, formatCurrency } from '../utils/helpers';
+import { cn, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
 
@@ -227,7 +225,7 @@ const DashboardPage = () => {
           <section>
             <h2 className="heading-3 mb-4">Ứng tuyển gần đây</h2>
             <div className="space-y-3">
-              {recentApplications.map((app, idx) => (
+              {recentApplications.map((app) => (
                 <Card key={app.id} className="hover">
                   <CardContent className="p-4 md:p-6">
                     <div className="flex items-start justify-between gap-4">
