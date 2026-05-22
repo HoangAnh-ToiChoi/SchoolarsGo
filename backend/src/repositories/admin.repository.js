@@ -99,13 +99,12 @@ class AdminRepository extends BaseRepository {
     const conditions = [];
     let idx = 1;
 
-    // status filter xác định is_active; mặc định chỉ lấy active users
+    // status filter xác định is_active; mặc định hiển thị tất cả users
     if (status !== undefined) {
       conditions.push(`is_active = $${idx++}`);
       params.push(status === 'active');
-    } else {
-      conditions.push('is_active = true');
     }
+    // No else — show all users by default
 
     if (role) {
       conditions.push(`role = $${idx++}`);

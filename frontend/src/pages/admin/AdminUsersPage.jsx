@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Search, Shield, ShieldOff, UserCheck, UserX, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Shield, ShieldOff, ChevronLeft, ChevronRight, Lock, Unlock } from 'lucide-react';
 import { useAdminUsers, useUpdateUserRole, useUpdateUserStatus } from '../../hooks/useAdmin';
 import { cn, formatDate } from '../../utils/helpers';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import Modal from '../../components/ui/Modal';
 
 const ROLE_OPTIONS = [
   { value: '', label: 'Tất cả role' },
@@ -32,6 +33,7 @@ const AdminUsersPage = () => {
   const [searchInput, setSearchInput] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('');
+  const [confirmModal, setConfirmModal] = useState({ open: false, user: null });
 
   const filters = { page, limit: 20, ...(search && { search }), ...(role && { role }), ...(status && { status }) };
   const { data, isLoading, error } = useAdminUsers(filters);
@@ -53,9 +55,13 @@ const AdminUsersPage = () => {
   };
 
   const handleStatusToggle = (user) => {
-    const action = user.is_active ? 'vô hiệu hóa' : 'kích hoạt';
-    if (!window.confirm(`Bạn muốn ${action} tài khoản này?`)) return;
+    setConfirmModal({ open: true, user });
+  };
+
+  const handleConfirmStatus = () => {
+    const { user } = confirmModal;
     updateStatus.mutate({ id: user.id, isActive: !user.is_active });
+    setConfirmModal({ open: false, user: null });
   };
 
   return (
@@ -166,15 +172,17 @@ const AdminUsersPage = () => {
                           <button
                             onClick={() => handleStatusToggle(user)}
                             disabled={updateStatus.isPending}
-                            title={user.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
                             className={cn(
-                              'p-1.5 rounded-button transition-colors disabled:opacity-40',
+                              'flex items-center gap-1 px-2 py-1 rounded-button text-xs font-medium transition-colors disabled:opacity-40',
                               user.is_active !== false
                                 ? 'text-danger-500 hover:bg-danger-500/10'
                                 : 'text-success-500 hover:bg-success-500/10'
                             )}
                           >
-                            {user.is_active !== false ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            {user.is_active !== false
+                              ? <><Lock className="w-3.5 h-3.5" /> Khóa</>
+                              : <><Unlock className="w-3.5 h-3.5" /> Mở</>
+                            }
                           </button>
                         </div>
                       </td>
@@ -211,6 +219,37 @@ const AdminUsersPage = () => {
           </div>
         )}
       </div>
+
+      {/* Confirm status modal */}
+      <Modal
+        open={confirmModal.open}
+        onClose={() => setConfirmModal({ open: false, user: null })}
+        title={confirmModal.user?.is_active !== false ? 'Khóa tài khoản' : 'Mở tài khoản'}
+        description={
+          confirmModal.user?.is_active !== false
+            ? `Tài khoản "${confirmModal.user?.full_name || confirmModal.user?.email}" sẽ bị khóa và không thể đăng nhập.`
+            : `Tài khoản "${confirmModal.user?.full_name || confirmModal.user?.email}" sẽ được mở lại.`
+        }
+      >
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={() => setConfirmModal({ open: false, user: null })}
+            className="btn-secondary btn-sm"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={handleConfirmStatus}
+            disabled={updateStatus.isPending}
+            className={cn(
+              'btn-sm disabled:opacity-40',
+              confirmModal.user?.is_active !== false ? 'btn-danger' : 'btn-primary'
+            )}
+          >
+            {confirmModal.user?.is_active !== false ? 'Khóa' : 'Mở tài khoản'}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
