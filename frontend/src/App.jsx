@@ -11,7 +11,6 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const ApplicationsPage = lazy(() => import('./pages/ApplicationsPage'));
 const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage'));
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -54,7 +53,7 @@ function App() {
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="saved" element={<SavedPage />} />
-          <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="profile" element={<Navigate to="/dashboard" replace />} />
           <Route path="applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
           <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="deadlines" element={<ProtectedRoute><DeadlineTrackerPage /></ProtectedRoute>} />
