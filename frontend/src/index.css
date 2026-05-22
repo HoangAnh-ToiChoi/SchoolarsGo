@@ -6,6 +6,7 @@
 /* ── CSS Custom Properties ───────────────────────── */
 :root {
   /* DARK THEME (default) */
+  /* Hex — used by CSS component classes (.card, .btn-*, etc.) */
   --color-ink-950: #0D1117;
   --color-ink-900: #161B22;
   --color-ink-800: #21262D;
@@ -18,10 +19,24 @@
   --color-ink-100: #E6EDF3;
   --color-primary-400: #22D3EE;
   --color-primary-300: #67E8F9;
+  /* RGB channels — used by Tailwind utility classes (bg-ink-*, text-ink-*, border-ink-*) */
+  --ink-950: 13 17 23;
+  --ink-900: 22 27 34;
+  --ink-800: 33 38 45;
+  --ink-700: 48 54 61;
+  --ink-600: 72 79 88;
+  --ink-500: 110 118 129;
+  --ink-400: 139 148 158;
+  --ink-300: 177 186 196;
+  --ink-200: 201 209 217;
+  --ink-100: 230 237 243;
+  --primary-400: 34 211 238;
+  --primary-300: 103 232 249;
 }
 
 /* LIGHT THEME */
 [data-theme="light"] {
+  /* Hex */
   --color-ink-950: #FFFFFF;
   --color-ink-900: #F6F8FA;
   --color-ink-800: #EAEEF2;
@@ -34,6 +49,19 @@
   --color-ink-100: #1F2937;
   --color-primary-400: #0891B2;
   --color-primary-300: #06B6D4;
+  /* RGB channels */
+  --ink-950: 255 255 255;
+  --ink-900: 246 248 250;
+  --ink-800: 234 238 242;
+  --ink-700: 208 215 222;
+  --ink-600: 177 186 196;
+  --ink-500: 139 148 158;
+  --ink-400: 110 118 129;
+  --ink-300: 87 96 106;
+  --ink-200: 66 74 83;
+  --ink-100: 31 41 55;
+  --primary-400: 8 145 178;
+  --primary-300: 6 182 212;
 }
 
 /* ── Base ─────────────────────────────────────────── */

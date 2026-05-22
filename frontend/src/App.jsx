@@ -1,6 +1,5 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useThemeStore } from './stores/themeStore';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -29,22 +28,9 @@ const PageLoader = () => (
   </div>
 );
 
-// ThemeProvider Component - applies theme to document root
-function ThemeProvider({ children }) {
-  const { theme } = useThemeStore();
-
-  useEffect(() => {
-    // Initialize theme on app mount - check localStorage or system preference
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-  }, [theme]);
-
-  return children;
-}
-
 function App() {
   return (
-    <ThemeProvider>
+    <>
       <Suspense fallback={<PageLoader />}>
         <Routes>
         <Route path="/" element={<Layout />}>
@@ -69,7 +55,7 @@ function App() {
         </Route>
       </Routes>
         </Suspense>
-    </ThemeProvider>
+    </>
   );
 }
 
