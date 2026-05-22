@@ -8,11 +8,14 @@
  * [5] An toàn SQL — 100% parameterized queries ($1, $2...). KHÔNG string interpolation.
  * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
  */
-class AdminRepository {
+const BaseRepository = require('./base.repository');
+
+class AdminRepository extends BaseRepository {
   /**
    * @param {object} db - Database driver instance (pg pool hoặc tương đương)
    */
   constructor(db) {
+    super(db, 'users');
     this.#db = db;
   }
 
@@ -151,16 +154,6 @@ class AdminRepository {
       RETURNING id, email, full_name, role, is_active, created_at
     `;
     return this.#queryOne(sql, [role, id]);
-  }
-
-  async updateUserStatus(id, isActive) {
-    const sql = `
-      UPDATE users
-      SET is_active = $1, updated_at = NOW()
-      WHERE id = $2
-      RETURNING id, email, full_name, role, is_active, created_at
-    `;
-    return this.#queryOne(sql, [isActive, id]);
   }
 
   // ═══════════════════════════════════════════════════════════

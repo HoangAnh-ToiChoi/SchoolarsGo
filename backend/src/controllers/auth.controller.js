@@ -1,79 +1,96 @@
-/**
- * AuthController — TẦNG 3: HTTP Handler
- *
- * Mục đích: Nhận req/res từ Express route, gọi AuthService, đẩy lỗi qua next(error)
- * Quy tắc: Dùng Arrow Functions để giữ `this`, KHÔNG tự xử lý lỗi
- * Pattern: Export CLASS, container tạo instance với DI
- */
-
 const { success } = require('../utils/responseHelper');
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: '/',
+};
+
 class AuthController {
+  #service;
+
   constructor(authService) {
-    this.authService = authService;
+    this.#service = authService;
+    this.#validateService();
   }
 
-  /**
-   * POST /api/auth/register
-   * Body: { email, password, full_name }
-   */
+  #validateService() {
+    if (!this.#service) throw new Error('AuthService is required');
+  }
+
+  #setAuthCookie(res, token) {
+    res.cookie('token', token, COOKIE_OPTIONS);
+  }
+
+  #clearAuthCookie(res) {
+    res.clearCookie('token', { path: '/' });
+  }
+
   register = async (req, res, next) => {
     try {
       const { email, password, full_name } = req.body;
-      const result = await this.authService.register(email, password, full_name);
-      return success(res, result, 'Đăng ký thành công');
+      const { user, token } = await this.#service.register(email, password, full_name);
+      this.#setAuthCookie(res, token);
+      return success(res, { user }, 'Đăng ký thành công');
     } catch (error) {
       next(error);
     }
   };
 
-  /**
-   * POST /api/auth/login
-   * Body: { email, password }
-   */
   login = async (req, res, next) => {
     try {
       const { email, password } = req.body;
-      const result = await this.authService.login(email, password);
-      return success(res, result, 'Đăng nhập thành công');
+      const { user, token } = await this.#service.login(email, password);
+      this.#setAuthCookie(res, token);
+      return success(res, { user }, 'Đăng nhập thành công');
     } catch (error) {
       next(error);
     }
   };
 
-  /**
-   * GET /api/auth/me
-   * Headers: Authorization: Bearer <token>
-   */
   me = async (req, res, next) => {
     try {
-      const user = await this.authService.getMe(req.user.id);
+      const user = await this.#service.getMe(req.user.id);
       return success(res, user);
     } catch (error) {
       next(error);
     }
   };
 
-  /**
-   * POST /api/auth/logout
-   * Xoá token phía client (httpOnly cookie đã được clear ở middleware/client)
-   */
   logout = async (req, res, next) => {
     try {
+      this.#clearAuthCookie(res);
       return success(res, null, 'Đăng xuất thành công');
     } catch (error) {
       next(error);
     }
   };
 
-  /**
-   * POST /api/auth/refresh
-   * Headers: Authorization: Bearer <token>
-   */
   refresh = async (req, res, next) => {
     try {
-      const token = await this.authService.refreshToken(req.user.id);
-      return success(res, { token }, 'Token refreshed');
+      const token = await this.#service.refreshToken(req.user.id);
+      this.#setAuthCookie(res, token);
+      return success(res, null, 'Token refreshed');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  forgotPassword = async (req, res, next) => {
+    try {
+      await this.#service.forgotPassword(req.body.email);
+      return success(res, null, 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.');
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (req, res, next) => {
+    try {
+      await this.#service.resetPassword(req.body.token, req.body.password);
+      return success(res, null, 'Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.');
     } catch (error) {
       next(error);
     }

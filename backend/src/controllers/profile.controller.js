@@ -1,22 +1,20 @@
-/**
- * ProfileController — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
- * Inject: profileService qua constructor.
- */
-
 const { success } = require('../utils/responseHelper');
 
 class ProfileController {
+  #service;
+
   constructor(profileService) {
-    this.profileService = profileService;
+    this.#service = profileService;
+    this.#validateService();
   }
 
-  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
+  #validateService() {
+    if (!this.#service) throw new Error('ProfileService is required');
+  }
 
   getProfile = async (req, res, next) => {
     try {
-      const data = await this.profileService.getProfile(req.user.id);
+      const data = await this.#service.getProfile(req.user.id);
       return success(res, data);
     } catch (error) {
       next(error);
@@ -25,7 +23,7 @@ class ProfileController {
 
   updateProfile = async (req, res, next) => {
     try {
-      const data = await this.profileService.updateProfile(req.user.id, req.body);
+      const data = await this.#service.updateProfile(req.user.id, req.body);
       return success(res, data, 'Profile updated');
     } catch (error) {
       next(error);

@@ -1,89 +1,77 @@
-/**
- * AuthRepository — TẦNG 1: Repository Pattern
- *
- * Mục đích: Tách toàn bộ Raw SQL ra khỏi Service
- * Quy tắc: KHÔNG chứa logic HTTP, KHÔNG import req/res
- *
- * DB Schema: users (id, email, password_hash, full_name, role, last_login_at, ...)
- */
+class AuthRepository {
+  #sb;
 
-const BaseRepository = require('./base.repository');
-
-class AuthRepository extends BaseRepository {
-  /**
-   * @param {object} db - { query, queryOne, transaction } từ utils/db.js
-   */
-  constructor(db) {
-    super(db, 'users');
+  constructor(sb) {
+    this.#sb = sb;
   }
 
-  /**
-   * Tìm user theo email — chỉ lấy id (check duplicate)
-   * @param {string} email
-   * @returns {Promise<object|null>}
-   */
   async findByEmail(email) {
-    return this.db.queryOne(
-      `SELECT id FROM users WHERE email = $1`,
-      [email]
-    );
+    const { data } = await this.#sb.from('users').select('id').eq('email', email).maybeSingle();
+    return data;
   }
 
-  /**
-   * Tìm user theo email — lấy đầy đủ fields (dùng trong login)
-   * @param {string} email
-   * @returns {Promise<object|null>}
-   */
   async findByEmailWithCredentials(email) {
-    return this.db.queryOne(
-      `SELECT id, email, password_hash, full_name, avatar_url, phone,
-              date_of_birth, role, created_at
-       FROM users WHERE email = $1`,
-      [email]
-    );
+    const { data } = await this.#sb
+      .from('users')
+      .select('id, email, password_hash, full_name, avatar_url, phone, date_of_birth, role, created_at')
+      .eq('email', email)
+      .maybeSingle();
+    return data;
   }
 
-  /**
-   * Tìm user theo id — lấy đầy đủ public fields
-   * @param {number} id
-   * @returns {Promise<object|null>}
-   */
   async findById(id) {
-    return this.db.queryOne(
-      `SELECT id, email, full_name, avatar_url, phone,
-              date_of_birth, role, created_at
-       FROM users WHERE id = $1`,
-      [id]
-    );
+    const { data } = await this.#sb
+      .from('users')
+      .select('id, email, full_name, avatar_url, phone, date_of_birth, role, created_at')
+      .eq('id', id)
+      .maybeSingle();
+    return data;
   }
 
-  /**
-   * Tạo user mới — mặc định role = 'user'
-   * @param {object} data - { email, passwordHash, fullName }
-   * @returns {Promise<object|null>}
-   */
   async createUser({ email, passwordHash, fullName }) {
-    return this.db.queryOne(
-      `INSERT INTO users (email, password_hash, full_name, role)
-       VALUES ($1, $2, $3, 'user')
-       RETURNING id, email, full_name, role, created_at`,
-      [email, passwordHash, fullName]
-    );
+    const { data, error } = await this.#sb
+      .from('users')
+      .insert({ email, password_hash: passwordHash, full_name: fullName, role: 'user' })
+      .select('id, email, full_name, role, created_at')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  /**
-   * Cập nhật last_login_at = NOW() khi user đăng nhập thành công
-   * @param {number} userId
-   * @returns {Promise<object|null>}
-   */
   async updateLastLogin(userId) {
-    return this.db.queryOne(
-      `UPDATE users
-       SET last_login_at = NOW()
-       WHERE id = $1
-       RETURNING id, email, full_name, role`,
-      [userId]
-    );
+    const { data, error } = await this.#sb
+      .from('users')
+      .update({ last_login_at: new Date().toISOString() })
+      .eq('id', userId)
+      .select('id, email, full_name, role')
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async saveResetToken(userId, tokenHash, expiresAt) {
+    const { error } = await this.#sb
+      .from('users')
+      .update({ reset_token: tokenHash, reset_token_expires: expiresAt })
+      .eq('id', userId);
+    if (error) throw error;
+  }
+
+  async findByResetToken(tokenHash) {
+    const { data } = await this.#sb
+      .from('users')
+      .select('id, email, reset_token_expires')
+      .eq('reset_token', tokenHash)
+      .maybeSingle();
+    return data;
+  }
+
+  async clearResetToken(userId, newPasswordHash) {
+    const { error } = await this.#sb
+      .from('users')
+      .update({ password_hash: newPasswordHash, reset_token: null, reset_token_expires: null })
+      .eq('id', userId);
+    if (error) throw error;
   }
 }
 

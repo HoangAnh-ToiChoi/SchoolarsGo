@@ -8,6 +8,7 @@ const swaggerUi = require('swagger-ui-express');
 
 const { swaggerSpec } = require('./utils/swagger');
 const errorHandler = require('./middlewares/errorHandler');
+const { apiLimiter } = require('./middlewares/rateLimiter');
 const authRoutes = require('./routes/auth.routes');
 const scholarshipRoutes = require('./routes/scholarship.routes');
 const profileRoutes = require('./routes/profile.routes');
@@ -16,15 +17,22 @@ const applicationRoutes = require('./routes/application.routes');
 const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
 const adminRoutes = require('./routes/admin.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 const app = express();
 
 // ── Security & Middleware ──────────────────────────────
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL].filter(Boolean)
+  : /^http:\/\/localhost:\d+$/;
+
+app.use(
+  cors({
+    origin: ALLOWED_ORIGINS,
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -39,7 +47,13 @@ if (process.env.NODE_ENV !== 'production') {
 // ── Static Files ───────────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// ── Health Check ──────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // ── API Routes ─────────────────────────────────────────
+app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
 app.use('/api/profile', profileRoutes);
@@ -48,18 +62,18 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/admin', adminRoutes);
-
-// ── Health Check ───────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'ScholarsGo API is running', timestamp: new Date().toISOString() });
-});
+app.use('/api/chat', chatRoutes);
 
 // ── Swagger UI ─────────────────────────────────────────
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'ScholarsGo API Docs',
-  swaggerOptions: { persistAuthorization: true },
-}));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'ScholarsGo API Docs',
+    swaggerOptions: { persistAuthorization: true },
+  })
+);
 
 // ── 404 Handler ───────────────────────────────────────
 app.use((req, res) => {

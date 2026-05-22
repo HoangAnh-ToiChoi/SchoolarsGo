@@ -1,25 +1,20 @@
-/**
- * RecommendController — VÙNG 2 (Controller → Service)
- *
- * Quy tắc:
- * - Class với arrow functions để giữ `this`
- * - Import Service từ container
- * - Hứng lỗi bằng try/catch, đẩy qua next(error)
- */
 const { success } = require('../utils/responseHelper');
 
 class RecommendController {
+  #service;
+
   constructor(recommendService) {
-    this.recommendService = recommendService;
+    this.#service = recommendService;
+    this.#validateService();
   }
 
-  /**
-   * POST /api/recommend
-   * @desc Get scholarship recommendations based on user profile
-   */
+  #validateService() {
+    if (!this.#service) throw new Error('RecommendService is required');
+  }
+
   recommend = async (req, res, next) => {
     try {
-      const data = await this.recommendService.recommend(req.user.id, req.body.top_n);
+      const data = await this.#service.recommend(req.user.id, req.body.top_n);
       return success(res, data);
     } catch (error) {
       next(error);

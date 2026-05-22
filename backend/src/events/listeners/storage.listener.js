@@ -12,13 +12,13 @@ const eventBus = require('../eventBus');
 
 const registerStorageListeners = () => {
   // ── document.uploaded ──────────────────────────────────────
-  eventBus.on('document.uploaded', async (payload) => {
+  eventBus.on('document.uploaded', async payload => {
     try {
       const { userId, docType, fileSize, fileName, documentId } = payload;
       console.log(
         `[STORAGE LOG] User ${userId} uploaded "${fileName}" ` +
-        `(${fileSize} bytes, type: ${docType}, id: ${documentId}). ` +
-        'Calculating storage usage...'
+          `(${fileSize} bytes, type: ${docType}, id: ${documentId}). ` +
+          'Calculating storage usage...'
       );
       // TODO: Tính tổng dung lượng theo userId/docType, cập nhật bảng thống kê
     } catch (err) {
@@ -28,12 +28,12 @@ const registerStorageListeners = () => {
   });
 
   // ── document.deleted ───────────────────────────────────────
-  eventBus.on('document.deleted', async (payload) => {
+  eventBus.on('document.deleted', async payload => {
     try {
       const { userId, documentId, fileSize } = payload;
       console.log(
         `[STORAGE LOG] User ${userId} deleted document id=${documentId} ` +
-        `(${fileSize} bytes). Recalculating storage usage...`
+          `(${fileSize} bytes). Recalculating storage usage...`
       );
       // TODO: Trừ dung lượng theo userId, cập nhật bảng thống kê
     } catch (err) {

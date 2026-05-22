@@ -1,35 +1,21 @@
-/**
- * AuthService — TẦNG 2: Business Logic
- *
- * Mục đích: Xử lý nghiệp vụ Auth, KHÔNG chứa SQL, KHÔNG chứa HTTP
- * Quy tắc: Inject AuthRepository qua constructor, throw Error với UPPER_SNAKE_CODE
- */
-
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const AppError = require('../utils/AppError');
+const { sendResetEmail } = require('../utils/mailer');
 
 const SALT_ROUNDS = 12;
 
 class AuthService {
-  /**
-   * @param {AuthRepository} authRepository
-   */
+  #repo;
+  #eventBus;
+
   constructor(authRepository, eventBus) {
-    this.repo = authRepository;
-    this.eventBus = eventBus;
+    this.#repo = authRepository;
+    this.#eventBus = eventBus;
   }
 
-  // ── Private helpers ─────────────────────────────────────────
-
-  #throwError(message, statusCode, code) {
-    const err = new Error(message);
-    err.statusCode = statusCode;
-    err.isOperational = true;
-    err.code = code; // UPPER_SNAKE_CASE
-    throw err;
-  }
-
-  #hashPassword = async (plain) => {
+  #hashPassword = async plain => {
     return bcrypt.hash(plain, SALT_ROUNDS);
   };
 
@@ -38,9 +24,15 @@ class AuthService {
   };
 
   #generateToken(payload) {
-    return jwt.sign(payload, process.env.JWT_SECRET || 'scholarsgo-dev-secret-fallback-32chars', {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new AppError('JWT_SECRET env var is required', 500);
+    return jwt.sign(payload, secret, {
       expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     });
+  }
+
+  #guardFound(entity, message = 'Không tìm thấy') {
+    if (!entity) throw new AppError(message, 404);
   }
 
   #buildUserPublic(user) {
@@ -55,37 +47,26 @@ class AuthService {
     };
   }
 
-  // ── Public API ──────────────────────────────────────────────
-
-  /**
-   * Đăng ký user mới
-   * @param {string} email
-   * @param {string} password
-   * @param {string} fullName
-   * @returns {{ user: object, token: string }}
-   */
   register = async (email, password, fullName) => {
-    const existing = await this.repo.findByEmail(email);
+    const existing = await this.#repo.findByEmail(email);
     if (existing) {
-      this.#throwError('Email đã được sử dụng', 409, 'USER_EXISTS');
+      throw new AppError('Email đã được sử dụng', 409, 'USER_EXISTS');
     }
 
     const passwordHash = await this.#hashPassword(password);
 
-    const user = await this.repo.createUser({ email, passwordHash, fullName });
+    const user = await this.#repo.createUser({ email, passwordHash, fullName });
     if (!user) {
-      this.#throwError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
+      throw new AppError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
     }
 
-    // JWT payload chứa { id, email, role }
     const token = this.#generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // Loose Coupling: AuthService không biết AuthListener tồn tại
-    this.eventBus.emit('user.registered', {
+    this.#eventBus.emit('user.registered', {
       userId: user.id,
       email: user.email,
       fullName: user.full_name,
@@ -98,38 +79,29 @@ class AuthService {
     };
   };
 
-  /**
-   * Đăng nhập — thành công thì gọi repo updateLastLogin
-   * @param {string} email
-   * @param {string} password
-   * @returns {{ user: object, token: string }}
-   */
   login = async (email, password) => {
-    const user = await this.repo.findByEmailWithCredentials(email);
+    const user = await this.#repo.findByEmailWithCredentials(email);
     if (!user) {
-      this.#throwError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
     }
 
     const valid = await this.#comparePassword(password, user.password_hash);
     if (!valid) {
-      this.#throwError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
     }
 
-    // Ghi nhận last_login_at sau khi login thành công
-    const updatedUser = await this.repo.updateLastLogin(user.id);
+    const updatedUser = await this.#repo.updateLastLogin(user.id);
     if (!updatedUser) {
-      this.#throwError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
+      throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
     }
 
-    // JWT payload chứa { id, email, role }
     const token = this.#generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // Loose Coupling: AuthService không biết AuthListener tồn tại
-    this.eventBus.emit('user.login', {
+    this.#eventBus.emit('user.login', {
       userId: updatedUser.id,
       email: updatedUser.email,
       role: updatedUser.role,
@@ -141,35 +113,50 @@ class AuthService {
     };
   };
 
-  /**
-   * Lấy thông tin user hiện tại
-   * @param {number} userId
-   * @returns {Promise<object>}
-   */
-  getMe = async (userId) => {
-    const user = await this.repo.findById(userId);
-    if (!user) {
-      this.#throwError('Không tìm thấy user', 404, 'USER_NOT_FOUND');
-    }
+  getMe = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
     return user;
   };
 
-  /**
-   * Refresh JWT token — lấy role từ DB
-   * @param {number} userId
-   * @returns {Promise<string>}
-   */
-  refreshToken = async (userId) => {
-    const user = await this.repo.findById(userId);
-    if (!user) {
-      this.#throwError('Không tìm thấy user', 404, 'USER_NOT_FOUND');
-    }
+  refreshToken = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
 
     return this.#generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
     });
+  };
+
+  forgotPassword = async (email) => {
+    const user = await this.#repo.findByEmail(email);
+    // Always succeed to prevent email enumeration
+    if (!user) return;
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+
+    await this.#repo.saveResetToken(user.id, tokenHash, expiresAt);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+    await sendResetEmail(email, resetLink);
+  };
+
+  resetPassword = async (rawToken, newPassword) => {
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const user = await this.#repo.findByResetToken(tokenHash);
+
+    if (!user) throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400, 'INVALID_RESET_TOKEN');
+    if (new Date(user.reset_token_expires) < new Date()) {
+      throw new AppError('Link đã hết hạn. Vui lòng yêu cầu lại.', 400, 'EXPIRED_RESET_TOKEN');
+    }
+
+    const passwordHash = await this.#hashPassword(newPassword);
+    await this.#repo.clearResetToken(user.id, passwordHash);
   };
 }
 

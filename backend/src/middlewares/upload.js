@@ -22,14 +22,6 @@ const ALLOWED_EXTS_BY_TYPE = {
   other: ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'],
 };
 
-const MIME_MAP = {
-  '.pdf':  'application/pdf',
-  '.doc':  'application/msword',
-  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.png':  'image/png',
-  '.jpg':  'image/jpeg',
-  '.jpeg': 'image/jpeg',
-};
 
 // Cấu hình storage dùng bộ nhớ RAM (không ghi ra đĩa)
 const storage = multer.memoryStorage();
@@ -53,7 +45,9 @@ const fileFilter = (req, file, cb) => {
   const allowedExts = ALLOWED_EXTS_BY_TYPE[docType];
   if (!allowedExts) {
     return cb(
-      new Error(`Loại document không hợp lệ. Chỉ chấp nhận: cv, sop, transcript, recommendation_letter, other`),
+      new Error(
+        `Loại document không hợp lệ. Chỉ chấp nhận: cv, sop, transcript, recommendation_letter, other`
+      ),
       false
     );
   }
@@ -61,15 +55,7 @@ const fileFilter = (req, file, cb) => {
   const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
 
   if (!allowedExts.includes(ext)) {
-    return cb(
-      new Error(`File "${docType}" chỉ chấp nhận đuôi: ${allowedExts.join(', ')}`),
-      false
-    );
-  }
-
-  const expectedMime = MIME_MAP[ext];
-  if (expectedMime && file.mimetype !== expectedMime) {
-    return cb(new Error('Đuôi file không khớp với nội dung file'), false);
+    return cb(new Error(`File "${docType}" chỉ chấp nhận đuôi: ${allowedExts.join(', ')}`), false);
   }
 
   cb(null, true);
@@ -101,6 +87,9 @@ const upload = multer({
  */
 const handleUploadError = (err, req, res, next) => {
   if (err) {
+    // Drain request body before responding — prevents ERR_CONNECTION_RESET on the client
+    // when multer rejects the file before the full body has been received.
+    req.resume();
     return res.status(400).json({
       success: false,
       message: err.message || 'Upload file không hợp lệ',

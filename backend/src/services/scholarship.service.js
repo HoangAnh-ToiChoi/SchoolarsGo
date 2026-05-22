@@ -1,42 +1,34 @@
-/**
- * ScholarshipService — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Lớp này CHỨA BUSINESS LOGIC, KHÔNG có SQL.
- * SQL nằm trong ScholarshipRepository — Service chỉ gọi repo methods.
- *
- * Inject: scholarshipRepo qua constructor
- *
- * Public methods — Controller gọi:
- *   getAll(filters, userId)     → { data, meta }
- *   getFeatured()                → rows[]
- *   getCountries()               → string[]
- *   getById(id, userId)          → scholarship object (throw 404 nếu không có)
- */
+const AppError = require('../utils/AppError');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
+const COUNTRIES_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 class ScholarshipService {
+  #repo;
+  #countriesCache = null;
+  #countriesCachedAt = 0;
+
   constructor(scholarshipRepository) {
-    this.repo = scholarshipRepository;
+    this.#repo = scholarshipRepository;
   }
 
-  // ─── PUBLIC — Controller gọi ─────────────────────────────────────────────
+  #guardFound(entity, message = 'Không tìm thấy học bổng') {
+    if (!entity) throw new AppError(message, 404, 'SCHOLARSHIP_NOT_FOUND');
+  }
 
-  /**
-   * Lấy danh sách học bổng có filter + pagination
-   * Business logic phân trang nằm ở đây, Repository chỉ nhận limit/offset.
-   */
+  #guardValidId(id) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || id === 'undefined' || id === 'null' || !uuidRegex.test(id))
+      throw new AppError('ID học bổng không hợp lệ', 400, 'INVALID_ID');
+  }
+
   getAll = async (filters = {}, userId = null) => {
-    // ── Tính toán phân trang (business logic) ──
-    const page  = Math.max(1, Number(filters.page) || 1);
+    const page = Math.max(1, Number(filters.page) || 1);
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
     const offset = (page - 1) * limit;
 
-    // ── Gọi Repository với limit & offset đã tính ──
-    const { data, total } = await this.repo.findAll(filters, limit, offset, userId);
-
-    // ── Ghép meta phân trang ──
+    const { data, total } = await this.#repo.findAll(filters, limit, offset, userId);
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -46,29 +38,26 @@ class ScholarshipService {
   };
 
   getFeatured = async () => {
-    return this.repo.findFeatured();
+    return this.#repo.findFeatured();
   };
 
   getCountries = async () => {
-    return this.repo.findCountries();
+    const now = Date.now();
+    if (this.#countriesCache && now - this.#countriesCachedAt < COUNTRIES_TTL_MS) {
+      return this.#countriesCache;
+    }
+    const result = await this.#repo.findCountries();
+    this.#countriesCache = result;
+    this.#countriesCachedAt = now;
+    return result;
   };
 
   getById = async (id, userId = null) => {
-    const scholarship = await this.repo.findById(id, userId);
-    this.#ensureFound(scholarship, id);
+    this.#guardValidId(id);
+    const scholarship = await this.#repo.findById(id, userId);
+    this.#guardFound(scholarship);
     return scholarship;
   };
-
-  // ─── PRIVATE — chỉ dùng nội bộ ──────────────────────────────────────────
-
-  #ensureFound(scholarship, id) {
-    if (!scholarship) {
-      const err = new Error('Không tìm thấy học bổng');
-      err.statusCode = 404;
-      err.isOperational = true;
-      throw err;
-    }
-  }
 }
 
 module.exports = ScholarshipService;

@@ -6,7 +6,8 @@ const options = {
     info: {
       title: 'ScholarsGo API',
       version: '1.0.0',
-      description: 'ScholarsGo — Nền tảng tìm kiếm học bổng & quản lý hồ sơ du học cho sinh viên Việt Nam',
+      description:
+        'ScholarsGo — Nền tảng tìm kiếm học bổng & quản lý hồ sơ du học cho sinh viên Việt Nam',
       contact: {
         name: 'ScholarsGo Team',
         email: 'team@scholarsgo.com',
@@ -114,7 +115,10 @@ const options = {
                 },
               },
             },
-            400: { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+            400: {
+              description: 'Validation error',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+            },
             409: { description: 'Email đã tồn tại' },
           },
         },
@@ -198,8 +202,17 @@ const options = {
           parameters: [
             { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
             { name: 'limit', in: 'query', schema: { type: 'integer', default: 20, maximum: 50 } },
-            { name: 'country', in: 'query', schema: { type: 'string' }, description: 'Lọc theo quốc gia' },
-            { name: 'degree', in: 'query', schema: { type: 'string', enum: ['Bachelor', 'Master', 'PhD', 'Any'] } },
+            {
+              name: 'country',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'Lọc theo quốc gia',
+            },
+            {
+              name: 'degree',
+              in: 'query',
+              schema: { type: 'string', enum: ['Bachelor', 'Master', 'PhD', 'Any'] },
+            },
             { name: 'field', in: 'query', schema: { type: 'string' }, description: 'Ngành học' },
             { name: 'language', in: 'query', schema: { type: 'string' } },
             { name: 'min_gpa', in: 'query', schema: { type: 'number' } },
@@ -207,9 +220,18 @@ const options = {
             { name: 'deadline_from', in: 'query', schema: { type: 'string', format: 'date' } },
             { name: 'deadline_to', in: 'query', schema: { type: 'string', format: 'date' } },
             { name: 'amount_min', in: 'query', schema: { type: 'number' } },
-            { name: 'coverage', in: 'query', schema: { type: 'string', enum: ['Full', 'Partial', 'Tuition', 'Stipend'] } },
+            {
+              name: 'coverage',
+              in: 'query',
+              schema: { type: 'string', enum: ['Full', 'Partial', 'Tuition', 'Stipend'] },
+            },
             { name: 'featured', in: 'query', schema: { type: 'boolean' } },
-            { name: 'search', in: 'query', schema: { type: 'string' }, description: 'Tìm theo title/provider' },
+            {
+              name: 'search',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'Tìm theo title/provider',
+            },
           ],
           responses: {
             200: {
@@ -382,7 +404,22 @@ const options = {
           parameters: [
             { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
             { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
-            { name: 'status', in: 'query', schema: { type: 'string', enum: ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'] } },
+            {
+              name: 'status',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: [
+                  'draft',
+                  'submitted',
+                  'under_review',
+                  'interview',
+                  'accepted',
+                  'rejected',
+                  'withdrawn',
+                ],
+              },
+            },
           ],
           responses: {
             200: {
@@ -416,7 +453,13 @@ const options = {
                   required: ['scholarship_id'],
                   properties: {
                     scholarship_id: { type: 'string', format: 'uuid' },
-                    checklist: { type: 'array', items: { type: 'object', properties: { item: { type: 'string' }, done: { type: 'boolean' } } } },
+                    checklist: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: { item: { type: 'string' }, done: { type: 'boolean' } },
+                      },
+                    },
                     notes: { type: 'string' },
                   },
                 },
@@ -458,7 +501,18 @@ const options = {
                 schema: {
                   type: 'object',
                   properties: {
-                    status: { type: 'string', enum: ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'] },
+                    status: {
+                      type: 'string',
+                      enum: [
+                        'draft',
+                        'submitted',
+                        'under_review',
+                        'interview',
+                        'accepted',
+                        'rejected',
+                        'withdrawn',
+                      ],
+                    },
                     checklist: { type: 'array' },
                     notes: { type: 'string' },
                     applied_at: { type: 'string', format: 'date-time' },
@@ -508,7 +562,12 @@ const options = {
           tags: ['Saved'],
           security: [{ BearerAuth: [] }],
           parameters: [
-            { name: 'scholarshipId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+            {
+              name: 'scholarshipId',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'uuid' },
+            },
           ],
           requestBody: {
             content: {
@@ -533,7 +592,12 @@ const options = {
           tags: ['Saved'],
           security: [{ BearerAuth: [] }],
           parameters: [
-            { name: 'scholarshipId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+            {
+              name: 'scholarshipId',
+              in: 'path',
+              required: true,
+              schema: { type: 'string', format: 'uuid' },
+            },
           ],
           responses: {
             200: { description: 'Bỏ lưu thành công' },
@@ -639,7 +703,10 @@ const options = {
         properties: {
           id: { type: 'string', format: 'uuid' },
           user_id: { type: 'string', format: 'uuid' },
-          type: { type: 'string', enum: ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'] },
+          type: {
+            type: 'string',
+            enum: ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'],
+          },
           file_name: { type: 'string' },
           file_url: { type: 'string' },
           file_size: { type: 'integer' },
@@ -701,8 +768,26 @@ const options = {
         properties: {
           id: { type: 'string', format: 'uuid' },
           scholarship_id: { type: 'string', format: 'uuid' },
-          scholarship: { type: 'object', properties: { title: { type: 'string' }, country: { type: 'string' }, amount: { type: 'number' } } },
-          status: { type: 'string', enum: ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'] },
+          scholarship: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              country: { type: 'string' },
+              amount: { type: 'number' },
+            },
+          },
+          status: {
+            type: 'string',
+            enum: [
+              'draft',
+              'submitted',
+              'under_review',
+              'interview',
+              'accepted',
+              'rejected',
+              'withdrawn',
+            ],
+          },
           applied_at: { type: 'string', format: 'date-time', nullable: true },
           notes: { type: 'string', nullable: true },
           checklist: { type: 'array', items: { type: 'object' } },

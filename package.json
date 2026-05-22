@@ -1,0 +1,30 @@
+{
+  "name": "schoolarsgo",
+  "version": "1.0.0",
+  "description": "Scholarship search & study-abroad profile management platform for Vietnamese students.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HoangAnh-ToiChoi/SchoolarsGo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/HoangAnh-ToiChoi/SchoolarsGo/issues"
+  },
+  "homepage": "https://github.com/HoangAnh-ToiChoi/SchoolarsGo#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

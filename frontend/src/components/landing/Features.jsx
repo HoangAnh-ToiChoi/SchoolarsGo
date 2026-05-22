@@ -1,86 +1,111 @@
-// Inline SVG Icons
-const SearchIcon = () => (
-  <svg className="h-7 w-7 text-purple-400 transition-colors group-hover:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-)
-
-const FolderIcon = () => (
-  <svg className="h-7 w-7 text-purple-400 transition-colors group-hover:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-)
-
-const SparklesIcon = () => (
-  <svg className="h-7 w-7 text-purple-400 transition-colors group-hover:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-  </svg>
-)
+import { motion } from 'framer-motion';
+import { Search, FolderOpen, Sparkles, Calendar, MessageSquare, Globe } from 'lucide-react';
+import { useInView } from '../../hooks/useInView';
 
 const features = [
   {
-    icon: <SearchIcon />,
-    title: "Tìm kiếm thông minh",
-    description:
-      "Lọc học bổng theo quốc gia, ngành học, GPA và mức hỗ trợ tài chính phù hợp với bạn.",
+    icon: Search,
+    title: 'Tìm kiếm thông minh',
+    description: 'Lọc theo quốc gia, ngành, GPA, IELTS và mức tài trợ — ra shortlist trong vài giây.',
+    color: 'text-primary-400',
+    bg: 'bg-primary-400/10 border-primary-400/20',
   },
   {
-    icon: <FolderIcon />,
-    title: "Quản lý hồ sơ",
-    description:
-      "Theo dõi tiến độ ứng tuyển, deadline và các giấy tờ quan trọng một cách trực quan.",
+    icon: Sparkles,
+    title: 'Gợi ý từ AI',
+    description: 'Hệ thống phân tích profile và đề xuất học bổng phù hợp nhất với điểm số và mục tiêu của bạn.',
+    color: 'text-warning-400',
+    bg: 'bg-warning-400/10 border-warning-400/20',
   },
   {
-    icon: <SparklesIcon />,
-    title: "Gợi ý từ AI",
-    description:
-      "Nhận gợi ý học bổng cá nhân hóa dựa trên profile học thuật và mục tiêu của bạn.",
+    icon: FolderOpen,
+    title: 'Quản lý hồ sơ',
+    description: 'Theo dõi tiến độ từng đơn ứng tuyển, trạng thái và tài liệu đính kèm một cách trực quan.',
+    color: 'text-success-400',
+    bg: 'bg-success-400/10 border-success-400/20',
   },
-]
+  {
+    icon: Calendar,
+    title: 'Theo dõi deadline',
+    description: 'Lịch hạn nộp trực quan, không bao giờ bỏ lỡ cột mốc quan trọng trong hành trình du học.',
+    color: 'text-danger-400',
+    bg: 'bg-danger-400/10 border-danger-400/20',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Chat với AI',
+    description: 'Hỏi đáp về học bổng, quy trình và hồ sơ với trợ lý AI được hỗ trợ bởi Gemini 24/7.',
+    color: 'text-primary-300',
+    bg: 'bg-primary-300/10 border-primary-300/20',
+  },
+  {
+    icon: Globe,
+    title: 'So sánh học bổng',
+    description: 'So sánh song song tối đa 3 học bổng để đưa ra quyết định tốt nhất cho tương lai của bạn.',
+    color: 'text-warning-300',
+    bg: 'bg-warning-300/10 border-warning-300/20',
+  },
+];
+
+const cardVariants = {
+  hidden:  { opacity: 0, y: 32 },
+  visible: (i) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+  }),
+};
 
 export function Features() {
+  const [ref, inView] = useInView({ threshold: 0.05 });
+
   return (
-    <section className="relative py-24 px-4 z-10">
+    <section className="border-b border-ink-800 bg-ink-950 px-4 py-24">
       <div className="mx-auto max-w-6xl">
-        {/* Section Header */}
+        {/* Header */}
         <div className="mb-16 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-            Tính năng nổi bật
+          <span className="inline-flex items-center gap-2 rounded-full border border-ink-700 bg-ink-900 px-4 py-1.5 text-sm text-ink-400 mb-5">
+            <Sparkles className="w-3.5 h-3.5 text-primary-400" />
+            Tại sao chọn ScholarsGo?
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink-100 mb-4">
+            Mọi thứ bạn cần để{' '}
+            <span className="text-gradient-cyan">chinh phục học bổng</span>
           </h2>
-          <p className="mx-auto max-w-2xl text-white/60">
-            Tất cả những gì bạn cần để chinh phục học bổng mơ ước
+          <p className="text-ink-400 max-w-xl mx-auto">
+            Từ tìm kiếm đến ứng tuyển — chúng tôi đồng hành cùng bạn trong toàn bộ hành trình.
           </p>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-2xl hover:-translate-y-1"
+        {/* Feature grid */}
+        <div ref={ref} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              custom={i}
+              variants={cardVariants}
+              initial="hidden"
+              animate={inView ? 'visible' : 'hidden'}
+              className="group relative rounded-card border border-ink-800 bg-ink-900 p-7
+                         transition-all duration-300
+                         hover:border-primary-400/30 hover:-translate-y-1 hover:bg-ink-900/80"
             >
-              {/* Glow effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-cyan-600/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
               {/* Icon */}
-              <div className="relative mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 ring-1 ring-white/10 transition-all group-hover:ring-purple-500/50">
-                {feature.icon}
+              <div className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-lg border ${f.bg} ${f.color} transition-transform duration-300 group-hover:scale-110`}>
+                <f.icon className="h-5 w-5" />
               </div>
 
               {/* Content */}
-              <h3 className="relative mb-3 text-xl font-semibold text-white">
-                {feature.title}
-              </h3>
-              <p className="relative text-white/60 leading-relaxed">
-                {feature.description}
-              </p>
+              <h3 className="mb-2 text-base font-semibold text-ink-100">{f.title}</h3>
+              <p className="text-sm text-ink-400 leading-relaxed">{f.description}</p>
 
-              {/* Subtle border glow */}
-              <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
+              {/* Hover glow accent */}
+              <div className="absolute inset-0 rounded-card opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{ background: 'radial-gradient(circle at 50% 0%, rgba(34,211,238,0.04) 0%, transparent 70%)' }}
+              />
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

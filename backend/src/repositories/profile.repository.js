@@ -1,115 +1,35 @@
-/**
- * ProfileRepository — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Lớp này CHỨA TOÀN BỘ SQL của module Profile.
- * KHÔNG viết SQL ở bất kỳ tầng nào khác (Service/Controller).
- *
- * Public methods — Service gọi:
- *   findByUserId(userId)      → profile object kèm documents
- *   upsertProfile(userId, updates) → profile đã upsert
- *
- * Private helpers — nội bộ:
- *   #buildProfileUpdateSets(updates) → { cols[], values[] }
- */
-const BaseRepository = require('./base.repository');
+class ProfileRepository {
+  #sb;
 
-class ProfileRepository extends BaseRepository {
-  constructor(db) {
-    super(db, 'profiles');
+  constructor(sb) {
+    this.#sb = sb;
   }
 
-  // ─── PUBLIC — Service gọi ────────────────────────────────────────────────
-
-  /**
-   * Lấy profile kèm danh sách documents
-   * Nếu chưa có → tạo mới bằng upsert
-   */
   async findByUserId(userId) {
-    let profile = await this.db.queryOne(
-      'SELECT * FROM profiles WHERE user_id = $1',
-      [userId]
-    );
+    let { data: profile } = await this.#sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
 
     if (!profile) {
-      profile = await this.db.queryOne(
-        `INSERT INTO profiles (user_id)
-         VALUES ($1)
-         ON CONFLICT (user_id) DO UPDATE SET user_id = $1
-         RETURNING *`,
-        [userId]
-      );
+      const { data } = await this.#sb.from('profiles').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('*').single();
+      profile = data;
     }
 
-    const docsResult = await this.db.query(
-      'SELECT * FROM documents WHERE user_id = $1 ORDER BY created_at DESC',
-      [userId]
-    );
-
-    return { ...profile, documents: docsResult.rows };
+    const { data: docs } = await this.#sb.from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    return { ...profile, documents: docs || [] };
   }
 
-  /**
-   * Upsert profile (hỗ trợ cả tạo mới và cập nhật)
-   * Trả về profile đã upsert.
-   * Side effect: cập nhật full_name trong bảng users nếu có trong updates.
-   */
   async upsertProfile(userId, updates) {
-    const { cols, values } = this.#buildProfileUpdateSets(updates);
+    const allowedFields = ['bio', 'gpa', 'gpa_scale', 'english_level', 'target_country', 'target_major', 'target_degree', 'target_intake'];
+    const filtered = Object.fromEntries(allowedFields.filter(k => updates[k] !== undefined).map(k => [k, updates[k]]));
 
-    if (cols.length === 0) {
-      let profile = await this.db.queryOne(
-        'SELECT * FROM profiles WHERE user_id = $1',
-        [userId]
-      );
-      if (!profile) {
-        profile = await this.db.queryOne(
-          `INSERT INTO profiles (user_id) VALUES ($1)
-           ON CONFLICT (user_id) DO UPDATE SET user_id = $1 RETURNING *`,
-          [userId]
-        );
-      }
-      return profile;
-    }
-
-    const setClauses = cols.map((c, i) => `${c} = $${i + 2}`);
-    setClauses.push('updated_at = now()');
-
-    const insertCols = ['user_id', ...cols];
-    // $1 = user_id, $2..$n = các giá trị field
-    const insertPlaceholders = [`$${1}`, ...values.map((_, i) => `$${i + 2}`)];
-    const insertValues = [userId, ...values];
-
-    const profile = await this.db.queryOne(
-      `INSERT INTO profiles (${insertCols.join(', ')})
-       VALUES (${insertPlaceholders.join(', ')})
-       ON CONFLICT (user_id) DO UPDATE SET ${setClauses.join(', ')}
-       RETURNING *`,
-      insertValues
-    );
+    const payload = { user_id: userId, ...filtered, updated_at: new Date().toISOString() };
+    const { data, error } = await this.#sb.from('profiles').upsert(payload, { onConflict: 'user_id' }).select('*').single();
+    if (error) throw error;
 
     if (updates.full_name) {
-      await this.db.query(
-        'UPDATE users SET full_name = $1, updated_at = now() WHERE id = $2',
-        [updates.full_name, userId]
-      );
+      await this.#sb.from('users').update({ full_name: updates.full_name, updated_at: new Date().toISOString() }).eq('id', userId);
     }
 
-    return profile;
-  }
-
-  // ─── PRIVATE ─────────────────────────────────────────────────────────────
-
-  /**
-   * Xây whitelist fields + extract values từ updates object
-   */
-  #buildProfileUpdateSets(updates) {
-    const allowedFields = [
-      'bio', 'gpa', 'gpa_scale', 'english_level',
-      'target_country', 'target_major', 'target_degree', 'target_intake',
-    ];
-    const cols = allowedFields.filter(k => updates[k] !== undefined);
-    const values = cols.map(k => updates[k]);
-    return { cols, values };
+    return data;
   }
 }
 

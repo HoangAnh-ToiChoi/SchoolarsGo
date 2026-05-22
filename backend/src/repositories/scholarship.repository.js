@@ -1,198 +1,103 @@
-/**
- * ScholarshipRepository — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Lớp này CHỨA TOÀN BỘ SQL của module Scholarships.
- * KHÔNG viết SQL ở bất kỳ tầng nào khác (Service/Controller).
- *
- * Public methods — Service gọi:
- *   findAll(filters, limit, offset, userId) → { data, total }
- *   findFeatured()                          → rows[]
- *   findCountries()                         → string[]
- *   findById(id, userId)                    → scholarship object
- *
- * Private helpers — nội bộ:
- *   #buildWhereClause(filters)    → { conditions[], params[] }
- *   #attachSavedStatus(rows, userId) → rows with is_saved
- */
-const BaseRepository = require('./base.repository');
+class ScholarshipRepository {
+  #sb;
 
-class ScholarshipRepository extends BaseRepository {
-  constructor(db) {
-    super(db, 'scholarships');
+  constructor(sb) {
+    this.#sb = sb;
   }
 
-  // ─── PUBLIC — Service gọi ────────────────────────────────────────────────
-
-  /**
-   * Lấy danh sách học bổng có filter + đánh dấu is_saved
-   * Service chịu trách nhiệm tính toán limit, offset và ghép meta.
-   * @param {object} filters - Các bộ lọc (country, degree, ...)
-   * @param {number} limit   - Số bản ghi tối đa cần lấy
-   * @param {number} offset  - Vị trí bắt đầu lấy
-   * @param {string|null} userId - ID user (để đánh dấu is_saved)
-   * @returns {Promise<{ data: object[], total: number }>}
-   */
   async findAll(filters = {}, limit, offset, userId = null) {
-    const { conditions, params } = this.#buildWhereClause(filters);
-    const where = `WHERE ${conditions.join(' AND ')}`;
+    let q = this.#sb.from('scholarships').select(
+      'id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
+      { count: 'exact' }
+    ).eq('is_active', true).gte('deadline', new Date().toISOString());
 
-    // Count total
-    const countResult = await this.db.queryOne(
-      `SELECT COUNT(*) as total FROM scholarships ${where}`,
-      params
-    );
-    const total = parseInt(countResult.total, 10);
+    q = this.#applyFilters(q, filters);
+    q = q.order('deadline', { ascending: true }).range(offset, offset + limit - 1);
 
-    // Fetch data
-    const selectCols = [
-      'id', 'title', 'provider', 'country', 'degree', 'amount', 'currency',
-      'coverage', 'deadline', 'language', 'min_gpa', 'image_url', 'is_featured',
-    ].join(', ');
+    const { data, count, error } = await q;
+    if (error) throw error;
 
-    const paramIdx = params.length + 1;
-    const data = await this.db.query(
-      `SELECT ${selectCols} FROM scholarships ${where} ORDER BY deadline ASC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
-      [...params, limit, offset]
-    );
-
-    const rows = await this.#attachSavedStatus(data.rows, userId);
-
-    return { data: rows, total };
+    const rows = await this.#attachSavedStatus(data || [], userId);
+    return { data: rows, total: count || 0 };
   }
 
-  /**
-   * Lấy 6 học bổng nổi bật
-   */
   async findFeatured() {
-    const data = await this.db.query(
-      `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-       FROM scholarships
-       WHERE is_active = true AND deadline >= NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh' AND is_featured = true
-       ORDER BY deadline ASC
-       LIMIT 6`
-    );
-    return data.rows;
+    const { data, error } = await this.#sb
+      .from('scholarships')
+      .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+      .eq('is_active', true)
+      .eq('is_featured', true)
+      .gte('deadline', new Date().toISOString())
+      .order('deadline', { ascending: true })
+      .limit(6);
+    if (error) throw error;
+    return data || [];
   }
 
-  /**
-   * Lấy danh sách quốc gia có học bổng
-   */
   async findCountries() {
-    const data = await this.db.query(
-      `SELECT DISTINCT country FROM scholarships
-       WHERE is_active = true AND country IS NOT NULL
-       ORDER BY country ASC`
-    );
-    return data.rows.map((r) => r.country);
+    const { data, error } = await this.#sb
+      .from('scholarships')
+      .select('country')
+      .eq('is_active', true)
+      .not('country', 'is', null)
+      .order('country', { ascending: true });
+    if (error) throw error;
+    const unique = [...new Set((data || []).map(r => r.country))];
+    return unique;
   }
 
-  /**
-   * Lấy chi tiết 1 học bổng + is_saved
-   */
   async findById(id, userId = null) {
-    const scholarship = await this.db.queryOne(
-      'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\'',
-      [id]
-    );
-
-    if (!scholarship) {
-      return null;
-    }
+    const { data: scholarship, error } = await this.#sb
+      .from('scholarships')
+      .select('*')
+      .eq('id', id)
+      .eq('is_active', true)
+      .gte('deadline', new Date().toISOString())
+      .maybeSingle();
+    if (error) throw error;
+    if (!scholarship) return null;
 
     const isSaved = await this.#checkSavedStatus(userId, id);
     return { ...scholarship, is_saved: isSaved };
   }
 
-  // ─── PRIVATE ─────────────────────────────────────────────────────────────
-
-  /**
-   * Xây câu WHERE từ filters
-   * @returns {{ conditions: string[], params: any[] }}
-   */
-  #buildWhereClause(filters) {
-    const conditions = ['is_active = true', 'deadline > NOW() AT TIME ZONE \'Asia/Ho_Chi_Minh\''];
-    const params = [];
-    let idx = 1;
-
-    if (filters.country) {
-      conditions.push(`country ILIKE $${idx++}`);
-      params.push(`%${filters.country}%`);
-    }
-    if (filters.degree) {
-      conditions.push(`degree = $${idx++}`);
-      params.push(filters.degree);
-    }
-    if (filters.field) {
-      conditions.push(`field_of_study ILIKE $${idx++}`);
-      params.push(`%${filters.field}%`);
-    }
-    if (filters.language) {
-      conditions.push(`language = $${idx++}`);
-      params.push(filters.language);
-    }
-    if (filters.min_gpa) {
-      conditions.push(`min_gpa <= $${idx++}`);
-      params.push(Number(filters.min_gpa));
-    }
-    if (filters.min_ielts) {
-      conditions.push(`min_ielts <= $${idx++}`);
-      params.push(Number(filters.min_ielts));
-    }
-    if (filters.deadline_from) {
-      conditions.push(`deadline >= $${idx++}`);
-      params.push(filters.deadline_from);
-    }
-    if (filters.deadline_to) {
-      conditions.push(`deadline <= $${idx++}`);
-      params.push(filters.deadline_to);
-    }
-    if (filters.amount_min) {
-      conditions.push(`amount >= $${idx++}`);
-      params.push(Number(filters.amount_min));
-    }
-    if (filters.coverage) {
-      conditions.push(`coverage = $${idx++}`);
-      params.push(filters.coverage);
-    }
-    if (filters.featured === 'true' || filters.featured === true) {
-      conditions.push(`is_featured = true`);
-    }
-    if (filters.search) {
-      conditions.push(`(title ILIKE $${idx} OR provider ILIKE $${idx})`);
-      params.push(`%${filters.search}%`);
-    }
-
-    return { conditions, params };
+  #applyFilters(q, filters) {
+    if (filters.country)      q = q.ilike('country', `%${filters.country}%`);
+    if (filters.degree)       q = q.eq('degree', filters.degree);
+    if (filters.field)        q = q.ilike('field_of_study', `%${filters.field}%`);
+    if (filters.language)     q = q.eq('language', filters.language);
+    if (filters.min_gpa)      q = q.lte('min_gpa', Number(filters.min_gpa));
+    if (filters.min_ielts)    q = q.lte('min_ielts', Number(filters.min_ielts));
+    if (filters.deadline_from) q = q.gte('deadline', filters.deadline_from);
+    if (filters.deadline_to)  q = q.lte('deadline', filters.deadline_to);
+    if (filters.amount_min)   q = q.gte('amount', Number(filters.amount_min));
+    if (filters.coverage)     q = q.eq('coverage', filters.coverage);
+    if (filters.featured === 'true' || filters.featured === true) q = q.eq('is_featured', true);
+    if (filters.search)       q = q.or(`title.ilike.%${filters.search}%,provider.ilike.%${filters.search}%`);
+    return q;
   }
 
-  /**
-   * Gắn is_saved vào từng row dựa trên userId
-   */
   async #attachSavedStatus(rows, userId) {
-    if (!userId || rows.length === 0) {
-      return rows.map((row) => ({ ...row, is_saved: false }));
-    }
-
-    const savedRows = await this.db.query(
-      `SELECT scholarship_id
-       FROM saved_scholarships
-       WHERE user_id = $1 AND scholarship_id = ANY($2::uuid[])`,
-      [userId, rows.map((row) => row.id)]
-    );
-    const savedIds = new Set(savedRows.rows.map((row) => row.scholarship_id));
-    return rows.map((row) => ({ ...row, is_saved: savedIds.has(row.id) }));
+    if (!userId || rows.length === 0) return rows.map(r => ({ ...r, is_saved: false }));
+    const ids = rows.map(r => r.id);
+    const { data } = await this.#sb
+      .from('saved_scholarships')
+      .select('scholarship_id')
+      .eq('user_id', userId)
+      .in('scholarship_id', ids);
+    const savedIds = new Set((data || []).map(r => r.scholarship_id));
+    return rows.map(r => ({ ...r, is_saved: savedIds.has(r.id) }));
   }
 
-  /**
-   * Kiểm tra học bổng có được lưu không
-   */
   async #checkSavedStatus(userId, scholarshipId) {
     if (!userId) return false;
-    const saved = await this.db.queryOne(
-      'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-      [userId, scholarshipId]
-    );
-    return !!saved;
+    const { data } = await this.#sb
+      .from('saved_scholarships')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('scholarship_id', scholarshipId)
+      .maybeSingle();
+    return !!data;
   }
 }
 

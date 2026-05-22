@@ -1,4 +1,6 @@
-const errorHandler = (err, req, res, next) => {
+const Sentry = require('@sentry/node');
+
+const errorHandler = (err, req, res, _next) => {
   // Log lỗi ra console trong development
   if (process.env.NODE_ENV !== 'production') {
     console.error('Error:', err);
@@ -55,6 +57,15 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Body-parser JSON parse error (invalid JSON body từ client)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'Request body không phải JSON hợp lệ',
+      code: 400,
+    });
+  }
+
   // Lỗi tùy chỉnh từ service layer
   if (err.isOperational) {
     return res.status(err.statusCode || 400).json({
@@ -82,12 +93,13 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Multer errors — bắt các lỗi validation từ fileFilter
-  if (err.message && (
-    err.message.includes('Thiếu field "type"') ||
-    err.message.includes('không hợp lệ') ||
-    err.message.includes('chỉ chấp nhận đuôi') ||
-    err.message.includes('Đuôi file không khớp')
-  )) {
+  if (
+    err.message &&
+    (err.message.includes('Thiếu field "type"') ||
+      err.message.includes('không hợp lệ') ||
+      err.message.includes('chỉ chấp nhận đuôi') ||
+      err.message.includes('Đuôi file không khớp'))
+  ) {
     return res.status(400).json({
       success: false,
       message: err.message,
@@ -95,7 +107,8 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Lỗi không xác định — không leak internal details
+  // Lỗi không xác định — capture Sentry + không leak internal details
+  if (process.env.SENTRY_DSN) Sentry.captureException(err);
   console.error('Unhandled error:', err);
   return res.status(500).json({
     success: false,

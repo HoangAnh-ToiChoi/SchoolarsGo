@@ -1,21 +1,20 @@
-/**
- * ScholarshipController — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * HTTP handling, KHÔNG chứa business logic — chỉ nhận req/res, gọi service.
- * Inject: scholarshipService qua constructor.
- */
 const { success } = require('../utils/responseHelper');
 
 class ScholarshipController {
+  #service;
+
   constructor(scholarshipService) {
-    this.scholarshipService = scholarshipService;
+    this.#service = scholarshipService;
+    this.#validateService();
   }
 
-  // ─── PUBLIC — routes gọi (arrow functions) ──────────────────────────────
+  #validateService() {
+    if (!this.#service) throw new Error('ScholarshipService is required');
+  }
 
   getAll = async (req, res, next) => {
     try {
-      const { data, meta } = await this.scholarshipService.getAll(req.query, req.user?.id);
+      const { data, meta } = await this.#service.getAll(req.query, req.user?.id);
       return success(res, data, 'Scholarships retrieved', meta);
     } catch (error) {
       next(error);
@@ -24,7 +23,7 @@ class ScholarshipController {
 
   getFeatured = async (req, res, next) => {
     try {
-      const data = await this.scholarshipService.getFeatured();
+      const data = await this.#service.getFeatured();
       return success(res, data);
     } catch (error) {
       next(error);
@@ -33,7 +32,7 @@ class ScholarshipController {
 
   getCountries = async (req, res, next) => {
     try {
-      const data = await this.scholarshipService.getCountries();
+      const data = await this.#service.getCountries();
       return success(res, data);
     } catch (error) {
       next(error);
@@ -42,19 +41,8 @@ class ScholarshipController {
 
   getById = async (req, res, next) => {
     try {
-      const { id } = req.params;
-    
-      // ✅ Validate id trước khi query database
-      if (!id || id === 'undefined' || id === 'null') {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid scholarship ID'
-        });
-      }
-      
-      const data = await this.scholarshipService.getById(id, req.user?.id);
+      const data = await this.#service.getById(req.params.id, req.user?.id);
       return success(res, data);
-
     } catch (error) {
       next(error);
     }

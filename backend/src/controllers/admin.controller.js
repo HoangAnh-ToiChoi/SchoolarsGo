@@ -81,18 +81,6 @@ class AdminController {
     }
   };
 
-  updateUserStatus = async (req, res, next) => {
-    try {
-      const { id: targetUserId } = req.params;
-      const { isActive } = req.body;
-      const adminId = req.user.id;
-      const user = await this.#service.changeUserStatus(targetUserId, isActive, adminId);
-      return res.status(200).json({ success: true, data: user });
-    } catch (err) {
-      next(err);
-    }
-  };
-
   // ═══════════════════════════════════════════════════════════
   // SCHOLARSHIP MANAGEMENT
   // ═══════════════════════════════════════════════════════════
@@ -108,8 +96,7 @@ class AdminController {
 
   updateScholarship = async (req, res, next) => {
     try {
-      const scholarshipId = parseInt(req.params.id, 10);
-      const scholarship = await this.#service.modifyScholarship(scholarshipId, req.body);
+      const scholarship = await this.#service.modifyScholarship(req.params.id, req.body);
       return res.status(200).json({ success: true, data: scholarship });
     } catch (err) {
       next(err);
@@ -118,9 +105,8 @@ class AdminController {
 
   updateScholarshipFeatured = async (req, res, next) => {
     try {
-      const scholarshipId = parseInt(req.params.id, 10);
       const { isFeatured } = req.body;
-      const scholarship = await this.#service.toggleScholarshipFeatured(scholarshipId, isFeatured);
+      const scholarship = await this.#service.toggleScholarshipFeatured(req.params.id, isFeatured);
       return res.status(200).json({ success: true, data: scholarship });
     } catch (err) {
       next(err);
@@ -129,8 +115,7 @@ class AdminController {
 
   deleteScholarship = async (req, res, next) => {
     try {
-      const scholarshipId = parseInt(req.params.id, 10);
-      await this.#service.removeScholarship(scholarshipId);
+      await this.#service.removeScholarship(req.params.id);
       return res.status(200).json({ success: true, message: 'Đã xóa học bổng' });
     } catch (err) {
       next(err);

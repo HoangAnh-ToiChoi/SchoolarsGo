@@ -1,25 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import {
-  BarChart3,
   BookmarkIcon,
   ClipboardCheck,
   AlertCircle,
   TrendingUp,
   ArrowRight,
   Clock,
-  CheckCircle2,
   Circle,
   MapPin,
   Calendar as CalendarIcon,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useProfile } from '../hooks/useProfile';
 import { useApplications } from '../hooks/useApplication';
 import { useSavedScholarships } from '../hooks/useScholarship';
 import { useScholarships } from '../hooks/useScholarship';
-import { cn, formatDate, getStatusColor, getStatusLabel, formatCurrency } from '../utils/helpers';
+import { cn, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
-import { AuroraBackground } from '../components/landing/AuroraBackground';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -71,28 +69,28 @@ const DashboardPage = () => {
       label: 'Tổng đơn ứng tuyển',
       value: applications.length,
       icon: ClipboardCheck,
-      color: 'text-blue-600',
+      color: 'text-blue-400',
     },
     {
       id: 'saved-scholarships',
       label: 'Học bổng đã lưu',
       value: saved?.length ?? 0,
       icon: BookmarkIcon,
-      color: 'text-amber-600',
+      color: 'text-amber-400',
     },
     {
       id: 'profile-completion',
       label: 'Hoàn thành profile',
       value: `${completionPercent}%`,
       icon: ClipboardCheck,
-      color: 'text-green-600',
+      color: 'text-green-400',
     },
     {
       id: 'upcoming-deadlines',
       label: 'Sắp tới hạn',
       value: upcomingDeadlines.length,
       icon: AlertCircle,
-      color: 'text-red-600',
+      color: 'text-red-400',
     },
   ];
 
@@ -127,7 +125,7 @@ const DashboardPage = () => {
     const daysUntil = getDaysUntil(deadline);
     if (daysUntil <= 7) return 'border-l-4 border-l-red-500';
     if (daysUntil <= 14) return 'border-l-4 border-l-amber-500';
-    return 'border-l-4 border-l-gray-300';
+    return 'border-l-4 border-l-ink-700';
   };
 
   if (isLoading) {
@@ -135,176 +133,27 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="landing-theme min-h-screen relative overflow-hidden bg-[#050510] text-white pb-24">
-      <AuroraBackground />
-      
-      <div className="container-page relative z-10 pt-24 md:pt-32 mb-12 space-y-8">
-        {/* Page Header */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
+      <div className="container-page pt-10 mb-12 space-y-8">
         <PageHeader
           title="Dashboard"
           description="Tổng quan về hoạt động ứng tuyển của bạn"
         />
 
-        {/* Section 1: Metrics Cards */}
-      <section>
-        <h2 className="heading-3 mb-4">Tổng quan</h2>
-        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          {metrics.map(metric => {
-            const Icon = metric.icon;
-            return (
-              <Card key={metric.id} className="hover">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">{metric.label}</p>
-                      <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-                    </div>
-                    <Icon className={cn('w-8 h-8', metric.color)} />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Section 2: Quick Actions */}
-      <section>
-        <h2 className="heading-3 mb-4">Hành động nhanh</h2>
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Button
-            fullWidth
-            onClick={() => navigate('/scholarships')}
-            className="justify-center"
-          >
-            Tìm học bổng mới
-          </Button>
-          <Button
-            fullWidth
-            variant="secondary"
-            onClick={() => navigate('/profile#documents')}
-            className="justify-center"
-          >
-            Tải tài liệu lên
-          </Button>
-          <Button
-            fullWidth
-            variant="secondary"
-            onClick={() => navigate('/profile')}
-            className="justify-center"
-          >
-            Hoàn thiện profile
-          </Button>
-          <Button
-            fullWidth
-            variant="secondary"
-            onClick={() => navigate('/applications')}
-            className="justify-center"
-          >
-            Xem tất cả ứng tuyển
-          </Button>
-        </div>
-      </section>
-
-      {/* Section 3: Application Status Breakdown */}
-      {applications.length > 0 && (
         <section>
-          <h2 className="heading-3 mb-4">Phân bố trạng thái</h2>
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {Object.entries(statusLabels).map(([status, label]) => (
-                  <div key={status} className="text-center">
-                    <p className="text-2xl font-bold text-gray-900 mb-1">
-                      {statusCounts[status] ?? 0}
-                    </p>
-                    <Badge color={statusColors[status]} className="w-full justify-center">
-                      {label}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      )}
-
-      {/* Section 4: Recent Applications Timeline */}
-      {recentApplications.length > 0 ? (
-        <section>
-          <h2 className="heading-3 mb-4">Ứng tuyển gần đây</h2>
-          <div className="space-y-3">
-            {recentApplications.map((app, idx) => (
-              <Card key={app.id} className="hover">
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Circle className="w-2 h-2 flex-shrink-0 text-primary-600" />
-                        <p className="font-semibold text-gray-900 truncate">
-                          {app.scholarship?.title || 'Không xác định'}
-                        </p>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Ứng tuyển lúc: {formatDate(app.created_at, 'dd/MM/yyyy HH:mm')}
-                      </p>
-                      <Badge color={statusColors[app.status]}>
-                        {statusLabels[app.status]}
-                      </Badge>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Section 5: Upcoming Deadlines Alert */}
-      {upcomingDeadlines.length > 0 ? (
-        <section>
-          <h2 className="heading-3 mb-4">Sắp tới hạn</h2>
-          <div className="space-y-3">
-            {upcomingDeadlines.map(scholarship => {
-              const daysUntil = getDaysUntil(scholarship.deadline);
-              const borderColorClass = getBorderColor(scholarship.deadline);
-
+          <h2 className="heading-3 mb-4">Tổng quan</h2>
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+            {metrics.map(metric => {
+              const Icon = metric.icon;
               return (
-                <Card key={scholarship.id} className={cn('hover', borderColorClass)}>
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle
-                            className={cn(
-                              'w-5 h-5 flex-shrink-0',
-                              daysUntil <= 7
-                                ? 'text-red-500'
-                                : daysUntil <= 14
-                                  ? 'text-amber-500'
-                                  : 'text-gray-400'
-                            )}
-                          />
-                          <p className="font-semibold text-gray-900 truncate">
-                            {scholarship.title}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {scholarship.country}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <CalendarIcon className="w-4 h-4" />
-                            {formatDate(scholarship.deadline, 'dd/MM/yyyy')}
-                          </span>
-                          <span className="flex items-center gap-1 font-semibold">
-                            <Clock className="w-4 h-4" />
-                            {daysUntil} ngày
-                          </span>
-                        </div>
+                <Card key={metric.id} className="hover">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-ink-300 mb-2">{metric.label}</p>
+                        <p className="text-2xl font-bold text-primary-400">{metric.value}</p>
                       </div>
+                      <Icon className={cn('w-8 h-8', metric.color)} />
                     </div>
                   </CardContent>
                 </Card>
@@ -312,22 +161,162 @@ const DashboardPage = () => {
             })}
           </div>
         </section>
-      ) : null}
 
-      {/* Empty State */}
-      {applications.length === 0 && (
-        <div className="text-center py-12">
-          <EmptyState
-            icon={TrendingUp}
-            title="Chưa có dữ liệu"
-            description="Hoàn thiện profile và tạo ứng tuyển để xem thống kê chi tiết."
-            actionLabel="Tìm học bổng"
-            actionTo="/scholarships"
-          />
-        </div>
-      )}
+        <section>
+          <h2 className="heading-3 mb-4">Hành động nhanh</h2>
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <Button
+              fullWidth
+              onClick={() => navigate('/scholarships')}
+              className="justify-center"
+            >
+              Tìm học bổng mới
+            </Button>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => navigate('/profile#documents')}
+              className="justify-center"
+            >
+              Tải tài liệu lên
+            </Button>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => navigate('/profile')}
+              className="justify-center"
+            >
+              Hoàn thiện profile
+            </Button>
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => navigate('/applications')}
+              className="justify-center"
+            >
+              Xem tất cả ứng tuyển
+            </Button>
+          </div>
+        </section>
+
+        {applications.length > 0 && (
+          <section>
+            <h2 className="heading-3 mb-4">Phân bố trạng thái</h2>
+            <Card>
+              <CardContent className="p-6">
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {Object.entries(statusLabels).map(([status, label]) => (
+                    <div key={status} className="text-center">
+                      <p className="text-2xl font-bold text-ink-100 mb-1">
+                        {statusCounts[status] ?? 0}
+                      </p>
+                      <Badge color={statusColors[status]} className="w-full justify-center">
+                        {label}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {recentApplications.length > 0 ? (
+          <section>
+            <h2 className="heading-3 mb-4">Ứng tuyển gần đây</h2>
+            <div className="space-y-3">
+              {recentApplications.map((app) => (
+                <Card key={app.id} className="hover">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Circle className="w-2 h-2 flex-shrink-0 text-primary-400" />
+                          <p className="font-semibold text-ink-100 truncate">
+                            {app.scholarship?.title || 'Không xác định'}
+                          </p>
+                        </div>
+                        <p className="text-sm text-ink-300 mb-3">
+                          Ứng tuyển lúc: {formatDate(app.created_at, 'dd/MM/yyyy HH:mm')}
+                        </p>
+                        <Badge color={statusColors[app.status]}>
+                          {statusLabels[app.status]}
+                        </Badge>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-ink-500 flex-shrink-0 mt-1" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {upcomingDeadlines.length > 0 ? (
+          <section>
+            <h2 className="heading-3 mb-4">Sắp tới hạn</h2>
+            <div className="space-y-3">
+              {upcomingDeadlines.map(scholarship => {
+                const daysUntil = getDaysUntil(scholarship.deadline);
+                const borderColorClass = getBorderColor(scholarship.deadline);
+
+                return (
+                  <Card key={scholarship.id} className={cn('hover', borderColorClass)}>
+                    <CardContent className="p-4 md:p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle
+                              className={cn(
+                                'w-5 h-5 flex-shrink-0',
+                                daysUntil <= 7
+                                  ? 'text-red-500'
+                                  : daysUntil <= 14
+                                    ? 'text-amber-500'
+                                    : 'text-ink-500'
+                              )}
+                            />
+                            <p className="font-semibold text-ink-100 truncate">
+                              {scholarship.title}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2 text-sm text-ink-300 mb-2">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              {scholarship.country}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <CalendarIcon className="w-4 h-4" />
+                              {formatDate(scholarship.deadline, 'dd/MM/yyyy')}
+                            </span>
+                            <span className="flex items-center gap-1 font-semibold">
+                              <Clock className="w-4 h-4" />
+                              {daysUntil} ngày
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {applications.length === 0 && (
+          <div className="text-center py-12">
+            <EmptyState
+              icon={TrendingUp}
+              title="Chưa có dữ liệu"
+              description="Hoàn thiện profile và tạo ứng tuyển để xem thống kê chi tiết."
+              actionLabel="Tìm học bổng"
+              actionTo="/scholarships"
+            />
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
