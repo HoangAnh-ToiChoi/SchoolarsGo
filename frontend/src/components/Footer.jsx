@@ -27,7 +27,7 @@ const Footer = () => {
                 { to: '/scholarships', label: 'Tìm học bổng' },
                 { to: '/saved', label: 'Học bổng đã lưu' },
                 { to: '/applications', label: 'Đơn ứng tuyển' },
-                { to: '/profile', label: 'Hồ sơ cá nhân' },
+                { to: '/dashboard', label: 'Hồ sơ cá nhân' },
               ].map((l) => (
                 <li key={l.to}>
                   <Link to={l.to} className="text-sm text-ink-500 hover:text-ink-200 transition-colors">
