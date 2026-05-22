@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { GraduationCap, Menu, X, User, LogOut, BookOpen, Calendar } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import ThemeToggle from './ui/ThemeToggle';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -55,6 +56,7 @@ const Header = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-1">
+            <ThemeToggle className="text-ink-400 hover:text-ink-100 hover:bg-ink-800" />
             {isAuthenticated ? (
               <>
                 <Link to="/applications" className={`flex items-center gap-1.5 ${navLinkClass('/applications')}`}>
@@ -114,6 +116,9 @@ const Header = () => {
               </Link>
             ))}
             <div className="pt-3 mt-2 border-t border-ink-800 space-y-1">
+              <div className="px-3 py-2.5">
+                <ThemeToggle className="text-ink-400 hover:text-ink-100 hover:bg-ink-800" />
+              </div>
               {isAuthenticated ? (
                 <>
                   <Link to="/applications" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Đơn ứng tuyển</Link>
