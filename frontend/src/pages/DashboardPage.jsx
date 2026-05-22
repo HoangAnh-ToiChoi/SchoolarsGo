@@ -150,18 +150,17 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-ink-950 pb-24">
-      {/* Single tab bar */}
       <div className="container-page pt-8">
+        {/* Tab bar */}
         <div className="flex border-b border-ink-800 mb-6">
           <TabButton id="overview" label="Tổng quan" active={activeTab === 'overview'} onClick={setActiveTab} />
           <TabButton id="profile" label="Hồ sơ" active={activeTab === 'profile'} onClick={setActiveTab} />
         </div>
-      </div>
 
       {/* Overview tab content */}
       {activeTab === 'overview' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <div className="container-page mb-12 space-y-8">
+          <div className="mb-12 space-y-8">
             <PageHeader
               title="Dashboard"
               description="Tổng quan về hoạt động ứng tuyển của bạn"
@@ -345,9 +344,10 @@ const DashboardPage = () => {
           </div>
         </motion.div>
       )}
+      </div>
 
-      {/* Profile tab content */}
-      {activeTab === 'profile' && <ProfilePage />}
+      {/* Profile tab — full width, own container-narrow inside */}
+      {activeTab === 'profile' && <ProfilePage embedded />}
     </div>
   );
 };

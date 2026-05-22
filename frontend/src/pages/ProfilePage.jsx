@@ -6,7 +6,7 @@ import FileUpload from '../components/ui/FileUpload';
 import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
 import { FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
 
-const ProfilePage = () => {
+const ProfilePage = ({ embedded = false }) => {
   const { data, isLoading } = useProfile();
   const { data: documents, isLoading: docsLoading } = useDocuments();
   const updateProfile = useUpdateProfile();
@@ -80,140 +80,146 @@ const ProfilePage = () => {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-ink-950 pb-16">
-      <div className="container-narrow py-8">
-        <PageHeader title="Hồ sơ cá nhân" />
+  const inner = (
+    <div className="container-narrow py-8">
+      {!embedded && <PageHeader title="Hồ sơ cá nhân" />}
 
-        {/* Profile Form */}
-        <form onSubmit={handleSaveProfile} className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8 mb-6 space-y-5">
-          <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3">Thông tin cá nhân</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+      {/* Profile Form */}
+      <form onSubmit={handleSaveProfile} className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8 mb-6 space-y-5">
+        <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3">Thông tin cá nhân</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <Input
+            label="GPA (thang 4.0)"
+            type="number" step="0.01" min="0" max="4"
+            value={form.gpa ?? profile.gpa ?? ''}
+            onChange={(e) => handleFieldChange('gpa', e.target.value)}
+            placeholder="3.5"
+            error={errors.gpa}
+          />
+          <Input
+            label="Trình độ tiếng Anh"
+            type="text"
+            value={form.english_level ?? profile.english_level ?? ''}
+            onChange={(e) => handleFieldChange('english_level', e.target.value)}
+            placeholder="IELTS 7.0"
+          />
+          <Input
+            label="Quốc gia muốn đến"
+            type="text"
+            value={form.target_country ?? profile.target_country ?? ''}
+            onChange={(e) => handleFieldChange('target_country', e.target.value)}
+            placeholder="UK, USA, Australia..."
+          />
+          <Select
+            label="Bậc học mong muốn"
+            options={DEGREES}
+            placeholder="Chọn bậc học"
+            value={form.target_degree ?? profile.target_degree ?? ''}
+            onChange={(value) => handleFieldChange('target_degree', value)}
+          />
+          <div className="md:col-span-2">
             <Input
-              label="GPA (thang 4.0)"
-              type="number" step="0.01" min="0" max="4"
-              value={form.gpa ?? profile.gpa ?? ''}
-              onChange={(e) => handleFieldChange('gpa', e.target.value)}
-              placeholder="3.5"
-              error={errors.gpa}
-            />
-            <Input
-              label="Trình độ tiếng Anh"
+              label="Ngành học mong muốn"
               type="text"
-              value={form.english_level ?? profile.english_level ?? ''}
-              onChange={(e) => handleFieldChange('english_level', e.target.value)}
-              placeholder="IELTS 7.0"
+              value={form.target_major ?? profile.target_major ?? ''}
+              onChange={(e) => handleFieldChange('target_major', e.target.value)}
+              placeholder="Computer Science"
+              list="majors"
             />
-            <Input
-              label="Quốc gia muốn đến"
-              type="text"
-              value={form.target_country ?? profile.target_country ?? ''}
-              onChange={(e) => handleFieldChange('target_country', e.target.value)}
-              placeholder="UK, USA, Australia..."
-            />
-            <Select
-              label="Bậc học mong muốn"
-              options={DEGREES}
-              placeholder="Chọn bậc học"
-              value={form.target_degree ?? profile.target_degree ?? ''}
-              onChange={(value) => handleFieldChange('target_degree', value)}
-            />
-            <div className="md:col-span-2">
-              <Input
-                label="Ngành học mong muốn"
-                type="text"
-                value={form.target_major ?? profile.target_major ?? ''}
-                onChange={(e) => handleFieldChange('target_major', e.target.value)}
-                placeholder="Computer Science"
-                list="majors"
-              />
-              <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
-            </div>
-            <div className="md:col-span-2">
-              <label className="input-label">Giới thiệu bản thân</label>
-              <textarea
-                rows={4}
-                value={form.bio ?? profile.bio ?? ''}
-                onChange={(e) => handleFieldChange('bio', e.target.value)}
-                className="input resize-none bg-ink-950 text-ink-100 border-ink-700"
-                placeholder="Viết vài dòng về bản thân, mục tiêu du học..."
-              />
-            </div>
+            <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
           </div>
-          <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>
-        </form>
-
-        {/* Documents */}
-        <div className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8">
-          <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3 mb-6">Tài liệu của tôi</h2>
-
-          <div className="mb-6">
-            <FileUpload
-              label="Upload tài liệu mới"
-              description="Kéo thả file hoặc click để chọn"
-              accept=".pdf,.doc,.docx,.txt"
-              maxSize={5 * 1024 * 1024}
-              onFileSelect={(file, error) => handleUpload(file, error)}
-              disabled={uploadDoc.isPending}
+          <div className="md:col-span-2">
+            <label className="input-label">Giới thiệu bản thân</label>
+            <textarea
+              rows={4}
+              value={form.bio ?? profile.bio ?? ''}
+              onChange={(e) => handleFieldChange('bio', e.target.value)}
+              className="input resize-none bg-ink-950 text-ink-100 border-ink-700"
+              placeholder="Viết vài dòng về bản thân, mục tiêu du học..."
             />
           </div>
+        </div>
+        <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>
+      </form>
 
-          {docsLoading ? (
-            <LoadingSpinner />
-          ) : !documents?.data || documents.data.length === 0 ? (
-            <EmptyState
-              icon={Plus}
-              title="Chưa tải lên tài liệu nào"
-              description="Tải lên CV, SOP, thư giới thiệu để chuẩn bị hồ sơ ứng tuyển của bạn."
-            />
-          ) : (
-            <div className="space-y-4">
-              {DOCUMENT_TYPES.map((docType) => {
-                const docs = documents?.data?.filter((d) => d.type === docType.value) || [];
-                return (
-                  <div key={docType.value} className="border border-ink-800 rounded-card p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-ink-100">{docType.label}</h3>
-                      <span className="text-xs text-ink-500">{docs.length} file</span>
-                    </div>
+      {/* Documents */}
+      <div className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8">
+        <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3 mb-6">Tài liệu của tôi</h2>
 
-                    {docs.length > 0 ? (
-                      <div className="space-y-2">
-                        {docs.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between p-3 bg-ink-950 rounded-lg border border-ink-800">
-                            <div className="flex items-center gap-3">
-                              <FileText className="w-5 h-5 text-primary-400" />
-                              <div>
-                                <p className="text-sm font-medium text-ink-100">{doc.file_name}</p>
-                                <p className="text-xs text-ink-500">
-                                  {new Date(doc.created_at).toLocaleDateString('vi-VN')}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => handleViewDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Xem tài liệu">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleDownloadDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Tải xuống">
-                                <Download className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => deleteDoc.mutate(doc.id)} className="text-ink-500 hover:text-danger-400 p-1.5 rounded transition-colors" title="Xóa tài liệu">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+        <div className="mb-6">
+          <FileUpload
+            label="Upload tài liệu mới"
+            description="Kéo thả file hoặc click để chọn"
+            accept=".pdf,.doc,.docx,.txt"
+            maxSize={5 * 1024 * 1024}
+            onFileSelect={(file, error) => handleUpload(file, error)}
+            disabled={uploadDoc.isPending}
+          />
+        </div>
+
+        {docsLoading ? (
+          <LoadingSpinner />
+        ) : !documents?.data || documents.data.length === 0 ? (
+          <EmptyState
+            icon={Plus}
+            title="Chưa tải lên tài liệu nào"
+            description="Tải lên CV, SOP, thư giới thiệu để chuẩn bị hồ sơ ứng tuyển của bạn."
+          />
+        ) : (
+          <div className="space-y-4">
+            {DOCUMENT_TYPES.map((docType) => {
+              const docs = documents?.data?.filter((d) => d.type === docType.value) || [];
+              return (
+                <div key={docType.value} className="border border-ink-800 rounded-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-ink-100">{docType.label}</h3>
+                    <span className="text-xs text-ink-500">{docs.length} file</span>
+                  </div>
+
+                  {docs.length > 0 ? (
+                    <div className="space-y-2">
+                      {docs.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-ink-950 rounded-lg border border-ink-800">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-5 h-5 text-primary-400" />
+                            <div>
+                              <p className="text-sm font-medium text-ink-100">{doc.file_name}</p>
+                              <p className="text-xs text-ink-500">
+                                {new Date(doc.created_at).toLocaleDateString('vi-VN')}
+                              </p>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-ink-500 italic">Chưa có tài liệu nào</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleViewDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Xem tài liệu">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDownloadDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Tải xuống">
+                              <Download className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => deleteDoc.mutate(doc.id)} className="text-ink-500 hover:text-danger-400 p-1.5 rounded transition-colors" title="Xóa tài liệu">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-ink-500 italic">Chưa có tài liệu nào</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+    </div>
+  );
+
+  if (embedded) return inner;
+
+  return (
+    <div className="min-h-screen bg-ink-950 pb-16">
+      {inner}
     </div>
   );
 };
