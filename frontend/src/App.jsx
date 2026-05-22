@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useAuthStore } from './stores/authStore';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ScholarshipsPage = lazy(() => import('./pages/ScholarshipsPage'));
@@ -21,6 +22,17 @@ const RecommendPage = lazy(() => import('./pages/RecommendPage'));
 const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const NewsPage = lazy(() => import('./pages/NewsPage'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminScholarshipsPage = lazy(() => import('./pages/admin/AdminScholarshipsPage'));
+
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/" replace />;
+  return children;
+};
 
 const PageLoader = () => (
   <div className="min-h-screen bg-ink-950 flex items-center justify-center">
@@ -52,6 +64,12 @@ function App() {
           <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
           <Route path="news" element={<NewsPage />} />
           <Route path="*" element={<NotFoundPage />} />
+        </Route>
+
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="scholarships" element={<AdminScholarshipsPage />} />
         </Route>
       </Routes>
         </Suspense>

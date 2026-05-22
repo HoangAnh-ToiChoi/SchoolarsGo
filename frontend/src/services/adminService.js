@@ -9,6 +9,7 @@ const adminService = {
   getUsers: (params) => api.get('/admin/users', { params }),
   getUserById: (id) => api.get(`/admin/users/${id}`),
   updateUserRole: (id, role) => api.patch(`/admin/users/${id}/role`, { role }),
+  updateUserStatus: (id, isActive) => api.patch(`/admin/users/${id}/status`, { isActive }),
 
   // Scholarships
   createScholarship: (data) => api.post('/admin/scholarships', data),
