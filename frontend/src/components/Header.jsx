@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, Menu, X, User, LogOut, BookOpen, Calendar, LayoutDashboard } from 'lucide-react';
+import { GraduationCap, Menu, X, User, LogOut, BookOpen, Calendar, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import ThemeToggle from './ui/ThemeToggle';
@@ -59,10 +59,12 @@ const Header = () => {
             <ThemeToggle className="text-ink-400 hover:text-ink-100 hover:bg-ink-800" />
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className={`flex items-center gap-1.5 ${navLinkClass('/dashboard')}`}>
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
-                </Link>
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className={`flex items-center gap-1.5 ${navLinkClass('/admin')}`}>
+                    <Shield className="w-4 h-4" />
+                    Quản lý
+                  </Link>
+                )}
                 <Link to="/applications" className={`flex items-center gap-1.5 ${navLinkClass('/applications')}`}>
                   <BookOpen className="w-4 h-4" />
                   Đơn ứng tuyển
@@ -71,7 +73,7 @@ const Header = () => {
                   <Calendar className="w-4 h-4" />
                   Deadline
                 </Link>
-                <Link to="/profile" className={`flex items-center gap-1.5 ${navLinkClass('/profile')}`}>
+                <Link to="/dashboard" className={`flex items-center gap-1.5 ${navLinkClass('/dashboard')}`}>
                   <User className="w-4 h-4" />
                   {user?.full_name?.split(' ').pop() || user?.email}
                 </Link>
@@ -125,10 +127,16 @@ const Header = () => {
               </div>
               {isAuthenticated ? (
                 <>
-                  <Link to="/dashboard" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                  {user?.role === 'admin' && (
+                    <Link to="/admin" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>
+                      Quản lý
+                    </Link>
+                  )}
                   <Link to="/applications" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Đơn ứng tuyển</Link>
                   <Link to="/deadlines" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Deadline</Link>
-                  <Link to="/profile" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Hồ sơ</Link>
+                  <Link to="/dashboard" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>
+                    {user?.full_name?.split(' ').pop() || user?.email}
+                  </Link>
                   <button onClick={handleLogout} className="w-full text-left px-3 py-2.5 rounded text-sm font-medium text-danger-400 hover:bg-danger-400/10 transition-colors">Đăng xuất</button>
                 </>
               ) : (
