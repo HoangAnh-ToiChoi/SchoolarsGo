@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ProfilePage from './ProfilePage';
 import {
   BookmarkIcon,
   ClipboardCheck,
@@ -19,8 +21,22 @@ import { cn, formatDate } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '../components/ui';
 
+const TabButton = ({ id, label, active, onClick }) => (
+  <button
+    onClick={() => onClick(id)}
+    className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+      active
+        ? 'border-primary-400 text-primary-400'
+        : 'border-transparent text-ink-400 hover:text-ink-100'
+    }`}
+  >
+    {label}
+  </button>
+);
+
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Fetch all data in parallel
   const { data: profile, isLoading: profileLoading } = useProfile();
@@ -132,9 +148,28 @@ const DashboardPage = () => {
     return <LoadingSpinner />;
   }
 
+  if (activeTab === 'profile') {
+    return (
+      <div className="min-h-screen bg-ink-950">
+        <div className="container-page pt-8">
+          <div className="flex border-b border-ink-800 mb-0">
+            <TabButton id="overview" label="Tổng quan" active={false} onClick={setActiveTab} />
+            <TabButton id="profile" label="Hồ sơ" active={true} onClick={setActiveTab} />
+          </div>
+        </div>
+        <ProfilePage />
+      </div>
+    );
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
       <div className="container-page pt-10 mb-12 space-y-8">
+        {/* Tab bar */}
+        <div className="flex border-b border-ink-800 -mt-4 mb-2">
+          <TabButton id="overview" label="Tổng quan" active={true} onClick={setActiveTab} />
+          <TabButton id="profile" label="Hồ sơ" active={false} onClick={setActiveTab} />
+        </div>
         <PageHeader
           title="Dashboard"
           description="Tổng quan về hoạt động ứng tuyển của bạn"
@@ -175,7 +210,7 @@ const DashboardPage = () => {
             <Button
               fullWidth
               variant="secondary"
-              onClick={() => navigate('/profile#documents')}
+              onClick={() => setActiveTab('profile')}
               className="justify-center"
             >
               Tải tài liệu lên
@@ -183,7 +218,7 @@ const DashboardPage = () => {
             <Button
               fullWidth
               variant="secondary"
-              onClick={() => navigate('/profile')}
+              onClick={() => setActiveTab('profile')}
               className="justify-center"
             >
               Hoàn thiện profile
