@@ -231,7 +231,7 @@ const AdminUsersPage = () => {
             : `Tài khoản "${confirmModal.user?.full_name || confirmModal.user?.email}" sẽ được mở lại.`
         }
       >
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-6 pb-2">
           <button
             onClick={() => setConfirmModal({ open: false, user: null })}
             className="btn-secondary btn-sm"
