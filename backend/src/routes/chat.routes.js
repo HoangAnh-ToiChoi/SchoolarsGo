@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const chatController = require('../controllers/chat.controller');
+const { chatController } = require('../container');
 const { auth } = require('../middlewares/auth');
 const rateLimit = require('express-rate-limit');
 

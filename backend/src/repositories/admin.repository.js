@@ -7,17 +7,20 @@
  * [1] Phân tách tầng — chỉ chứa SQL, không logic.
  * [5] An toàn SQL — 100% parameterized queries ($1, $2...). KHÔNG string interpolation.
  * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
+ *
+ * Lưu ý: AdminRepository KHÔNG kế thừa BaseRepository vì không tái sử dụng
+ * bất kỳ method chung nào (findAll, findById, create...).
+ * Việc giữ extends chỉ tạo ra coupling thừa thãi.
  */
-const BaseRepository = require('./base.repository');
 
-class AdminRepository extends BaseRepository {
+class AdminRepository {
   /**
    * @param {object} db - Database driver instance (pg pool hoặc tương đương)
    */
   constructor(db) {
-    super(db, 'users');
     this.#db = db;
   }
+
 
   // ═══════════════════════════════════════════════════════════
   // DASHBOARD STATS
@@ -126,7 +129,7 @@ class AdminRepository extends BaseRepository {
 
     params.push(limit, (page - 1) * limit);
     const users = await this.#query(
-      `SELECT id, email, full_name, role, avatar_url, phone,
+      `SELECT id, email, full_name, role, is_active, avatar_url, phone,
               date_of_birth, last_login_at, created_at, updated_at
        FROM users
        ${whereClause}
@@ -140,7 +143,7 @@ class AdminRepository extends BaseRepository {
 
   async findUserById(id) {
     const sql = `
-      SELECT id, email, full_name, role, avatar_url, phone,
+      SELECT id, email, full_name, role, is_active, avatar_url, phone,
              date_of_birth, last_login_at, created_at, updated_at
       FROM users
       WHERE id = $1
