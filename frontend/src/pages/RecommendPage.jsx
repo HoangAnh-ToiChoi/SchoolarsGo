@@ -49,9 +49,9 @@ const RecommendPage = () => {
         ) : isLoading ? (
           <LoadingSpinner />
         ) : error ? (
-          <EmptyState icon={AlertCircle} title="Cần cập nhật profile" description={error.message || 'Hãy điền GPA, IELTS và ngành học trong profile để nhận gợi ý'} actionLabel="Cập nhật Profile" actionTo="/profile" />
+          <EmptyState icon={AlertCircle} title="Cần cập nhật profile" description={error.message || 'Hãy điền GPA, IELTS và ngành học trong profile để nhận gợi ý'} actionLabel="Cập nhật Profile" actionTo="/dashboard" />
         ) : recommendations.length === 0 ? (
-          <EmptyState icon={Brain} title="Chưa tìm được học bổng phù hợp" description="Hãy cập nhật đầy đủ GPA, IELTS, ngành học và quốc gia mục tiêu trong profile của bạn" actionLabel="Cập nhật Profile" actionTo="/profile" />
+          <EmptyState icon={Brain} title="Chưa tìm được học bổng phù hợp" description="Hãy cập nhật đầy đủ GPA, IELTS, ngành học và quốc gia mục tiêu trong profile của bạn" actionLabel="Cập nhật Profile" actionTo="/dashboard" />
         ) : (
           <>
             <p className="text-body text-ink-400 mb-6">Tìm thấy <strong className="text-ink-100">{recommendations.length}</strong> học bổng phù hợp với profile của bạn</p>

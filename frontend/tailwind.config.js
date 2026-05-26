@@ -7,31 +7,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Cyan accent (primary actions, links, highlights)
+        // Cyan accent — 300/400 are theme-aware via CSS vars, rest static
         primary: {
           50:  '#ecfeff',
           100: '#cffafe',
           200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
+          300: 'rgb(var(--primary-300) / <alpha-value>)',
+          400: 'rgb(var(--primary-400) / <alpha-value>)',
           500: '#06b6d4',
           600: '#0891b2',
           700: '#0e7490',
           800: '#155e75',
           900: '#164e63',
         },
-        // Dark UI surfaces (GitHub Dark inspired)
+        // UI surfaces — all levels are theme-aware via CSS vars
         ink: {
-          950: '#0D1117',
-          900: '#161B22',
-          800: '#21262D',
-          700: '#30363D',
-          600: '#484F58',
-          500: '#6E7681',
-          400: '#8B949E',
-          300: '#B1BAC4',
-          200: '#C9D1D9',
-          100: '#E6EDF3',
+          950: 'rgb(var(--ink-950) / <alpha-value>)',
+          900: 'rgb(var(--ink-900) / <alpha-value>)',
+          800: 'rgb(var(--ink-800) / <alpha-value>)',
+          700: 'rgb(var(--ink-700) / <alpha-value>)',
+          600: 'rgb(var(--ink-600) / <alpha-value>)',
+          500: 'rgb(var(--ink-500) / <alpha-value>)',
+          400: 'rgb(var(--ink-400) / <alpha-value>)',
+          300: 'rgb(var(--ink-300) / <alpha-value>)',
+          200: 'rgb(var(--ink-200) / <alpha-value>)',
+          100: 'rgb(var(--ink-100) / <alpha-value>)',
         },
         success: {
           50:  '#f0fdf4',

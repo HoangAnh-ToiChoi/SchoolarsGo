@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useAuthStore } from './stores/authStore';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ScholarshipsPage = lazy(() => import('./pages/ScholarshipsPage'));
@@ -10,7 +11,6 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const ApplicationsPage = lazy(() => import('./pages/ApplicationsPage'));
 const ApplicationDetailPage = lazy(() => import('./pages/ApplicationDetailPage'));
 const SavedPage = lazy(() => import('./pages/SavedPage'));
@@ -21,6 +21,17 @@ const RecommendPage = lazy(() => import('./pages/RecommendPage'));
 const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const NewsPage = lazy(() => import('./pages/NewsPage'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminScholarshipsPage = lazy(() => import('./pages/admin/AdminScholarshipsPage'));
+
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/" replace />;
+  return children;
+};
 
 const PageLoader = () => (
   <div className="min-h-screen bg-ink-950 flex items-center justify-center">
@@ -30,8 +41,9 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
+    <>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="scholarships" element={<ScholarshipsPage />} />
@@ -41,7 +53,7 @@ function App() {
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="saved" element={<SavedPage />} />
-          <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="profile" element={<Navigate to="/dashboard" replace />} />
           <Route path="applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
           <Route path="dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="deadlines" element={<ProtectedRoute><DeadlineTrackerPage /></ProtectedRoute>} />
@@ -52,8 +64,15 @@ function App() {
           <Route path="news" element={<NewsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
+
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="scholarships" element={<AdminScholarshipsPage />} />
+        </Route>
       </Routes>
-    </Suspense>
+        </Suspense>
+    </>
   );
 }
 
