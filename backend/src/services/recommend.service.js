@@ -1,12 +1,13 @@
 const AppError = require('../utils/AppError');
 const { extractIeltsScore } = require('../utils/helpers');
-const { enrichRecommendations } = require('./gemini.service');
 
 class RecommendService {
   #repo;
+  #gemini;
 
-  constructor(recommendRepo) {
+  constructor(recommendRepo, geminiService) {
     this.#repo = recommendRepo;
+    this.#gemini = geminiService;
   }
 
   #calculateMatchScore(profile, scholarship) {
@@ -79,7 +80,7 @@ class RecommendService {
       .slice(0, topN)
       .filter(item => item.match_score > 0);
 
-    return enrichRecommendations(profile, top);
+    return this.#gemini.enrichRecommendations(profile, top);
   };
 }
 

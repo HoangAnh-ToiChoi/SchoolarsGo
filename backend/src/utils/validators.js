@@ -152,6 +152,10 @@ const adminUpdateUserRoleSchema = z.object({
   role: z.enum(['user', 'admin'], { message: 'Role phải là "user" hoặc "admin"' }),
 });
 
+const adminUpdateUserStatusSchema = z.object({
+  isActive: z.boolean({ required_error: 'isActive là bắt buộc' }),
+});
+
 const adminUpdateScholarshipFeaturedSchema = z.object({
   isFeatured: z.boolean({ required_error: 'isFeatured là bắt buộc' }),
 });
@@ -186,6 +190,7 @@ module.exports = {
   adminCreateScholarshipSchema,
   adminUpdateScholarshipSchema,
   adminUpdateUserRoleSchema,
+  adminUpdateUserStatusSchema,
   adminUpdateScholarshipFeaturedSchema,
   adminUserQuerySchema,
 };

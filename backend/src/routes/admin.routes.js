@@ -14,6 +14,7 @@ const {
   adminCreateScholarshipSchema,
   adminUpdateScholarshipSchema,
   adminUpdateUserRoleSchema,
+  adminUpdateUserStatusSchema,
   adminUpdateScholarshipFeaturedSchema,
   adminUserQuerySchema,
 } = require('../utils/validators');
@@ -58,6 +59,11 @@ router.get('/users/:id', adminController.getUserById);
  * PATCH /api/admin/users/:id/role
  */
 router.patch('/users/:id/role', validate(adminUpdateUserRoleSchema), adminController.updateUserRole);
+
+/**
+ * PATCH /api/admin/users/:id/status
+ */
+router.patch('/users/:id/status', validate(adminUpdateUserStatusSchema), adminController.updateUserStatus);
 
 // ═══════════════════════════════════════════════════════════
 // SCHOLARSHIP MANAGEMENT

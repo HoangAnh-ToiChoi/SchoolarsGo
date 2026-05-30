@@ -7,24 +7,27 @@
  * [1] Phân tách tầng — chỉ chứa SQL, không logic.
  * [5] An toàn SQL — 100% parameterized queries ($1, $2...). KHÔNG string interpolation.
  * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
+ *
+ * Lưu ý: AdminRepository KHÔNG kế thừa BaseRepository vì không tái sử dụng
+ * bất kỳ method chung nào (findAll, findById, create...).
+ * Việc giữ extends chỉ tạo ra coupling thừa thãi.
  */
-const BaseRepository = require('./base.repository');
 
-class AdminRepository extends BaseRepository {
+class AdminRepository {
   /**
    * @param {object} db - Database driver instance (pg pool hoặc tương đương)
    */
   constructor(db) {
-    super(db, 'users');
     this.#db = db;
   }
+
 
   // ═══════════════════════════════════════════════════════════
   // DASHBOARD STATS
   // ═══════════════════════════════════════════════════════════
 
   async countTotalUsers() {
-    const sql = 'SELECT COUNT(*) AS total FROM users WHERE is_active = true';
+    const sql = 'SELECT COUNT(*) AS total FROM users';
     const result = await this.#queryOne(sql);
     return parseInt(result.total, 10);
   }
@@ -32,8 +35,7 @@ class AdminRepository extends BaseRepository {
   async countNewUsersThisWeek() {
     const sql = `
       SELECT COUNT(*) AS total FROM users
-      WHERE is_active = true
-        AND created_at >= DATE_TRUNC('week', NOW())
+      WHERE created_at >= DATE_TRUNC('week', NOW())
     `;
     const result = await this.#queryOne(sql);
     return parseInt(result.total, 10);
@@ -97,16 +99,19 @@ class AdminRepository extends BaseRepository {
   async findUsers(filters) {
     const { page = 1, limit = 20, role, search, status } = filters;
     const params = [];
-    const conditions = ['is_active = true'];
+    const conditions = [];
     let idx = 1;
+
+    // status filter xác định is_active; mặc định hiển thị tất cả users
+    if (status !== undefined) {
+      conditions.push(`is_active = $${idx++}`);
+      params.push(status === 'active');
+    }
+    // No else — show all users by default
 
     if (role) {
       conditions.push(`role = $${idx++}`);
       params.push(role);
-    }
-    if (status !== undefined) {
-      conditions.push(`is_active = $${idx++}`);
-      params.push(status === 'active');
     }
     if (search) {
       conditions.push(`(email ILIKE $${idx} OR full_name ILIKE $${idx})`);
@@ -114,10 +119,10 @@ class AdminRepository extends BaseRepository {
       idx++;
     }
 
-    const whereClause = conditions.join(' AND ');
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     const countResult = await this.#queryOne(
-      `SELECT COUNT(*) AS total FROM users WHERE ${whereClause}`,
+      `SELECT COUNT(*) AS total FROM users ${whereClause}`,
       params
     );
     const total = parseInt(countResult.total, 10);
@@ -127,7 +132,7 @@ class AdminRepository extends BaseRepository {
       `SELECT id, email, full_name, role, is_active, avatar_url, phone,
               date_of_birth, last_login_at, created_at, updated_at
        FROM users
-       WHERE ${whereClause}
+       ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${idx++} OFFSET $${idx}`,
       params
@@ -141,7 +146,7 @@ class AdminRepository extends BaseRepository {
       SELECT id, email, full_name, role, is_active, avatar_url, phone,
              date_of_birth, last_login_at, created_at, updated_at
       FROM users
-      WHERE id = $1 AND is_active = true
+      WHERE id = $1
     `;
     return this.#queryOne(sql, [id]);
   }
@@ -150,10 +155,20 @@ class AdminRepository extends BaseRepository {
     const sql = `
       UPDATE users
       SET role = $1, updated_at = NOW()
-      WHERE id = $2 AND is_active = true
-      RETURNING id, email, full_name, role, is_active, created_at
+      WHERE id = $2
+      RETURNING id, email, full_name, role, created_at
     `;
     return this.#queryOne(sql, [role, id]);
+  }
+
+  async updateUserStatus(id, isActive) {
+    const sql = `
+      UPDATE users
+      SET is_active = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, email, full_name, role, is_active, created_at
+    `;
+    return this.#queryOne(sql, [isActive, id]);
   }
 
   // ═══════════════════════════════════════════════════════════

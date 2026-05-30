@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, Clock, Newspaper } from 'lucide-react';
 import { useNews } from '../hooks/useNews';
-import { Card, CardContent, Badge } from '../components/ui';
+import { Card, CardContent } from '../components/ui';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/ui/PageHeader';
 

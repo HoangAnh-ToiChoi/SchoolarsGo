@@ -5,6 +5,8 @@
 
 /* ── CSS Custom Properties ───────────────────────── */
 :root {
+  /* DARK THEME (default) */
+  /* Hex — used by CSS component classes (.card, .btn-*, etc.) */
   --color-ink-950: #0D1117;
   --color-ink-900: #161B22;
   --color-ink-800: #21262D;
@@ -17,6 +19,59 @@
   --color-ink-100: #E6EDF3;
   --color-primary-400: #22D3EE;
   --color-primary-300: #67E8F9;
+  /* RGB channels — used by Tailwind utility classes (bg-ink-*, text-ink-*, border-ink-*) */
+  --ink-950: 13 17 23;
+  --ink-900: 22 27 34;
+  --ink-800: 33 38 45;
+  --ink-700: 48 54 61;
+  --ink-600: 72 79 88;
+  --ink-500: 110 118 129;
+  --ink-400: 139 148 158;
+  --ink-300: 177 186 196;
+  --ink-200: 201 209 217;
+  --ink-100: 230 237 243;
+  --primary-400: 34 211 238;
+  --primary-300: 103 232 249;
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+  /* Hex */
+  --color-ink-950: #FFFFFF;
+  --color-ink-900: #F6F8FA;
+  --color-ink-800: #EAEEF2;
+  --color-ink-700: #D0D7DE;
+  --color-ink-600: #B1BAC4;
+  --color-ink-500: #8B949E;
+  --color-ink-400: #6E7681;
+  --color-ink-300: #57606A;
+  --color-ink-200: #424A53;
+  --color-ink-100: #1F2937;
+  --color-primary-400: #0891B2;
+  --color-primary-300: #06B6D4;
+  /* RGB channels */
+  --ink-950: 255 255 255;
+  --ink-900: 246 248 250;
+  --ink-800: 234 238 242;
+  --ink-700: 208 215 222;
+  --ink-600: 177 186 196;
+  --ink-500: 139 148 158;
+  --ink-400: 110 118 129;
+  --ink-300: 87 96 106;
+  --ink-200: 66 74 83;
+  --ink-100: 31 41 55;
+  --primary-400: 8 145 178;
+  --primary-300: 6 182 212;
+}
+
+[data-theme="light"] .text-gradient-cyan {
+  background-image: none;
+  color: #0891B2;
+  -webkit-text-fill-color: #0891B2;
+}
+
+[data-theme="light"] .glow-text {
+  text-shadow: 0 0 20px rgba(8, 145, 178, 0.25);
 }
 
 /* ── Base ─────────────────────────────────────────── */
@@ -25,25 +80,25 @@
 
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    color: #E6EDF3;
-    background-color: #0D1117;
+    color: var(--color-ink-100);
+    background-color: var(--color-ink-950);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
     background-color: rgba(34, 211, 238, 0.2);
-    color: #22D3EE;
+    color: var(--color-primary-400);
   }
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #0D1117; }
-  ::-webkit-scrollbar-thumb { background: #30363D; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #484F58; }
+  ::-webkit-scrollbar-track { background: var(--color-ink-950); }
+  ::-webkit-scrollbar-thumb { background: var(--color-ink-700); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-600); }
 
   select option {
-    background-color: #21262D;
-    color: #E6EDF3;
+    background-color: var(--color-ink-800);
+    color: var(--color-ink-100);
   }
 }
 
@@ -56,14 +111,14 @@
 
   /* ── Cards ── */
   .card {
-    background-color: #161B22;
+    background-color: var(--color-ink-900);
     border-radius: 0.75rem;
-    border: 1px solid #21262D;
+    border: 1px solid var(--color-ink-800);
   }
   .card-hover {
-    background-color: #161B22;
+    background-color: var(--color-ink-900);
     border-radius: 0.75rem;
-    border: 1px solid #21262D;
+    border: 1px solid var(--color-ink-800);
     transition: all 0.3s ease;
   }
   .card-hover:hover {
@@ -72,9 +127,9 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
   .card-glow {
-    background-color: #161B22;
+    background-color: var(--color-ink-900);
     border-radius: 0.75rem;
-    border: 1px solid #21262D;
+    border: 1px solid var(--color-ink-800);
     transition: all 0.3s ease;
   }
   .card-glow:hover {
@@ -83,10 +138,10 @@
     box-shadow: 0 0 30px rgba(34, 211, 238, 0.2);
   }
   .card-body    { @apply p-6; }
-  .card-header  { padding: 1.5rem; border-bottom: 1px solid #21262D; }
-  .card-title   { font-size: 1rem; font-weight: 600; color: #E6EDF3; }
-  .card-description { font-size: 0.875rem; color: #8B949E; margin-top: 0.25rem; }
-  .card-footer  { padding: 1.5rem; border-top: 1px solid #21262D; }
+  .card-header  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
+  .card-title   { font-size: 1rem; font-weight: 600; color: var(--color-ink-100); }
+  .card-description { font-size: 0.875rem; color: var(--color-ink-400); margin-top: 0.25rem; }
+  .card-footer  { padding: 1.5rem; border-top: 1px solid var(--color-ink-800); }
 
   /* ── Buttons ── */
   .btn {
@@ -96,30 +151,30 @@
   }
   .btn-primary {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: #22D3EE;
-    color: #0D1117;
+    background-color: var(--color-primary-400);
+    color: var(--color-ink-950);
   }
   .btn-primary:hover {
-    background-color: #67E8F9;
+    background-color: var(--color-primary-300);
     box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
   }
   .btn-secondary {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: #21262D;
-    color: #C9D1D9;
-    border: 1px solid #30363D;
+    background-color: var(--color-ink-800);
+    color: var(--color-ink-200);
+    border: 1px solid var(--color-ink-700);
   }
   .btn-secondary:hover {
     border-color: rgba(34, 211, 238, 0.5);
-    color: #22D3EE;
+    color: var(--color-primary-400);
   }
   .btn-ghost {
     @apply btn px-3 py-2 rounded-button;
-    color: #8B949E;
+    color: var(--color-ink-400);
   }
   .btn-ghost:hover {
-    color: #E6EDF3;
-    background-color: #21262D;
+    color: var(--color-ink-100);
+    background-color: var(--color-ink-800);
   }
   .btn-danger {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
@@ -135,50 +190,50 @@
   .input {
     @apply w-full rounded-input px-4 py-2.5 transition-colors duration-200
            focus:outline-none;
-    background-color: #0D1117;
-    color: #E6EDF3;
-    border: 1px solid #30363D;
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-100);
+    border: 1px solid var(--color-ink-700);
   }
-  .input::placeholder { color: #6E7681; }
+  .input::placeholder { color: var(--color-ink-500); }
   .input:focus {
     box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
     border-color: rgba(34, 211, 238, 0.5);
   }
   .input-with-icon { @apply input pl-11; }
-  .input-label { @apply block text-sm font-medium mb-1.5; color: #B1BAC4; }
+  .input-label { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
   .input-error  { @apply text-xs mt-1; color: #f87171; }
 
   /* ── Badges ── */
   .badge { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-badge; }
-  .badge-primary { @apply badge; background: rgba(34,211,238,0.1); color: #67E8F9; border: 1px solid rgba(34,211,238,0.2); }
+  .badge-primary { @apply badge; background: rgba(34,211,238,0.1); color: var(--color-primary-300); border: 1px solid rgba(34,211,238,0.2); }
   .badge-success { @apply badge; background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
   .badge-warning { @apply badge; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
   .badge-danger  { @apply badge; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-  .badge-default { @apply badge; background: #21262D; color: #B1BAC4; border: 1px solid #30363D; }
+  .badge-default { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
 
   /* ── Tags ── */
   .tag {
     @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background-color: #21262D;
-    color: #8B949E;
-    border: 1px solid #30363D;
+    background-color: var(--color-ink-800);
+    color: var(--color-ink-400);
+    border: 1px solid var(--color-ink-700);
   }
   .tag-primary {
     @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
     background: rgba(34,211,238,0.1);
-    color: #67E8F9;
+    color: var(--color-primary-300);
     border: 1px solid rgba(34,211,238,0.2);
   }
 
   /* ── Empty state ── */
   .empty-state { @apply flex flex-col items-center justify-center text-center py-16 px-4; }
-  .empty-state-icon { @apply w-14 h-14 mb-5; color: #30363D; }
-  .empty-state h3 { @apply text-lg font-semibold mb-2; color: #C9D1D9; }
-  .empty-state p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: #6E7681; }
+  .empty-state-icon { @apply w-14 h-14 mb-5; color: var(--color-ink-700); }
+  .empty-state h3 { @apply text-lg font-semibold mb-2; color: var(--color-ink-200); }
+  .empty-state p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: var(--color-ink-500); }
 
   /* ── Page header ── */
   .page-header { @apply mb-8; }
-  .page-title  { @apply text-2xl font-bold; color: #E6EDF3; }
+  .page-title  { @apply text-2xl font-bold; color: var(--color-ink-100); }
 
   /* ── Modal ── */
   .modal-overlay {
@@ -188,19 +243,19 @@
   }
   .modal-content {
     @apply relative w-full max-w-lg rounded-card animate-fade-in;
-    background-color: #161B22;
-    border: 1px solid #21262D;
+    background-color: var(--color-ink-900);
+    border: 1px solid var(--color-ink-800);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
   .modal-header {
     @apply flex items-start justify-between gap-4 p-6;
-    border-bottom: 1px solid #21262D;
+    border-bottom: 1px solid var(--color-ink-800);
   }
-  .modal-title { @apply text-lg font-semibold; color: #E6EDF3; }
-  .modal-description { @apply text-sm mt-1; color: #6E7681; }
+  .modal-title { @apply text-lg font-semibold; color: var(--color-ink-100); }
+  .modal-description { @apply text-sm mt-1; color: var(--color-ink-500); }
 
   /* ── Divider ── */
-  .divider { border-top: 1px solid #21262D; }
+  .divider { border-top: 1px solid var(--color-ink-800); }
 
   /* ── Grid pattern overlay ── */
   .bg-grid {
@@ -208,6 +263,11 @@
       linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
     background-size: 64px 64px;
+  }
+
+  /* ── Smooth theme transitions ── */
+  * {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
 }
 
@@ -224,19 +284,19 @@
   }
 }
 
-/* ── React Calendar dark overrides ──────────────── */
+/* ── React Calendar theme-aware overrides ──────────────── */
 .react-calendar {
   width: 100% !important;
   background: transparent !important;
   border: none !important;
-  color: #E6EDF3 !important;
+  color: var(--color-ink-100) !important;
   font-family: 'Inter', sans-serif !important;
 }
 .react-calendar__navigation {
   margin-bottom: 0.75rem !important;
 }
 .react-calendar__navigation button {
-  color: #E6EDF3 !important;
+  color: var(--color-ink-100) !important;
   background: transparent !important;
   min-width: 44px !important;
   border-radius: 8px !important;
@@ -245,15 +305,15 @@
 }
 .react-calendar__navigation button:hover,
 .react-calendar__navigation button:focus {
-  background: #21262D !important;
+  background: var(--color-ink-800) !important;
 }
 .react-calendar__navigation__label {
   font-weight: 700 !important;
   font-size: 0.95rem !important;
-  color: #E6EDF3 !important;
+  color: var(--color-ink-100) !important;
 }
 .react-calendar__month-view__weekdays__weekday {
-  color: #6E7681 !important;
+  color: var(--color-ink-500) !important;
   font-size: 0.7rem !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
@@ -264,28 +324,28 @@
 }
 .react-calendar__tile {
   background: transparent !important;
-  color: #B1BAC4 !important;
+  color: var(--color-ink-300) !important;
   border-radius: 8px !important;
   transition: all 0.15s ease !important;
   padding: 0.7em 0.5em !important;
   position: relative;
 }
 .react-calendar__tile:hover {
-  background: #21262D !important;
-  color: #E6EDF3 !important;
+  background: var(--color-ink-800) !important;
+  color: var(--color-ink-100) !important;
 }
 .react-calendar__tile--now {
   background: rgba(34,211,238,0.1) !important;
-  color: #22D3EE !important;
+  color: var(--color-primary-400) !important;
   border: 1px solid rgba(34,211,238,0.3) !important;
 }
 .react-calendar__tile--active,
 .react-calendar__tile--active:enabled:hover,
 .react-calendar__tile--active:enabled:focus {
-  background: #22D3EE !important;
-  color: #0D1117 !important;
+  background: var(--color-primary-400) !important;
+  color: var(--color-ink-950) !important;
   font-weight: 700 !important;
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #484F58 !important;
+  color: var(--color-ink-600) !important;
 }

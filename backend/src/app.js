@@ -17,14 +17,19 @@ const applicationRoutes = require('./routes/application.routes');
 const savedRoutes = require('./routes/saved.routes');
 const recommendRoutes = require('./routes/recommend.routes');
 const adminRoutes = require('./routes/admin.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 const app = express();
 
 // ── Security & Middleware ──────────────────────────────
 app.use(helmet());
+const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL].filter(Boolean)
+  : /^http:\/\/localhost:\d+$/;
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   })
 );
@@ -57,6 +62,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/saved', savedRoutes);
 app.use('/api/recommend', recommendRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // ── Swagger UI ─────────────────────────────────────────
 app.use(

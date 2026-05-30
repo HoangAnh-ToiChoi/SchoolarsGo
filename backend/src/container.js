@@ -14,16 +14,24 @@
  */
 const getSupabase = require('./utils/supabase');
 const sb = getSupabase();
+const db = require('./utils/db');
 
 // ── EventBus ────────────────────────────────────────────────
 const eventBus = require('./events/eventBus');
+
+// ── Shared Services (SRP: tách riêng hash + token) ──────────
+const HashService = require('./services/hash.service');
+const TokenService = require('./services/token.service');
+
+const hashService = new HashService();
+const tokenService = new TokenService();
 
 // ── Admin Module ──────────────────────────────────────────
 const AdminRepository = require('./repositories/admin.repository');
 const AdminService = require('./services/admin.service');
 const AdminController = require('./controllers/admin.controller');
 
-const adminRepo = new AdminRepository(sb);
+const adminRepo = new AdminRepository(db);
 const adminService = new AdminService(adminRepo);
 const adminController = new AdminController(adminService);
 
@@ -73,23 +81,37 @@ const savedRepo = new SavedRepository(sb);
 const savedService = new SavedService(savedRepo);
 const savedController = new SavedController(savedService);
 
-// ── Auth Module ────────────────────────────────────────────
+// ── Auth Module (SRP: inject hashService + tokenService) ───
 const AuthRepository = require('./repositories/auth.repository');
 const AuthService = require('./services/auth.service');
 const AuthController = require('./controllers/auth.controller');
 
 const authRepo = new AuthRepository(sb);
-const authService = new AuthService(authRepo, eventBus);
+const authService = new AuthService(authRepo, eventBus, hashService, tokenService);
 const authController = new AuthController(authService);
 
-// ── Recommend Module ─────────────────────────────────────────
+// ── Recommend Module (DIP: inject geminiService) ────────────
 const RecommendRepository = require('./repositories/recommend.repository');
 const RecommendService = require('./services/recommend.service');
 const RecommendController = require('./controllers/recommend.controller');
+const geminiService = require('./services/gemini.service');
 
 const recommendRepo = new RecommendRepository(sb);
-const recommendService = new RecommendService(recommendRepo);
+const recommendService = new RecommendService(recommendRepo, geminiService);
 const recommendController = new RecommendController(recommendService);
+
+// ── News Module (DIP: chuyển sang class, inject qua container) ──
+const NewsService = require('./services/news.service');
+const NewsController = require('./controllers/news.controller');
+
+const newsService = new NewsService();
+const newsController = new NewsController(newsService);
+
+// ── Chat Module (DIP: controller nhận chatService qua constructor) ──
+const chatService = require('./services/chat.service');
+const ChatController = require('./controllers/chat.controller');
+
+const chatController = new ChatController(chatService);
 
 module.exports = {
   // Admin
@@ -116,6 +138,10 @@ module.exports = {
   recommendRepo,
   recommendService,
   recommendController,
+  // Newly wired modules
+  newsService,
+  newsController,
+  chatController,
 };
 
 // ── Event Listeners ─────────────────────────────────────────

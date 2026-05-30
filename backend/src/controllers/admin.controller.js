@@ -81,6 +81,18 @@ class AdminController {
     }
   };
 
+  updateUserStatus = async (req, res, next) => {
+    try {
+      const { id: targetUserId } = req.params;
+      const { isActive } = req.body;
+      const adminId = req.user.id;
+      const user = await this.#service.changeUserStatus(targetUserId, isActive, adminId);
+      return res.status(200).json({ success: true, data: user });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   // ═══════════════════════════════════════════════════════════
   // SCHOLARSHIP MANAGEMENT
   // ═══════════════════════════════════════════════════════════

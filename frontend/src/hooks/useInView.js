@@ -16,7 +16,7 @@ export const useInView = (options = {}) => {
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return [ref, inView];
 };

@@ -66,44 +66,13 @@ const errorHandler = (err, req, res, _next) => {
     });
   }
 
-  // Lỗi tùy chỉnh từ service layer
+  // Lỗi tùy chỉnh từ service layer (AppError với isOperational = true)
+  // Bao gồm: Storage errors, validation errors, business logic errors...
   if (err.isOperational) {
     return res.status(err.statusCode || 400).json({
       success: false,
       message: err.message,
       code: err.statusCode || 400,
-    });
-  }
-
-  // Lỗi Supabase Storage (upload/delete file thất bại)
-  if (err.message && err.message.includes('Upload file thất bại')) {
-    return res.status(500).json({
-      success: false,
-      message: 'Không thể tải file lên storage, vui lòng thử lại',
-      code: 500,
-    });
-  }
-
-  if (err.message && err.message.includes('Lưu metadata thất bại')) {
-    return res.status(500).json({
-      success: false,
-      message: 'Lưu file thất bại, vui lòng thử lại',
-      code: 500,
-    });
-  }
-
-  // Multer errors — bắt các lỗi validation từ fileFilter
-  if (
-    err.message &&
-    (err.message.includes('Thiếu field "type"') ||
-      err.message.includes('không hợp lệ') ||
-      err.message.includes('chỉ chấp nhận đuôi') ||
-      err.message.includes('Đuôi file không khớp'))
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-      code: 400,
     });
   }
 

@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Globe, GraduationCap, Users, Star } from 'lucide-
 import { useInView } from '../../hooks/useInView';
 import { useCounter } from '../../hooks/useCounter';
 
-const StatItem = ({ value, suffix = '', label, delay, icon: Icon }) => {
+const StatItem = ({ value, suffix = '', label, delay, icon: _Icon }) => {
   const [ref, inView] = useInView();
   const count = useCounter(inView ? value : 0, 1400);
 
