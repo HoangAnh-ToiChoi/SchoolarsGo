@@ -1,7 +1,7 @@
 # ============================================================
 # SCHOLARSGO — API CONTRACTS
 # ============================================================
-# Last Updated: 10/4/2026
+# Last Updated: 17/4/2026
 
 ---
 
@@ -305,6 +305,153 @@ Delete application (auth required).
 
 ---
 
+## Applications (VÙNG 2 — Controller → Service → Repository → DB)
+
+Kiến trúc 4 tầng: `Controller → Service → Repository → DB`
+
+Base URL: `/api/v2/applications` (chạy song song với VÙNG 1 tại `/api/applications`)
+
+### GET /api/v2/applications
+List user's applications (auth required).
+
+**Query params:**
+| Param | Type | Default | Mô tả |
+|-------|------|---------|-------|
+| page | int | 1 | Trang |
+| limit | int | 20 | Số item/trang (max 50) |
+| status | string | — | draft, submitted, under_review, interview, accepted, rejected, withdrawn |
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "status": "submitted",
+      "applied_at": "2026-04-01T00:00:00Z",
+      "notes": "...",
+      "checklist": [...],
+      "documents_used": [],
+      "result": null,
+      "created_at": "...",
+      "updated_at": "...",
+      "scholarship": {
+        "id": "uuid",
+        "title": "...",
+        "country": "UK",
+        "deadline": "2026-06-01T00:00:00Z",
+        "amount": 10000,
+        "image_url": "..."
+      }
+    }
+  ],
+  "meta": { "page": 1, "limit": 20, "total": 5 }
+}
+```
+
+---
+
+### POST /api/v2/applications
+Create new application (auth required). Mặc định status = 'draft'.
+
+**Body:**
+```json
+{
+  "scholarship_id": "uuid",
+  "checklist": [{ "item": "CV", "done": false }],
+  "notes": "Ghi chú..."
+}
+```
+
+**Response 201:**
+```json
+{
+  "success": true,
+  "data": { "id": "uuid", "status": "draft", "scholarship": {...} },
+  "message": "Đơn ứng tuyển đã được tạo thành công."
+}
+```
+
+**Errors:**
+| Code | HTTP | Mô tả |
+|------|------|--------|
+| SCHOLARSHIP_NOT_FOUND | 404 | Học bổng không tồn tại |
+| APPLICATION_ALREADY_EXISTS | 409 | Đã ứng tuyển học bổng này rồi |
+
+---
+
+### GET /api/v2/applications/:id
+Get application detail (auth required, user must own the application).
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "status": "draft",
+    "notes": "...",
+    "checklist": [...],
+    "scholarship": { "id": "uuid", "title": "...", "country": "...", "deadline": "...", "amount": 10000, "image_url": "..." }
+  }
+}
+```
+
+---
+
+### PATCH /api/v2/applications/:id
+Update application (auth required).
+
+**Body:** (partial)
+```json
+{
+  "status": "submitted",
+  "checklist": [{ "item": "CV", "done": true }],
+  "notes": "..."
+}
+```
+
+**Errors:**
+| Code | HTTP | Mô tả |
+|------|------|--------|
+| NOT_FOUND | 404 | Đơn không tồn tại hoặc không thuộc user |
+| INVALID_STATUS | 400 | Status truyền không nằm trong enum cho phép |
+| INVALID_STATUS_TRANSITION | 400 | Chuyển trạng thái không hợp lệ (VD: accepted → draft) |
+
+**Status Flow hợp lệ:**
+```
+draft → submitted | withdrawn
+submitted → under_review | rejected | withdrawn
+under_review → interview | rejected | withdrawn
+interview → accepted | rejected | withdrawn
+accepted → (terminal)
+rejected → (terminal)
+withdrawn → (terminal)
+```
+
+---
+
+### DELETE /api/v2/applications/:id
+Delete application (auth required, must include user_id in WHERE clause).
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "data": null,
+  "message": "Đơn ứng tuyển đã được xóa thành công."
+}
+```
+
+**Errors:**
+| Code | HTTP | Mô tả |
+|------|------|--------|
+| NOT_FOUND | 404 | Đơn không tồn tại hoặc không thuộc user |
+| CANNOT_DELETE_SUBMITTED | 400 | Không thể xóa đơn đã nộp hoặc đang review |
+
+---
+
 ## Saved Scholarships
 
 ### GET /api/saved
@@ -404,6 +551,10 @@ Get scholarship recommendations based on user profile (auth required).
 | POST | /api/applications | Chưa implement | — |
 | PATCH | /api/applications/:id | Chưa implement | — |
 | DELETE | /api/applications/:id | Chưa implement | — |
+| GET | /api/v2/applications | ✅ Implemented (17/4/2026) | VÙNG 2: Controller → Service → Repository → DB. Pagination, filter by status. |
+| POST | /api/v2/applications | ✅ Implemented (17/4/2026) | VÙNG 2: Tạo đơn mới (status='draft'). Bắt lỗi UNIQUE constraint ở Repository. |
+| PATCH | /api/v2/applications/:id | ✅ Implemented (17/4/2026) | VÙNG 2: Validate status enum + status transition. Auto-set applied_at khi draft→submitted. |
+| DELETE | /api/v2/applications/:id | ✅ Implemented (17/4/2026) | VÙNG 2: Chặn xóa đơn đã submitted/under_review. |
 | GET | /api/saved | Chưa implement | — |
 | POST | /api/saved/:scholarshipId | Chưa implement | — |
 | DELETE | /api/saved/:scholarshipId | Chưa implement | — |

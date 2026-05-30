@@ -12,7 +12,7 @@ const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, classNa
       )}
       <div className="relative">
         {Icon && (
-          <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Icon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-500" />
         )}
         <input
           id={inputId}
@@ -20,8 +20,8 @@ const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, classNa
           {...props}
         />
       </div>
-      {error && <p className="text-caption text-danger-600 mt-1">{error}</p>}
-      {!error && helperText && <p className="text-caption text-gray-500 mt-1">{helperText}</p>}
+      {error && <p className="text-caption text-danger-400 mt-1">{error}</p>}
+      {!error && helperText && <p className="text-caption text-ink-500 mt-1">{helperText}</p>}
     </div>
   );
 };

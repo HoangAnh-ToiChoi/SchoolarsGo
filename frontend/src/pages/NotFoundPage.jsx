@@ -1,14 +1,17 @@
 import { Link } from 'react-router-dom';
 import { FileQuestion } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const NotFoundPage = () => {
   return (
-    <div className="container-narrow py-16 text-center">
-      <FileQuestion className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-      <h1 className="text-display text-gray-900 mb-4">404</h1>
-      <p className="text-body-lg text-gray-600 mb-8">Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.</p>
+    <motion.div className="min-h-screen bg-ink-950 flex flex-col items-center justify-center px-4 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <FileQuestion className="w-16 h-16 text-ink-700 mx-auto mb-6" />
+      <h1 className="text-6xl font-extrabold text-ink-100 mb-3">404</h1>
+      <p className="text-lg text-ink-400 mb-8 max-w-md">
+        Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
+      </p>
       <Link to="/" className="btn-primary btn-lg">Về Trang Chủ</Link>
-    </div>
+    </motion.div>
   );
 };
 

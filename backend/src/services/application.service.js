@@ -1,52 +1,43 @@
-const { query, queryOne } = require('../utils/db');
+const AppError = require('../utils/AppError');
 
-const APPLICATION_STATUSES = ['draft', 'submitted', 'under_review', 'interview', 'accepted', 'rejected', 'withdrawn'];
-const VALID_STATUS_TRANSITIONS = {
-  draft: ['submitted', 'withdrawn'],
-  submitted: ['under_review', 'rejected', 'withdrawn'],
-  under_review: ['interview', 'rejected', 'withdrawn'],
-  interview: ['accepted', 'rejected', 'withdrawn'],
-  accepted: [],
-  rejected: [],
-  withdrawn: [],
-};
+class ApplicationService {
+  #repo;
 
-const getAll = async (userId, filters) => {
-  const page = Math.max(1, Number(filters.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(filters.limit) || 20));
-  const offset = (page - 1) * limit;
+  static #VALID_TRANSITIONS = {
+    draft: ['submitted', 'withdrawn'],
+    submitted: ['under_review', 'rejected', 'withdrawn'],
+    under_review: ['interview', 'rejected', 'withdrawn'],
+    interview: ['accepted', 'rejected', 'withdrawn'],
+    accepted: [],
+    rejected: [],
+    withdrawn: [],
+  };
 
-  const conditions = ['a.user_id = $1'];
-  const params = [userId];
-  let idx = 2;
+  static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
 
-  if (filters.status) {
-    conditions.push(`a.status = $${idx++}`);
-    params.push(filters.status);
+  constructor(applicationRepository) {
+    this.#repo = applicationRepository;
   }
 
-  const where = `WHERE ${conditions.join(' AND ')}`;
+  #guardFound(entity, message = 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.') {
+    if (!entity) throw new AppError(message, 404, 'APPLICATION_NOT_FOUND');
+  }
 
-  const countResult = await queryOne(
-    `SELECT COUNT(*) as total FROM applications a ${where}`,
-    params
-  );
-  const total = parseInt(countResult.total, 10);
+  #assertValidTransition(from, to) {
+    const allowed = ApplicationService.#VALID_TRANSITIONS[from] || [];
+    if (!allowed.includes(to)) {
+      throw new AppError('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 400, 'INVALID_STATUS_TRANSITION');
+    }
+  }
 
-  const data = await query(
-    `SELECT a.id, a.status, a.applied_at, a.notes, a.checklist, a.documents_used, a.result,
-            a.created_at, a.updated_at,
-            s.id as scholarship_id, s.title as scholarship_title, s.country, s.deadline, s.amount, s.image_url
-     FROM applications a
-     JOIN scholarships s ON a.scholarship_id = s.id
-     ${where}
-     ORDER BY a.created_at DESC
-     LIMIT $${idx++} OFFSET $${idx}`,
-    [...params, limit, offset]
-  );
+  #assertDeletable(status) {
+    if (ApplicationService.#UNDELETABLE.includes(status)) {
+      throw new AppError('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 400, 'CANNOT_DELETE');
+    }
+  }
 
-  return {
-    data: data.rows.map((row) => ({
+  #formatApplication(row) {
+    return {
       id: row.id,
       status: row.status,
       applied_at: row.applied_at,
@@ -64,161 +55,75 @@ const getAll = async (userId, filters) => {
         amount: row.amount,
         image_url: row.image_url,
       },
-    })),
-    meta: { page, limit, total },
-  };
-};
-
-const create = async (userId, payload) => {
-  const { scholarship_id, checklist, notes } = payload;
-
-  const scholarship = await queryOne(
-    'SELECT id, title FROM scholarships WHERE id = $1',
-    [scholarship_id]
-  );
-
-  if (!scholarship) {
-    const err = new Error('Không tìm thấy học bổng');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
+    };
   }
 
-  const existing = await queryOne(
-    'SELECT id FROM applications WHERE user_id = $1 AND scholarship_id = $2',
-    [userId, scholarship_id]
-  );
+  async getAll(userId, filters = {}) {
+    const page = Math.max(1, parseInt(filters.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 20));
+    const status = filters.status || null;
 
-  if (existing) {
-    const err = new Error(`Bạn đã ứng tuyển học bổng "${scholarship.title}" rồi`);
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
+    const { rows, total } = await this.#repo.findAllByUser(userId, { page, limit, status });
+
+    return {
+      data: rows.map(row => this.#formatApplication(row)),
+      meta: { page, limit, total },
+    };
   }
 
-  const defaultChecklist = [
-    { item: 'CV', done: false },
-    { item: 'SOP', done: false },
-    { item: 'Bảng điểm', done: false },
-    { item: 'Thư giới thiệu', done: false },
-    { item: 'IELTS Certificate', done: false },
-    { item: 'Hộ chiếu', done: false },
-  ];
+  async create(userId, { scholarshipId, checklist, notes }) {
+    const exists = await this.#repo.scholarshipExists(scholarshipId);
+    if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
 
-  const newApp = await queryOne(
-    `INSERT INTO applications (user_id, scholarship_id, checklist, notes, status)
-     VALUES ($1, $2, $3, $4, 'draft')
-     RETURNING *`,
-    [userId, scholarship_id, JSON.stringify(checklist || defaultChecklist), notes || null]
-  );
-
-  const scholarshipDetails = await queryOne(
-    'SELECT id, title, country, deadline, amount, image_url FROM scholarships WHERE id = $1',
-    [scholarship_id]
-  );
-
-  return { ...newApp, scholarship: scholarshipDetails };
-};
-
-const getById = async (userId, applicationId) => {
-  const app = await queryOne(
-    `SELECT a.*,
-            s.id as scholarship_id, s.title as scholarship_title,
-            s.country, s.deadline, s.amount, s.image_url
-     FROM applications a
-     JOIN scholarships s ON a.scholarship_id = s.id
-     WHERE a.id = $1 AND a.user_id = $2`,
-    [applicationId, userId]
-  );
-
-  if (!app) {
-    const err = new Error('Không tìm thấy application');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  return app;
-};
-
-const update = async (userId, applicationId, updates) => {
-  const existing = await queryOne(
-    'SELECT status FROM applications WHERE id = $1 AND user_id = $2',
-    [applicationId, userId]
-  );
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  if (updates.status) {
-    const allowed = VALID_STATUS_TRANSITIONS[existing.status] || [];
-    if (!allowed.includes(updates.status)) {
-      const err = new Error(`Không thể chuyển từ "${existing.status}" sang "${updates.status}"`);
-      err.statusCode = 400;
-      err.isOperational = true;
+    try {
+      const app = await this.#repo.create(userId, { scholarshipId, checklist, notes });
+      return this.#formatApplication(app);
+    } catch (err) {
+      if (err.message === 'APPLICATION_ALREADY_EXISTS') {
+        throw new AppError('Bạn đã ứng tuyển học bổng này rồi.', 409, 'APPLICATION_ALREADY_EXISTS');
+      }
       throw err;
     }
-    if (updates.status === 'submitted' && existing.status === 'draft') {
-      updates.applied_at = new Date().toISOString();
+  }
+
+  async getById(userId, applicationId) {
+    const app = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(app);
+    return this.#formatApplication(app);
+  }
+
+  async update(userId, applicationId, rawUpdates) {
+    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(existing);
+
+    const updates = { ...rawUpdates };
+
+    if (updates.status !== undefined) {
+      if (!(updates.status in ApplicationService.#VALID_TRANSITIONS)) {
+        throw new AppError(
+          'Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.',
+          400,
+          'INVALID_STATUS'
+        );
+      }
+      this.#assertValidTransition(existing.status, updates.status);
+
+      if (existing.status === 'draft' && updates.status === 'submitted') {
+        updates.applied_at = new Date().toISOString();
+      }
     }
+
+    const updated = await this.#repo.updateByIdAndUser(applicationId, userId, updates);
+    return this.#formatApplication(updated);
   }
 
-  const fields = [];
-  const values = [];
-  let idx = 1;
-
-  for (const key of ['status', 'notes', 'checklist', 'documents_used', 'result', 'applied_at']) {
-    if (updates[key] !== undefined) {
-      fields.push(`${key} = $${idx++}`);
-      values.push(typeof updates[key] === 'object' ? JSON.stringify(updates[key]) : updates[key]);
-    }
+  async delete(userId, applicationId) {
+    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    this.#guardFound(existing);
+    this.#assertDeletable(existing.status);
+    await this.#repo.deleteByIdAndUser(applicationId, userId);
+    return { deleted: true };
   }
+}
 
-  if (fields.length === 0) return existing;
-
-  fields.push('updated_at = now()');
-  values.push(applicationId, userId);
-
-  const updated = await queryOne(
-    `UPDATE applications SET ${fields.join(', ')} WHERE id = $${idx++} AND user_id = $${idx} RETURNING *`,
-    values
-  );
-
-  if (!updated) {
-    const err = new Error('Không thể cập nhật application');
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
-  }
-
-  return updated;
-};
-
-const remove = async (userId, applicationId) => {
-  const existing = await queryOne(
-    'SELECT id, status FROM applications WHERE id = $1 AND user_id = $2',
-    [applicationId, userId]
-  );
-
-  if (!existing) {
-    const err = new Error('Không tìm thấy application hoặc bạn không có quyền');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  if (existing.status === 'submitted' || existing.status === 'under_review') {
-    const err = new Error('Không thể xóa application đã nộp. Hãy rút đơn thay vì xóa.');
-    err.statusCode = 400;
-    err.isOperational = true;
-    throw err;
-  }
-
-  await query('DELETE FROM applications WHERE id = $1 AND user_id = $2', [applicationId, userId]);
-};
-
-module.exports = { getAll, create, getById, update, remove };
+module.exports = ApplicationService;

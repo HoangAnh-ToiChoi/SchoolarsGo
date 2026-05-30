@@ -1,136 +1,63 @@
-const { query, queryOne } = require('../utils/db');
+const AppError = require('../utils/AppError');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
+const COUNTRIES_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-const getAll = async (filters) => {
-  const page = Math.max(1, Number(filters.page) || 1);
-  const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
-  const offset = (page - 1) * limit;
+class ScholarshipService {
+  #repo;
+  #countriesCache = null;
+  #countriesCachedAt = 0;
 
-  const conditions = ['is_active = true', 'deadline > NOW()'];
-  const params = [];
-  let idx = 1;
-
-  if (filters.country) {
-    conditions.push(`country ILIKE $${idx++}`);
-    params.push(`%${filters.country}%`);
-  }
-  if (filters.degree) {
-    conditions.push(`degree = $${idx++}`);
-    params.push(filters.degree);
-  }
-  if (filters.field) {
-    conditions.push(`field_of_study ILIKE $${idx++}`);
-    params.push(`%${filters.field}%`);
-  }
-  if (filters.language) {
-    conditions.push(`language = $${idx++}`);
-    params.push(filters.language);
-  }
-  if (filters.min_gpa) {
-    conditions.push(`min_gpa <= $${idx++}`);
-    params.push(Number(filters.min_gpa));
-  }
-  if (filters.min_ielts) {
-    conditions.push(`min_ielts <= $${idx++}`);
-    params.push(Number(filters.min_ielts));
-  }
-  if (filters.deadline_from) {
-    conditions.push(`deadline >= $${idx++}`);
-    params.push(filters.deadline_from);
-  }
-  if (filters.deadline_to) {
-    conditions.push(`deadline <= $${idx++}`);
-    params.push(filters.deadline_to);
-  }
-  if (filters.amount_min) {
-    conditions.push(`amount >= $${idx++}`);
-    params.push(Number(filters.amount_min));
-  }
-  if (filters.coverage) {
-    conditions.push(`coverage = $${idx++}`);
-    params.push(filters.coverage);
-  }
-  if (filters.featured === 'true' || filters.featured === true) {
-    conditions.push(`is_featured = true`);
-  }
-  if (filters.search) {
-    conditions.push(`(title ILIKE $${idx} OR provider ILIKE $${idx})`);
-    params.push(`%${filters.search}%`);
-    idx++;
+  constructor(scholarshipRepository) {
+    this.#repo = scholarshipRepository;
   }
 
-  const where = `WHERE ${conditions.join(' AND ')}`;
+  #guardFound(entity, message = 'Không tìm thấy học bổng') {
+    if (!entity) throw new AppError(message, 404, 'SCHOLARSHIP_NOT_FOUND');
+  }
 
-  // Count total
-  const countResult = await queryOne(
-    `SELECT COUNT(*) as total FROM scholarships ${where}`,
-    params
-  );
-  const total = parseInt(countResult.total, 10);
-  const totalPages = Math.ceil(total / limit);
+  #guardValidId(id) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || id === 'undefined' || id === 'null' || !uuidRegex.test(id))
+      throw new AppError('ID học bổng không hợp lệ', 400, 'INVALID_ID');
+  }
 
-  // Fetch data
-  const selectCols = [
-    'id', 'title', 'provider', 'country', 'degree', 'amount', 'currency',
-    'coverage', 'deadline', 'language', 'min_gpa', 'image_url', 'is_featured',
-  ].join(', ');
+  getAll = async (filters = {}, userId = null) => {
+    const page = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
+    const offset = (page - 1) * limit;
 
-  const data = await query(
-    `SELECT ${selectCols} FROM scholarships ${where} ORDER BY deadline ASC LIMIT $${idx++} OFFSET $${idx}`,
-    [...params, limit, offset]
-  );
+    const { data, total } = await this.#repo.findAll(filters, limit, offset, userId);
+    const totalPages = Math.ceil(total / limit);
 
-  return {
-    data: data.rows,
-    meta: { page, limit, total, totalPages },
+    return {
+      data,
+      meta: { page, limit, total, totalPages },
+    };
   };
-};
 
-const getFeatured = async () => {
-  const data = await query(
-    `SELECT id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured
-     FROM scholarships
-     WHERE is_active = true AND deadline >= now() AND is_featured = true
-     ORDER BY deadline ASC
-     LIMIT 6`
-  );
-  return data.rows;
-};
+  getFeatured = async () => {
+    return this.#repo.findFeatured();
+  };
 
-const getCountries = async () => {
-  const data = await query(
-    `SELECT DISTINCT country FROM scholarships
-     WHERE is_active = true AND country IS NOT NULL
-     ORDER BY country ASC`
-  );
-  return data.rows.map((r) => r.country);
-};
+  getCountries = async () => {
+    const now = Date.now();
+    if (this.#countriesCache && now - this.#countriesCachedAt < COUNTRIES_TTL_MS) {
+      return this.#countriesCache;
+    }
+    const result = await this.#repo.findCountries();
+    this.#countriesCache = result;
+    this.#countriesCachedAt = now;
+    return result;
+  };
 
-const getById = async (id, userId) => {
-  const scholarship = await queryOne(
-    'SELECT * FROM scholarships WHERE id = $1 AND is_active = true AND deadline > NOW()',
-    [id]
-  );
+  getById = async (id, userId = null) => {
+    this.#guardValidId(id);
+    const scholarship = await this.#repo.findById(id, userId);
+    this.#guardFound(scholarship);
+    return scholarship;
+  };
+}
 
-  if (!scholarship) {
-    const err = new Error('Không tìm thấy học bổng');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
-
-  let isSaved = false;
-  if (userId) {
-    const saved = await queryOne(
-      'SELECT id FROM saved_scholarships WHERE user_id = $1 AND scholarship_id = $2',
-      [userId, id]
-    );
-    isSaved = !!saved;
-  }
-
-  return { ...scholarship, is_saved: isSaved };
-};
-
-module.exports = { getAll, getFeatured, getCountries, getById };
+module.exports = ScholarshipService;

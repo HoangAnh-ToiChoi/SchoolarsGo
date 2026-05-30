@@ -1,113 +1,153 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { query, queryOne } = require('../utils/db');
+const crypto = require('crypto');
+const AppError = require('../utils/AppError');
+const { sendResetEmail } = require('../utils/mailer');
 
-const SALT_ROUNDS = 12;
+class AuthService {
+  #repo;
+  #eventBus;
+  #hash;
+  #token;
 
-const generateToken = (user) => {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET || 'scholarsgo-dev-secret-fallback-32chars',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-  );
-};
-
-const register = async (email, password, fullName) => {
-  const existing = await queryOne(
-    'SELECT id FROM users WHERE email = $1',
-    [email]
-  );
-
-  if (existing) {
-    const err = new Error('Email đã được sử dụng');
-    err.statusCode = 409;
-    err.isOperational = true;
-    throw err;
+  /**
+   * @param {object} authRepository
+   * @param {object} eventBus
+   * @param {object} hashService  - { hash(plain), compare(plain, hash) }
+   * @param {object} tokenService - { sign(payload) }
+   */
+  constructor(authRepository, eventBus, hashService, tokenService) {
+    this.#repo = authRepository;
+    this.#eventBus = eventBus;
+    this.#hash = hashService;
+    this.#token = tokenService;
   }
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
-  const user = await queryOne(
-    `INSERT INTO users (email, password_hash, full_name)
-     VALUES ($1, $2, $3)
-     RETURNING id, email, full_name, avatar_url, phone, date_of_birth, created_at`,
-    [email, passwordHash, fullName]
-  );
-
-  if (!user) {
-    const err = new Error('Không thể tạo user');
-    err.statusCode = 500;
-    err.isOperational = true;
-    throw err;
+  #guardFound(entity, message = 'Không tìm thấy') {
+    if (!entity) throw new AppError(message, 404);
   }
 
-  const token = generateToken(user);
+  #buildUserPublic(user) {
+    return {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      role: user.role,
+      avatar_url: user.avatar_url,
+      phone: user.phone,
+      date_of_birth: user.date_of_birth,
+    };
+  }
 
-  return {
-    user: { id: user.id, email: user.email, full_name: user.full_name },
-    token,
+  register = async (email, password, fullName) => {
+    const existing = await this.#repo.findByEmail(email);
+    if (existing) {
+      throw new AppError('Email đã được sử dụng', 409, 'USER_EXISTS');
+    }
+
+    const passwordHash = await this.#hash.hash(password);
+
+    const user = await this.#repo.createUser({ email, passwordHash, fullName });
+    if (!user) {
+      throw new AppError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
+    }
+
+    const token = this.#token.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    this.#eventBus.emit('user.registered', {
+      userId: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      role: user.role,
+    });
+
+    return {
+      user: this.#buildUserPublic(user),
+      token,
+    };
   };
-};
 
-const login = async (email, password) => {
-  const user = await queryOne(
-    'SELECT id, email, password_hash, full_name, avatar_url, phone, date_of_birth FROM users WHERE email = $1',
-    [email]
-  );
+  login = async (email, password) => {
+    const user = await this.#repo.findByEmailWithCredentials(email);
+    if (!user) {
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+    }
 
-  if (!user) {
-    const err = new Error('Email hoặc mật khẩu không đúng');
-    err.statusCode = 401;
-    err.isOperational = true;
-    throw err;
-  }
+    const valid = await this.#hash.compare(password, user.password_hash);
+    if (!valid) {
+      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
+    }
 
-  const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) {
-    const err = new Error('Email hoặc mật khẩu không đúng');
-    err.statusCode = 401;
-    err.isOperational = true;
-    throw err;
-  }
+    const updatedUser = await this.#repo.updateLastLogin(user.id);
+    if (!updatedUser) {
+      throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
+    }
 
-  const token = generateToken(user);
+    const token = this.#token.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-  return {
-    user: { id: user.id, email: user.email, full_name: user.full_name },
-    token,
+    this.#eventBus.emit('user.login', {
+      userId: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    });
+
+    return {
+      user: this.#buildUserPublic(updatedUser),
+      token,
+    };
   };
-};
 
-const getMe = async (userId) => {
-  const user = await queryOne(
-    'SELECT id, email, full_name, avatar_url, phone, date_of_birth, created_at FROM users WHERE id = $1',
-    [userId]
-  );
+  getMe = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
+    return user;
+  };
 
-  if (!user) {
-    const err = new Error('Không tìm thấy user');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
+  refreshToken = async userId => {
+    const user = await this.#repo.findById(userId);
+    this.#guardFound(user, 'Không tìm thấy user');
 
-  return user;
-};
+    return this.#token.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+  };
 
-const refreshToken = async (userId) => {
-  const user = await queryOne(
-    'SELECT id, email FROM users WHERE id = $1',
-    [userId]
-  );
+  forgotPassword = async (email) => {
+    const user = await this.#repo.findByEmail(email);
+    // Always succeed to prevent email enumeration
+    if (!user) return;
 
-  if (!user) {
-    const err = new Error('Không tìm thấy user');
-    err.statusCode = 404;
-    err.isOperational = true;
-    throw err;
-  }
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
-  return generateToken(user);
-};
+    await this.#repo.saveResetToken(user.id, tokenHash, expiresAt);
 
-module.exports = { register, login, getMe, refreshToken };
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+    await sendResetEmail(email, resetLink);
+  };
+
+  resetPassword = async (rawToken, newPassword) => {
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const user = await this.#repo.findByResetToken(tokenHash);
+
+    if (!user) throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400, 'INVALID_RESET_TOKEN');
+    if (new Date(user.reset_token_expires) < new Date()) {
+      throw new AppError('Link đã hết hạn. Vui lòng yêu cầu lại.', 400, 'EXPIRED_RESET_TOKEN');
+    }
+
+    const passwordHash = await this.#hash.hash(newPassword);
+    await this.#repo.clearResetToken(user.id, passwordHash);
+  };
+}
+
+module.exports = AuthService;

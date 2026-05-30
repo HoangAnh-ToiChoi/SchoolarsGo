@@ -3,32 +3,26 @@ import { persist } from 'zustand/middleware';
 
 export const useAuthStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
 
-      login: (user, token) => {
-        set({ user, token, isAuthenticated: true });
+      login: (user) => {
+        set({ user, isAuthenticated: true });
       },
 
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false });
       },
 
       setUser: (user) => {
         set({ user });
-      },
-
-      clearToken: () => {
-        set({ token: null, isAuthenticated: false });
       },
     }),
     {
       name: 'scholarsgo-auth',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }

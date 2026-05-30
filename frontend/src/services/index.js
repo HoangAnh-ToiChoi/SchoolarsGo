@@ -6,6 +6,8 @@ export const authService = {
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
 };
 
 // Scholarships
@@ -50,4 +52,10 @@ export const savedService = {
 // AI Recommender
 export const recommendService = {
   recommend: (topN) => api.post('/recommend', { top_n: topN }),
+};
+
+// Chat
+export const chatService = {
+  send: (messages) => api.post('/chat', { messages }),
+  getHistory: () => api.get('/chat/history'),
 };

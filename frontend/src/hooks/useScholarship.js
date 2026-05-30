@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { scholarshipService, savedService } from '../services';
+import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
 export const useScholarships = (filters) => {
   return useQuery({
     queryKey: ['scholarships', filters],
     queryFn: () => scholarshipService.getAll(filters).then((res) => res.data),
+    placeholderData: (previousData) => previousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
@@ -14,7 +16,7 @@ export const useScholarship = (id) => {
   return useQuery({
     queryKey: ['scholarship', id],
     queryFn: () => scholarshipService.getById(id).then((res) => res.data),
-    enabled: !!id,
+    enabled: !!id && id !== 'undefined',
   });
 };
 
@@ -47,6 +49,7 @@ export const useToggleSaveScholarship = () => {
     },
     onSuccess: (_, { isSaved }) => {
       queryClient.invalidateQueries({ queryKey: ['scholarships'] });
+      queryClient.invalidateQueries({ queryKey: ['scholarship'] });
       queryClient.invalidateQueries({ queryKey: ['saved'] });
       toast.success(isSaved ? 'Đã bỏ lưu học bổng' : 'Đã lưu học bổng');
     },
@@ -57,8 +60,10 @@ export const useToggleSaveScholarship = () => {
 };
 
 export const useSavedScholarships = () => {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['saved'],
     queryFn: () => savedService.getAll().then((res) => res.data),
+    enabled: isAuthenticated,
   });
 };

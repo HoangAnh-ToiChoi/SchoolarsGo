@@ -1,31 +1,46 @@
-const savedService = require('../services/saved.service');
 const { success, created } = require('../utils/responseHelper');
 
-const getAll = async (req, res, next) => {
-  try {
-    const data = await savedService.getAll(req.user.id);
-    return success(res, data);
-  } catch (error) {
-    next(error);
-  }
-};
+class SavedController {
+  #service;
 
-const save = async (req, res, next) => {
-  try {
-    const data = await savedService.save(req.user.id, req.params.scholarshipId, req.body.note);
-    return created(res, data, 'Scholarship saved');
-  } catch (error) {
-    next(error);
+  constructor(savedService) {
+    this.#service = savedService;
+    this.#validateService();
   }
-};
 
-const remove = async (req, res, next) => {
-  try {
-    await savedService.remove(req.user.id, req.params.scholarshipId);
-    return success(res, null, 'Scholarship removed from saved');
-  } catch (error) {
-    next(error);
+  #validateService() {
+    if (!this.#service) throw new Error('SavedService is required');
   }
-};
 
-module.exports = { getAll, save, remove };
+  getAll = async (req, res, next) => {
+    try {
+      const data = await this.#service.getAll(req.user.id);
+      return success(res, data);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  save = async (req, res, next) => {
+    try {
+      const { scholarshipId } = req.params;
+      const { note } = req.body;
+      const data = await this.#service.save(req.user.id, scholarshipId, note);
+      return created(res, data, 'Scholarship saved successfully.');
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  remove = async (req, res, next) => {
+    try {
+      const { scholarshipId } = req.params;
+      await this.#service.remove(req.user.id, scholarshipId);
+      return success(res, null, 'Scholarship removed from saved list.');
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+module.exports = SavedController;

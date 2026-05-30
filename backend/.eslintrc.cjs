@@ -1,0 +1,11 @@
+module.exports = {
+  env: { node: true, es2022: true },
+  extends: ['eslint:recommended'],
+  parserOptions: { ecmaVersion: 'latest', sourceType: 'commonjs' },
+  ignorePatterns: ['node_modules/', 'scripts/'],
+  rules: {
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    'no-console': 'off',
+    'no-process-exit': 'off',
+  },
+};

@@ -1,12 +1,14 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, Menu, X, User, LogOut, BookOpen } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { GraduationCap, Menu, X, User, LogOut, BookOpen, Calendar, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import ThemeToggle from './ui/ThemeToggle';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -16,67 +18,79 @@ const Header = () => {
 
   const navLinks = [
     { label: 'Trang chủ', to: '/' },
-    { label: 'Tìm học bổng', to: '/scholarships' },
+    { label: 'Học bổng', to: '/scholarships' },
     { label: 'Đã lưu', to: '/saved' },
   ];
 
+  const isActive = (to) =>
+    to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+
+  const navLinkClass = (to) =>
+    `px-3 py-2 rounded text-sm font-medium transition-colors ${
+      isActive(to)
+        ? 'text-primary-400 bg-primary-400/10'
+        : 'text-ink-400 hover:text-ink-100 hover:bg-ink-800'
+    }`;
+
   return (
-    <header className="bg-surface shadow-sm sticky top-0 z-50">
+    <header className="sticky top-0 z-50 bg-ink-950/90 backdrop-blur-md border-b border-ink-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center group-hover:bg-primary-700 transition-colors">
-              <GraduationCap className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-400 transition-shadow group-hover:shadow-glow">
+              <GraduationCap className="w-5 h-5 text-ink-950" />
             </div>
-            <span className="text-xl font-bold text-gray-900">ScholarsGo</span>
+            <span className="text-lg font-bold text-ink-100">ScholarsGo</span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="text-gray-600 hover:text-primary-600 font-medium transition-colors"
-              >
+              <Link key={link.to} to={link.to} className={navLinkClass(link.to)}>
                 {link.label}
               </Link>
             ))}
           </nav>
 
           {/* Desktop Auth */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-1">
+            <ThemeToggle className="text-ink-400 hover:text-ink-100 hover:bg-ink-800" />
             {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <Link to="/profile" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
-                  <User className="w-4 h-4" />
-                  <span className="font-medium">{user?.full_name || user?.email}</span>
-                </Link>
-                <Link to="/applications" className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
+              <>
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className={`flex items-center gap-1.5 ${navLinkClass('/admin')}`}>
+                    <Shield className="w-4 h-4" />
+                    Quản lý
+                  </Link>
+                )}
+                <Link to="/applications" className={`flex items-center gap-1.5 ${navLinkClass('/applications')}`}>
                   <BookOpen className="w-4 h-4" />
-                  <span className="font-medium">Đơn ứng tuyển</span>
+                  Đơn ứng tuyển
+                </Link>
+                <Link to="/deadlines" className={`flex items-center gap-1.5 ${navLinkClass('/deadlines')}`}>
+                  <Calendar className="w-4 h-4" />
+                  Deadline
+                </Link>
+                <Link to="/dashboard" className={`flex items-center gap-1.5 ${navLinkClass('/dashboard')}`}>
+                  <User className="w-4 h-4" />
+                  {user?.full_name?.split(' ').pop() || user?.email}
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium text-ink-500 hover:text-danger-400 hover:bg-danger-400/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="font-medium">Đăng xuất</span>
+                  Đăng xuất
                 </button>
-              </div>
+              </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="text-gray-600 hover:text-primary-600 font-medium transition-colors"
-                >
+                <Link to="/login" className="px-4 py-2 rounded text-sm font-medium text-ink-400 hover:text-ink-100 hover:bg-ink-800 transition-colors">
                   Đăng nhập
                 </Link>
-                <Link
-                  to="/register"
-                  className="btn-primary btn-sm"
-                >
+                <Link to="/register" className="btn-primary btn-sm">
                   Đăng ký
                 </Link>
               </>
@@ -85,50 +99,51 @@ const Header = () => {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden btn-ghost p-2"
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded border border-ink-800 text-ink-400 hover:bg-ink-800 transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-surface border-t border-gray-100 animate-slide-down">
-          <div className="px-4 py-4 space-y-3">
+        <div className="md:hidden border-t border-ink-800 bg-ink-950 animate-slide-down">
+          <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="block text-gray-600 hover:text-primary-600 font-medium py-2"
+                className={`block ${navLinkClass(link.to)}`}
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-gray-100 space-y-3">
+            <div className="pt-3 mt-2 border-t border-ink-800 space-y-1">
+              <div className="px-3 py-2.5">
+                <ThemeToggle className="text-ink-400 hover:text-ink-100 hover:bg-ink-800" />
+              </div>
               {isAuthenticated ? (
                 <>
-                  <Link to="/profile" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
-                    Profile
+                  {user?.role === 'admin' && (
+                    <Link to="/admin" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>
+                      Quản lý
+                    </Link>
+                  )}
+                  <Link to="/applications" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Đơn ứng tuyển</Link>
+                  <Link to="/deadlines" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>Deadline</Link>
+                  <Link to="/dashboard" className="block px-3 py-2.5 rounded text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100" onClick={() => setMobileOpen(false)}>
+                    {user?.full_name?.split(' ').pop() || user?.email}
                   </Link>
-                  <Link to="/applications" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
-                    Đơn ứng tuyển
-                  </Link>
-                  <button onClick={handleLogout} className="block text-danger-600 font-medium py-2 w-full text-left">
-                    Đăng xuất
-                  </button>
+                  <button onClick={handleLogout} className="w-full text-left px-3 py-2.5 rounded text-sm font-medium text-danger-400 hover:bg-danger-400/10 transition-colors">Đăng xuất</button>
                 </>
               ) : (
-                <>
-                  <Link to="/login" className="block text-gray-600 hover:text-primary-600 font-medium py-2" onClick={() => setMobileOpen(false)}>
-                    Đăng nhập
-                  </Link>
-                  <Link to="/register" className="block btn-primary text-center" onClick={() => setMobileOpen(false)}>
-                    Đăng ký
-                  </Link>
-                </>
+                <div className="flex flex-col gap-2 pt-1">
+                  <Link to="/login" className="text-center px-4 py-2.5 rounded border border-ink-700 text-sm font-medium text-ink-300 hover:bg-ink-800" onClick={() => setMobileOpen(false)}>Đăng nhập</Link>
+                  <Link to="/register" className="text-center btn-primary" onClick={() => setMobileOpen(false)}>Đăng ký</Link>
+                </div>
               )}
             </div>
           </div>
