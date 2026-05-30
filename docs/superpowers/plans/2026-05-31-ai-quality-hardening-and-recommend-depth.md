@@ -1,119 +1,119 @@
-# AI Quality Hardening And Recommend Depth
+# Tăng Độ Ổn Định AI Và Nâng Chiều Sâu Recommend
 
-Date: 2026-05-31
-Branch: `feat/ai-recommend-ui-improvements`
-Authoring context: session follow-up after AI recommend, chatbot rules, and homepage news rollout
+Ngày: 2026-05-31
+Nhánh: `feat/ai-recommend-ui-improvements`
+Bối cảnh: phiên làm việc tiếp nối sau khi triển khai AI recommend, chatbot rules và homepage news
 
-## Session goal
+## Mục tiêu phiên làm việc
 
-This session focused on the next two approved steps:
+Phiên này tập trung vào 2 bước tiếp theo đã được duyệt:
 
-1. Harden test coverage for `news`, `chat`, and `recommend` so recent AI and content work is less likely to regress.
-2. Improve recommendation quality using richer profile-derived signals without forcing a risky schema migration in the same pass.
+1. Tăng độ chắc chắn của test cho `news`, `chat` và `recommend` để các thay đổi AI và content gần đây ít bị regression hơn.
+2. Nâng chất lượng recommendation bằng tín hiệu hồ sơ phong phú hơn, nhưng không ép thêm một migration schema rủi ro trong cùng phiên.
 
-## Approved spec
+## Spec đã được duyệt
 
-### Step 1: Test hardening
+### Bước 1: Củng cố test
 
-Goal:
-- Add backend-level contract coverage for `news`, `chat`, and `recommend`
-- Add frontend smoke coverage for important fallback states the user can actually see
+Mục tiêu:
+- Bổ sung contract test ở tầng backend cho `news`, `chat` và `recommend`
+- Bổ sung smoke/E2E cho các trạng thái fallback quan trọng mà user nhìn thấy trực tiếp
 
-Success criteria:
-- Auth, validation, success contract, and operational-error behavior are tested
-- News and chat fallback states are covered in E2E
-- Tests can run locally with the current repo setup
+Tiêu chí hoàn thành:
+- Auth, validation, success contract và operational-error behavior đều có test
+- Các trạng thái fallback của news và chat được cover ở E2E
+- Test chạy được với setup hiện tại của repo
 
-Out of scope:
-- Full load testing
-- Full CI redesign
-- Rewriting all existing Playwright tests
+Ngoài phạm vi:
+- Load test toàn diện
+- Thiết kế lại toàn bộ CI
+- Viết lại toàn bộ Playwright test hiện có
 
-### Step 2: Recommendation depth
+### Bước 2: Nâng chiều sâu recommendation
 
-Goal:
-- Improve recommendation quality using more of the existing profile and document context
-- Keep deterministic ranking and guardrails
-- Avoid a new schema migration unless truly necessary
+Mục tiêu:
+- Cải thiện chất lượng recommendation bằng cách tận dụng nhiều hơn dữ liệu profile và document hiện có
+- Giữ deterministic ranking và guardrail
+- Tránh tạo migration schema mới nếu chưa thật sự cần
 
-Success criteria:
-- Recommendation output reflects richer readiness and profile-gap signals
-- Semantic scoring uses more than the original major/degree/country set
-- UI tells users what to complete for better matching
+Tiêu chí hoàn thành:
+- Output của recommendation phản ánh tốt hơn readiness và profile-gap
+- Semantic scoring dùng nhiều tín hiệu hơn bộ major/degree/country ban đầu
+- UI cho user biết cần bổ sung gì để matching tốt hơn
 
-Out of scope:
-- Full vector database or external retrieval stack
-- Large profile schema migration in this session
-- Replacing rule-based ranking with pure AI ranking
+Ngoài phạm vi:
+- Vector database đầy đủ hoặc external retrieval stack
+- Migration schema lớn trong phiên này
+- Thay hoàn toàn rule-based ranking bằng AI ranking thuần túy
 
-## Implementation plan used
+## Kế hoạch triển khai đã dùng
 
-### Phase A: Add backend contract tests
+### Phase A: Thêm contract test cho backend
 
-- Create a lightweight `node:test` harness around isolated Express routes
+- Tạo test harness nhẹ bằng `node:test` quanh các Express route độc lập
 - Cover `GET /api/news`
 - Cover `POST /api/recommend`
-- Cover `GET /api/chat/history` and `POST /api/chat`
+- Cover `GET /api/chat/history` và `POST /api/chat`
 
-### Phase B: Add frontend fallback coverage
+### Phase B: Thêm coverage cho fallback ở frontend
 
-- Extend `news.spec.js` with homepage API failure fallback
-- Add `chat.spec.js` for chat history rendering and unavailable-service fallback
+- Mở rộng `news.spec.js` để cover fallback khi homepage gọi API news thất bại
+- Thêm `chat.spec.js` để cover render history và fallback khi chat API unavailable
 
-### Phase C: Deepen recommendation input model
+### Phase C: Làm sâu hơn recommendation input model
 
-- Extend recommendation repository to pull lightweight document signals
-- Normalize profile data before scoring
-- Split profile readiness into `core` and `supporting` completeness
-- Add richer semantic signals from `bio`, `target_intake`, and document presence
+- Mở rộng repository của recommend để lấy thêm tín hiệu document nhẹ
+- Chuẩn hóa profile trước khi tính điểm
+- Tách profile readiness thành `core` và `supporting`
+- Bổ sung semantic signal từ `bio`, `target_intake` và sự hiện diện của document
 
-### Phase D: Surface readiness to users
+### Phase D: Hiển thị readiness cho người dùng
 
-- Show richer AI profile completion cues on `ProfilePage`
-- Show readiness and enrichment gaps on `RecommendPage`
-- Update API docs to reflect the expanded contract
+- Hiển thị tín hiệu hoàn thiện hồ sơ AI chi tiết hơn trên `ProfilePage`
+- Hiển thị readiness và enrichment gaps trên `RecommendPage`
+- Cập nhật API docs để phản ánh contract mới
 
-### Phase E: Verify
+### Phase E: Xác minh
 
-- Run backend contract tests
-- Run frontend/backend lint
-- Run frontend build
-- Run targeted Playwright specs for changed flows
-- Run `git diff --check`
+- Chạy backend contract tests
+- Chạy lint cho frontend/backend
+- Chạy frontend build
+- Chạy Playwright có chọn lọc cho các flow vừa thay đổi
+- Chạy `git diff --check`
 
-## What changed
+## Các thay đổi đã thực hiện
 
-### Backend test coverage
+### Coverage test ở backend
 
-Added:
+Đã thêm:
 - `backend/tests/contracts/helpers/http.js`
 - `backend/tests/contracts/news.contract.test.js`
 - `backend/tests/contracts/recommend.contract.test.js`
 - `backend/tests/contracts/chat.contract.test.js`
 
-Updated:
+Đã cập nhật:
 - `backend/package.json`
 
-Notes:
-- Tests use route-level Express apps instead of introducing another test framework
-- Coverage includes auth errors, validation errors, success paths, and operational service failures
+Ghi chú:
+- Test dùng route-level Express app, không kéo thêm framework test mới
+- Coverage gồm auth error, validation error, success path và operational service failure
 
-### Frontend E2E coverage
+### Coverage E2E ở frontend
 
-Added:
+Đã thêm:
 - `tests/e2e/chat.spec.js`
 
-Updated:
+Đã cập nhật:
 - `tests/e2e/news.spec.js`
 - `tests/e2e/recommend.spec.js`
 
-Notes:
-- News coverage now includes homepage fallback when `/api/news` fails
-- Chat coverage includes history render and graceful fallback when chat API is unavailable
+Ghi chú:
+- News hiện có coverage cho fallback khi `/api/news` lỗi
+- Chat hiện có coverage cho render history và graceful fallback khi chat API unavailable
 
-### Recommendation quality
+### Nâng chất lượng recommendation
 
-Updated:
+Đã cập nhật:
 - `backend/src/repositories/recommend.repository.js`
 - `backend/src/services/recommend.service.js`
 - `backend/src/services/gemini.service.js`
@@ -121,25 +121,25 @@ Updated:
 - `frontend/src/pages/ProfilePage.jsx`
 - `frontend/src/pages/RecommendPage.jsx`
 
-New recommendation behavior:
-- Pulls document count and document types into the recommendation input model
-- Separates readiness into:
+Hành vi recommendation mới:
+- Lấy thêm `document_count` và `document_types` vào recommendation input model
+- Tách readiness thành:
   - `profile_gaps`
   - `profile_enrichment_gaps`
   - `profile_readiness.overall`
   - `profile_readiness.core`
   - `profile_readiness.supporting`
-- Uses richer semantic signals from:
-  - target major
-  - bio
-  - target intake
-  - document presence/type
-  - scholarship requirements and eligibility text
-- Keeps deterministic rule scoring as a guardrail
+- Dùng semantic signal phong phú hơn từ:
+  - ngành mục tiêu
+  - `bio`
+  - kỳ nhập học mục tiêu
+  - sự hiện diện/loại document
+  - `requirements` và `eligibility` của học bổng
+- Vẫn giữ rule scoring làm guardrail chính
 
-### Existing session work included in this commit
+### Các thay đổi đã có trong commit của phiên này
 
-These were part of the broader approved implementation already present in the branch and are included in the commit:
+Các phần sau thuộc phạm vi triển khai rộng hơn đã được duyệt trước đó và cũng nằm trong commit:
 - `backend/src/app.js`
 - `backend/src/controllers/chat.controller.js`
 - `backend/src/services/chat.service.js`
@@ -148,15 +148,15 @@ These were part of the broader approved implementation already present in the br
 - `frontend/src/components/LatestNewsSection.jsx`
 - `frontend/src/pages/HomePage.jsx`
 
-Those changes cover:
-- News route mounting
-- Homepage latest news integration
-- Balanced chatbot policy wiring
-- Profile validation alignment for `english_level`
+Những thay đổi đó bao phủ:
+- Mount news route
+- Tích hợp latest news vào homepage
+- Wiring balanced chatbot policy
+- Đồng bộ validation `english_level` với dữ liệu nhập thực tế
 
-## Verification run
+## Kết quả verification
 
-Executed successfully:
+Đã chạy thành công:
 - `cd backend && npm run test:contract`
 - `cd backend && npm run lint`
 - `cd frontend && npm run lint`
@@ -165,25 +165,25 @@ Executed successfully:
 - `git diff --check`
 - `npm test -- --list`
 
-Observed status:
+Trạng thái ghi nhận:
 - Backend contract tests: `12/12` passed
-- Targeted Playwright tests: `6/6` passed
-- Total Playwright inventory listed: `18 tests in 6 files`
-- Backend lint: pass with existing warnings only
-- Frontend lint: pass with existing warnings only
+- Playwright có chọn lọc: `6/6` passed
+- Tổng inventory Playwright hiện liệt kê: `18 tests trong 6 files`
+- Backend lint: pass, chỉ còn warning cũ
+- Frontend lint: pass, chỉ còn warning cũ
 - Frontend build: pass
 
-## Files intentionally not included
+## Các file cố ý không đưa vào commit
 
-The following local changes were left untouched because they are user-owned or generated outside this task:
+Các thay đổi local sau được giữ nguyên vì là phần riêng của user hoặc file sinh tự động ngoài phạm vi task:
 - `database.sql`
 - `Quy_Uoc_Chung.md`
 - `claude-mem/`
 - `playwright-report/`
 - `test-results/`
 
-## Follow-up recommendations
+## Đề xuất bước tiếp theo
 
-1. Run the full Playwright suite once before release, not just the targeted changed specs.
-2. Consider a later schema migration for profile preferences such as budget, scholarship type preference, and experience level if product wants stronger personalization.
-3. Reduce longstanding lint warnings and large frontend chunk size after product-critical work is merged.
+1. Chạy toàn bộ Playwright suite một lượt trước release, không chỉ batch đã thay đổi.
+2. Xem xét một migration profile riêng ở phiên sau cho các field như budget, scholarship type preference và experience level nếu product muốn tăng cá nhân hóa.
+3. Giảm dần warning lint lâu năm và tối ưu chunk size của frontend sau khi các hạng mục product-critical được merge.
