@@ -26,13 +26,8 @@ class ProfileService {
     }
 
     if (updates.english_level !== undefined) {
-      const validLevels = ['none', 'basic', 'intermediate', 'advanced', 'proficient'];
-      if (!validLevels.includes(updates.english_level))
-        throw new AppError(
-          `english_level không hợp lệ. Giá trị được chấp nhận: ${validLevels.join(', ')}`,
-          400,
-          'INVALID_ENGLISH_LEVEL'
-        );
+      if (String(updates.english_level).length > 50)
+        throw new AppError('english_level không được vượt quá 50 ký tự', 400, 'INVALID_ENGLISH_LEVEL');
     }
 
     if (updates.target_degree !== undefined) {

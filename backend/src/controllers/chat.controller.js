@@ -44,7 +44,7 @@ class ChatController {
         throw err;
       }
 
-      const reply = await this.#chatService.chat(messages);
+      const reply = await this.#chatService.chat(messages, { userId: req.user?.id });
 
       // Lưu cặp (user message cuối + assistant reply) vào DB — fire-and-forget
       const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');

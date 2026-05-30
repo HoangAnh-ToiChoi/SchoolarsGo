@@ -6,6 +6,16 @@ import FileUpload from '../components/ui/FileUpload';
 import { Button, Input, Select, PageHeader, EmptyState } from '../components/ui';
 import { FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
 
+const PROFILE_SIGNAL_FIELDS = [
+  { key: 'gpa', label: 'GPA' },
+  { key: 'english_level', label: 'Tiếng Anh' },
+  { key: 'target_country', label: 'Quốc gia' },
+  { key: 'target_major', label: 'Ngành học' },
+  { key: 'target_degree', label: 'Bậc học' },
+  { key: 'target_intake', label: 'Kỳ nhập học' },
+  { key: 'bio', label: 'Mục tiêu cá nhân' },
+];
+
 const ProfilePage = ({ embedded = false }) => {
   const { data, isLoading } = useProfile();
   const { data: documents, isLoading: docsLoading } = useDocuments();
@@ -80,6 +90,15 @@ const ProfilePage = ({ embedded = false }) => {
     </div>
   );
 
+  const currentProfile = { ...profile, ...form };
+  const missingSignals = PROFILE_SIGNAL_FIELDS.filter(({ key }) => !currentProfile[key]);
+  const documentCount = documents?.data?.length || 0;
+  const completionScore = PROFILE_SIGNAL_FIELDS.reduce(
+    (total, field) => total + (currentProfile[field.key] ? 1 : 0),
+    0
+  ) + (documentCount > 0 ? 1 : 0);
+  const completionPct = Math.round((completionScore / (PROFILE_SIGNAL_FIELDS.length + 1)) * 100);
+
   const inner = (
     <div className="container-narrow py-8">
       {!embedded && <PageHeader title="Hồ sơ cá nhân" />}
@@ -87,6 +106,20 @@ const ProfilePage = ({ embedded = false }) => {
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8 mb-6 space-y-5">
         <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3">Thông tin cá nhân</h2>
+        <div className="rounded-xl border border-ink-800 bg-ink-950 p-4">
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <p className="text-sm font-medium text-ink-200">Độ hoàn thiện cho AI Recommend</p>
+            <span className="text-sm font-bold text-primary-300">{completionPct}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-ink-800">
+            <div className="h-full rounded-full bg-primary-400 transition-all duration-300" style={{ width: `${completionPct}%` }} />
+          </div>
+          {missingSignals.length > 0 && (
+            <p className="mt-2 text-xs text-ink-500">
+              Còn thiếu: {[...missingSignals.map(({ label }) => label), ...(documentCount > 0 ? [] : ['tài liệu hồ sơ'])].join(', ')}
+            </p>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <Input
             label="GPA (thang 4.0)"
@@ -117,6 +150,13 @@ const ProfilePage = ({ embedded = false }) => {
             value={form.target_degree ?? profile.target_degree ?? ''}
             onChange={(value) => handleFieldChange('target_degree', value)}
           />
+          <Input
+            label="Kỳ nhập học dự kiến"
+            type="text"
+            value={form.target_intake ?? profile.target_intake ?? ''}
+            onChange={(e) => handleFieldChange('target_intake', e.target.value)}
+            placeholder="Fall 2027, Spring 2028..."
+          />
           <div className="md:col-span-2">
             <Input
               label="Ngành học mong muốn"
@@ -135,7 +175,7 @@ const ProfilePage = ({ embedded = false }) => {
               value={form.bio ?? profile.bio ?? ''}
               onChange={(e) => handleFieldChange('bio', e.target.value)}
               className="input resize-none bg-ink-950 text-ink-100 border-ink-700"
-              placeholder="Viết vài dòng về bản thân, mục tiêu du học..."
+              placeholder="Viết vài dòng về bản thân, mục tiêu du học, thế mạnh học tập..."
             />
           </div>
         </div>

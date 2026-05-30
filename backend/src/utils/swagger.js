@@ -641,6 +641,32 @@ const options = {
                           properties: {
                             scholarship: { $ref: '#/components/schemas/Scholarship' },
                             match_score: { type: 'number', example: 0.92 },
+                            rule_score: { type: 'number', example: 0.78 },
+                            semantic_score: { type: 'number', example: 0.89 },
+                            confidence: { type: 'string', enum: ['low', 'medium', 'high'] },
+                            profile_gaps: { type: 'array', items: { type: 'string' } },
+                            profile_enrichment_gaps: { type: 'array', items: { type: 'string' } },
+                            profile_readiness: {
+                              type: 'object',
+                              properties: {
+                                overall: { type: 'number', example: 0.82 },
+                                core: { type: 'number', example: 1 },
+                                supporting: { type: 'number', example: 0.66 },
+                              },
+                            },
+                            supporting_signals: {
+                              type: 'object',
+                              properties: {
+                                document_count: { type: 'integer', example: 2 },
+                                document_types: { type: 'array', items: { type: 'string' } },
+                                has_bio: { type: 'boolean', example: true },
+                                has_target_intake: { type: 'boolean', example: true },
+                              },
+                            },
+                            score_breakdown: { type: 'object' },
+                            semantic_reason: { type: 'string', nullable: true },
+                            ai_reason: { type: 'string', nullable: true },
+                            version: { type: 'string', example: 'semantic_v2' },
                             reasons: { type: 'array', items: { type: 'string' } },
                           },
                         },

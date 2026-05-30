@@ -35,7 +35,7 @@ const enrichRecommendations = async (profile, recommendations) => {
     const scholarshipList = recommendations
       .map((r, i) => {
         const s = r.scholarship;
-        return `${i + 1}. ${s.title} (${s.provider}, ${s.country}, ${s.degree}, GPA tối thiểu: ${s.min_gpa || 'không yêu cầu'}, IELTS tối thiểu: ${s.min_ielts || 'không yêu cầu'}, điểm phù hợp: ${Math.round(r.match_score * 100)}%)`;
+        return `${i + 1}. ${s.title} (${s.provider}, ${s.country}, ${s.degree}, GPA tối thiểu: ${s.min_gpa || 'không yêu cầu'}, IELTS tối thiểu: ${s.min_ielts || 'không yêu cầu'}, điểm phù hợp: ${Math.round(r.match_score * 100)}%, semantic: ${Math.round((r.semantic_score || 0) * 100)}%, rule: ${Math.round((r.rule_score || 0) * 100)}%, readiness: ${Math.round(((r.profile_readiness?.overall || 0) * 100))}%, lý do hệ thống: ${(r.reasons || []).join('; ')})`;
       })
       .join('\n');
 

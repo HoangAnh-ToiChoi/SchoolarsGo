@@ -3,6 +3,7 @@ import { useScholarships } from '../hooks/useScholarship';
 import { Hero } from '../components/landing/Hero';
 import { Features } from '../components/landing/Features';
 import { ScholarshipPreview } from '../components/landing/ScholarshipPreview';
+import LatestNewsSection from '../components/LatestNewsSection';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const HomePage = () => {
@@ -22,6 +23,7 @@ const HomePage = () => {
       ) : (
         <ScholarshipPreview scholarships={featuredScholarships} />
       )}
+      <LatestNewsSection />
     </motion.div>
   );
 };
