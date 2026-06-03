@@ -27,13 +27,24 @@ const NewsTag = ({ category }) => (
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&q=80';
 
 const LatestNewsSection = () => {
-  const { data, isLoading } = useNews({ limit: 5 });
+  const { data, isLoading, isError } = useNews({ limit: 5 });
   const news = data?.data || [];
 
   const featured = news[0] || null;
   const sideItems = news.slice(1, 5);
 
   if (isLoading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (isError) {
+    return (
+      <section className="py-16 bg-ink-950">
+        <div className="container-page">
+          <div className="rounded-xl border border-ink-800 bg-ink-900 p-6 text-sm text-ink-400">
+            Chưa thể tải tin tức mới nhất. Vui lòng thử lại sau.
+          </div>
+        </div>
+      </section>
+    );
+  }
   if (!news.length) return null;
 
   return (

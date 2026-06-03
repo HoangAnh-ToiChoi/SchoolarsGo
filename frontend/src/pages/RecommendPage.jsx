@@ -18,11 +18,34 @@ const MatchBar = ({ score }) => {
   );
 };
 
+const PROFILE_GAP_LABELS = {
+  gpa: 'GPA',
+  english_level: 'tiếng Anh',
+  target_country: 'quốc gia mục tiêu',
+  target_major: 'ngành học',
+  target_degree: 'bậc học',
+  bio: 'mục tiêu cá nhân',
+  target_intake: 'kỳ nhập học',
+  document_count: 'tài liệu hồ sơ',
+};
+
+const ScoreSignal = ({ label, value }) => {
+  if (value === undefined || value === null) return null;
+  return (
+    <span className="rounded-full border border-ink-800 bg-ink-950 px-2.5 py-1 text-xs font-medium text-ink-400">
+      {label}: <span className="text-ink-200">{Math.round(value * 100)}%</span>
+    </span>
+  );
+};
+
 const RecommendPage = () => {
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, error } = useRecommend(10, !!user);
 
   const recommendations = data?.data || [];
+  const profileGaps = recommendations[0]?.profile_gaps || [];
+  const enrichmentGaps = recommendations[0]?.profile_enrichment_gaps || [];
+  const profileReadiness = recommendations[0]?.profile_readiness || null;
 
   return (
     <div className="bg-ink-950 min-h-screen">
@@ -55,8 +78,23 @@ const RecommendPage = () => {
         ) : (
           <>
             <p className="text-body text-ink-400 mb-6">Tìm thấy <strong className="text-ink-100">{recommendations.length}</strong> học bổng phù hợp với profile của bạn</p>
+            {profileReadiness && (
+              <div className="mb-4 rounded-xl border border-primary-400/20 bg-primary-400/10 px-4 py-3 text-body-sm text-primary-200">
+                Độ sẵn sàng hồ sơ cho AI Recommend: <strong>{Math.round(profileReadiness.overall * 100)}%</strong>
+              </div>
+            )}
+            {profileGaps.length > 0 && (
+              <div className="mb-6 rounded-xl border border-warning-400/20 bg-warning-400/10 px-4 py-3 text-body-sm text-warning-300">
+                Bổ sung thêm {profileGaps.map((gap) => PROFILE_GAP_LABELS[gap] || gap).join(', ')} sẽ giúp điểm gợi ý chính xác hơn.
+              </div>
+            )}
+            {enrichmentGaps.length > 0 && (
+              <div className="mb-6 rounded-xl border border-ink-800 bg-ink-900 px-4 py-3 text-body-sm text-ink-300">
+                Để semantic matching tốt hơn, bạn có thể bổ sung thêm {enrichmentGaps.map((gap) => PROFILE_GAP_LABELS[gap] || gap).join(', ')}.
+              </div>
+            )}
             <div className="grid gap-6 md:grid-cols-2">
-              {recommendations.map(({ scholarship, match_score, reasons, ai_reason }) => (
+              {recommendations.map(({ scholarship, match_score, rule_score, semantic_score, confidence, reasons, ai_reason, supporting_signals }) => (
                 <div key={scholarship.id} className="card card-body flex flex-col gap-4 bg-ink-900 border border-ink-800">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
@@ -74,8 +112,24 @@ const RecommendPage = () => {
                   </div>
 
                   <div>
-                    <p className="text-body-sm font-medium text-ink-300 mb-2">Độ phù hợp</p>
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="text-body-sm font-medium text-ink-300">Độ phù hợp</p>
+                      {confidence && (
+                        <span className="rounded-full bg-primary-400/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary-300">
+                          {confidence}
+                        </span>
+                      )}
+                    </div>
                     <MatchBar score={match_score} />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <ScoreSignal label="Semantic" value={semantic_score} />
+                      <ScoreSignal label="Rule" value={rule_score} />
+                      {supporting_signals?.document_count > 0 && (
+                        <span className="rounded-full border border-ink-800 bg-ink-950 px-2.5 py-1 text-xs font-medium text-ink-400">
+                          Hồ sơ hỗ trợ: <span className="text-ink-200">{supporting_signals.document_count} tài liệu</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {reasons?.length > 0 && (
