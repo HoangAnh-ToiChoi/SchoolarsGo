@@ -1,9 +1,11 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const errorHandler = require('../../../src/middlewares/errorHandler');
 
 const createJsonApp = (mount) => {
   const app = express();
   app.use(express.json());
+  app.use(cookieParser());
   mount(app);
   app.use(errorHandler);
   return app;

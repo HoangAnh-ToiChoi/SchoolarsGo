@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 const createTransport = () => {
   if (!process.env.SMTP_HOST) return null;
@@ -13,7 +14,7 @@ const createTransport = () => {
 const sendResetEmail = async (email, resetLink) => {
   const transport = createTransport();
   if (!transport) {
-    console.info(`[Mailer] SMTP chưa cấu hình. Reset link cho ${email}: ${resetLink}`);
+    logger.info({ email, resetLink }, 'SMTP is not configured, logging password reset link');
     return;
   }
   await transport.sendMail({

@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const logger = require('../utils/logger');
 
 let genAI = null;
 
@@ -74,7 +75,7 @@ Yêu cầu:
     }));
   } catch (err) {
     // Fallback gracefully — trả về recommendations gốc không có ai_reason
-    console.error('[Gemini] enrichRecommendations error:', err.message);
+    logger.warn({ err }, 'Gemini recommendation enrichment failed');
     return recommendations;
   }
 };

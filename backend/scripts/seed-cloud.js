@@ -153,6 +153,61 @@ function mapDegree(raw) {
   return 'Any';
 }
 
+function cleanText(raw) {
+  return String(raw || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripLabelPrefix(text, label) {
+  return cleanText(text).replace(new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:?\\s*`, 'i'), '').trim();
+}
+
+function isAggregateScholarshipTitle(title) {
+  const lower = cleanText(title).toLowerCase();
+  return [
+    /^top\s+\d+/,
+    /^scholarships in /,
+    /^top \d+\+ scholarships in /,
+    /watch out for in \d{4}/,
+    /for the best international students/,
+    /offered by universities/,
+    /foreign government scholarships/,
+    /scholarships for study in any country/,
+    /scholarships list/,
+  ].some((pattern) => pattern.test(lower));
+}
+
+function extractLabeledValue($$, labels) {
+  const article = $$('article').first();
+  const nodes = article.find('strong');
+
+  for (const node of nodes.toArray()) {
+    const labelText = cleanText($$(node).text());
+    const matchedLabel = labels.find((label) => label.test(labelText));
+    if (!matchedLabel) continue;
+
+    const parent = $$(node).closest('p, li, div');
+    const parentText = cleanText(parent.text());
+    const inlineValue = stripLabelPrefix(parentText, labelText);
+    if (inlineValue && inlineValue.toLowerCase() !== labelText.toLowerCase()) {
+      return inlineValue;
+    }
+
+    const nextBlock = parent.nextAll('p, li, div').filter((_, el) => cleanText($$(el).text()).length > 0).first();
+    const nextValue = cleanText(nextBlock.text());
+    if (nextValue) return nextValue;
+  }
+
+  return null;
+}
+
+function extractRegexValue(text, regex) {
+  const match = cleanText(text).match(regex);
+  return match ? cleanText(match[1]) : null;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SECTION 4 — RSS PARSER (ưu tiên)
 // ═══════════════════════════════════════════════════════════════
@@ -309,6 +364,11 @@ async function scrapeScholars4Dev() {
       if (allScholarships.length >= SCRAPE_LIMIT) break;
       itemCount++;
 
+      if (isAggregateScholarshipTitle(title)) {
+        console.log(`      ⏭  Skip aggregate article: ${title.substring(0, 70)}…`);
+        continue;
+      }
+
       console.log(`   [${itemCount}/${listings.length}] ↗  ${title.substring(0, 60)}…`);
 
       let provider = null, degree = null, deadline = null, country = null;
@@ -319,45 +379,50 @@ async function scrapeScholars4Dev() {
 
         const res2 = await axios.get(detailUrl, { headers, timeout: 20000 });
         const $$   = cheerio.load(res2.data);
+        const article = $$('article').first();
+        const articleText = cleanText(article.text() || $$.text());
 
-        // Trích xuất metadata từ page text
-        $$('p, li, span, td').each((_, el) => {
-          const text  = $$(el).text().replace(/\s+/g, ' ').trim();
-          const lower = text.toLowerCase();
+        deadline = extractRegexValue(
+          articleText,
+          /Deadline:\s*(.+?)(?=Study in:|Course starts|Brief description:|Host Institution|Field\(s\) of study|Scholarship value|Eligibility|Application instructions|$)/i
+        );
+        country = extractRegexValue(
+          articleText,
+          /Study in:\s*(.+?)(?=Course starts|Brief description:|Host Institution|Field\(s\) of study|Scholarship value|Eligibility|Application instructions|$)/i
+        );
+        degree =
+          extractRegexValue(articleText, /(?:Level\/Field\(s\) of study:|Degree:|Study level:)\s*(.+?)(?=Deadline:|Study in:|Brief description:|Host Institution|Scholarship value|$)/i) ||
+          degree ||
+          title;
 
-          if (!provider  && (lower.includes('provider')   || lower.includes('sponsor')    || lower.includes('host institution'))) {
-            provider = text.replace(/^(provider|sponsor|host institution|provided by):\s*/i, '').substring(0, 255);
-          }
-          if (!deadline && (lower.includes('deadline')   || lower.includes('apply by')    || lower.includes('closes'))) {
-            deadline = text.replace(/^(deadline|application deadline|apply by|closes):\s*/i, '').trim();
-          }
-          if (!degree   && (lower.includes('degree')      || lower.includes('study level') || lower.includes('level:'))) {
-            degree = text.replace(/^(degree|study level|level):\s*/i, '').trim();
-          }
-          if (!country  && (lower.includes('study in')    || lower.includes('country:')   || lower.includes('destination:'))) {
-            country = text.replace(/^(study in|country|destination):\s*/i, '').split(/[,/]/)[0].trim();
-          }
-          if (!field    && (lower.includes('field of study') || lower.includes('subject:') || lower.includes('major:'))) {
-            field = text.replace(/^(field of study|subject|major):\s*/i, '').trim();
-          }
-          if (!benefits && (lower.includes('benefit') || lower.includes('coverage') || lower.includes('award'))) {
-            benefits = text.replace(/^(benefits?|coverage|award):\s*/i, '').trim();
-          }
-        });
+        provider =
+          extractRegexValue(
+            articleText,
+            /(?:Host Institution\(s\)|Host Institution|Provider|Sponsor):\s*(.+?)(?=Field\(s\) of study:|Field of study:|Number of Awards:|Target group:|Scholarship value|Eligibility|Application instructions|$)/i
+          ) ||
+          provider;
 
-        // Trích xuất bảng thông tin (table, ul)
-        $$('table, ul').each((_, el) => {
-          const tableText = $$(el).text().toLowerCase();
-          $$(el).find('tr, li').each((_, row) => {
-            const rowText = $$(row).text().replace(/\s+/g, ' ').trim();
-            const rLower  = rowText.toLowerCase();
-            if (rLower.includes('deadline') && !deadline)  deadline  = rowText.replace(/deadline:?\s*/i, '').trim();
-            if (rLower.includes('degree')   && !degree)    degree    = rowText.replace(/degree:?\s*/i, '').trim();
-            if (rLower.includes('study in') && !country)   country   = rowText.replace(/study in:?\s*/i, '').split(/[,/]/)[0].trim();
-            if ((rLower.includes('field') || rLower.includes('subject')) && !field) field = rowText.replace(/field of study:|subject:?\s*/i, '').trim();
-            if ((rLower.includes('benefit') || rLower.includes('coverage')) && !benefits) benefits = rowText.replace(/benefits?:?|coverage:?|award:?\s*/i, '').trim();
-          });
-        });
+        provider = provider || extractLabeledValue($$, [
+          /^Host Institution\(s\)/i,
+          /^Host Institution/i,
+          /^Provider/i,
+          /^Sponsor/i,
+        ]);
+
+        field = extractLabeledValue($$, [
+          /^Field\(s\) of study/i,
+          /^Field of study/i,
+          /^Subject/i,
+          /^Major/i,
+        ]);
+
+        benefits = extractLabeledValue($$, [
+          /^Scholarship value\/duration/i,
+          /^Scholarship value\/inclusions/i,
+          /^Scholarship value/i,
+          /^Benefits/i,
+          /^Coverage/i,
+        ]);
 
         // Trích xuất link nộp đơn
         $$('a[href]').each((_, el) => {
@@ -371,6 +436,25 @@ async function scrapeScholars4Dev() {
 
         // Trích xuất image
         imageUrl = $$('meta[property="og:image"]').attr('content') || null;
+
+        if (provider && (provider.length > 180 || provider.includes('•') || /https?:\/\//i.test(provider))) {
+          provider = null;
+        }
+        if (provider) {
+          provider = provider
+            .replace(/\bLevel\/.*$/i, '')
+            .replace(/\bField\(s\) of study:.*$/i, '')
+            .trim();
+        }
+        if (country) {
+          country = country
+            .replace(/\b(next course starts|course starts|brief description|deadline)\b.*$/i, '')
+            .replace(/\bnext\b.*$/i, '')
+            .split(/[,/]/)[0]
+            .trim();
+        }
+        if (field && field.length > 255) field = field.substring(0, 255);
+        if (benefits && benefits.length > 255) benefits = benefits.substring(0, 255);
 
       } catch (err) {
         console.warn(`      ⚠️  Detail page error: ${err.message}`);

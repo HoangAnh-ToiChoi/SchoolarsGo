@@ -16,11 +16,12 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+      const skipAuthRedirect = error.config?.skipAuthRedirect;
 
       // Xử lý 401 — token hết hạn hoặc không hợp lệ
       if (status === 401) {
-        const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
-        if (!onAuthPage) {
+        const onAuthPage = ['/login', '/register', '/oauth/complete'].some(p => window.location.pathname.startsWith(p));
+        if (!onAuthPage && !skipAuthRedirect) {
           useAuthStore.getState().logout();
           window.location.href = '/login';
         }

@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const logger = require('../utils/logger');
 
 class DocumentService {
   #repo;
@@ -32,8 +33,11 @@ class DocumentService {
 
   #parseStoragePath(publicUrl) {
     if (!publicUrl) return null;
+    if (!String(publicUrl).startsWith('http')) {
+      return String(publicUrl).replace(/^documents\//, '');
+    }
     const match = publicUrl.match(/\/documents\/(.+)/);
-    return match ? `documents/${match[1]}` : null;
+    return match ? match[1] : null;
   }
 
   async #uploadToStorage(userId, docType, file) {
@@ -51,7 +55,18 @@ class DocumentService {
   }
 
   getAll = async userId => {
-    return this.#repo.findAllByUserId(userId);
+    const documents = await this.#repo.findAllByUserId(userId);
+    return Promise.all(documents.map(async (doc) => {
+      const storagePath = this.#parseStoragePath(doc.file_url);
+      const url = storagePath
+        ? await this.#storage.createSignedUrl(storagePath)
+        : null;
+      return {
+        ...doc,
+        storage_path: storagePath,
+        url,
+      };
+    }));
   };
 
   upload = async (userId, docType, file) => {
@@ -65,7 +80,7 @@ class DocumentService {
         userId,
         docType,
         fileName: file.originalname,
-        fileUrl: uploadResult.publicUrl,
+        fileUrl: uploadResult.storagePath,
         fileSize: file.size,
         mimeType: file.mimetype,
       });
@@ -79,10 +94,14 @@ class DocumentService {
           fileName: file.originalname,
         });
       } catch (emitErr) {
-        console.error('[DocumentService] EventBus emit error (document.uploaded):', emitErr.message);
+        logger.error({ err: emitErr, documentId: doc.id, userId }, 'Failed to emit document.uploaded');
       }
 
-      return doc;
+      return {
+        ...doc,
+        storage_path: uploadResult.storagePath,
+        url: await this.#storage.createSignedUrl(uploadResult.storagePath),
+      };
     } catch (dbErr) {
       await this.#storage.deleteFile(uploadResult.storagePath);
       throw new AppError(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 500, 'DB_INSERT_FAILED');
@@ -107,7 +126,7 @@ class DocumentService {
         fileSize: doc.file_size,
       });
     } catch (emitErr) {
-      console.error('[DocumentService] EventBus emit error (document.deleted):', emitErr.message);
+      logger.error({ err: emitErr, documentId, userId }, 'Failed to emit document.deleted');
     }
   };
 }

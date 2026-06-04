@@ -1,13 +1,16 @@
 import api from './api';
+import { API_BASE_URL } from '../utils/constants';
 
 // Auth
 export const authService = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
-  getMe: () => api.get('/auth/me'),
+  getMe: (options = {}) => api.get('/auth/me', options),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
+  getFacebookLoginUrl: () => `${API_BASE_URL}/auth/oauth/facebook/start`,
+  getAppleLoginUrl: () => `${API_BASE_URL}/auth/oauth/apple/start`,
 };
 
 // Scholarships

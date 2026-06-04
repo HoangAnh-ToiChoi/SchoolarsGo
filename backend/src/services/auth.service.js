@@ -7,6 +7,7 @@ class AuthService {
   #eventBus;
   #hash;
   #token;
+  #oauth;
 
   /**
    * @param {object} authRepository
@@ -14,11 +15,12 @@ class AuthService {
    * @param {object} hashService  - { hash(plain), compare(plain, hash) }
    * @param {object} tokenService - { sign(payload) }
    */
-  constructor(authRepository, eventBus, hashService, tokenService) {
+  constructor(authRepository, eventBus, hashService, tokenService, oauthService) {
     this.#repo = authRepository;
     this.#eventBus = eventBus;
     this.#hash = hashService;
     this.#token = tokenService;
+    this.#oauth = oauthService;
   }
 
   #guardFound(entity, message = 'Không tìm thấy') {
@@ -37,6 +39,95 @@ class AuthService {
     };
   }
 
+  #issueAuthResult(user) {
+    const token = this.#token.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      user: this.#buildUserPublic(user),
+      token,
+    };
+  }
+
+  #emitSocialLifecycle(user, isNewUser) {
+    if (isNewUser) {
+      this.#eventBus.emit('user.registered', {
+        userId: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        role: user.role,
+      });
+    }
+
+    this.#eventBus.emit('user.login', {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+  }
+
+  getFacebookAuthorizationUrl = ({ state, redirectUri }) =>
+    this.#oauth.buildFacebookAuthorizationUrl({ state, redirectUri });
+
+  getAppleAuthorizationUrl = ({ state, redirectUri }) =>
+    this.#oauth.buildAppleAuthorizationUrl({ state, redirectUri });
+
+  #buildPlaceholderPassword = async () => {
+    return this.#hash.hash(crypto.randomUUID());
+  };
+
+  #ensureOAuthEmail(profile) {
+    if (!profile.email) {
+      throw new AppError(
+        'Tài khoản mạng xã hội của bạn chưa chia sẻ email. Vui lòng dùng email/password hoặc chọn tài khoản khác.',
+        400,
+        'OAUTH_EMAIL_REQUIRED'
+      );
+    }
+  }
+
+  #resolveDisplayName(profile) {
+    return profile.fullName || profile.email.split('@')[0];
+  }
+
+  #linkOrCreateOAuthUser = async (profile) => {
+    const existingIdentity = await this.#repo.findOAuthIdentity(profile.provider, profile.providerUserId);
+    if (existingIdentity) {
+      await this.#repo.touchOAuthIdentity(existingIdentity.id, profile.email);
+      const user = await this.#repo.updateLastLogin(existingIdentity.user_id);
+      if (!user) throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
+      return { user, isNewUser: false };
+    }
+
+    this.#ensureOAuthEmail(profile);
+
+    let user = await this.#repo.findPublicByEmail(profile.email);
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      user = await this.#repo.createOAuthUser({
+        email: profile.email,
+        passwordHash: await this.#buildPlaceholderPassword(),
+        fullName: this.#resolveDisplayName(profile),
+        avatarUrl: profile.avatarUrl,
+      });
+    }
+
+    await this.#repo.createOAuthIdentity({
+      userId: user.id,
+      provider: profile.provider,
+      providerUserId: profile.providerUserId,
+      providerEmail: profile.email,
+    });
+
+    user = await this.#repo.updateLastLogin(user.id);
+    return { user, isNewUser };
+  };
+
   register = async (email, password, fullName) => {
     const existing = await this.#repo.findByEmail(email);
     if (existing) {
@@ -50,12 +141,6 @@ class AuthService {
       throw new AppError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
     }
 
-    const token = this.#token.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
     this.#eventBus.emit('user.registered', {
       userId: user.id,
       email: user.email,
@@ -63,10 +148,7 @@ class AuthService {
       role: user.role,
     });
 
-    return {
-      user: this.#buildUserPublic(user),
-      token,
-    };
+    return this.#issueAuthResult(user);
   };
 
   login = async (email, password) => {
@@ -85,22 +167,13 @@ class AuthService {
       throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
     }
 
-    const token = this.#token.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
     this.#eventBus.emit('user.login', {
       userId: updatedUser.id,
       email: updatedUser.email,
       role: updatedUser.role,
     });
 
-    return {
-      user: this.#buildUserPublic(updatedUser),
-      token,
-    };
+    return this.#issueAuthResult(updatedUser);
   };
 
   getMe = async userId => {
@@ -147,6 +220,20 @@ class AuthService {
 
     const passwordHash = await this.#hash.hash(newPassword);
     await this.#repo.clearResetToken(user.id, passwordHash);
+  };
+
+  loginWithFacebook = async ({ code, redirectUri }) => {
+    const profile = await this.#oauth.getFacebookProfile({ code, redirectUri });
+    const { user, isNewUser } = await this.#linkOrCreateOAuthUser(profile);
+    this.#emitSocialLifecycle(user, isNewUser);
+    return this.#issueAuthResult(user);
+  };
+
+  loginWithApple = async ({ code, idToken, redirectUri, user }) => {
+    const profile = await this.#oauth.getAppleProfile({ code, idToken, redirectUri, user });
+    const { user: localUser, isNewUser } = await this.#linkOrCreateOAuthUser(profile);
+    this.#emitSocialLifecycle(localUser, isNewUser);
+    return this.#issueAuthResult(localUser);
   };
 }
 

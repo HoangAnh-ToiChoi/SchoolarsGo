@@ -11,6 +11,7 @@
  */
 
 const EventEmitter = require('events');
+const logger = require('../utils/logger');
 
 class EventBus extends EventEmitter {
   constructor() {
@@ -18,7 +19,7 @@ class EventBus extends EventEmitter {
     this.setMaxListeners(50);
 
     this.on('error', (error, context) => {
-      console.error('EventBus error:', { err: error.message, context });
+      logger.error({ err: error, context }, 'EventBus error');
     });
   }
 }

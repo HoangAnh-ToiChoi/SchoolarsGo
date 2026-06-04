@@ -1,11 +1,7 @@
 const Sentry = require('@sentry/node');
+const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, _next) => {
-  // Log lỗi ra console trong development
-  if (process.env.NODE_ENV !== 'production') {
-    console.error('Error:', err);
-  }
-
   // Xử lý lỗi Supabase
   if (err.code && err.message && err.details) {
     // Supabase validation error
@@ -78,7 +74,7 @@ const errorHandler = (err, req, res, _next) => {
 
   // Lỗi không xác định — capture Sentry + không leak internal details
   if (process.env.SENTRY_DSN) Sentry.captureException(err);
-  console.error('Unhandled error:', err);
+  logger.error({ err }, 'Unhandled request error');
   return res.status(500).json({
     success: false,
     message: 'Lỗi máy chủ, vui lòng thử lại sau',

@@ -2,21 +2,25 @@
 
 const cron = require('node-cron');
 const { main: runScraper } = require('../../scripts/scrape-multi');
+const logger = require('../utils/logger');
 
 let isRunning = false;
 
 async function runJob() {
   if (isRunning) {
-    console.log('[Scraper] Job đang chạy, bỏ qua lần này');
+    logger.info('Scraper job is already running, skipping this trigger');
     return;
   }
   isRunning = true;
-  console.log('[Scraper] Bắt đầu cào học bổng định kỳ...');
+  logger.info('Starting scheduled scholarship scrape');
   try {
     const stats = await runScraper();
-    console.log(`[Scraper] Hoàn tất — inserted: ${stats?.inserted ?? '?'}, skipped: ${stats?.skipped ?? '?'}`);
+    logger.info(
+      { inserted: stats?.inserted, skipped: stats?.skipped },
+      'Scheduled scholarship scrape completed'
+    );
   } catch (e) {
-    console.error('[Scraper] Lỗi:', e.message);
+    logger.error({ err: e }, 'Scheduled scholarship scrape failed');
   } finally {
     isRunning = false;
   }
@@ -24,17 +28,17 @@ async function runJob() {
 
 function startScrapeJob() {
   if (!process.env.GEMINI_API_KEY) {
-    console.warn('[Scraper] GEMINI_API_KEY chưa có — bỏ qua cron job');
+    logger.warn('GEMINI_API_KEY is missing, skipping scraper cron registration');
     return;
   }
 
   // Chạy mỗi Chủ nhật lúc 2:00 sáng
   cron.schedule('0 2 * * 0', () => {
-    console.log('[Scraper] Cron trigger: Chủ nhật 2am');
+    logger.info('Scholarship scraper cron triggered');
     runJob();
   }, { timezone: 'Asia/Ho_Chi_Minh' });
 
-  console.log('[Scraper] Cron job đã đăng ký — chạy mỗi Chủ nhật 2:00 SA (GMT+7)');
+  logger.info('Scholarship scraper cron registered for Sunday 02:00 Asia/Ho_Chi_Minh');
 }
 
 module.exports = { startScrapeJob, runJob };

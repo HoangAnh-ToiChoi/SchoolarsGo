@@ -83,6 +83,7 @@ const COUNTRY_LIST = [
   'France','Japan','South Korea','Netherlands','Sweden','Norway','Switzerland',
   'New Zealand','Singapore','Austria','Belgium','Ireland','Denmark','Finland',
   'Spain','Italy','China','Turkey','Malaysia','Taiwan','Hungary','Czech',
+  'South Africa','Nigeria','Kenya','Ghana','Rwanda','Egypt','Morocco',
 ];
 const COUNTRY_REGEX = new RegExp(`\\b(${COUNTRY_LIST.join('|')})\\b`, 'i');
 const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec';

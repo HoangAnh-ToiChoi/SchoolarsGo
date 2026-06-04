@@ -194,6 +194,26 @@ const options = {
         },
       },
 
+      '/api/auth/oauth/facebook/start': {
+        get: {
+          summary: 'Bắt đầu đăng nhập bằng Facebook',
+          tags: ['Authentication'],
+          responses: {
+            302: { description: 'Redirect sang Facebook OAuth' },
+          },
+        },
+      },
+
+      '/api/auth/oauth/apple/start': {
+        get: {
+          summary: 'Bắt đầu đăng nhập bằng Apple ID',
+          tags: ['Authentication'],
+          responses: {
+            302: { description: 'Redirect sang Apple OAuth' },
+          },
+        },
+      },
+
       // ─── Scholarships ─────────────────────────────────
       '/api/scholarships': {
         get: {

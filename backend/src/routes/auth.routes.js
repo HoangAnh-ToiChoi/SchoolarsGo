@@ -19,6 +19,11 @@ router.post('/register', authLimiter, validate(registerSchema), authController.r
  * @desc Login with email/password
  */
 router.post('/login', authLimiter, validate(loginSchema), authController.login);
+router.get('/oauth/facebook/start', authController.startFacebookOAuth);
+router.get('/oauth/facebook/callback', authController.facebookCallback);
+router.get('/oauth/apple/start', authController.startAppleOAuth);
+router.post('/oauth/apple/callback', authController.appleCallback);
+router.get('/oauth/apple/callback', authController.appleCallback);
 
 /**
  * GET /api/auth/me

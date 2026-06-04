@@ -3,6 +3,7 @@ const Groq = require('groq-sdk');
 const OpenAI = require('openai');
 const getSupabase = require('../utils/supabase');
 const { extractIeltsScore } = require('../utils/helpers');
+const logger = require('../utils/logger');
 const { buildSystemInstruction } = require('./chat.policy');
 
 // Regex-based filter extraction — không tốn Gemini quota
@@ -209,7 +210,10 @@ const chat = async (messages, { userId } = {}) => {
       const result = await session.sendMessage(prompt);
       return result.response.text();
     } catch (e) {
-      if (is429(e)) { console.info(`[Chat] ${modelName} quota exceeded, trying next...`); continue; }
+      if (is429(e)) {
+        logger.info({ modelName }, 'Gemini chat model quota exceeded, trying next model');
+        continue;
+      }
       throw e;
     }
   }
@@ -217,22 +221,22 @@ const chat = async (messages, { userId } = {}) => {
   // 2. Fallback to Groq
   if (process.env.GROQ_API_KEY) {
     try {
-      console.info('[Chat] All Gemini models quota exceeded, falling back to Groq...');
+      logger.info('All Gemini chat models exceeded quota, falling back to Groq');
       return await callGroq(messages, prompt, systemInstruction);
     } catch (e) {
       if (!is429(e)) throw e;
-      console.info('[Chat] Groq also quota exceeded.');
+      logger.info('Groq chat fallback also exceeded quota');
     }
   }
 
   // 3. Fallback to Zhipu GLM-4-Flash
   if (process.env.ZHIPU_API_KEY) {
     try {
-      console.info('[Chat] Falling back to Zhipu GLM-4-Flash...');
+      logger.info('Falling back to Zhipu GLM-4-Flash for chat');
       return await callZhipu(messages, prompt, systemInstruction);
     } catch (e) {
       if (!is429(e)) throw e;
-      console.info('[Chat] Zhipu also quota exceeded.');
+      logger.info('Zhipu chat fallback also exceeded quota');
     }
   }
 

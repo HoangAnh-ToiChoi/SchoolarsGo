@@ -5,10 +5,18 @@ import { motion } from 'framer-motion';
 import { useLogin } from '../hooks/useAuth';
 import { Input } from '../components/ui';
 import { cn } from '../utils/helpers';
+import { authService } from '../services';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const { mutate, isPending } = useLogin();
+
+  const startSocialLogin = (provider) => {
+    const url = provider === 'facebook'
+      ? authService.getFacebookLoginUrl()
+      : authService.getAppleLoginUrl();
+    window.location.assign(url);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -68,6 +76,29 @@ const LoginPage = () => {
               ) : 'Đăng nhập'}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-ink-800" />
+            <span className="text-xs uppercase tracking-[0.2em] text-ink-600">Hoặc</span>
+            <div className="h-px flex-1 bg-ink-800" />
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => startSocialLogin('facebook')}
+              className="w-full rounded-button border border-[#1877F2]/30 bg-[#1877F2]/10 px-4 py-3 text-sm font-semibold text-[#8ec1ff] transition-colors hover:bg-[#1877F2]/20"
+            >
+              Tiếp tục với Facebook
+            </button>
+            <button
+              type="button"
+              onClick={() => startSocialLogin('apple')}
+              className="w-full rounded-button border border-ink-700 bg-ink-950 px-4 py-3 text-sm font-semibold text-ink-100 transition-colors hover:bg-ink-800"
+            >
+              Tiếp tục với Apple ID
+            </button>
+          </div>
 
           <p className="text-center text-ink-400 text-sm mt-6">
             Chưa có tài khoản?{' '}

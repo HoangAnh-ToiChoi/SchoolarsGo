@@ -3,6 +3,7 @@ import { GraduationCap, Menu, X, User, LogOut, BookOpen, Calendar, Shield } from
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import ThemeToggle from './ui/ThemeToggle';
+import { authService } from '../services';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -11,9 +12,13 @@ const Header = () => {
   const location = useLocation();
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
-    setMobileOpen(false);
+    authService.logout()
+      .catch(() => null)
+      .finally(() => {
+        logout();
+        navigate('/');
+        setMobileOpen(false);
+      });
   };
 
   const navLinks = [

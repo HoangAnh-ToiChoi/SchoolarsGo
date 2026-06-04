@@ -7,20 +7,18 @@
  */
 
 const eventBus = require('../eventBus');
+const logger = require('../../utils/logger');
 
 const registerAuthListeners = () => {
   // ── user.registered ────────────────────────────────────────
   eventBus.on('user.registered', async payload => {
     try {
       const { userId, email, fullName, role } = payload;
-      console.log(
-        `[AUTH EVENT] New user registered → ${email} ` +
-          `(${fullName}, role: ${role}, id: ${userId})`
-      );
+      logger.info({ userId, email, fullName, role }, 'New user registered');
       // TODO: Gửi email welcome
       // TODO: Log analytics (ví dụ: GA, Mixpanel)
     } catch (err) {
-      console.error('[AUTH LISTENER] Error handling user.registered:', err.message);
+      logger.error({ err }, 'Error handling user.registered');
     }
   });
 
@@ -28,10 +26,10 @@ const registerAuthListeners = () => {
   eventBus.on('user.login', async payload => {
     try {
       const { userId, email, role } = payload;
-      console.log(`[AUTH EVENT] User logged in → ${email} ` + `(role: ${role}, id: ${userId})`);
+      logger.info({ userId, email, role }, 'User logged in');
       // TODO: Log security audit trail
     } catch (err) {
-      console.error('[AUTH LISTENER] Error handling user.login:', err.message);
+      logger.error({ err }, 'Error handling user.login');
     }
   });
 };

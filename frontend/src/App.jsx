@@ -9,6 +9,7 @@ const ScholarshipsPage = lazy(() => import('./pages/ScholarshipsPage'));
 const ScholarshipDetailPage = lazy(() => import('./pages/ScholarshipDetailPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const OAuthCompletePage = lazy(() => import('./pages/OAuthCompletePage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const ApplicationsPage = lazy(() => import('./pages/ApplicationsPage'));
@@ -27,7 +28,10 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminScholarshipsPage = lazy(() => import('./pages/admin/AdminScholarshipsPage'));
 
 const AdminRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isAuthResolved } = useAuthStore();
+  if (!isAuthResolved) {
+    return <PageLoader />;
+  }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== 'admin') return <Navigate to="/" replace />;
   return children;
@@ -50,6 +54,7 @@ function App() {
           <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="oauth/complete" element={<OAuthCompletePage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="saved" element={<SavedPage />} />

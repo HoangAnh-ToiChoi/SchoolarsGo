@@ -13,7 +13,9 @@
  * Wiring: db → AdminRepository → AdminService → AdminController
  */
 const getSupabase = require('./utils/supabase');
+const getSupabasePublic = require('./utils/supabasePublic');
 const sb = getSupabase();
+const publicSb = getSupabasePublic();
 const db = require('./utils/db');
 
 // ── EventBus ────────────────────────────────────────────────
@@ -40,7 +42,7 @@ const ScholarshipRepository = require('./repositories/scholarship.repository');
 const ScholarshipService = require('./services/scholarship.service');
 const ScholarshipController = require('./controllers/scholarship.controller');
 
-const scholarshipRepo = new ScholarshipRepository(sb);
+const scholarshipRepo = new ScholarshipRepository(publicSb, sb);
 const scholarshipService = new ScholarshipService(scholarshipRepo);
 const scholarshipController = new ScholarshipController(scholarshipService);
 
@@ -85,9 +87,11 @@ const savedController = new SavedController(savedService);
 const AuthRepository = require('./repositories/auth.repository');
 const AuthService = require('./services/auth.service');
 const AuthController = require('./controllers/auth.controller');
+const OAuthService = require('./services/oauth.service');
 
 const authRepo = new AuthRepository(sb);
-const authService = new AuthService(authRepo, eventBus, hashService, tokenService);
+const oauthService = new OAuthService();
+const authService = new AuthService(authRepo, eventBus, hashService, tokenService, oauthService);
 const authController = new AuthController(authService);
 
 // ── Recommend Module (DIP: inject geminiService) ────────────

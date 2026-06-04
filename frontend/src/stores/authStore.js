@@ -1,30 +1,27 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
-export const useAuthStore = create(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
+export const useAuthStore = create((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isAuthResolved: false,
 
-      login: (user) => {
-        set({ user, isAuthenticated: true });
-      },
+  login: (user) => {
+    set({ user, isAuthenticated: true, isAuthResolved: true });
+  },
 
-      logout: () => {
-        set({ user: null, isAuthenticated: false });
-      },
+  logout: () => {
+    set({ user: null, isAuthenticated: false, isAuthResolved: true });
+  },
 
-      setUser: (user) => {
-        set({ user });
-      },
-    }),
-    {
-      name: 'scholarsgo-auth',
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-);
+  setUser: (user) => {
+    set({
+      user,
+      isAuthenticated: !!user,
+      isAuthResolved: true,
+    });
+  },
+
+  setAuthResolved: (value = true) => {
+    set({ isAuthResolved: value });
+  },
+}));

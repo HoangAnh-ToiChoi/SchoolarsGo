@@ -8,6 +8,7 @@
  */
 
 const { Pool } = require('pg');
+const logger = require('./logger');
 
 const pool = new Pool({
   host: process.env.PG_HOST || 'localhost',
@@ -24,7 +25,7 @@ const pool = new Pool({
 });
 
 pool.on('error', err => {
-  console.error('Unexpected pg pool error:', err.message);
+  logger.error({ err }, 'Unexpected pg pool error');
 });
 
 /**

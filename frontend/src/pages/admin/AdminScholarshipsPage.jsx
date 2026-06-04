@@ -6,7 +6,6 @@ import {
 } from '../../hooks/useAdmin';
 import { useScholarships } from '../../hooks/useScholarship';
 import { cn, formatDate } from '../../utils/helpers';
-import LoadingSpinner from '../../components/LoadingSpinner';
 
 const EMPTY_FORM = {
   title: '', provider: '', country: '', degree: '', language: '',
