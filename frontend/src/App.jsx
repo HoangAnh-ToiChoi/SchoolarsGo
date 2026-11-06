@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import AppLayout from '~/components/layout/AppLayout';
+import AppLayout from '~/components/layout/app-layout';
 import ProtectedRoute from '~/components/common/ProtectedRoute';
 import { selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
 

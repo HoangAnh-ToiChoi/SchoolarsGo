@@ -19,12 +19,19 @@ export function demoAdapter(config) {
   if (method === 'GET' && url === '/scholarships') {
     let items = DEMO_SCHOLARSHIPS;
     if (params.degree) items = items.filter((s) => s.degree === params.degree);
+    if (params.country) items = items.filter((s) => s.country === params.country);
+    if (params.coverage === 'Full') items = items.filter((s) => s.coverage === 'Toàn phần');
+    if (params.coverage === 'Partial') items = items.filter((s) => s.coverage === 'Một phần');
     if (params.search) {
       const q = String(params.search).toLowerCase();
       items = items.filter((s) => `${s.title} ${s.provider}`.toLowerCase().includes(q));
     }
     items = [...items].sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
     return ok(config, { success: true, data: items, meta: { page: 1, limit: items.length, total: items.length, totalPages: 1 } });
+  }
+  if (method === 'GET' && url === '/scholarships/countries') {
+    const countries = [...new Set(DEMO_SCHOLARSHIPS.map((s) => s.country))].sort();
+    return ok(config, { success: true, data: countries });
   }
   const detail = url.match(/^\/scholarships\/([\w-]+)$/);
   if (method === 'GET' && detail) {

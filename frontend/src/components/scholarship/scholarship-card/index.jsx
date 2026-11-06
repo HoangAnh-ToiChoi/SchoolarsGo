@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Badge } from '~/components/ui/badge';
 import { Card } from '~/components/ui/card';
-import DeadlineBadge from '~/components/scholarship/DeadlineBadge';
-import SaveButton from '~/components/scholarship/SaveButton';
+import DeadlineBadge from '~/components/scholarship/deadline-badge';
+import SaveButton from '~/components/scholarship/save-button';
 import { COUNTRY_LABELS, DEGREE_LABELS, getScope, labelOf, SCOPE_LABELS } from '~/lib/scholarship';
 import { cn } from '~/lib/utils';
 

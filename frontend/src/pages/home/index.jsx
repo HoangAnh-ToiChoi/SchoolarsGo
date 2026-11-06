@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
-import PageHeader from '~/components/common/PageHeader';
-import Reveal from '~/components/common/Reveal';
-import SlowLoading from '~/components/common/SlowLoading';
-import ScholarshipCard from '~/components/scholarship/ScholarshipCard';
-import ScholarshipCardSkeleton from '~/components/scholarship/ScholarshipCardSkeleton';
+import PageHeader from '~/components/common/page-header';
+import Reveal from '~/components/common/reveal';
+import SlowLoading from '~/components/common/slow-loading';
+import ScholarshipCard from '~/components/scholarship/scholarship-card';
+import ScholarshipCardSkeleton from '~/components/scholarship/scholarship-card-skeleton';
 import { useScholarships } from '~/hooks/useScholarship';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { getScope } from '~/lib/scholarship';
-import FilterBar from '~/pages/home/components/FilterBar';
-import ProfileProgressCard from '~/pages/home/components/ProfileProgressCard';
-import ScopeTabs from '~/pages/home/components/ScopeTabs';
-import UpcomingDeadlinesCard from '~/pages/home/components/UpcomingDeadlinesCard';
+import FilterBar from '~/pages/home/components/filter-bar';
+import ProfileProgressCard from '~/pages/home/components/profile-progress-card';
+import ScopeTabs from '~/pages/home/components/scope-tabs';
+import UpcomingDeadlinesCard from '~/pages/home/components/upcoming-deadlines-card';
 
 // Trang chủ: vào là thấy học bổng đang mở. Trang chỉ ghép component, không gọi API trực tiếp.
 export default function HomePage() {

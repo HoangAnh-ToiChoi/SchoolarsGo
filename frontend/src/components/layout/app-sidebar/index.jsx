@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { NAV_SECTIONS } from '~/components/layout/navConfig';
+import { NAV_SECTIONS } from '~/components/layout/app-sidebar/navConfig';
 import { cn } from '~/lib/utils';
 
 export default function AppSidebar() {

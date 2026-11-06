@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import AppHeader from '~/components/layout/AppHeader';
-import AppSidebar from '~/components/layout/AppSidebar';
+import AppHeader from '~/components/layout/app-header';
+import AppSidebar from '~/components/layout/app-sidebar';
 import ErrorBoundary from '~/components/common/ErrorBoundary';
 import ComparisonBar from '~/components/common/ComparisonBar';
 import ChatFAB from '~/components/common/ChatFAB';
