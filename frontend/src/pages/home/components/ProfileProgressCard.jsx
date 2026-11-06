@@ -36,7 +36,7 @@ export default function ProfileProgressCard() {
         <>
           <div className="flex items-center gap-3">
             <div
-              className="h-2 flex-1 overflow-hidden rounded-full bg-[#EFEFF2]"
+              className="h-2 flex-1 overflow-hidden rounded-full bg-track"
               role="progressbar"
               aria-valuenow={percent}
               aria-valuemin={0}

@@ -2,6 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design v2: bảng màu ScholarsGo ──────────────────
+   ĐỔI MÀU CHỈ SỬA Ở ĐÂY. Giá trị là kênh R G B (để Tailwind dùng được độ mờ, VD bg-brand-600/30).
+   Mã hex tương ứng ghi ở cuối mỗi dòng. ─────────────────────────────── */
+:root {
+  /* Màu chủ đạo (tím chàm) */
+  --sg-brand-50: 238 242 255; /* #EEF2FF */
+  --sg-brand-100: 224 231 255; /* #E0E7FF */
+  --sg-brand-200: 199 210 254; /* #C7D2FE */
+  --sg-brand-500: 99 102 241; /* #6366F1 */
+  --sg-brand-600: 79 70 229; /* #4F46E5 */
+  --sg-brand-700: 67 56 202; /* #4338CA */
+  --sg-brand-900: 49 46 129; /* #312E81 */
+  /* Tiêu đề thẻ học bổng */
+  --sg-heading: 63 63 70; /* #3F3F46 */
+  /* Bề mặt, viền, chữ */
+  --sg-canvas: 248 248 250; /* #F8F8FA */
+  --sg-surface: 255 255 255; /* #FFFFFF */
+  --sg-line: 231 231 234; /* #E7E7EA */
+  --sg-line-soft: 240 240 242; /* #F0F0F2 */
+  --sg-fg: 10 10 10; /* #0A0A0A */
+  --sg-fg-secondary: 82 82 91; /* #52525B */
+  --sg-fg-muted: 107 107 107; /* #6B6B6B */
+  --sg-fg-soft: 63 63 70; /* #3F3F46 — chữ mục sidebar */
+  --sg-line-strong: 212 212 216; /* #D4D4D8 — viền nét đứt bộ lọc */
+  --sg-hover: 244 244 245; /* #F4F4F5 — nền khi rê chuột */
+  --sg-track: 239 239 242; /* #EFEFF2 — nền tab, thanh tiến độ */
+  /* Nhãn hạn nộp: ≤ 10 ngày / 11–30 ngày / > 30 ngày */
+  --sg-urgent-fg: 180 35 24; /* #B42318 */
+  --sg-urgent-bg: 254 243 242; /* #FEF3F2 */
+  --sg-urgent-line: 254 205 202; /* #FECDCA */
+  --sg-soon-fg: 181 71 8; /* #B54708 */
+  --sg-soon-bg: 255 250 235; /* #FFFAEB */
+  --sg-soon-line: 254 223 137; /* #FEDF89 */
+  --sg-open-fg: 6 118 71; /* #067647 */
+  --sg-open-bg: 236 253 243; /* #ECFDF3 */
+  --sg-open-line: 171 239 198; /* #ABEFC6 */
+  /* Nhãn phạm vi: du học / trong nước */
+  --sg-abroad-fg: 2 106 162; /* #026AA2 */
+  --sg-abroad-bg: 240 249 255; /* #F0F9FF */
+  --sg-abroad-line: 185 230 254; /* #B9E6FE */
+  --sg-domestic-fg: 193 21 116; /* #C11574 */
+  --sg-domestic-bg: 253 242 250; /* #FDF2FA */
+  --sg-domestic-line: 252 206 238; /* #FCCEEE */
+}
+
 /* ── Design v2: token của shadcn/ui (HSL) ───────── */
 :root {
   --background: 0 0% 100%;

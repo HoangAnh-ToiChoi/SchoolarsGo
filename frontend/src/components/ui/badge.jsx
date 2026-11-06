@@ -15,7 +15,7 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
         // ScholarsGo: nhãn mang nghĩa (hạn nộp, phạm vi)
-        neutral: "h-6 gap-1.5 rounded-[6px] border-line bg-[#F4F4F5] px-2 text-fg-secondary",
+        neutral: "h-6 gap-1.5 rounded-[6px] border-line bg-hover px-2 text-fg-secondary",
         urgent: "h-6 gap-1.5 rounded-[6px] border-urgent-line bg-urgent-bg px-2 text-urgent-fg",
         soon: "h-6 gap-1.5 rounded-[6px] border-soon-line bg-soon-bg px-2 text-soon-fg",
         open: "h-6 gap-1.5 rounded-[6px] border-open-line bg-open-bg px-2 text-open-fg",

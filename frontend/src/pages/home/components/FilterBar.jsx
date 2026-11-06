@@ -30,7 +30,7 @@ export default function FilterBar({ degree, onDegreeChange }) {
             type="button"
             variant="outline"
             onClick={() => onDegreeChange(d.value)}
-            className="h-filter rounded-control border-dashed border-[#D4D4D8] px-3 text-[13px] text-[#27272A] shadow-none hover:bg-[#F4F4F5]"
+            className="h-filter rounded-control border-dashed border-line-strong px-3 text-[13px] text-fg shadow-none hover:bg-hover"
             aria-pressed="false"
           >
             <PlusIcon className="text-fg-muted" aria-hidden="true" />

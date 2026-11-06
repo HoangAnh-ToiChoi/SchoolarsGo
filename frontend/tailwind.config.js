@@ -22,20 +22,20 @@ export default {
         accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
         popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
         card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
-        // Màu chủ đạo tím chàm
-        brand: { 50: '#EEF2FF', 100: '#E0E7FF', 200: '#C7D2FE', 500: '#6366F1', 600: '#4F46E5', 700: '#4338CA', 900: '#312E81' },
-        heading: '#1E3A8A', // tiêu đề thẻ học bổng
-        canvas: '#F8F8FA', // nền vùng nội dung
-        surface: '#FFFFFF', // nền thẻ, header, sidebar
-        line: { DEFAULT: '#E7E7EA', soft: '#F0F0F2' },
-        fg: { DEFAULT: '#0A0A0A', secondary: '#52525B', muted: '#6B6B6B' },
-        // Nhãn hạn nộp: ≤ 10 ngày / 11–30 ngày / > 30 ngày
-        urgent: { fg: '#B42318', bg: '#FEF3F2', line: '#FECDCA' },
-        soon: { fg: '#B54708', bg: '#FFFAEB', line: '#FEDF89' },
-        open: { fg: '#067647', bg: '#ECFDF3', line: '#ABEFC6' },
-        // Nhãn phạm vi
-        abroad: { fg: '#026AA2', bg: '#F0F9FF', line: '#B9E6FE' },
-        domestic: { fg: '#C11574', bg: '#FDF2FA', line: '#FCCEEE' },
+        // Màu thật nằm trong src/index.css (biến --sg-*). Đổi màu chỉ sửa file CSS đó.
+        brand: { 50: 'rgb(var(--sg-brand-50) / <alpha-value>)', 100: 'rgb(var(--sg-brand-100) / <alpha-value>)', 200: 'rgb(var(--sg-brand-200) / <alpha-value>)', 500: 'rgb(var(--sg-brand-500) / <alpha-value>)', 600: 'rgb(var(--sg-brand-600) / <alpha-value>)', 700: 'rgb(var(--sg-brand-700) / <alpha-value>)', 900: 'rgb(var(--sg-brand-900) / <alpha-value>)' },
+        heading: 'rgb(var(--sg-heading) / <alpha-value>)',
+        canvas: 'rgb(var(--sg-canvas) / <alpha-value>)',
+        surface: 'rgb(var(--sg-surface) / <alpha-value>)',
+        hover: 'rgb(var(--sg-hover) / <alpha-value>)',
+        track: 'rgb(var(--sg-track) / <alpha-value>)',
+        line: { DEFAULT: 'rgb(var(--sg-line) / <alpha-value>)', soft: 'rgb(var(--sg-line-soft) / <alpha-value>)', strong: 'rgb(var(--sg-line-strong) / <alpha-value>)' },
+        fg: { DEFAULT: 'rgb(var(--sg-fg) / <alpha-value>)', secondary: 'rgb(var(--sg-fg-secondary) / <alpha-value>)', muted: 'rgb(var(--sg-fg-muted) / <alpha-value>)', soft: 'rgb(var(--sg-fg-soft) / <alpha-value>)' },
+        urgent: { fg: 'rgb(var(--sg-urgent-fg) / <alpha-value>)', bg: 'rgb(var(--sg-urgent-bg) / <alpha-value>)', line: 'rgb(var(--sg-urgent-line) / <alpha-value>)' },
+        soon: { fg: 'rgb(var(--sg-soon-fg) / <alpha-value>)', bg: 'rgb(var(--sg-soon-bg) / <alpha-value>)', line: 'rgb(var(--sg-soon-line) / <alpha-value>)' },
+        open: { fg: 'rgb(var(--sg-open-fg) / <alpha-value>)', bg: 'rgb(var(--sg-open-bg) / <alpha-value>)', line: 'rgb(var(--sg-open-line) / <alpha-value>)' },
+        abroad: { fg: 'rgb(var(--sg-abroad-fg) / <alpha-value>)', bg: 'rgb(var(--sg-abroad-bg) / <alpha-value>)', line: 'rgb(var(--sg-abroad-line) / <alpha-value>)' },
+        domestic: { fg: 'rgb(var(--sg-domestic-fg) / <alpha-value>)', bg: 'rgb(var(--sg-domestic-bg) / <alpha-value>)', line: 'rgb(var(--sg-domestic-line) / <alpha-value>)' },
         // ── Legacy (các trang chưa làm lại) ─────────────
         // Cyan accent — 300/400 are theme-aware via CSS vars, rest static
         primary: {

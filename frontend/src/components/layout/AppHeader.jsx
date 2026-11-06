@@ -4,8 +4,8 @@ import { AcademicCapIcon, BellIcon, MagnifyingGlassIcon } from '@heroicons/react
 import { Button } from '~/components/ui/button';
 import UserMenu from '~/components/layout/UserMenu';
 
-// Header cao 64px. Khối logo rộng bằng sidebar (256px) + ô tìm kiếm cách 32px
-// → ô tìm kiếm thẳng hàng với mép trái vùng nội dung.
+// Header cao 64px, chia 3 cột: logo | ô tìm kiếm | thông báo + tài khoản.
+// Hai cột bên rộng bằng nhau (1fr) nên ô tìm kiếm luôn nằm chính giữa màn hình.
 export default function AppHeader() {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
@@ -17,15 +17,15 @@ export default function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-header items-center border-b border-line bg-surface pr-8">
-      <Link to="/" className="flex w-sidebar shrink-0 items-center gap-2.5 pl-6">
+    <header className="sticky top-0 z-30 grid h-header grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-6 border-b border-line bg-surface pl-6 pr-8">
+      <Link to="/" className="flex items-center gap-2.5 justify-self-start">
         <span className="flex size-8 items-center justify-center rounded-[9px] bg-brand-600">
           <AcademicCapIcon className="size-[18px] text-white" aria-hidden="true" />
         </span>
         <span className="text-[17px] font-bold tracking-[-0.02em] text-fg">ScholarsGo</span>
       </Link>
 
-      <form role="search" onSubmit={handleSearch} className="ml-8 max-w-[480px] flex-1">
+      <form role="search" onSubmit={handleSearch} className="w-full">
         <label className="flex h-control items-center gap-2.5 rounded-inner border border-line bg-surface pl-3 pr-2 text-fg-muted transition-[border-color,box-shadow] duration-200 focus-within:border-brand-600 focus-within:ring-[3px] focus-within:ring-brand-600/15">
           <MagnifyingGlassIcon className="size-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">Tìm học bổng</span>
@@ -39,8 +39,8 @@ export default function AppHeader() {
         </label>
       </form>
 
-      <div className="ml-auto flex items-center gap-2 pl-4">
-        <Button asChild variant="outline" size="icon-lg" className="relative border-line text-[#3F3F46] shadow-none hover:bg-[#F4F4F5]">
+      <div className="flex items-center gap-2 justify-self-end">
+        <Button asChild variant="outline" size="icon-lg" className="relative border-line text-fg-soft shadow-none hover:bg-hover">
           <Link to="/notifications" aria-label="Thông báo">
             <BellIcon aria-hidden="true" />
           </Link>

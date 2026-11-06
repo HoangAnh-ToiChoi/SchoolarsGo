@@ -31,13 +31,13 @@ export default function UpcomingDeadlinesCard({ scholarships = [] }) {
           const { daysLeft, tone } = getDeadlineInfo(s.deadline);
           return (
             <li key={s.id} className="border-t border-line-soft">
-              <Link to={`/scholarships/${s.id}`} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-[#F8F8FA]">
+              <Link to={`/scholarships/${s.id}`} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-canvas">
                 <div className={cn('w-11 shrink-0 rounded-inner py-1.5 text-center', BOX_TONES[tone])}>
                   <div className="text-base font-bold leading-none">{formatDate(s.deadline, 'dd')}</div>
                   <div className="mt-1 text-[11px] font-medium">Th {formatDate(s.deadline, 'M')}</div>
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-[#18181B]">{s.title}</div>
+                  <div className="truncate text-sm font-semibold text-fg">{s.title}</div>
                   <div className="mt-0.5 text-xs text-fg-muted">còn {daysLeft} ngày</div>
                 </div>
               </Link>

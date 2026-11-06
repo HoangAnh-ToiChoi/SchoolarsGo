@@ -9,7 +9,7 @@ const SCOPES = [
 export default function ScopeTabs({ value, onChange }) {
   return (
     <Tabs value={value} onValueChange={onChange}>
-      <TabsList className="h-control rounded-inner bg-[#EFEFF2] p-1">
+      <TabsList className="h-control rounded-inner bg-track p-1">
         {SCOPES.map((s) => (
           <TabsTrigger
             key={s.value}

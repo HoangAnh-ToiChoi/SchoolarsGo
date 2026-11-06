@@ -19,7 +19,7 @@ export default function AppSidebar() {
               className={({ isActive }) =>
                 cn(
                   'flex h-nav items-center gap-3 rounded-control px-3 text-sm font-medium transition-colors duration-150',
-                  isActive ? 'bg-brand-50 font-semibold text-brand-600' : 'text-[#3F3F46] hover:bg-[#F4F4F5] hover:text-fg'
+                  isActive ? 'bg-brand-50 font-semibold text-brand-600' : 'text-fg-soft hover:bg-hover hover:text-fg'
                 )
               }
             >

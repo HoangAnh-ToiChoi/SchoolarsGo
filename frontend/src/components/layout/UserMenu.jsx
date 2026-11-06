@@ -31,7 +31,7 @@ export default function UserMenu() {
   const initials = getInitials(user.full_name || user.email);
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-control items-center gap-2.5 rounded-inner pl-1 pr-2 outline-none transition-colors duration-200 hover:bg-[#F4F4F5] focus-visible:ring-2 focus-visible:ring-brand-600/30 data-[state=open]:bg-[#F4F4F5]">
+      <DropdownMenuTrigger className="flex h-control items-center gap-2.5 rounded-inner pl-1 pr-2 outline-none transition-colors duration-200 hover:bg-hover focus-visible:ring-2 focus-visible:ring-brand-600/30 data-[state=open]:bg-hover">
         <Initials value={initials} />
         <span className="flex flex-col items-start leading-tight">
           <span className="text-[13.5px] font-semibold">{user.full_name}</span>
@@ -55,7 +55,7 @@ export default function UserMenu() {
         <DropdownMenuSeparator className="-mx-1.5 bg-line-soft" />
         <DropdownMenuItem
           onSelect={() => logout.mutate()}
-          className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-[#C2272D] focus:bg-[#FEF3F2] focus:text-[#C2272D]"
+          className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-urgent-fg focus:bg-urgent-bg focus:text-urgent-fg"
         >
           <ArrowRightStartOnRectangleIcon className="size-4" aria-hidden="true" />
           Đăng xuất
@@ -67,7 +67,7 @@ export default function UserMenu() {
 
 function MenuLink({ to, icon: Icon, children }) {
   return (
-    <DropdownMenuItem asChild className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-[#27272A] focus:bg-[#F4F4F5]">
+    <DropdownMenuItem asChild className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-fg focus:bg-hover">
       <Link to={to}>
         <Icon className="size-4 text-fg-muted" aria-hidden="true" />
         {children}

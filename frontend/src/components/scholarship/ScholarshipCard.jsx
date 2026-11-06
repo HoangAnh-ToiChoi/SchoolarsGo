@@ -55,7 +55,7 @@ function Fact({ label, value, className }) {
   return (
     <div className={cn('min-w-0 px-3 py-2.5', className)}>
       <dt className="text-[11.5px] text-fg-muted">{label}</dt>
-      <dd className="mt-0.5 truncate text-[13.5px] font-semibold text-[#18181B]">{value || '—'}</dd>
+      <dd className="mt-0.5 truncate text-[13.5px] font-semibold text-fg">{value || '—'}</dd>
     </div>
   );
 }
