@@ -17,7 +17,7 @@ export default function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 grid h-header grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-6 border-b border-line bg-surface pl-6 pr-8">
+    <header className="sticky top-0 z-30 grid h-header grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-6 border-b border-line bg-surface px-6">
       <Link to="/" className="flex items-center gap-2.5 justify-self-start">
         <span className="flex size-8 items-center justify-center rounded-[9px] bg-brand-600">
           <AcademicCapIcon className="size-[18px] text-white" aria-hidden="true" />
@@ -26,7 +26,7 @@ export default function AppHeader() {
       </Link>
 
       <form role="search" onSubmit={handleSearch} className="w-full">
-        <label className="flex h-control items-center gap-2.5 rounded-inner border border-line bg-surface pl-3 pr-2 text-fg-muted transition-[border-color,box-shadow] duration-200 focus-within:border-brand-600 focus-within:ring-[3px] focus-within:ring-brand-600/15">
+        <label className="flex h-control items-center gap-2.5 rounded-full border border-line bg-surface px-4 text-fg-muted shadow-search transition-[border-color,box-shadow] duration-200 hover:border-line-strong focus-within:border-brand-600 focus-within:ring-[3px] focus-within:ring-brand-600/15">
           <MagnifyingGlassIcon className="size-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">Tìm học bổng</span>
           <input

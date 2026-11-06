@@ -141,6 +141,7 @@ export default {
         tile: '0 1px 2px rgba(16,24,40,.04)',
         'tile-hover': '0 12px 28px -12px rgba(79,70,229,.35), 0 2px 6px rgba(16,24,40,.05)',
         menu: '0 16px 40px -12px rgba(16,24,40,.18), 0 2px 6px rgba(16,24,40,.05)',
+        search: '0 1px 2px rgba(16,24,40,.06), 0 6px 16px -6px rgba(16,24,40,.12)',
         // Legacy
         'glow':    '0 0 20px rgba(34,211,238,0.25)',
         'glow-lg': '0 0 40px rgba(34,211,238,0.35)',
