@@ -78,7 +78,7 @@ frontend/src/
 |---|---|
 | Dữ liệu từ server | TanStack Query trong `hooks/` (gọi `services/`) — không gọi axios trong component |
 | State toàn cục của giao diện/phiên đăng nhập | Redux Toolkit (`store/slices/`), đọc bằng selector `selectXxx` |
-| Từ khóa tìm kiếm + bộ lọc | Trên URL, qua `useScholarshipFilters()` — nguồn sự thật duy nhất |
+| Từ khóa tìm kiếm + bộ lọc | Trên URL của trang chủ (`/?search=…&degree=…`), qua `useScholarshipFilters()` — nguồn sự thật duy nhất |
 | State cục bộ của một component | `useState` |
 
 - Redux **không lưu token**. Token do server giữ trong cookie httpOnly; store chỉ giữ thông tin hiển thị của user.
@@ -128,7 +128,8 @@ Toàn bộ màu nằm **duy nhất** trong `src/index.css`. Đổi màu chỉ s�
 - **Nhãn (badge)**: luôn mang nghĩa (hạn nộp, phạm vi, trạng thái), không dùng trang trí. Hạn nộp: `getDeadlineInfo()` trong `lib/scholarship.js` (ngưỡng 10 và 30 ngày là hằng số ở đó).
 - **Thẻ học bổng**: đọc từ trên xuống — nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover: thẻ nhấc lên 3px.
 - **Chuyển động**: 150–220ms; không gradient, không emoji trang trí.
-- **Tìm kiếm**: chỉ có **một** thanh tìm kiếm trên header (`components/scholarship-filter`). Bảng bộ lọc ẩn (`display: none`) cho đến khi bấm vào ô tìm kiếm; đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
+- **Tìm kiếm**: chỉ có **một** thanh tìm kiếm trên header (`components/scholarship-filter`). Bảng bộ lọc ẩn (`display: none`) cho đến khi bấm vào ô tìm kiếm, hiện bằng hiệu ứng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
+- **Kết quả tìm kiếm hiện ở trang chủ** — không có trang Tìm học bổng riêng. Link cũ `/scholarships?…` tự chuyển về `/?…`; trang chi tiết vẫn là `/scholarships/:id`.
 
 ## Git
 

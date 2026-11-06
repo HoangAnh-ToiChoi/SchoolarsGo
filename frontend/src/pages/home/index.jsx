@@ -1,22 +1,32 @@
 import { useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AdjustmentsHorizontalIcon } from '@heroicons/react/20/solid';
 import PageHeader from '~/components/common/page-header';
+import Pagination from '~/components/common/pagination';
 import Reveal from '~/components/common/reveal';
 import SlowLoading from '~/components/common/slow-loading';
 import ScholarshipCard from '~/components/scholarship/scholarship-card';
 import ScholarshipCardSkeleton from '~/components/scholarship/scholarship-card-skeleton';
+import { Button } from '~/components/ui/button';
 import { useScholarships } from '~/hooks/useScholarship';
+import { useScholarshipFilters } from '~/hooks/useScholarshipFilters';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { PAGE_SIZE } from '~/lib/constants';
 import { getScope } from '~/lib/scholarship';
+import { filterOpened } from '~/store/slices/uiSlice';
 import FilterBar from '~/pages/home/components/filter-bar';
 import ProfileProgressCard from '~/pages/home/components/profile-progress-card';
 import ScopeTabs from '~/pages/home/components/scope-tabs';
 import UpcomingDeadlinesCard from '~/pages/home/components/upcoming-deadlines-card';
 
-// Trang chủ: vào là thấy học bổng đang mở. Trang chỉ ghép component, không gọi API trực tiếp.
+// Trang chủ = trang tìm học bổng: vào là thấy học bổng đang mở; từ khóa và bộ lọc
+// nhập ở thanh tìm kiếm trên header, lưu trên URL (/?search=DAAD&degree=Master).
+// Trang chỉ ghép component, không gọi API trực tiếp.
 export default function HomePage() {
+  const dispatch = useDispatch();
   const [scope, setScope] = useState('all');
-  const [degree, setDegree] = useState();
-  const { data, isLoading, isError, refetch } = useScholarships({ degree, limit: 24 });
+  const { filters, page, activeCount, setPage } = useScholarshipFilters();
+  const { data, isLoading, isError, refetch } = useScholarships({ ...filters, page, limit: PAGE_SIZE });
   // Tải quá 5 giây thì hiện thêm thông báo đang tải; có dữ liệu thì tự tắt
   const isSlow = useSlowLoading(isLoading);
 
@@ -31,11 +41,33 @@ export default function HomePage() {
     <div className="flex flex-wrap items-start gap-6">
       <section className="flex min-w-0 flex-[999_1_560px] flex-col gap-5" aria-labelledby="home-title">
         <PageHeader
-          title={<span id="home-title">Học bổng đang mở</span>}
-          description={data?.meta ? `${data.meta.total} học bổng còn hạn` : 'Đang cập nhật…'}
-          actions={<ScopeTabs value={scope} onChange={setScope} />}
+          title={<span id="home-title">{activeCount > 0 ? 'Kết quả tìm kiếm' : 'Học bổng đang mở'}</span>}
+          description={
+            data?.meta
+              ? `${data.meta.total} học bổng còn hạn${filters.search ? ` cho “${filters.search}”` : ''}`
+              : 'Đang cập nhật…'
+          }
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => dispatch(filterOpened())}
+                className="h-control gap-2 rounded-inner border-line px-3 text-[13px] font-semibold shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600"
+              >
+                <AdjustmentsHorizontalIcon aria-hidden="true" />
+                Bộ lọc
+                {activeCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[11px] text-white">
+                    {activeCount}
+                  </span>
+                )}
+              </Button>
+              <ScopeTabs value={scope} onChange={setScope} />
+            </div>
+          }
         />
-        <FilterBar degree={degree} onDegreeChange={setDegree} />
+        <FilterBar />
         {isSlow && <SlowLoading />}
 
         {isError ? (
@@ -51,7 +83,7 @@ export default function HomePage() {
               ? Array.from({ length: 6 }, (_, i) => <ScholarshipCardSkeleton key={i} />)
               : scholarships.map((s, i) => (
                   // Chỉ chạy hiệu ứng khi đã có dữ liệu; key gồm scope để đổi tab thì thẻ trượt lên lại
-                  <Reveal key={`${scope}-${s.id}`} index={i} className="flex">
+                  <Reveal key={`${scope}-${page}-${s.id}`} index={i} className="flex">
                     <ScholarshipCard scholarship={s} />
                   </Reveal>
                 ))}
@@ -59,8 +91,18 @@ export default function HomePage() {
         )}
         {!isLoading && !isError && scholarships.length === 0 && (
           <p className="rounded-tile border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-muted">
-            Chưa có học bổng phù hợp bộ lọc.
+            Không có học bổng phù hợp. Thử bỏ bớt bộ lọc hoặc đổi từ khóa.
           </p>
+        )}
+        {data?.meta && (
+          <Pagination
+            page={data.meta.page ?? page}
+            totalPages={data.meta.totalPages ?? 1}
+            onChange={(next) => {
+              setPage(next);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
       </section>
 

@@ -71,7 +71,7 @@ const ScholarshipDetailPage = () => {
     return (
       <div className="min-h-screen bg-ink-950 py-16 text-center text-ink-100">
         <h2 className="mb-4 text-3xl font-bold">ID học bổng không hợp lệ</h2>
-        <Link to="/scholarships" className="text-primary-400 hover:text-primary-300 font-medium">← Quay lại danh sách</Link>
+        <Link to="/" className="text-primary-400 hover:text-primary-300 font-medium">← Quay lại danh sách</Link>
       </div>
     );
   }
@@ -86,7 +86,7 @@ const ScholarshipDetailPage = () => {
     return (
       <div className="min-h-screen bg-ink-950 py-16 text-center text-ink-100">
         <h2 className="mb-4 text-3xl font-bold">Không tìm thấy học bổng</h2>
-        <Link to="/scholarships" className="text-primary-400 hover:text-primary-300 font-medium">← Quay lại danh sách</Link>
+        <Link to="/" className="text-primary-400 hover:text-primary-300 font-medium">← Quay lại danh sách</Link>
       </div>
     );
   }
@@ -176,7 +176,7 @@ const ScholarshipDetailPage = () => {
         {/* Back link */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
           <Link
-            to="/scholarships"
+            to="/"
             className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-ink-400 transition hover:text-ink-100 bg-ink-900 px-4 py-2 rounded-full border border-ink-800 w-fit hover:border-ink-700"
           >
             <ArrowLeft className="h-4 w-4" />

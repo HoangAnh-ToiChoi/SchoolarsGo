@@ -193,7 +193,7 @@ const DashboardPage = () => {
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Button
                   fullWidth
-                  onClick={() => navigate('/scholarships')}
+                  onClick={() => navigate('/')}
                   className="justify-center"
                 >
                   Tìm học bổng mới
@@ -337,7 +337,7 @@ const DashboardPage = () => {
                   title="Chưa có dữ liệu"
                   description="Hoàn thiện profile và tạo ứng tuyển để xem thống kê chi tiết."
                   actionLabel="Tìm học bổng"
-                  actionTo="/scholarships"
+                  actionTo="/"
                 />
               </div>
             )}

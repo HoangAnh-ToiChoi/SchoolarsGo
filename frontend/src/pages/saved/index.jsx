@@ -37,7 +37,7 @@ const SavedPage = () => {
             <p className="text-ink-400 text-lg mb-8">
               Khám phá danh sách hàng ngàn học bổng toàn cầu và thả tim để lưu vào danh sách của bạn.
             </p>
-            <Link to="/scholarships" className="inline-flex items-center justify-center bg-primary-400 text-ink-950 px-8 py-3 rounded-full font-semibold hover:bg-primary-300 transition-colors">
+            <Link to="/" className="inline-flex items-center justify-center bg-primary-400 text-ink-950 px-8 py-3 rounded-full font-semibold hover:bg-primary-300 transition-colors">
               Tìm học bổng ngay
             </Link>
           </div>

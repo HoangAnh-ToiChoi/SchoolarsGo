@@ -4,7 +4,6 @@ import {
   CalendarDaysIcon,
   DocumentTextIcon,
   HomeIcon,
-  MagnifyingGlassIcon,
   SparklesIcon,
 } from '@heroicons/react/24/solid';
 
@@ -14,7 +13,6 @@ export const NAV_SECTIONS = [
     title: 'Khám phá',
     items: [
       { to: '/', label: 'Trang chủ', icon: HomeIcon },
-      { to: '/scholarships', label: 'Tìm học bổng', icon: MagnifyingGlassIcon },
       { to: '/recommend', label: 'Gợi ý cho bạn', icon: SparklesIcon, badge: 'AI' },
     ],
   },

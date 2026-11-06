@@ -45,14 +45,14 @@ const ComparisonPage = () => {
     return (
       <div className="container-page py-16 text-center bg-ink-950 min-h-screen">
         <p className="text-body text-ink-400 mb-4">Cần ít nhất 2 học bổng để so sánh</p>
-        <Link to="/scholarships" className="btn-primary">Chọn học bổng</Link>
+        <Link to="/" className="btn-primary">Chọn học bổng</Link>
       </div>
     );
   }
 
   return (
     <div className="container-page py-8 bg-ink-950 min-h-screen">
-      <Link to="/scholarships" className="inline-flex items-center gap-1 text-ink-500 hover:text-ink-100 font-medium mb-6">
+      <Link to="/" className="inline-flex items-center gap-1 text-ink-500 hover:text-ink-100 font-medium mb-6">
         <ArrowLeft className="w-4 h-4" />Quay lại
       </Link>
 

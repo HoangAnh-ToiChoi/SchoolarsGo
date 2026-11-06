@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import AppLayout from '~/components/layout/app-layout';
 import ProtectedRoute from '~/components/common/ProtectedRoute';
@@ -7,7 +7,6 @@ import { selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
 
 // Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu
 const HomePage = lazy(() => import('~/pages/home'));
-const ScholarshipsPage = lazy(() => import('~/pages/scholarships'));
 const ScholarshipDetailPage = lazy(() => import('~/pages/scholarship-detail'));
 const LoginPage = lazy(() => import('~/pages/login'));
 const RegisterPage = lazy(() => import('~/pages/register'));
@@ -44,6 +43,12 @@ function PageLoader() {
   );
 }
 
+// Link cũ /scholarships?search=… chuyển về trang chủ, giữ nguyên từ khóa và bộ lọc
+function LegacySearchRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: '/', search }} replace />;
+}
+
 const guard = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 
 export default function App() {
@@ -58,7 +63,7 @@ export default function App() {
 
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="scholarships" element={<ScholarshipsPage />} />
+          <Route path="scholarships" element={<LegacySearchRedirect />} />
           <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />
           <Route path="saved" element={<SavedPage />} />
           <Route path="compare" element={<ComparePage />} />

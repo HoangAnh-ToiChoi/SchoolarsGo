@@ -53,7 +53,7 @@ const ApplicationsPage = () => {
       <div className="container-page pt-10 mb-12">
         <div className="text-center mb-12 relative">
           <div className="absolute right-0 top-0 hidden md:block">
-            <Link to="/scholarships" className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-800 border border-ink-800 text-ink-200 px-5 py-2.5 rounded-full font-medium transition-all">
+            <Link to="/" className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-800 border border-ink-800 text-ink-200 px-5 py-2.5 rounded-full font-medium transition-all">
               <BookOpen className="w-4 h-4" />Tìm học bổng
             </Link>
           </div>
@@ -95,7 +95,7 @@ const ApplicationsPage = () => {
               Bắt đầu tìm kiếm và ứng tuyển học bổng ngay hôm nay.
             </p>
             <Link
-              to="/scholarships"
+              to="/"
               className="inline-flex items-center gap-2 bg-primary-400 text-ink-950 px-8 py-3 rounded-full font-semibold hover:bg-primary-300 transition-colors"
             >
               Tìm học bổng để ứng tuyển

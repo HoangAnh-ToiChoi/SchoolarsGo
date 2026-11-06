@@ -13,7 +13,7 @@ export { default as ActiveFilters } from '~/components/scholarship-filter/active
 // Thanh tìm kiếm duy nhất của hệ thống (đặt trên header) + bảng bộ lọc xổ xuống.
 // - Bấm vào ô tìm kiếm → mở bảng bộ lọc; bình thường bảng bị ẩn (display: none)
 // - Esc, bấm ra ngoài hoặc chuyển trang → đóng
-// - Nhấn Enter hoặc "Tìm học bổng" → áp dụng từ khóa + bộ lọc, chuyển sang trang Tìm học bổng
+// - Nhấn Enter hoặc "Tìm học bổng" → áp dụng từ khóa + bộ lọc, kết quả hiện ở trang chủ
 export default function ScholarshipFilter() {
   const dispatch = useDispatch();
   const isOpen = useSelector(selectIsFilterOpen);

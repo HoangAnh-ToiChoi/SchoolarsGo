@@ -2,7 +2,7 @@ import { XMarkIcon } from '@heroicons/react/16/solid';
 import { getFilterLabel } from '~/components/scholarship-filter/constants';
 import { useScholarshipFilters } from '~/hooks/useScholarshipFilters';
 
-// Hàng nhãn bộ lọc đang bật trên trang Tìm học bổng. Mỗi nhãn bỏ riêng được.
+// Hàng nhãn bộ lọc đang bật trên trang chủ. Mỗi nhãn bỏ riêng được.
 export default function ActiveFilters() {
   const { filters, removeFilter, clearAll } = useScholarshipFilters();
   const entries = Object.entries(filters);
