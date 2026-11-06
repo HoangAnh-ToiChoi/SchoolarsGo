@@ -3,8 +3,11 @@ import { NAV_SECTIONS } from '~/components/layout/navConfig';
 import { cn } from '~/lib/utils';
 
 export default function AppSidebar() {
+  // sticky: sidebar đứng yên khi cuộn nội dung, cao bằng màn hình trừ header 64px
   return (
-    <nav aria-label="Điều hướng chính" className="w-sidebar shrink-0 border-r border-line bg-surface px-3 py-5">
+    <nav
+      aria-label="Điều hướng chính"
+      className="sticky top-16 h-[calc(100vh-64px)] w-sidebar shrink-0 self-start overflow-y-auto border-r border-line bg-surface px-3 py-5">
       {NAV_SECTIONS.map((section) => (
         <div key={section.title} className="mb-5 flex flex-col gap-0.5">
           <span className="px-3 pb-2 text-xs font-semibold text-fg-muted">{section.title}</span>

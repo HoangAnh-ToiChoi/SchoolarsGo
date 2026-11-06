@@ -3,7 +3,11 @@ import { DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/lib/demo/demoData';
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
 const savedIds = new Set(['d3']);
 
-const ok = (config, data) => Promise.resolve({ data, status: 200, statusText: 'OK', headers: {}, config });
+// Giả lập độ trễ mạng. Thêm ?demoDelay=7000 vào URL để xem trạng thái tải chậm (> 5 giây).
+const DELAY_MS = Number(new URLSearchParams(window.location.search).get('demoDelay')) || 600;
+const wait = () => new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+
+const ok = (config, data) => wait().then(() => ({ data, status: 200, statusText: 'OK', headers: {}, config }));
 const fail = (config, message) =>
   Promise.reject(Object.assign(new Error(message), { config, response: { status: 503, data: { message } } }));
 

@@ -16,7 +16,7 @@ export default function ScholarshipCard({ scholarship }) {
   const scope = getScope(scholarship);
 
   return (
-    <Card className="group flex flex-col overflow-hidden rounded-tile border-line shadow-tile transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[3px] hover:border-brand-200 hover:shadow-tile-hover">
+    <Card className="group flex w-full flex-col overflow-hidden rounded-tile border-line shadow-tile transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[3px] hover:border-brand-200 hover:shadow-tile-hover">
       <div className="flex items-center gap-1.5 px-5 pt-[18px]">
         <DeadlineBadge deadline={deadline} />
         <Badge variant={scope === 'domestic' ? 'domestic' : 'abroad'}>{SCOPE_LABELS[scope]}</Badge>

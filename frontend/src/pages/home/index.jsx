@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
 import PageHeader from '~/components/common/PageHeader';
+import Reveal from '~/components/common/Reveal';
+import SlowLoading from '~/components/common/SlowLoading';
 import ScholarshipCard from '~/components/scholarship/ScholarshipCard';
 import ScholarshipCardSkeleton from '~/components/scholarship/ScholarshipCardSkeleton';
 import { useScholarships } from '~/hooks/useScholarship';
+import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { getScope } from '~/lib/scholarship';
 import FilterBar from '~/pages/home/components/FilterBar';
 import ProfileProgressCard from '~/pages/home/components/ProfileProgressCard';
@@ -14,6 +17,8 @@ export default function HomePage() {
   const [scope, setScope] = useState('all');
   const [degree, setDegree] = useState();
   const { data, isLoading, isError, refetch } = useScholarships({ degree, limit: 24 });
+  // Tải quá 5 giây thì hiện thêm thông báo đang tải; có dữ liệu thì tự tắt
+  const isSlow = useSlowLoading(isLoading);
 
   const all = useMemo(() => data?.data ?? [], [data]);
   // DB chưa có cột scope nên lọc Du học / Trong nước ở frontend
@@ -31,6 +36,7 @@ export default function HomePage() {
           actions={<ScopeTabs value={scope} onChange={setScope} />}
         />
         <FilterBar degree={degree} onDegreeChange={setDegree} />
+        {isSlow && <SlowLoading />}
 
         {isError ? (
           <div className="rounded-tile border border-line bg-surface p-8 text-center">
@@ -43,7 +49,12 @@ export default function HomePage() {
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
             {isLoading
               ? Array.from({ length: 6 }, (_, i) => <ScholarshipCardSkeleton key={i} />)
-              : scholarships.map((s) => <ScholarshipCard key={s.id} scholarship={s} />)}
+              : scholarships.map((s, i) => (
+                  // Chỉ chạy hiệu ứng khi đã có dữ liệu; key gồm scope để đổi tab thì thẻ trượt lên lại
+                  <Reveal key={`${scope}-${s.id}`} index={i} className="flex">
+                    <ScholarshipCard scholarship={s} />
+                  </Reveal>
+                ))}
           </div>
         )}
         {!isLoading && !isError && scholarships.length === 0 && (
@@ -54,8 +65,14 @@ export default function HomePage() {
       </section>
 
       <aside className="flex max-w-full flex-[1_1_288px] flex-col gap-4" aria-label="Thông tin nhanh">
-        <ProfileProgressCard />
-        <UpcomingDeadlinesCard scholarships={all} />
+        <Reveal index={1}>
+          <ProfileProgressCard />
+        </Reveal>
+        {!isLoading && (
+          <Reveal index={3}>
+            <UpcomingDeadlinesCard scholarships={all} />
+          </Reveal>
+        )}
       </aside>
     </div>
   );
