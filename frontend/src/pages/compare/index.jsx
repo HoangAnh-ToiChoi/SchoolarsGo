@@ -43,15 +43,15 @@ const ComparisonPage = () => {
 
   if (scholarships.length < 2) {
     return (
-      <div className="container-page py-16 text-center bg-ink-950 min-h-screen">
+      <div className="containerPage py-16 text-center bg-ink-950 min-h-screen">
         <p className="text-body text-ink-400 mb-4">Cần ít nhất 2 học bổng để so sánh</p>
-        <Link to="/" className="btn-primary">Chọn học bổng</Link>
+        <Link to="/" className="btnPrimary">Chọn học bổng</Link>
       </div>
     );
   }
 
   return (
-    <div className="container-page py-8 bg-ink-950 min-h-screen">
+    <div className="containerPage py-8 bg-ink-950 min-h-screen">
       <Link to="/" className="inline-flex items-center gap-1 text-ink-500 hover:text-ink-100 font-medium mb-6">
         <ArrowLeft className="w-4 h-4" />Quay lại
       </Link>
@@ -94,7 +94,7 @@ const ComparisonPage = () => {
                 {scholarships.map((s, i) => (
                   <td key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-400/8' : ''}`}>
                     {s.application_url
-                      ? <a href={safeUrl(s.application_url)} target="_blank" rel="noopener noreferrer" className="btn-primary btn-sm">Nộp đơn</a>
+                      ? <a href={safeUrl(s.application_url)} target="_blank" rel="noopener noreferrer" className="btnPrimary btnSm">Nộp đơn</a>
                       : <span className="text-ink-700 text-body-sm">—</span>}
                   </td>
                 ))}

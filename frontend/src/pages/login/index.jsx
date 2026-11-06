@@ -45,7 +45,7 @@ const LoginPage = () => {
                 required
               />
               <div className="mt-1.5 text-right">
-                <Link to="/forgot-password" className="text-xs text-ink-500 hover:text-primary-400 transition-colors">
+                <Link to="/forgotPassword" className="text-xs text-ink-500 hover:text-primary-400 transition-colors">
                   Quên mật khẩu?
                 </Link>
               </div>

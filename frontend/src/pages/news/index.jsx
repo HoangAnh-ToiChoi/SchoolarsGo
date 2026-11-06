@@ -76,7 +76,7 @@ const NewsPage = () => {
         icon={Newspaper}
       />
 
-      <div className="container-page py-8">
+      <div className="containerPage py-8">
         {/* Filter tabs */}
         <div className="mb-8 flex flex-wrap gap-2">
           {CATEGORIES.map((cat) => (

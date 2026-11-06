@@ -121,7 +121,7 @@ const DeadlineTrackerPage = () => {
   return (
     <div className="min-h-screen bg-ink-950 pb-16">
       <div className="bg-ink-950 border-b border-ink-800 py-10">
-        <div className="container-page">
+        <div className="containerPage">
           <div className="inline-flex items-center gap-2 rounded-full border border-ink-800 bg-ink-900 px-4 py-1.5 text-sm text-ink-300 mb-5">
             <Sparkles className="w-4 h-4 text-primary-400" />
             <span>Lịch trình của bạn</span>
@@ -133,7 +133,7 @@ const DeadlineTrackerPage = () => {
         </div>
       </div>
 
-      <div className="container-page py-10">
+      <div className="containerPage py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Calendar */}
           <div className="lg:col-span-2">

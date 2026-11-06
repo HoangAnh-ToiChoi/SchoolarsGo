@@ -1,7 +1,7 @@
 const PageHeader = ({ title, description, actions, icon: Icon }) => {
   return (
     <div className="bg-ink-950 border-b border-ink-800 py-10">
-      <div className="container-page">
+      <div className="containerPage">
         <div className="flex items-start justify-between gap-4">
           <div>
             {Icon && (

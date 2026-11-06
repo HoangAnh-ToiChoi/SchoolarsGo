@@ -39,15 +39,15 @@ router.post('/logout', authController.logout);
 router.post('/refresh', auth, authController.refresh);
 
 /**
- * POST /api/auth/forgot-password
+ * POST /api/auth/forgotPassword
  * @desc Send password reset email
  */
-router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/forgotPassword', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 
 /**
- * POST /api/auth/reset-password
+ * POST /api/auth/resetPassword
  * @desc Reset password with token
  */
-router.post('/reset-password', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
+router.post('/resetPassword', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
 module.exports = router;

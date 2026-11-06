@@ -55,13 +55,13 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="modal-header">
-          <h2 className="modal-title">
+    <div className="modalOverlay">
+      <div className="modalContent max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="modalHeader">
+          <h2 className="modalTitle">
             {isEdit ? 'Chỉnh sửa học bổng' : 'Thêm học bổng mới'}
           </h2>
-          <button onClick={onClose} className="btn-ghost p-1.5">
+          <button onClick={onClose} className="btnGhost p-1.5">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -69,45 +69,45 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="input-label">Tên học bổng *</label>
+              <label className="inputLabel">Tên học bổng *</label>
               <input required value={form.title} onChange={(e) => set('title', e.target.value)} className="input" placeholder="Tên học bổng" />
             </div>
             <div>
-              <label className="input-label">Tổ chức cấp *</label>
+              <label className="inputLabel">Tổ chức cấp *</label>
               <input required value={form.provider} onChange={(e) => set('provider', e.target.value)} className="input" placeholder="Tên tổ chức" />
             </div>
             <div>
-              <label className="input-label">Quốc gia *</label>
+              <label className="inputLabel">Quốc gia *</label>
               <input required value={form.country} onChange={(e) => set('country', e.target.value)} className="input" placeholder="UK, USA..." />
             </div>
             <div>
-              <label className="input-label">Bậc học</label>
+              <label className="inputLabel">Bậc học</label>
               <select value={form.degree} onChange={(e) => set('degree', e.target.value)} className="input">
                 <option value="">Chọn bậc học</option>
                 {DEGREES.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="input-label">Ngôn ngữ</label>
+              <label className="inputLabel">Ngôn ngữ</label>
               <input value={form.language} onChange={(e) => set('language', e.target.value)} className="input" placeholder="English, Korean..." />
             </div>
             <div>
-              <label className="input-label">Hình thức</label>
+              <label className="inputLabel">Hình thức</label>
               <select value={form.coverage} onChange={(e) => set('coverage', e.target.value)} className="input">
                 <option value="">Chọn hình thức</option>
                 {COVERAGES.map((c) => <option key={c} value={c}>{c === 'Full' ? 'Toàn phần' : 'Bán phần'}</option>)}
               </select>
             </div>
             <div>
-              <label className="input-label">Giá trị (USD)</label>
+              <label className="inputLabel">Giá trị (USD)</label>
               <input type="number" min="0" value={form.amount} onChange={(e) => set('amount', e.target.value)} className="input" placeholder="10000" />
             </div>
             <div>
-              <label className="input-label">Hạn nộp</label>
+              <label className="inputLabel">Hạn nộp</label>
               <input type="date" value={form.deadline} onChange={(e) => set('deadline', e.target.value)} className="input" />
             </div>
             <div className="sm:col-span-2">
-              <label className="input-label">Mô tả</label>
+              <label className="inputLabel">Mô tả</label>
               <textarea
                 rows={3}
                 value={form.description}
@@ -117,7 +117,7 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="input-label">Yêu cầu</label>
+              <label className="inputLabel">Yêu cầu</label>
               <textarea
                 rows={3}
                 value={form.requirements}
@@ -129,8 +129,8 @@ const ScholarshipModal = ({ scholarship, onClose, onSave, isSaving }) => {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn-secondary">Hủy</button>
-            <button type="submit" disabled={isSaving} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="button" onClick={onClose} className="btnSecondary">Hủy</button>
+            <button type="submit" disabled={isSaving} className="btnPrimary disabled:opacity-50 disabled:cursor-not-allowed">
               {isSaving ? 'Đang lưu...' : isEdit ? 'Lưu thay đổi' : 'Thêm học bổng'}
             </button>
           </div>
@@ -180,7 +180,7 @@ const AdminScholarshipsPage = () => {
         </div>
         <button
           onClick={() => setModal({ mode: 'create' })}
-          className="btn-primary"
+          className="btnPrimary"
         >
           <Plus className="w-4 h-4" />
           Thêm học bổng

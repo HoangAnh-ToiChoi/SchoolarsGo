@@ -150,7 +150,7 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-ink-950 pb-24">
-      <div className="container-page pt-8">
+      <div className="containerPage pt-8">
         {/* Tab bar */}
         <div className="flex border-b border-ink-800 mb-6">
           <TabButton id="overview" label="Tổng quan" active={activeTab === 'overview'} onClick={setActiveTab} />
@@ -346,7 +346,7 @@ const DashboardPage = () => {
       )}
       </div>
 
-      {/* Profile tab — full width, own container-narrow inside */}
+      {/* Profile tab — full width, own containerNarrow inside */}
       {activeTab === 'profile' && <ProfilePage embedded />}
     </div>
   );

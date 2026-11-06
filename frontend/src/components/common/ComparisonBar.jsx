@@ -13,7 +13,7 @@ const ComparisonBar = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-ink-950/95 backdrop-blur-md border-t border-ink-800 animate-slide-up">
-      <div className="container-page py-3 flex items-center gap-4">
+      <div className="containerPage py-3 flex items-center gap-4">
         <GitCompare className="w-5 h-5 text-primary-400 shrink-0" />
         <div className="flex flex-1 items-center gap-3 overflow-x-auto">
           {items.map((s) => (
@@ -34,7 +34,7 @@ const ComparisonBar = () => {
           {items.length >= 2 && (
             <Link
               to={`/compare?ids=${items.map((s) => s.id).join(',')}`}
-              className="btn-primary btn-sm"
+              className="btnPrimary btnSm"
             >
               So sánh ({items.length})
             </Link>

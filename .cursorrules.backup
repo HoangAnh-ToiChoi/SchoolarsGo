@@ -107,28 +107,28 @@ NEVER do autonomously:
 ## Cấu trúc thư mục docs/:
   docs/
   ├── MEMORY.md            ← INDEX — đọc CÁI NÀY TRƯỚC TIÊN mỗi khi mở chat mới
-  ├── MEMORY-schema.md     ← Database schema toàn bộ tables
-  ├── MEMORY-api.md        ← API contracts tất cả endpoints
-  ├── MEMORY-features.md   ← Luồng nghiệp vụ, data flow, thuật toán
-  └── MEMORY-devlog.md     ← Bug đã fix, quyết định kỹ thuật, tech debt
+  ├── memorySchema.md     ← Database schema toàn bộ tables
+  ├── memoryApi.md        ← API contracts tất cả endpoints
+  ├── memoryFeatures.md   ← Luồng nghiệp vụ, data flow, thuật toán
+  └── memoryDevlog.md     ← Bug đã fix, quyết định kỹ thuật, tech debt
 
 ## Quy tắc ĐỌC — đầu mỗi chat session:
 1. LUÔN đọc `docs/MEMORY.md` trước khi làm bất cứ điều gì
 2. Đọc thêm file liên quan đến task:
-   - Task liên quan DB     → đọc thêm MEMORY-schema.md
-   - Task viết/gọi API    → đọc thêm MEMORY-api.md
-   - Task logic nghiệp vụ → đọc thêm MEMORY-features.md
-   - Debug / review       → đọc thêm MEMORY-devlog.md
+   - Task liên quan DB     → đọc thêm memorySchema.md
+   - Task viết/gọi API    → đọc thêm memoryApi.md
+   - Task logic nghiệp vụ → đọc thêm memoryFeatures.md
+   - Debug / review       → đọc thêm memoryDevlog.md
 
 ## Quy tắc GHI — sau khi hoàn thành task:
 - MEMORY.md         ← cập nhật status feature, task đang làm
-- MEMORY-schema.md  ← cập nhật khi tạo/sửa table, thêm index
-- MEMORY-api.md     ← cập nhật status endpoint, thêm ví dụ response thực tế
-- MEMORY-features.md ← ghi DRAFT luồng nghiệp vụ sau khi xong feature
-- MEMORY-devlog.md  ← ghi bug quan trọng đã fix, quyết định kỹ thuật
+- memorySchema.md  ← cập nhật khi tạo/sửa table, thêm index
+- memoryApi.md     ← cập nhật status endpoint, thêm ví dụ response thực tế
+- memoryFeatures.md ← ghi DRAFT luồng nghiệp vụ sau khi xong feature
+- memoryDevlog.md  ← ghi bug quan trọng đã fix, quyết định kỹ thuật
 
 ## Quy tắc GHI LUỒNG NGHIỆP VỤ (quan trọng cho thuyết trình):
-Sau khi xong mỗi feature, ghi vào MEMORY-features.md theo format:
+Sau khi xong mỗi feature, ghi vào memoryFeatures.md theo format:
   1. Mô tả ngắn gọn feature làm gì
   2. Data flow đầy đủ: FE → API call → BE xử lý → DB query → trả về FE
   3. Thuật toán hoặc logic đặc biệt (nếu có)
@@ -136,11 +136,11 @@ Sau khi xong mỗi feature, ghi vào MEMORY-features.md theo format:
   5. Security considerations
 
 Cuối dự án (khi P0 features hoàn chỉnh): tổng hợp lại toàn bộ thành sơ đồ
-tổng quan hệ thống trong phần "TỔNG HỢP CUỐI DỰ ÁN" của MEMORY-features.md.
+tổng quan hệ thống trong phần "TỔNG HỢP CUỐI DỰ ÁN" của memoryFeatures.md.
 
 ## Quy tắc TÁCH FILE khi file quá lớn (> 300 dòng):
   - Tách phần nội dung cũ/hoàn chỉnh nhất sang file archive
-  - Đặt tên: MEMORY-api-archive-v1.md, MEMORY-schema-archive-v1.md...
+  - Đặt tên: memoryApiArchiveV1.md, memorySchemaArchiveV1.md...
   - Giữ file chính chỉ chứa thông tin hiện tại và active
   - Cập nhật bảng cấu trúc trong MEMORY.md để list file archive mới
 
@@ -312,7 +312,7 @@ ONLY USE: PostgreSQL qua Supabase SDK hoặc parameterized queries
 - Validate data trước khi insert/update
 - Dùng transaction cho operations trên nhiều tables
 - Thêm indexes cho cột dùng trong WHERE/JOIN thường xuyên
-- Ghi lại schema sau mỗi migration vào MEMORY-schema.md
+- Ghi lại schema sau mỗi migration vào memorySchema.md
 
 ## 4.5 Tech Stack Lock (STRICTLY ENFORCED)
 | Layer       | Công nghệ                    | Thư mục  |
@@ -361,7 +361,7 @@ KHÔNG thêm framework, library, hoặc ngôn ngữ mới nếu chưa được c
 Ví dụ:
   feat: add scholarship search filter by country and GPA
   fix: resolve JWT token not refreshing on page reload
-  docs: update MEMORY-api.md with applications endpoints
+  docs: update memoryApi.md with applications endpoints
 
 ## Quy tắc:
 - KHÔNG commit thẳng vào main

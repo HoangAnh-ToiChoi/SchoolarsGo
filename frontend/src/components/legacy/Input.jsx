@@ -6,7 +6,7 @@ const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, classNa
   return (
     <div className={wrapperClassName}>
       {label && (
-        <label htmlFor={inputId} className="input-label">
+        <label htmlFor={inputId} className="inputLabel">
           {label}
         </label>
       )}
@@ -16,7 +16,7 @@ const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, classNa
         )}
         <input
           id={inputId}
-          className={cn(Icon ? 'input-with-icon' : 'input', error && 'border-danger-500 focus:ring-danger-500', className)}
+          className={cn(Icon ? 'inputWithIcon' : 'input', error && 'border-danger-500 focus:ring-danger-500', className)}
           {...props}
         />
       </div>

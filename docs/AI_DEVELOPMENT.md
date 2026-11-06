@@ -371,7 +371,7 @@ const model = client.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 **Hiện tượng:** Gọi API recommend → trả về array rỗng.  
 **Nguyên nhân:** Country data trong DB bị corrupt (chứa full scholarship title thay vì tên nước) → `profile.target_country.toLowerCase() === scholarship.country.toLowerCase()` → không bao giờ match.  
-**Fix:** Viết script `fix-country-data.js` để audit và fix 149 entries.
+**Fix:** Viết script `fixCountryData.js` để audit và fix 149 entries.
 
 ---
 

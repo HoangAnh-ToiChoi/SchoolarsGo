@@ -31,13 +31,13 @@
   --color-primary-300: color-mix(in srgb, rgb(var(--c-primary)) 85%, white);
 }
 
-[data-theme="light"] .text-gradient-cyan {
+[data-theme="light"] .textGradientCyan {
   background-image: none;
   color: rgb(var(--c-primary));
   -webkit-text-fill-color: rgb(var(--c-primary));
 }
 
-[data-theme="light"] .glow-text {
+[data-theme="light"] .glowText {
   text-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 25%, transparent);
 }
 
@@ -73,8 +73,8 @@
 @layer components {
 
   /* Layout */
-  .container-page   { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
-  .container-narrow { @apply mx-auto max-w-3xl px-4 sm:px-6; }
+  .containerPage   { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .containerNarrow { @apply mx-auto max-w-3xl px-4 sm:px-6; }
 
   /* ── Cards ── */
   .card {
@@ -82,33 +82,33 @@
     border-radius: 0.75rem;
     border: 1px solid var(--color-ink-800);
   }
-  .card-hover {
+  .cardHover {
     background-color: var(--color-ink-900);
     border-radius: 0.75rem;
     border: 1px solid var(--color-ink-800);
     transition: all 0.3s ease;
   }
-  .card-hover:hover {
+  .cardHover:hover {
     border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
-  .card-glow {
+  .cardGlow {
     background-color: var(--color-ink-900);
     border-radius: 0.75rem;
     border: 1px solid var(--color-ink-800);
     transition: all 0.3s ease;
   }
-  .card-glow:hover {
+  .cardGlow:hover {
     border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
     transform: translateY(-4px);
     box-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
   }
-  .card-body    { @apply p-6; }
-  .card-header  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
-  .card-title   { font-size: 1rem; font-weight: 600; color: var(--color-ink-100); }
-  .card-description { font-size: 0.875rem; color: var(--color-ink-400); margin-top: 0.25rem; }
-  .card-footer  { padding: 1.5rem; border-top: 1px solid var(--color-ink-800); }
+  .cardBody    { @apply p-6; }
+  .cardHeader  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
+  .cardTitle   { font-size: 1rem; font-weight: 600; color: var(--color-ink-100); }
+  .cardDescription { font-size: 0.875rem; color: var(--color-ink-400); margin-top: 0.25rem; }
+  .cardFooter  { padding: 1.5rem; border-top: 1px solid var(--color-ink-800); }
 
   /* ── Buttons ── */
   .btn {
@@ -116,42 +116,42 @@
            transition-all duration-200 cursor-pointer
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
-  .btn-primary {
+  .btnPrimary {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
     background-color: var(--color-primary-400);
     color: var(--color-ink-950);
   }
-  .btn-primary:hover {
+  .btnPrimary:hover {
     background-color: var(--color-primary-300);
     box-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 35%, transparent);
   }
-  .btn-secondary {
+  .btnSecondary {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
     background-color: var(--color-ink-800);
     color: var(--color-ink-200);
     border: 1px solid var(--color-ink-700);
   }
-  .btn-secondary:hover {
+  .btnSecondary:hover {
     border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
     color: var(--color-primary-400);
   }
-  .btn-ghost {
+  .btnGhost {
     @apply btn px-3 py-2 rounded-button;
     color: var(--color-ink-400);
   }
-  .btn-ghost:hover {
+  .btnGhost:hover {
     color: var(--color-ink-100);
     background-color: var(--color-ink-800);
   }
-  .btn-danger {
+  .btnDanger {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
     background-color: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent);
     color: rgb(var(--c-danger));
     border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent);
   }
-  .btn-danger:hover { background-color: color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
-  .btn-sm { @apply text-sm px-3.5 py-1.5; }
-  .btn-lg { @apply text-lg px-7 py-3.5; }
+  .btnDanger:hover { background-color: color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
+  .btnSm { @apply text-sm px-3.5 py-1.5; }
+  .btnLg { @apply text-lg px-7 py-3.5; }
 
   /* ── Inputs ── */
   .input {
@@ -166,17 +166,17 @@
     box-shadow: 0 0 0 3px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent);
     border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
   }
-  .input-with-icon { @apply input pl-11; }
-  .input-label { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
-  .input-error  { @apply text-xs mt-1; color: rgb(var(--c-danger)); }
+  .inputWithIcon { @apply input pl-11; }
+  .inputLabel { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
+  .inputError  { @apply text-xs mt-1; color: rgb(var(--c-danger)); }
 
   /* ── Badges ── */
   .badge { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-badge; }
-  .badge-primary { @apply badge; background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent); color: var(--color-primary-300); border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent); }
-  .badge-success { @apply badge; background: color-mix(in srgb, rgb(var(--c-success)) 10%, transparent); color: rgb(var(--c-success)); border: 1px solid color-mix(in srgb, rgb(var(--c-success)) 20%, transparent); }
-  .badge-warning { @apply badge; background: color-mix(in srgb, rgb(var(--c-warning)) 10%, transparent); color: rgb(var(--c-warning)); border: 1px solid color-mix(in srgb, rgb(var(--c-warning)) 20%, transparent); }
-  .badge-danger  { @apply badge; background: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent); color: rgb(var(--c-danger)); border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
-  .badge-default { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
+  .badgePrimary { @apply badge; background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent); color: var(--color-primary-300); border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent); }
+  .badgeSuccess { @apply badge; background: color-mix(in srgb, rgb(var(--c-success)) 10%, transparent); color: rgb(var(--c-success)); border: 1px solid color-mix(in srgb, rgb(var(--c-success)) 20%, transparent); }
+  .badgeWarning { @apply badge; background: color-mix(in srgb, rgb(var(--c-warning)) 10%, transparent); color: rgb(var(--c-warning)); border: 1px solid color-mix(in srgb, rgb(var(--c-warning)) 20%, transparent); }
+  .badgeDanger  { @apply badge; background: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent); color: rgb(var(--c-danger)); border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
+  .badgeDefault { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
 
   /* ── Tags ── */
   .tag {
@@ -185,7 +185,7 @@
     color: var(--color-ink-400);
     border: 1px solid var(--color-ink-700);
   }
-  .tag-primary {
+  .tagPrimary {
     @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
     background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent);
     color: var(--color-primary-300);
@@ -193,39 +193,39 @@
   }
 
   /* ── Empty state ── */
-  .empty-state { @apply flex flex-col items-center justify-center text-center py-16 px-4; }
-  .empty-state-icon { @apply w-14 h-14 mb-5; color: var(--color-ink-700); }
-  .empty-state h3 { @apply text-lg font-semibold mb-2; color: var(--color-ink-200); }
-  .empty-state p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: var(--color-ink-500); }
+  .emptyState { @apply flex flex-col items-center justify-center text-center py-16 px-4; }
+  .emptyStateIcon { @apply w-14 h-14 mb-5; color: var(--color-ink-700); }
+  .emptyState h3 { @apply text-lg font-semibold mb-2; color: var(--color-ink-200); }
+  .emptyState p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: var(--color-ink-500); }
 
   /* ── Page header ── */
-  .page-header { @apply mb-8; }
-  .page-title  { @apply text-2xl font-bold; color: var(--color-ink-100); }
+  .pageHeader { @apply mb-8; }
+  .pageTitle  { @apply text-2xl font-bold; color: var(--color-ink-100); }
 
   /* ── Modal ── */
-  .modal-overlay {
+  .modalOverlay {
     @apply fixed inset-0 z-50 flex items-center justify-center p-4;
     background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
   }
-  .modal-content {
+  .modalContent {
     @apply relative w-full max-w-lg rounded-card animate-fade-in;
     background-color: var(--color-ink-900);
     border: 1px solid var(--color-ink-800);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   }
-  .modal-header {
+  .modalHeader {
     @apply flex items-start justify-between gap-4 p-6;
     border-bottom: 1px solid var(--color-ink-800);
   }
-  .modal-title { @apply text-lg font-semibold; color: var(--color-ink-100); }
-  .modal-description { @apply text-sm mt-1; color: var(--color-ink-500); }
+  .modalTitle { @apply text-lg font-semibold; color: var(--color-ink-100); }
+  .modalDescription { @apply text-sm mt-1; color: var(--color-ink-500); }
 
   /* ── Divider ── */
   .divider { border-top: 1px solid var(--color-ink-800); }
 
   /* ── Grid pattern overlay ── */
-  .bg-grid {
+  .bgGrid {
     background-image:
       linear-gradient(color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px),
       linear-gradient(90deg, color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px);
@@ -240,13 +240,13 @@
 
 /* ── Utilities ───────────────────────────────────── */
 @layer utilities {
-  .text-gradient-cyan {
+  .textGradientCyan {
     background-image: linear-gradient(135deg, color-mix(in srgb, rgb(var(--c-primary)) 70%, white), rgb(var(--c-primary)), color-mix(in srgb, rgb(var(--c-primary)) 80%, black));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .glow-text {
+  .glowText {
     text-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
   }
 }

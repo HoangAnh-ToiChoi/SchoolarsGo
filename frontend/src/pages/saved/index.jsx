@@ -12,7 +12,7 @@ const SavedPage = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
-      <div className="container-page pt-10 mb-12">
+      <div className="containerPage pt-10 mb-12">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-ink-800 bg-ink-900 px-4 py-1.5 text-sm text-ink-300 mb-5">
             <Heart className="w-4 h-4 text-primary-400" />

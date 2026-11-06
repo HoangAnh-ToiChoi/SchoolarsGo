@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/20/solid';
-import PageHeader from '~/components/common/page-header';
+import PageHeader from '~/components/common/pageHeader';
 import Pagination from '~/components/common/pagination';
 import Reveal from '~/components/common/reveal';
-import SlowLoading from '~/components/common/slow-loading';
-import ScholarshipCard from '~/components/scholarship/scholarship-card';
-import ScholarshipCardSkeleton from '~/components/scholarship/scholarship-card-skeleton';
+import SlowLoading from '~/components/common/slowLoading';
+import ScholarshipCard from '~/components/scholarship/scholarshipCard';
+import ScholarshipCardSkeleton from '~/components/scholarship/scholarshipCardSkeleton';
 import { Button } from '~/components/ui/button';
 import { useScholarships } from '~/hooks/useScholarship';
 import { useScholarshipFilters } from '~/hooks/useScholarshipFilters';
@@ -14,10 +14,10 @@ import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { PAGE_SIZE } from '~/lib/constants';
 import { getScope } from '~/lib/scholarship';
 import { filterOpened } from '~/store/slices/uiSlice';
-import FilterBar from '~/pages/home/components/filter-bar';
-import ProfileProgressCard from '~/pages/home/components/profile-progress-card';
-import ScopeTabs from '~/pages/home/components/scope-tabs';
-import UpcomingDeadlinesCard from '~/pages/home/components/upcoming-deadlines-card';
+import FilterBar from '~/pages/home/components/filterBar';
+import ProfileProgressCard from '~/pages/home/components/profileProgressCard';
+import ScopeTabs from '~/pages/home/components/scopeTabs';
+import UpcomingDeadlinesCard from '~/pages/home/components/upcomingDeadlinesCard';
 
 // Trang chủ = trang tìm học bổng: vào là thấy học bổng đang mở; từ khóa và bộ lọc
 // nhập ở thanh tìm kiếm trên header, lưu trên URL (/?search=DAAD&degree=Master).

@@ -99,7 +99,7 @@ const FileUpload = ({
   return (
     <div className={cn('space-y-3', className)}>
       {label && (
-        <label className="input-label">
+        <label className="inputLabel">
           {label}
           {description && <span className="text-caption text-ink-500 ml-2">({description})</span>}
         </label>

@@ -1,4 +1,4 @@
-import api from '~/lib/api-client';
+import api from '~/lib/apiClient';
 
 // Documents
 export const documentService = {

@@ -30,13 +30,13 @@ const STATUS_LABELS = {
 
 const StatCard = ({ icon: Icon, label, value, sub, color }) => (
   <div className="card">
-    <div className="card-body">
+    <div className="cardBody">
       <div className="flex items-start justify-between mb-4">
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
           <Icon className="w-5 h-5" />
         </div>
         {sub !== undefined && (
-          <span className="badge-success">+{sub} tuần này</span>
+          <span className="badgeSuccess">+{sub} tuần này</span>
         )}
       </div>
       <p className="text-3xl font-extrabold text-ink-100 mb-1">{value ?? '—'}</p>
@@ -47,7 +47,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color }) => (
 
 const SkeletonCard = () => (
   <div className="card animate-pulse">
-    <div className="card-body">
+    <div className="cardBody">
       <div className="w-11 h-11 rounded-xl bg-ink-800 mb-4" />
       <div className="h-8 w-20 bg-ink-800 rounded mb-2" />
       <div className="h-4 w-32 bg-ink-700 rounded" />
@@ -102,7 +102,7 @@ const AdminDashboardPage = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* User registrations */}
         <div className="card">
-          <div className="card-body">
+          <div className="cardBody">
             <h2 className="text-base font-bold text-ink-100 mb-5">Đăng ký mới theo tuần</h2>
             {chartLoading ? (
               <div className="h-56 flex items-center justify-center"><LoadingSpinner /></div>
@@ -133,7 +133,7 @@ const AdminDashboardPage = () => {
 
         {/* Applications by status */}
         <div className="card">
-          <div className="card-body">
+          <div className="cardBody">
             <h2 className="text-base font-bold text-ink-100 mb-5">Đơn ứng tuyển theo trạng thái</h2>
             {chartLoading ? (
               <div className="h-56 flex items-center justify-center"><LoadingSpinner /></div>

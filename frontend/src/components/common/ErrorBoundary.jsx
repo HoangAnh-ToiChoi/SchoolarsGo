@@ -16,7 +16,7 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="container-narrow py-16 text-center">
+        <div className="containerNarrow py-16 text-center">
           <h2 className="mb-4 text-heading-1 text-neutral-900">Đã xảy ra lỗi</h2>
           <p className="mb-6 text-neutral-600">Vui lòng thử tải lại trang hoặc quay về trang chủ.</p>
           <button
@@ -24,7 +24,7 @@ class ErrorBoundary extends Component {
               this.setState({ hasError: false });
               window.location.href = '/';
             }}
-            className="btn-primary"
+            className="btnPrimary"
           >
             Về trang chủ
           </button>

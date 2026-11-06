@@ -100,7 +100,7 @@ const ProfilePage = ({ embedded = false }) => {
   const completionPct = Math.round((completionScore / (PROFILE_SIGNAL_FIELDS.length + 1)) * 100);
 
   const inner = (
-    <div className="container-narrow py-8">
+    <div className="containerNarrow py-8">
       {!embedded && <PageHeader title="Hồ sơ cá nhân" />}
 
       {/* Profile Form */}
@@ -169,7 +169,7 @@ const ProfilePage = ({ embedded = false }) => {
             <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
           </div>
           <div className="md:col-span-2">
-            <label className="input-label">Giới thiệu bản thân</label>
+            <label className="inputLabel">Giới thiệu bản thân</label>
             <textarea
               rows={4}
               value={form.bio ?? profile.bio ?? ''}

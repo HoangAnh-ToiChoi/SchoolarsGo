@@ -85,7 +85,7 @@ const AdminUsersPage = () => {
               className="input pl-9"
             />
           </div>
-          <button type="submit" className="btn-primary btn-sm">Tìm</button>
+          <button type="submit" className="btnPrimary btnSm">Tìm</button>
         </form>
         <div className="flex gap-2">
           <select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="input">
@@ -133,14 +133,14 @@ const AdminUsersPage = () => {
                       </td>
                       <td className="px-4 py-4">
                         <span className={cn(
-                          user.role === 'admin' ? 'badge-primary' : 'badge-default'
+                          user.role === 'admin' ? 'badgePrimary' : 'badgeDefault'
                         )}>
                           {user.role}
                         </span>
                       </td>
                       <td className="px-4 py-4">
                         <span className={cn(
-                          user.is_active !== false ? 'badge-success' : 'badge-default'
+                          user.is_active !== false ? 'badgeSuccess' : 'badgeDefault'
                         )}>
                           {user.is_active === false ? 'Vô hiệu' : 'Hoạt động'}
                         </span>
@@ -234,7 +234,7 @@ const AdminUsersPage = () => {
         <div className="flex justify-end gap-3 mt-6 pb-2">
           <button
             onClick={() => setConfirmModal({ open: false, user: null })}
-            className="btn-secondary btn-sm"
+            className="btnSecondary btnSm"
           >
             Hủy
           </button>
@@ -242,8 +242,8 @@ const AdminUsersPage = () => {
             onClick={handleConfirmStatus}
             disabled={updateStatus.isPending}
             className={cn(
-              'btn-sm disabled:opacity-40',
-              confirmModal.user?.is_active !== false ? 'btn-danger' : 'btn-primary'
+              'btnSm disabled:opacity-40',
+              confirmModal.user?.is_active !== false ? 'btnDanger' : 'btnPrimary'
             )}
           >
             {confirmModal.user?.is_active !== false ? 'Khóa' : 'Mở tài khoản'}

@@ -1,19 +1,19 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import AppLayout from '~/components/layout/app-layout';
+import UserLayout from '~/layouts/userLayout';
 import ProtectedRoute from '~/components/common/ProtectedRoute';
 import { selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
 
 // Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu
 const HomePage = lazy(() => import('~/pages/home'));
-const ScholarshipDetailPage = lazy(() => import('~/pages/scholarship-detail'));
+const ScholarshipDetailPage = lazy(() => import('~/pages/scholarshipDetail'));
 const LoginPage = lazy(() => import('~/pages/login'));
 const RegisterPage = lazy(() => import('~/pages/register'));
-const ForgotPasswordPage = lazy(() => import('~/pages/forgot-password'));
-const ResetPasswordPage = lazy(() => import('~/pages/reset-password'));
+const ForgotPasswordPage = lazy(() => import('~/pages/forgotPassword'));
+const ResetPasswordPage = lazy(() => import('~/pages/resetPassword'));
 const ApplicationsPage = lazy(() => import('~/pages/applications'));
-const ApplicationDetailPage = lazy(() => import('~/pages/application-detail'));
+const ApplicationDetailPage = lazy(() => import('~/pages/applicationDetail'));
 const SavedPage = lazy(() => import('~/pages/saved'));
 const DashboardPage = lazy(() => import('~/pages/dashboard'));
 const DeadlinesPage = lazy(() => import('~/pages/deadlines'));
@@ -21,8 +21,8 @@ const RecommendPage = lazy(() => import('~/pages/recommend'));
 const ComparePage = lazy(() => import('~/pages/compare'));
 const ChatPage = lazy(() => import('~/pages/chat'));
 const NewsPage = lazy(() => import('~/pages/news'));
-const NotFoundPage = lazy(() => import('~/pages/not-found'));
-const AdminLayout = lazy(() => import('~/components/layout/AdminLayout'));
+const NotFoundPage = lazy(() => import('~/pages/notFound'));
+const AdminLayout = lazy(() => import('~/layouts/adminLayout'));
 const AdminDashboardPage = lazy(() => import('~/pages/admin/dashboard'));
 const AdminUsersPage = lazy(() => import('~/pages/admin/users'));
 const AdminScholarshipsPage = lazy(() => import('~/pages/admin/scholarships'));
@@ -58,10 +58,10 @@ export default function App() {
         {/* Trang xác thực đứng riêng, không có header/sidebar */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/forgotPassword" element={<ForgotPasswordPage />} />
+        <Route path="/resetPassword" element={<ResetPasswordPage />} />
 
-        <Route element={<AppLayout />}>
+        <Route element={<UserLayout />}>
           <Route index element={<HomePage />} />
           <Route path="scholarships" element={<LegacySearchRedirect />} />
           <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />

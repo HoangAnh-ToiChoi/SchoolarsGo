@@ -1,16 +1,16 @@
 import { cn } from '~/lib/helpers';
 
 const variants = {
-  primary: 'btn-primary',
-  secondary: 'btn-secondary',
-  ghost: 'btn-ghost',
-  danger: 'btn-danger',
+  primary: 'btnPrimary',
+  secondary: 'btnSecondary',
+  ghost: 'btnGhost',
+  danger: 'btnDanger',
 };
 
 const sizes = {
-  sm: 'btn-sm',
+  sm: 'btnSm',
   md: '',
-  lg: 'btn-lg',
+  lg: 'btnLg',
 };
 
 const Button = ({

@@ -50,7 +50,7 @@ const ApplicationsPage = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
-      <div className="container-page pt-10 mb-12">
+      <div className="containerPage pt-10 mb-12">
         <div className="text-center mb-12 relative">
           <div className="absolute right-0 top-0 hidden md:block">
             <Link to="/" className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-800 border border-ink-800 text-ink-200 px-5 py-2.5 rounded-full font-medium transition-all">

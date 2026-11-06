@@ -119,7 +119,7 @@ src/
 
 ## API Endpoints
 
-Tất cả endpoints được định nghĩa trong `docs/MEMORY-api.md`.
+Tất cả endpoints được định nghĩa trong `docs/memoryApi.md`.
 
 Base URL: `http://localhost:5000/api`
 

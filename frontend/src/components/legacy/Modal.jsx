@@ -34,30 +34,30 @@ const Modal = ({
 
   return createPortal(
     <div
-      className={cn('modal-overlay', className)}
+      className={cn('modalOverlay', className)}
       onClick={() => {
         if (closeOnOverlay) onClose?.();
       }}
       role="presentation"
     >
       <div
-        className={cn('modal-content', contentClassName)}
+        className={cn('modalContent', contentClassName)}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={title || 'Modal'}
       >
         {(title || description || showCloseButton) && (
-          <div className="modal-header">
+          <div className="modalHeader">
             <div>
-              {title && <h2 className="modal-title">{title}</h2>}
-              {description && <p className="modal-description">{description}</p>}
+              {title && <h2 className="modalTitle">{title}</h2>}
+              {description && <p className="modalDescription">{description}</p>}
             </div>
             {showCloseButton && (
               <button
                 type="button"
                 onClick={() => onClose?.()}
-                className="btn-ghost btn-sm p-2"
+                className="btnGhost btnSm p-2"
                 aria-label="Đóng cửa sổ"
               >
                 <X className="w-4 h-4" />

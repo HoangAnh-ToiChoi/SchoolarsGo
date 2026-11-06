@@ -51,7 +51,7 @@ const RecommendPage = () => {
   return (
     <div className="bg-ink-950 min-h-screen">
       <div className="bg-ink-950 border-b border-ink-800 py-14">
-        <div className="container-page">
+        <div className="containerPage">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-400/15">
               <Brain className="w-5 h-5 text-primary-300" />
@@ -67,7 +67,7 @@ const RecommendPage = () => {
         </div>
       </div>
 
-      <div className="container-page py-10">
+      <div className="containerPage py-10">
         {!user ? (
           <EmptyState icon={AlertCircle} title="Vui lòng đăng nhập" description="Bạn cần đăng nhập để nhận gợi ý học bổng cá nhân hóa" actionLabel="Đăng nhập" actionTo="/login" />
         ) : isLoading ? (
@@ -96,13 +96,13 @@ const RecommendPage = () => {
             )}
             <div className="grid gap-6 md:grid-cols-2">
               {recommendations.map(({ scholarship, match_score, rule_score, semantic_score, confidence, reasons, ai_reason, supporting_signals }) => (
-                <div key={scholarship.id} className="card card-body flex flex-col gap-4 bg-ink-900 border border-ink-800">
+                <div key={scholarship.id} className="card cardBody flex flex-col gap-4 bg-ink-900 border border-ink-800">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <h3 className="text-heading-3 text-ink-100 leading-snug line-clamp-2">{scholarship.title}</h3>
                       <p className="text-body-sm text-ink-400 mt-1">{scholarship.provider}</p>
                     </div>
-                    <Link to={`/scholarships/${scholarship.id}`} className="shrink-0 btn-primary btn-sm">
+                    <Link to={`/scholarships/${scholarship.id}`} className="shrink-0 btnPrimary btnSm">
                       Xem <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>

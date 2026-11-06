@@ -10,7 +10,7 @@ const Select = ({ label, options, placeholder, className, id, onChange, ...props
   return (
     <div>
       {label && (
-        <label htmlFor={selectId} className="input-label">
+        <label htmlFor={selectId} className="inputLabel">
           {label}
         </label>
       )}

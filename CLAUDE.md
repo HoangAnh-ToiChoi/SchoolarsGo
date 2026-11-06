@@ -1,7 +1,7 @@
 # ScholarsGo — Quy ước dự án
 
 Nền tảng tìm học bổng (du học và trong nước) cho sinh viên Việt Nam.
-File này là nguồn quy ước chính cho cả người và AI. Quy ước cũ (`Quy_Uoc_Chung.md`, `docs/DESIGN-SYSTEM.md`) chỉ còn giá trị ở những phần **không trái** với file này.
+File này là nguồn quy ước chính cho cả người và AI. Quy ước cũ (`Quy_Uoc_Chung.md`, `docs/designSystem.md`) chỉ còn giá trị ở những phần **không trái** với file này.
 
 ## Tổng quan
 
@@ -31,45 +31,48 @@ frontend/src/
   App.jsx                 router; mỗi trang tải lười (lazy)
   main.jsx                Provider Redux + React Query + Router
   index.css               BẢNG MÀU (5 màu gốc) + style nền
-  pages/<tên-trang>/
+  pages/<tênTrang>/
     index.jsx             trang — chỉ ghép component, không gọi API trực tiếp
     components/<tên>/index.jsx   component chỉ trang này dùng
+  layouts/                khung giao diện; index.jsx để dùng, components/ là phần triển khai
+    userLayout/           khung user: components/userHeader, userSidebar (+ navConfig.js), userMenu
+    adminLayout/          khung admin: components/adminSidebar, adminMobileNav (+ constants.js)
   components/
-    ui/                   component gốc của shadcn/ui (button, card, badge, dropdown-menu, tabs…)
-    layout/               app-layout, app-header, app-sidebar (+ navConfig.js), user-menu
-    common/               dùng ở nhiều trang: page-header, pagination, reveal, slow-loading…
+    ui/                   component gốc của shadcn/ui (button, card, badge, dropdownMenu, tabs…)
+    common/               dùng ở nhiều trang: pageHeader, pagination, reveal, slowLoading…
     scholarship/          thẻ học bổng và các phần nhỏ của nó
-    scholarship-filter/   thanh tìm kiếm + bộ lọc (xem mục bên dưới)
+    scholarshipFilter/    thanh tìm kiếm + bộ lọc (xem mục bên dưới)
     legacy/               UI kit cũ cho trang chưa làm lại — KHÔNG dùng cho code mới
   hooks/                  hook dùng chung (useScholarships, useScholarshipFilters, useSlowLoading…)
-  services/<tên>.service.js   hàm gọi API theo từng nhóm, dùng chung lib/api-client.js
+  services/<tên>.service.js   hàm gọi API theo từng nhóm, dùng chung lib/apiClient.js
   store/                  Redux: index.js + slices/ (auth, comparison, ui)
-  lib/                    api-client, utils (cn), scholarship (logic hạn nộp, nhãn), security, palette, constants, demo/
+  lib/                    apiClient, utils (cn), scholarship (logic hạn nộp, nhãn), security, palette, constants, demo/
 ```
 
 ### Quy tắc
 
-1. **Mỗi trang và mỗi component là một thư mục có `index.jsx`**: `pages/home/index.jsx`, `components/scholarship/scholarship-card/index.jsx`. Tên thư mục viết `kebab-case`.
+1. **Mỗi trang và mỗi component là một thư mục có `index.jsx`**: `pages/home/index.jsx`, `components/scholarship/scholarshipCard/index.jsx`. Tên thư mục viết `camelCase` (ví dụ `userLayout`, `adminLayout`, `scholarshipDetail`), không dùng `kebab-case`.
 2. **Component lớn chia nhỏ thành thư mục con, gom lại ở `index.jsx` của thư mục cha.** Ví dụ chuẩn:
    ```
-   components/scholarship-filter/
+   components/scholarshipFilter/
      index.jsx          ghép các phần, giữ state, export phụ: export { default as ActiveFilters } …
      constants.js       cấu hình (danh sách 8 bộ lọc)
-     search-input/index.jsx
-     filter-panel/index.jsx
-     filter-field/index.jsx
-     filter-actions/index.jsx
-     active-filters/index.jsx
+     searchInput/index.jsx
+     filterPanel/index.jsx
+     filterField/index.jsx
+     filterActions/index.jsx
+     activeFilters/index.jsx
    ```
 3. **Import luôn từ gốc `src` bằng `~/`**, không dùng `../`:
-   `import ScholarshipCard from '~/components/scholarship/scholarship-card';`
+   `import ScholarshipCard from '~/components/scholarship/scholarshipCard';`
 4. Component chỉ một trang dùng → để trong `pages/<trang>/components/`. Dùng từ 2 trang trở lên → chuyển lên `components/`.
 5. Thứ tự import: thư viện ngoài → `~/components` → `~/hooks` → `~/lib` / `~/store` / `~/services`.
 
 ## Cách viết code
 
 ### Đặt tên
-- Thư mục: `kebab-case` · component: `PascalCase` · biến, hàm, hook: `camelCase` (hook bắt đầu bằng `use`) · hằng số: `UPPER_SNAKE` · biến môi trường: `VITE_UPPER_SNAKE`.
+- **Mọi tên do dự án tự đặt đều `camelCase`**: thư mục, file (`apiClient.js`, `seedCloud.js`), đường dẫn route (`/forgotPassword`, `/resetPassword`), endpoint API, class CSS tự định nghĩa trong `index.css` (`btnPrimary`, `pageHeader`). Chỉ giữ nguyên những tên do công cụ/thư viện áp đặt: class tiện ích Tailwind (`flex-col`, `bg-ink-900`), class của thư viện (`react-calendar`), tên gói npm, `package-lock.json`, `docker-compose.yml`, và tiền tố ngày của tài liệu kế hoạch (`2026-05-22-…`).
+- Thư mục: `camelCase` · component: `PascalCase` · biến, hàm, hook: `camelCase` (hook bắt đầu bằng `use`) · hằng số: `UPPER_SNAKE` · biến môi trường: `VITE_UPPER_SNAKE`.
 - Component mặc định `export default function TenComponent()`. File trong `components/ui/` giữ nguyên kiểu của shadcn (named export).
 - Comment bằng **tiếng Việt**, giải thích *vì sao* hoặc quy tắc nghiệp vụ, không mô tả lại code. Không để code chết, không để đoạn code bị comment.
 
@@ -128,7 +131,7 @@ Toàn bộ màu nằm **duy nhất** trong `src/index.css`. Đổi màu chỉ s�
 - **Nhãn (badge)**: luôn mang nghĩa (hạn nộp, phạm vi, trạng thái), không dùng trang trí. Hạn nộp: `getDeadlineInfo()` trong `lib/scholarship.js` (ngưỡng 10 và 30 ngày là hằng số ở đó).
 - **Thẻ học bổng**: đọc từ trên xuống — nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover: thẻ nhấc lên 3px.
 - **Chuyển động**: 150–220ms; không gradient, không emoji trang trí.
-- **Tìm kiếm**: chỉ có **một** thanh tìm kiếm trên header (`components/scholarship-filter`). Bảng bộ lọc ẩn (`display: none`) cho đến khi bấm vào ô tìm kiếm, hiện bằng hiệu ứng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
+- **Tìm kiếm**: chỉ có **một** thanh tìm kiếm trên header (`components/scholarshipFilter`). Bảng bộ lọc ẩn (`display: none`) cho đến khi bấm vào ô tìm kiếm, hiện bằng hiệu ứng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
 - **Kết quả tìm kiếm hiện ở trang chủ** — không có trang Tìm học bổng riêng. Link cũ `/scholarships?…` tự chuyển về `/?…`; trang chi tiết vẫn là `/scholarships/:id`.
 
 ## Git

@@ -132,7 +132,7 @@ class AuthService {
     await this.#repo.saveResetToken(user.id, tokenHash, expiresAt);
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+    const resetLink = `${frontendUrl}/resetPassword?token=${rawToken}`;
     await sendResetEmail(email, resetLink);
   };
 
