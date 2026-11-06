@@ -1,0 +1,1 @@
+import{j as s,L as i}from"./index-DK4P6wRF.js";const p=({icon:t,title:a,description:m,actionLabel:e,actionTo:r})=>s.jsxs("div",{className:"empty-state",children:[t&&s.jsx(t,{className:"empty-state-icon"}),s.jsx("h3",{children:a}),s.jsx("p",{children:m}),e&&r&&s.jsx(i,{to:r,className:"btn-primary",children:e})]});export{p as E};
