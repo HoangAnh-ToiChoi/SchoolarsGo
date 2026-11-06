@@ -144,7 +144,7 @@ const ApplicationsPage = () => {
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-ink-800 transition-colors text-left border border-transparent hover:border-ink-700"
                       >
                         {item.done ? (
-                          <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                          <CheckCircle className="w-5 h-5 text-success-500 flex-shrink-0" />
                         ) : (
                           <Circle className="w-5 h-5 text-ink-600 flex-shrink-0" />
                         )}

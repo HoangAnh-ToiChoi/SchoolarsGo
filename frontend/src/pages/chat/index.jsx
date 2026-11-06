@@ -6,6 +6,7 @@ import { chatService } from '~/services/chat.service';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
 import { cn } from '~/lib/helpers';
+import { color } from '~/lib/palette';
 
 const WELCOME_MESSAGE = {
   role: 'assistant',
@@ -129,7 +130,7 @@ const TypingIndicator = () => (
           className="w-2 h-2 rounded-full block"
           animate={{
             y: [0, -7, 0],
-            backgroundColor: ['#6E7681', '#22d3ee', '#6E7681'],
+            backgroundColor: [color('neutral', { mix: 62 }), color('primary'), color('neutral', { mix: 62 })],
           }}
           transition={{
             duration: 0.85,

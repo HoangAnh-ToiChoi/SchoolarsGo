@@ -11,7 +11,7 @@ const CATEGORIES = ['Tất cả', 'Học bổng', 'Du học', 'Visa', 'Giáo d�
 const TAG_STYLE = {
   'Học bổng': 'bg-primary-400/10 text-primary-400',
   'Visa': 'bg-success-500/10 text-success-400',
-  'Du học': 'bg-blue-500/10 text-blue-400',
+  'Du học': 'bg-primary-500/10 text-primary-400',
   'Giáo dục': 'bg-ink-800 text-ink-300',
 };
 

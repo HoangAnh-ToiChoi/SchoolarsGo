@@ -1,5 +1,26 @@
 import animate from 'tailwindcss-animate';
 
+// Pha một màu gốc: pct% màu gốc + phần còn lại là trắng; dark > 0 thì pha thêm đen.
+// Trả về hàm để Tailwind vẫn dùng được độ mờ (VD bg-primary/10).
+const tone = (name, pct = 100, dark = 0) => {
+  let color = `rgb(var(--c-${name}))`;
+  if (dark) color = `color-mix(in srgb, ${color} ${100 - dark}%, black)`;
+  if (pct < 100) color = `color-mix(in srgb, ${color} ${pct}%, white)`;
+  return ({ opacityValue }) =>
+    opacityValue === undefined || opacityValue === '1'
+      ? color
+      : `color-mix(in srgb, ${color} calc(${opacityValue} * 100%), transparent)`;
+};
+
+// Thang 50–900 từ một màu gốc (600 = đúng màu gốc)
+const scale = (name) => ({
+  50: tone(name, 7), 100: tone(name, 13), 200: tone(name, 26), 300: tone(name, 45), 400: tone(name, 75),
+  500: tone(name, 90), 600: tone(name), 700: tone(name, 100, 18), 800: tone(name, 100, 34), 900: tone(name, 100, 50),
+});
+
+// Bộ màu cho nhãn: chữ, nền, viền
+const badge = (name) => ({ fg: tone(name, 100, name === 'primary' ? 10 : 0), bg: tone(name, 7), line: tone(name, 26) });
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,86 +29,57 @@ export default {
   ],
   theme: {
     extend: {
+      // Mọi màu sinh ra từ 5 màu gốc trong src/index.css (--c-primary, --c-neutral,
+      // --c-success, --c-warning, --c-danger). File này chỉ pha sáng/tối, không chứa mã màu.
       colors: {
-        // ── Design v2 ─────────────────────────────────────
-        // Token của shadcn/ui (giá trị nằm trong src/index.css)
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
-        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
-        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
-        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
-        popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
-        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
-        // Màu thật nằm trong src/index.css (biến --sg-*). Đổi màu chỉ sửa file CSS đó.
-        brand: { 50: 'rgb(var(--sg-brand-50) / <alpha-value>)', 100: 'rgb(var(--sg-brand-100) / <alpha-value>)', 200: 'rgb(var(--sg-brand-200) / <alpha-value>)', 500: 'rgb(var(--sg-brand-500) / <alpha-value>)', 600: 'rgb(var(--sg-brand-600) / <alpha-value>)', 700: 'rgb(var(--sg-brand-700) / <alpha-value>)', 900: 'rgb(var(--sg-brand-900) / <alpha-value>)' },
-        heading: 'rgb(var(--sg-heading) / <alpha-value>)',
-        canvas: 'rgb(var(--sg-canvas) / <alpha-value>)',
-        surface: 'rgb(var(--sg-surface) / <alpha-value>)',
-        hover: 'rgb(var(--sg-hover) / <alpha-value>)',
-        track: 'rgb(var(--sg-track) / <alpha-value>)',
-        line: { DEFAULT: 'rgb(var(--sg-line) / <alpha-value>)', soft: 'rgb(var(--sg-line-soft) / <alpha-value>)', strong: 'rgb(var(--sg-line-strong) / <alpha-value>)' },
-        fg: { DEFAULT: 'rgb(var(--sg-fg) / <alpha-value>)', secondary: 'rgb(var(--sg-fg-secondary) / <alpha-value>)', muted: 'rgb(var(--sg-fg-muted) / <alpha-value>)', soft: 'rgb(var(--sg-fg-soft) / <alpha-value>)' },
-        urgent: { fg: 'rgb(var(--sg-urgent-fg) / <alpha-value>)', bg: 'rgb(var(--sg-urgent-bg) / <alpha-value>)', line: 'rgb(var(--sg-urgent-line) / <alpha-value>)' },
-        soon: { fg: 'rgb(var(--sg-soon-fg) / <alpha-value>)', bg: 'rgb(var(--sg-soon-bg) / <alpha-value>)', line: 'rgb(var(--sg-soon-line) / <alpha-value>)' },
-        open: { fg: 'rgb(var(--sg-open-fg) / <alpha-value>)', bg: 'rgb(var(--sg-open-bg) / <alpha-value>)', line: 'rgb(var(--sg-open-line) / <alpha-value>)' },
-        abroad: { fg: 'rgb(var(--sg-abroad-fg) / <alpha-value>)', bg: 'rgb(var(--sg-abroad-bg) / <alpha-value>)', line: 'rgb(var(--sg-abroad-line) / <alpha-value>)' },
-        domestic: { fg: 'rgb(var(--sg-domestic-fg) / <alpha-value>)', bg: 'rgb(var(--sg-domestic-bg) / <alpha-value>)', line: 'rgb(var(--sg-domestic-line) / <alpha-value>)' },
-        // ── Legacy (các trang chưa làm lại) ─────────────
-        // Cyan accent — 300/400 are theme-aware via CSS vars, rest static
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-          50:  '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: 'rgb(var(--primary-300) / <alpha-value>)',
-          400: 'rgb(var(--primary-400) / <alpha-value>)',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-        },
-        // UI surfaces — all levels are theme-aware via CSS vars
+        white: '#FFFFFF',
+        transparent: 'transparent',
+        current: 'currentColor',
+        // Màu gốc
+        // 300/400 dùng làm màu nhấn ở trang cũ nên đậm hơn thang chuẩn
+        primary: { ...scale('primary'), 300: tone('primary', 85), 400: tone('primary'), DEFAULT: tone('primary'), foreground: '#FFFFFF' },
+        neutral: scale('neutral'),
+        success: scale('success'),
+        warning: scale('warning'),
+        danger: scale('danger'),
+        // Tên dùng trong component mới
+        brand: scale('primary'),
+        heading: tone('neutral'),
+        canvas: tone('neutral', 3),
+        surface: '#FFFFFF',
+        hover: tone('neutral', 6),
+        track: tone('neutral', 9),
+        line: { DEFAULT: tone('neutral', 13), soft: tone('neutral', 7), strong: tone('neutral', 24) },
+        fg: { DEFAULT: tone('neutral', 100, 45), secondary: tone('neutral', 100, 15), soft: tone('neutral'), muted: tone('neutral', 82) },
+        urgent: badge('danger'),
+        soon: badge('warning'),
+        open: badge('success'),
+        abroad: badge('primary'),
+        domestic: badge('neutral'),
+        // Token của shadcn/ui
+        background: '#FFFFFF',
+        foreground: tone('neutral', 100, 45),
+        border: tone('neutral', 13),
+        input: tone('neutral', 13),
+        ring: tone('primary'),
+        card: { DEFAULT: '#FFFFFF', foreground: tone('neutral', 100, 45) },
+        popover: { DEFAULT: '#FFFFFF', foreground: tone('neutral', 100, 45) },
+        secondary: { DEFAULT: tone('neutral', 6), foreground: tone('neutral', 100, 45) },
+        muted: { DEFAULT: tone('neutral', 6), foreground: tone('neutral', 82) },
+        accent: { DEFAULT: tone('neutral', 6), foreground: tone('neutral', 100, 45) },
+        destructive: { DEFAULT: tone('danger'), foreground: '#FFFFFF' },
+        // Trang cũ (chưa làm lại) dùng thang ink: 950 sáng nhất → 100 đậm nhất
         ink: {
-          950: 'rgb(var(--ink-950) / <alpha-value>)',
-          900: 'rgb(var(--ink-900) / <alpha-value>)',
-          800: 'rgb(var(--ink-800) / <alpha-value>)',
-          700: 'rgb(var(--ink-700) / <alpha-value>)',
-          600: 'rgb(var(--ink-600) / <alpha-value>)',
-          500: 'rgb(var(--ink-500) / <alpha-value>)',
-          400: 'rgb(var(--ink-400) / <alpha-value>)',
-          300: 'rgb(var(--ink-300) / <alpha-value>)',
-          200: 'rgb(var(--ink-200) / <alpha-value>)',
-          100: 'rgb(var(--ink-100) / <alpha-value>)',
-        },
-        success: {
-          50:  '#f0fdf4',
-          100: '#dcfce7',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-        },
-        warning: {
-          50:  '#fffbeb',
-          100: '#fef3c7',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-        },
-        danger: {
-          50:  '#fef2f2',
-          100: '#fee2e2',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
+          950: '#FFFFFF',
+          900: tone('neutral', 4),
+          800: tone('neutral', 10),
+          700: tone('neutral', 20),
+          600: tone('neutral', 32),
+          500: tone('neutral', 62),
+          400: tone('neutral', 80),
+          300: tone('neutral', 92),
+          200: tone('neutral'),
+          100: tone('neutral', 100, 45),
         },
       },
       fontFamily: {
@@ -139,13 +131,13 @@ export default {
       boxShadow: {
         // Design v2
         tile: '0 1px 2px rgba(16,24,40,.04)',
-        'tile-hover': '0 12px 28px -12px rgba(79,70,229,.35), 0 2px 6px rgba(16,24,40,.05)',
+        'tile-hover': '0 12px 28px -12px color-mix(in srgb, rgb(var(--c-primary)) 35%, transparent), 0 2px 6px rgba(16,24,40,.05)',
         menu: '0 16px 40px -12px rgba(16,24,40,.18), 0 2px 6px rgba(16,24,40,.05)',
         search: '0 1px 2px rgba(16,24,40,.06), 0 6px 16px -6px rgba(16,24,40,.12)',
         // Legacy
-        'glow':    '0 0 20px rgba(34,211,238,0.25)',
-        'glow-lg': '0 0 40px rgba(34,211,238,0.35)',
-        'glow-sm': '0 0 10px rgba(34,211,238,0.15)',
+        'glow':    '0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 25%, transparent)',
+        'glow-lg': '0 0 40px color-mix(in srgb, rgb(var(--c-primary)) 35%, transparent)',
+        'glow-sm': '0 0 10px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent)',
         'card':    '0 1px 3px rgba(0,0,0,0.4)',
         'card-hover': '0 8px 24px rgba(0,0,0,0.5)',
       },
@@ -179,8 +171,8 @@ export default {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 15px rgba(34,211,238,0.15)' },
-          '50%':      { boxShadow: '0 0 35px rgba(34,211,238,0.45)' },
+          '0%, 100%': { boxShadow: '0 0 15px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent)' },
+          '50%':      { boxShadow: '0 0 35px color-mix(in srgb, rgb(var(--c-primary)) 45%, transparent)' },
         },
         shimmer: {
           '0%':   { backgroundPosition: '-200% center' },

@@ -85,28 +85,28 @@ const DashboardPage = () => {
       label: 'Tổng đơn ứng tuyển',
       value: applications.length,
       icon: ClipboardCheck,
-      color: 'text-blue-400',
+      color: 'text-primary-400',
     },
     {
       id: 'saved-scholarships',
       label: 'Học bổng đã lưu',
       value: saved?.length ?? 0,
       icon: BookmarkIcon,
-      color: 'text-amber-400',
+      color: 'text-warning-400',
     },
     {
       id: 'profile-completion',
       label: 'Hoàn thành profile',
       value: `${completionPercent}%`,
       icon: ClipboardCheck,
-      color: 'text-green-400',
+      color: 'text-success-400',
     },
     {
       id: 'upcoming-deadlines',
       label: 'Sắp tới hạn',
       value: upcomingDeadlines.length,
       icon: AlertCircle,
-      color: 'text-red-400',
+      color: 'text-danger-400',
     },
   ];
 
@@ -296,9 +296,9 @@ const DashboardPage = () => {
                                   className={cn(
                                     'w-5 h-5 flex-shrink-0',
                                     daysUntil <= 7
-                                      ? 'text-red-500'
+                                      ? 'text-danger-500'
                                       : daysUntil <= 14
-                                        ? 'text-amber-500'
+                                        ? 'text-warning-500'
                                         : 'text-ink-500'
                                   )}
                                 />

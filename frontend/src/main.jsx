@@ -10,6 +10,7 @@ import { store } from '~/store';
 import { loggedIn } from '~/store/slices/authSlice';
 import { DEMO_USER } from '~/lib/demo/demoData';
 import '~/index.css';
+import { color } from '~/lib/palette';
 
 // Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản
 if (import.meta.env.VITE_DEMO_MODE === 'true' && !store.getState().auth.isAuthenticated) {
@@ -50,8 +51,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             toastOptions={{
               duration: 3000,
               style: {
-                background: 'rgba(20, 20, 20, 0.92)',
-                color: '#f8fafc',
+                background: color('neutral', { alpha: 0.95 }),
+                color: '#FFFFFF',
                 borderRadius: '9999px',
                 padding: '10px 20px',
                 fontSize: '0.875rem',
@@ -61,10 +62,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                 maxWidth: '360px',
               },
               success: {
-                iconTheme: { primary: '#22c55e', secondary: '#f8fafc' },
+                iconTheme: { primary: color('success', { mix: 75 }), secondary: '#FFFFFF' },
               },
               error: {
-                iconTheme: { primary: '#ef4444', secondary: '#f8fafc' },
+                iconTheme: { primary: color('danger', { mix: 75 }), secondary: '#FFFFFF' },
               },
             }}
           />

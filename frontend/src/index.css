@@ -2,144 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design v2: bảng màu ScholarsGo ──────────────────
-   ĐỔI MÀU CHỈ SỬA Ở ĐÂY. Giá trị là kênh R G B (để Tailwind dùng được độ mờ, VD bg-brand-600/30).
-   Mã hex tương ứng ghi ở cuối mỗi dòng. ─────────────────────────────── */
+/* ── BẢNG MÀU SCHOLARSGO ──────────────────────────────────
+   Toàn dự án chỉ có 5 màu gốc (cộng nền trắng). ĐỔI MÀU CHỈ SỬA 5 DÒNG NÀY.
+   Giá trị là kênh R G B; mọi sắc đậm/nhạt khác được pha tự động
+   (trong tailwind.config.js cho class Tailwind, và ngay dưới đây cho CSS thuần).
+   ──────────────────────────────────────────────────────── */
 :root {
-  /* Màu chủ đạo (tím chàm) */
-  --sg-brand-50: 238 242 255; /* #EEF2FF */
-  --sg-brand-100: 224 231 255; /* #E0E7FF */
-  --sg-brand-200: 199 210 254; /* #C7D2FE */
-  --sg-brand-500: 99 102 241; /* #6366F1 */
-  --sg-brand-600: 79 70 229; /* #4F46E5 */
-  --sg-brand-700: 67 56 202; /* #4338CA */
-  --sg-brand-900: 49 46 129; /* #312E81 */
-  /* Tiêu đề thẻ học bổng */
-  --sg-heading: 63 63 70; /* #3F3F46 */
-  /* Bề mặt, viền, chữ */
-  --sg-canvas: 248 248 250; /* #F8F8FA */
-  --sg-surface: 255 255 255; /* #FFFFFF */
-  --sg-line: 231 231 234; /* #E7E7EA */
-  --sg-line-soft: 240 240 242; /* #F0F0F2 */
-  --sg-fg: 10 10 10; /* #0A0A0A */
-  --sg-fg-secondary: 82 82 91; /* #52525B */
-  --sg-fg-muted: 107 107 107; /* #6B6B6B */
-  --sg-fg-soft: 63 63 70; /* #3F3F46 — chữ mục sidebar */
-  --sg-line-strong: 212 212 216; /* #D4D4D8 — viền nét đứt bộ lọc */
-  --sg-hover: 244 244 245; /* #F4F4F5 — nền khi rê chuột */
-  --sg-track: 239 239 242; /* #EFEFF2 — nền tab, thanh tiến độ */
-  /* Nhãn hạn nộp: ≤ 10 ngày / 11–30 ngày / > 30 ngày */
-  --sg-urgent-fg: 180 35 24; /* #B42318 */
-  --sg-urgent-bg: 254 243 242; /* #FEF3F2 */
-  --sg-urgent-line: 254 205 202; /* #FECDCA */
-  --sg-soon-fg: 181 71 8; /* #B54708 */
-  --sg-soon-bg: 255 250 235; /* #FFFAEB */
-  --sg-soon-line: 254 223 137; /* #FEDF89 */
-  --sg-open-fg: 6 118 71; /* #067647 */
-  --sg-open-bg: 236 253 243; /* #ECFDF3 */
-  --sg-open-line: 171 239 198; /* #ABEFC6 */
-  /* Nhãn phạm vi: du học / trong nước */
-  --sg-abroad-fg: 2 106 162; /* #026AA2 */
-  --sg-abroad-bg: 240 249 255; /* #F0F9FF */
-  --sg-abroad-line: 185 230 254; /* #B9E6FE */
-  --sg-domestic-fg: 193 21 116; /* #C11574 */
-  --sg-domestic-bg: 253 242 250; /* #FDF2FA */
-  --sg-domestic-line: 252 206 238; /* #FCCEEE */
-}
+  --c-primary: 79 70 229; /* #4F46E5 tím chàm — nút, liên kết, mục đang chọn */
+  --c-neutral: 63 63 70; /* #3F3F46 xám than — chữ, tiêu đề, viền, nền phụ */
+  --c-success: 6 118 71; /* #067647 xanh lá — còn nhiều thời gian, thành công */
+  --c-warning: 181 71 8; /* #B54708 cam — sắp hết hạn, cảnh báo */
+  --c-danger: 180 35 24; /* #B42318 đỏ — gấp, lỗi, xóa */
 
-/* ── Design v2: token của shadcn/ui (HSL) ───────── */
-:root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --primary: 243 75% 59%; /* #4F46E5 */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 42%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5% 91%;
-  --input: 240 5% 91%;
-  --ring: 243 75% 59%;
   --radius: 0.625rem;
-}
 
-/* ── CSS Custom Properties (legacy) ─────────────── */
-:root {
-  /* DARK THEME (default) */
-  /* Hex — used by CSS component classes (.card, .btn-*, etc.) */
-  --color-ink-950: #0D1117;
-  --color-ink-900: #161B22;
-  --color-ink-800: #21262D;
-  --color-ink-700: #30363D;
-  --color-ink-600: #484F58;
-  --color-ink-500: #6E7681;
-  --color-ink-400: #8B949E;
-  --color-ink-300: #B1BAC4;
-  --color-ink-200: #C9D1D9;
-  --color-ink-100: #E6EDF3;
-  --color-primary-400: #22D3EE;
-  --color-primary-300: #67E8F9;
-  /* RGB channels — used by Tailwind utility classes (bg-ink-*, text-ink-*, border-ink-*) */
-  --ink-950: 13 17 23;
-  --ink-900: 22 27 34;
-  --ink-800: 33 38 45;
-  --ink-700: 48 54 61;
-  --ink-600: 72 79 88;
-  --ink-500: 110 118 129;
-  --ink-400: 139 148 158;
-  --ink-300: 177 186 196;
-  --ink-200: 201 209 217;
-  --ink-100: 230 237 243;
-  --primary-400: 34 211 238;
-  --primary-300: 103 232 249;
-}
-
-/* LIGHT THEME */
-[data-theme="light"] {
-  /* Hex */
+  /* Sắc pha sẵn cho các class CSS cũ (.card, .btn-*, .input…) */
   --color-ink-950: #FFFFFF;
-  --color-ink-900: #F6F8FA;
-  --color-ink-800: #EAEEF2;
-  --color-ink-700: #D0D7DE;
-  --color-ink-600: #B1BAC4;
-  --color-ink-500: #8B949E;
-  --color-ink-400: #6E7681;
-  --color-ink-300: #57606A;
-  --color-ink-200: #424A53;
-  --color-ink-100: #1F2937;
-  --color-primary-400: #0891B2;
-  --color-primary-300: #06B6D4;
-  /* RGB channels */
-  --ink-950: 255 255 255;
-  --ink-900: 246 248 250;
-  --ink-800: 234 238 242;
-  --ink-700: 208 215 222;
-  --ink-600: 177 186 196;
-  --ink-500: 139 148 158;
-  --ink-400: 110 118 129;
-  --ink-300: 87 96 106;
-  --ink-200: 66 74 83;
-  --ink-100: 31 41 55;
-  --primary-400: 8 145 178;
-  --primary-300: 6 182 212;
+  --color-ink-900: color-mix(in srgb, rgb(var(--c-neutral)) 4%, white);
+  --color-ink-800: color-mix(in srgb, rgb(var(--c-neutral)) 10%, white);
+  --color-ink-700: color-mix(in srgb, rgb(var(--c-neutral)) 20%, white);
+  --color-ink-600: color-mix(in srgb, rgb(var(--c-neutral)) 32%, white);
+  --color-ink-500: color-mix(in srgb, rgb(var(--c-neutral)) 62%, white);
+  --color-ink-400: color-mix(in srgb, rgb(var(--c-neutral)) 80%, white);
+  --color-ink-300: color-mix(in srgb, rgb(var(--c-neutral)) 92%, white);
+  --color-ink-200: rgb(var(--c-neutral));
+  --color-ink-100: color-mix(in srgb, rgb(var(--c-neutral)) 55%, black);
+  --color-primary-400: rgb(var(--c-primary));
+  --color-primary-300: color-mix(in srgb, rgb(var(--c-primary)) 85%, white);
 }
 
 [data-theme="light"] .text-gradient-cyan {
   background-image: none;
-  color: #0891B2;
-  -webkit-text-fill-color: #0891B2;
+  color: rgb(var(--c-primary));
+  -webkit-text-fill-color: rgb(var(--c-primary));
 }
 
 [data-theme="light"] .glow-text {
-  text-shadow: 0 0 20px rgba(8, 145, 178, 0.25);
+  text-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 25%, transparent);
 }
 
 /* ── Base ─────────────────────────────────────────── */
@@ -155,7 +54,7 @@
   }
 
   ::selection {
-    background-color: rgba(34, 211, 238, 0.2);
+    background-color: color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
     color: var(--color-primary-400);
   }
 
@@ -190,7 +89,7 @@
     transition: all 0.3s ease;
   }
   .card-hover:hover {
-    border-color: rgba(34, 211, 238, 0.4);
+    border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
@@ -201,9 +100,9 @@
     transition: all 0.3s ease;
   }
   .card-glow:hover {
-    border-color: rgba(34, 211, 238, 0.4);
+    border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
     transform: translateY(-4px);
-    box-shadow: 0 0 30px rgba(34, 211, 238, 0.2);
+    box-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
   }
   .card-body    { @apply p-6; }
   .card-header  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
@@ -224,7 +123,7 @@
   }
   .btn-primary:hover {
     background-color: var(--color-primary-300);
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
+    box-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 35%, transparent);
   }
   .btn-secondary {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
@@ -233,7 +132,7 @@
     border: 1px solid var(--color-ink-700);
   }
   .btn-secondary:hover {
-    border-color: rgba(34, 211, 238, 0.5);
+    border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
     color: var(--color-primary-400);
   }
   .btn-ghost {
@@ -246,11 +145,11 @@
   }
   .btn-danger {
     @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background-color: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent);
+    color: rgb(var(--c-danger));
+    border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent);
   }
-  .btn-danger:hover { background-color: rgba(239, 68, 68, 0.2); }
+  .btn-danger:hover { background-color: color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
   .btn-sm { @apply text-sm px-3.5 py-1.5; }
   .btn-lg { @apply text-lg px-7 py-3.5; }
 
@@ -264,19 +163,19 @@
   }
   .input::placeholder { color: var(--color-ink-500); }
   .input:focus {
-    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
-    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 0 3px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent);
+    border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
   }
   .input-with-icon { @apply input pl-11; }
   .input-label { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
-  .input-error  { @apply text-xs mt-1; color: #f87171; }
+  .input-error  { @apply text-xs mt-1; color: rgb(var(--c-danger)); }
 
   /* ── Badges ── */
   .badge { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-badge; }
-  .badge-primary { @apply badge; background: rgba(34,211,238,0.1); color: var(--color-primary-300); border: 1px solid rgba(34,211,238,0.2); }
-  .badge-success { @apply badge; background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-  .badge-warning { @apply badge; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-  .badge-danger  { @apply badge; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+  .badge-primary { @apply badge; background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent); color: var(--color-primary-300); border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent); }
+  .badge-success { @apply badge; background: color-mix(in srgb, rgb(var(--c-success)) 10%, transparent); color: rgb(var(--c-success)); border: 1px solid color-mix(in srgb, rgb(var(--c-success)) 20%, transparent); }
+  .badge-warning { @apply badge; background: color-mix(in srgb, rgb(var(--c-warning)) 10%, transparent); color: rgb(var(--c-warning)); border: 1px solid color-mix(in srgb, rgb(var(--c-warning)) 20%, transparent); }
+  .badge-danger  { @apply badge; background: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent); color: rgb(var(--c-danger)); border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
   .badge-default { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
 
   /* ── Tags ── */
@@ -288,9 +187,9 @@
   }
   .tag-primary {
     @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background: rgba(34,211,238,0.1);
+    background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent);
     color: var(--color-primary-300);
-    border: 1px solid rgba(34,211,238,0.2);
+    border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
   }
 
   /* ── Empty state ── */
@@ -328,8 +227,8 @@
   /* ── Grid pattern overlay ── */
   .bg-grid {
     background-image:
-      linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 
@@ -342,13 +241,13 @@
 /* ── Utilities ───────────────────────────────────── */
 @layer utilities {
   .text-gradient-cyan {
-    background-image: linear-gradient(135deg, #67E8F9, #22D3EE, #06B6D4);
+    background-image: linear-gradient(135deg, color-mix(in srgb, rgb(var(--c-primary)) 70%, white), rgb(var(--c-primary)), color-mix(in srgb, rgb(var(--c-primary)) 80%, black));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
   .glow-text {
-    text-shadow: 0 0 30px rgba(34, 211, 238, 0.5);
+    text-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
   }
 }
 
@@ -403,9 +302,9 @@
   color: var(--color-ink-100) !important;
 }
 .react-calendar__tile--now {
-  background: rgba(34,211,238,0.1) !important;
+  background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent) !important;
   color: var(--color-primary-400) !important;
-  border: 1px solid rgba(34,211,238,0.3) !important;
+  border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 30%, transparent) !important;
 }
 .react-calendar__tile--active,
 .react-calendar__tile--active:enabled:hover,

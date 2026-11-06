@@ -29,7 +29,7 @@ const STATUS_TRANSITIONS = {
 
 const STATUS_BADGE = {
   draft:       'bg-ink-800 text-ink-300',
-  submitted:   'bg-blue-500/10 text-blue-400',
+  submitted:   'bg-primary-500/10 text-primary-400',
   under_review:'bg-warning-500/10 text-warning-400',
   interview:   'bg-primary-400/15 text-primary-400',
   accepted:    'bg-success-500/10 text-success-400',
@@ -40,7 +40,7 @@ const STATUS_BADGE = {
 const getFileIcon = (fileName) => {
   const ext = (fileName || '').split('.').pop().toLowerCase();
   if (ext === 'pdf') return <FileText className="w-5 h-5 text-danger-500 flex-shrink-0" />;
-  if (['doc', 'docx'].includes(ext)) return <FileText className="w-5 h-5 text-blue-400 flex-shrink-0" />;
+  if (['doc', 'docx'].includes(ext)) return <FileText className="w-5 h-5 text-primary-400 flex-shrink-0" />;
   return <FileText className="w-5 h-5 text-ink-500 flex-shrink-0" />;
 };
 
@@ -304,7 +304,7 @@ const ApplicationDetailPage = () => {
                         'w-full flex items-center justify-between px-4 py-2.5 rounded-button font-semibold text-sm transition-colors disabled:opacity-50',
                         t.color === 'red'
                           ? 'bg-danger-500/10 text-danger-400 hover:bg-danger-500/10 border border-danger-500/30'
-                          : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/10 border border-blue-500/30'
+                          : 'bg-primary-500/10 text-primary-400 hover:bg-primary-500/10 border border-primary-500/30'
                       )}
                     >
                       {t.label}

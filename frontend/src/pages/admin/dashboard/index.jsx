@@ -5,16 +5,18 @@ import {
 import { Users, BookOpen, FileText, TrendingUp, Star } from 'lucide-react';
 import { useAdminStats, useAdminChartStats } from '~/hooks/useAdmin';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
+import { color } from '~/lib/palette';
 
-const STATUS_COLORS = {
-  draft: '#6E7681',
-  submitted: '#60a5fa',
-  under_review: '#fbbf24',
-  interview: '#a78bfa',
-  accepted: '#34d399',
-  rejected: '#f87171',
-  withdrawn: '#8B949E',
-};
+// Màu trạng thái đơn, lấy từ bảng 5 màu trong index.css
+const getStatusColors = () => ({
+  draft: color('neutral', { mix: 62 }),
+  submitted: color('primary', { mix: 75 }),
+  under_review: color('warning'),
+  interview: color('primary'),
+  accepted: color('success'),
+  rejected: color('danger'),
+  withdrawn: color('neutral', { mix: 45 }),
+});
 
 const STATUS_LABELS = {
   draft: 'Nháp',
@@ -111,18 +113,18 @@ const AdminDashboardPage = () => {
                 <AreaChart data={regByWeek} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#22D3EE" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#22D3EE" stopOpacity={0} />
+                      <stop offset="5%"  stopColor={color('primary')} stopOpacity={0.25} />
+                      <stop offset="95%" stopColor={color('primary')} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(110,118,129,0.15)" />
-                  <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#6E7681' }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#6E7681' }} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="week" tick={{ fontSize: 11, fill: color('neutral', { mix: 80 }) }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: color('neutral', { mix: 80 }) }} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: '#161B22', border: '1px solid #21262D', borderRadius: 8, color: '#E6EDF3', fontSize: 13 }}
-                    labelStyle={{ color: '#22D3EE' }}
+                    contentStyle={{ background: '#FFFFFF', border: `1px solid ${color('neutral', { mix: 13 })}`, borderRadius: 8, color: color('neutral'), fontSize: 13 }}
+                    labelStyle={{ color: color('primary') }}
                   />
-                  <Area type="monotone" dataKey="count" name="Đăng ký" stroke="#22D3EE" strokeWidth={2} fill="url(#colorCount)" dot={{ r: 3, fill: '#22D3EE' }} />
+                  <Area type="monotone" dataKey="count" name="Đăng ký" stroke={color('primary')} strokeWidth={2} fill="url(#colorCount)" dot={{ r: 3, fill: color('primary') }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -141,14 +143,14 @@ const AdminDashboardPage = () => {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={appByStatus} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(110,118,129,0.15)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6E7681' }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#6E7681' }} tickLine={false} axisLine={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: color('neutral', { mix: 80 }) }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: color('neutral', { mix: 80 }) }} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{ background: '#161B22', border: '1px solid #21262D', borderRadius: 8, color: '#E6EDF3', fontSize: 13 }}
+                    contentStyle={{ background: '#FFFFFF', border: `1px solid ${color('neutral', { mix: 13 })}`, borderRadius: 8, color: color('neutral'), fontSize: 13 }}
                   />
                   <Bar dataKey="value" name="Số đơn" radius={[6, 6, 0, 0]}>
                     {appByStatus.map((entry) => (
-                      <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || '#6E7681'} />
+                      <Cell key={entry.status} fill={getStatusColors()[entry.status] || color('neutral', { mix: 62 })} />
                     ))}
                   </Bar>
                 </BarChart>

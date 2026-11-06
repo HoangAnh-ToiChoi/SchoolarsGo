@@ -91,9 +91,9 @@ const FileUpload = ({
 
   const getFileIcon = (fileName) => {
     const ext = fileName.split('.').pop().toLowerCase();
-    if (['pdf'].includes(ext)) return <FileText className="w-4 h-4 text-red-500" />;
-    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-500" />;
-    return <FileText className="w-4 h-4 text-gray-500" />;
+    if (['pdf'].includes(ext)) return <FileText className="w-4 h-4 text-danger-500" />;
+    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-primary-500" />;
+    return <FileText className="w-4 h-4 text-neutral-500" />;
   };
 
   return (

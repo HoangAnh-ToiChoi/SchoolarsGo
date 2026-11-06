@@ -17,8 +17,8 @@ class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div className="container-narrow py-16 text-center">
-          <h2 className="mb-4 text-heading-1 text-gray-900">Đã xảy ra lỗi</h2>
-          <p className="mb-6 text-gray-600">Vui lòng thử tải lại trang hoặc quay về trang chủ.</p>
+          <h2 className="mb-4 text-heading-1 text-neutral-900">Đã xảy ra lỗi</h2>
+          <p className="mb-6 text-neutral-600">Vui lòng thử tải lại trang hoặc quay về trang chủ.</p>
           <button
             onClick={() => {
               this.setState({ hasError: false });
