@@ -6,20 +6,20 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 
 | Script | Mô tả |
 |--------|--------|
-| `seed-scholarships.js` | Seed scholarship data từ nguồn cấu hình sẵn. Options: `--mock` (fake data), `--scrape-only` (scrape trước khi seed) |
-| `seed-admin.js` | Tạo tài khoản admin mặc định |
-| `seed-test-user.js` | Tạo tài khoản test user |
-| `seed-cloud.js` | Seed từ cloud/RSS sources. Options: `--dry-run` (xem trước), `--limit=20` (giới hạn số lượng) |
+| `seedScholarships.js` | Seed scholarship data từ nguồn cấu hình sẵn. Options: `--mock` (fake data), `--scrape-only` (scrape trước khi seed) |
+| `seedAdmin.js` | Tạo tài khoản admin mặc định |
+| `seedTestUser.js` | Tạo tài khoản test user |
+| `seedCloud.js` | Seed từ cloud/RSS sources. Options: `--dry-run` (xem trước), `--limit=20` (giới hạn số lượng) |
 
 ## Debugging
 
 | Script | Mô tả |
 |--------|--------|
-| `debug-upload.js` | Debug Supabase Storage upload - in chi tiết response |
-| `check-users.js` | Kiểm tra users trên cả Supabase Cloud và Docker Local |
-| `query-scholarships.js` | Query và hiển thị scholarship data (theo quốc gia, bậc học, ngôn ngữ) |
-| `test-storage.js` | Test Supabase Storage connection và upload |
-| `test-admin-api.js` | Integration test cho Admin Module (auth, RBAC, self-lockout) |
+| `debugUpload.js` | Debug Supabase Storage upload - in chi tiết response |
+| `checkUsers.js` | Kiểm tra users trên cả Supabase Cloud và Docker Local |
+| `queryScholarships.js` | Query và hiển thị scholarship data (theo quốc gia, bậc học, ngôn ngữ) |
+| `testStorage.js` | Test Supabase Storage connection và upload |
+| `testAdminApi.js` | Integration test cho Admin Module (auth, RBAC, self-lockout) |
 
 ## Notes
 

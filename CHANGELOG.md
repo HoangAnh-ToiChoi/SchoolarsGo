@@ -60,7 +60,7 @@ ALTER TABLE scholarships ALTER COLUMN country TYPE VARCHAR(255);
 
 ---
 
-### 4. Seed Script (`backend/scripts/seed-cloud.js`) — **MỚI**
+### 4. Seed Script (`backend/scripts/seedCloud.js`) — **MỚI**
 
 Đổ dữ liệu học bổng từ `scholars4dev.com` vào Supabase Cloud.
 
@@ -69,7 +69,7 @@ ALTER TABLE scholarships ALTER COLUMN country TYPE VARCHAR(255);
 ```bash
 cd backend
 npm install
-node scripts/seed-cloud.js
+node scripts/seedCloud.js
 ```
 
 #### Quy trình hoạt động
@@ -131,7 +131,7 @@ node scripts/seed-cloud.js
 - [ ] Clone repo → `npm install` trong `backend/`
 - [ ] Copy `.env.example` → `.env` → điền `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] Chạy 2 câu migration SQL trên Supabase Dashboard (xem mục 2)
-- [ ] Chạy `node scripts/seed-cloud.js` để seed dữ liệu ban đầu
+- [ ] Chạy `node scripts/seedCloud.js` để seed dữ liệu ban đầu
 - [ ] Start backend: `node src/index.js`
 
 ---

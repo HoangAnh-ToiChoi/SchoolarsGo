@@ -46,12 +46,12 @@ test.describe('Auth flow', () => {
   });
 
   test('forgot password page loads', async ({ page }) => {
-    await page.goto('/forgot-password');
+    await page.goto('/forgotPassword');
     await expect(page.getByRole('heading', { name: /quên mật khẩu/i })).toBeVisible({ timeout: 8000 });
   });
 
   test('forgot password form submits', async ({ page }) => {
-    await page.goto('/forgot-password');
+    await page.goto('/forgotPassword');
     await page.waitForSelector('input[type="email"]', { timeout: 10000 });
     await page.locator('input[type="email"]').fill('any@test.com');
     await page.getByRole('button', { name: /gửi link/i }).click();

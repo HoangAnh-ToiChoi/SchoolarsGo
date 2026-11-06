@@ -1,7 +1,7 @@
 'use strict';
 
 const cron = require('node-cron');
-const { main: runScraper } = require('../../scripts/scrape-multi');
+const { main: runScraper } = require('../../scripts/scrapeMulti');
 
 let isRunning = false;
 

@@ -15,8 +15,8 @@
 ## Giai đoạn 2 — Backend Supabase Cloud + Seed dữ liệu (31/03 – 10/04/2026)
 
 - Tích hợp **Supabase Cloud** thay thế local PostgreSQL
-- Viết seed script (`seed-cloud.js`) nhập 66 học bổng thực tế vào DB
-- Chuyển `seed-cloud.js` sang dùng `pg Pool`, fix `PG_HOST localhost`
+- Viết seed script (`seedCloud.js`) nhập 66 học bổng thực tế vào DB
+- Chuyển `seedCloud.js` sang dùng `pg Pool`, fix `PG_HOST localhost`
 - Thêm test user seed script và `JWT_SECRET` fallback
 - Fix dotenv trong seed script và bật Supabase Cloud connection mặc định
 
@@ -97,14 +97,14 @@
 
 ## Giai đoạn 10 — Scraper đa nguồn (16 – 17/05/2026)
 
-- Xây scraper `scripts/scrape-multi.js` thu thập học bổng từ nhiều nguồn:
+- Xây scraper `scripts/scrapeMulti.js` thu thập học bổng từ nhiều nguồn:
   - scholars4dev.com (35 trang)
   - scholarship-positions.com
   - opportunitiesforafricans.com
   - và 3 nguồn bổ sung khác
 - Fix scraper dùng **sentinel date `2099-01-01`** khi không parse được deadline
 - Thêm **global URL dedup cache** để tránh fetch trùng bài
-- Thêm `check-db.js` script kiểm tra nhanh số lượng bản ghi
+- Thêm `checkDb.js` script kiểm tra nhanh số lượng bản ghi
 
 ---
 
@@ -146,7 +146,7 @@
 - `auth.service.js`: `forgotPassword()` — tạo `crypto.randomBytes(32)` → SHA-256 hash → lưu DB → gửi email; `resetPassword()` — verify hash, kiểm tra expiry (1h), bcrypt password mới
 - `auth.repository.js`: thêm `saveResetToken()`, `findByResetToken()`, `clearResetToken()`
 - `mailer.js`: nodemailer với Gmail SMTP; fallback log ra console khi SMTP chưa cấu hình
-- Route: `POST /api/auth/forgot-password` và `POST /api/auth/reset-password` (có rate limiter + validation)
+- Route: `POST /api/auth/forgotPassword` và `POST /api/auth/resetPassword` (có rate limiter + validation)
 - Chống **email enumeration**: luôn trả về success dù email không tồn tại
 
 **Frontend:**
@@ -162,7 +162,7 @@
 - **Lazy load toàn bộ pages** với `React.lazy` + `Suspense`
 - Thêm `PageLoader` spinner (vòng tròn tím xoay) làm fallback
 - **Kết quả: bundle giảm từ 785KB → 380KB (-51%)**
-- Route `/forgot-password` và `/reset-password` được thêm vào `App.jsx`
+- Route `/forgotPassword` và `/resetPassword` được thêm vào `App.jsx`
 
 ---
 
