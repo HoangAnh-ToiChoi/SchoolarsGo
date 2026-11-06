@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { recommendService } from '../services';
+import { recommendService } from '~/services/recommend.service';
 
 export const useRecommend = (topN = 10, enabled = true) => {
   return useQuery({

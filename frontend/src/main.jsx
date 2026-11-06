@@ -1,29 +1,23 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import * as Sentry from '@sentry/react';
-import App from './App';
-import './index.css';
-import { useThemeStore } from './stores/themeStore';
+import App from '~/App';
+import { Provider } from 'react-redux';
+import { store } from '~/store';
+import { loggedIn } from '~/store/slices/authSlice';
+import { DEMO_USER } from '~/lib/demo/demoData';
+import '~/index.css';
 
-// Apply theme before React renders to avoid flash of unstyled content
-try {
-  const stored = JSON.parse(localStorage.getItem('scholarsgo-theme') || '{}');
-  const theme = stored?.state?.theme ?? 'dark';
-  document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
-} catch {
-  document.documentElement.dataset.theme = 'dark';
+// Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản
+if (import.meta.env.VITE_DEMO_MODE === 'true' && !store.getState().auth.isAuthenticated) {
+  store.dispatch(loggedIn(DEMO_USER));
 }
 
-function ThemeApplier() {
-  const theme = useThemeStore((s) => s.theme);
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-  return null;
-}
+// Chế độ tối chưa làm: giao diện luôn sáng
+document.documentElement.dataset.theme = store.getState().ui.theme;
 
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
@@ -46,35 +40,36 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeApplier />
-        <App />
-        <Toaster
-          position="bottom-center"
-          containerStyle={{ bottom: 32 }}
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: 'rgba(20, 20, 20, 0.92)',
-              color: '#f8fafc',
-              borderRadius: '9999px',
-              padding: '10px 20px',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-              backdropFilter: 'blur(8px)',
-              maxWidth: '360px',
-            },
-            success: {
-              iconTheme: { primary: '#22c55e', secondary: '#f8fafc' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#f8fafc' },
-            },
-          }}
-        />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <App />
+          <Toaster
+            position="bottom-center"
+            containerStyle={{ bottom: 32 }}
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: 'rgba(20, 20, 20, 0.92)',
+                color: '#f8fafc',
+                borderRadius: '9999px',
+                padding: '10px 20px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+                backdropFilter: 'blur(8px)',
+                maxWidth: '360px',
+              },
+              success: {
+                iconTheme: { primary: '#22c55e', secondary: '#f8fafc' },
+              },
+              error: {
+                iconTheme: { primary: '#ef4444', secondary: '#f8fafc' },
+              },
+            }}
+          />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </Provider>
   </React.StrictMode>
 );

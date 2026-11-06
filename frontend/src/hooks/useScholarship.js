@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { scholarshipService, savedService } from '../services';
-import { useAuthStore } from '../stores/authStore';
+import { scholarshipService } from '~/services/scholarship.service';
+import { savedService } from '~/services/saved.service';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '~/store/slices/authSlice';
 import toast from 'react-hot-toast';
 
 export const useScholarships = (filters) => {
@@ -60,7 +62,7 @@ export const useToggleSaveScholarship = () => {
 };
 
 export const useSavedScholarships = () => {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   return useQuery({
     queryKey: ['saved'],
     queryFn: () => savedService.getAll().then((res) => res.data),

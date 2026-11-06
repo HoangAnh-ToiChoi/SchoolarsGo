@@ -1,9 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties ───────────────────────── */
+/* ── Design v2: token của shadcn/ui (HSL) ───────── */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 243 75% 59%; /* #4F46E5 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 42%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5% 91%;
+  --input: 240 5% 91%;
+  --ring: 243 75% 59%;
+  --radius: 0.625rem;
+}
+
+/* ── CSS Custom Properties (legacy) ─────────────── */
 :root {
   /* DARK THEME (default) */
   /* Hex — used by CSS component classes (.card, .btn-*, etc.) */
@@ -79,7 +102,7 @@
   *, *::before, *::after { box-sizing: border-box; }
 
   body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
     color: var(--color-ink-100);
     background-color: var(--color-ink-950);
     -webkit-font-smoothing: antialiased;
@@ -290,7 +313,7 @@
   background: transparent !important;
   border: none !important;
   color: var(--color-ink-100) !important;
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Be Vietnam Pro', sans-serif !important;
 }
 .react-calendar__navigation {
   margin-bottom: 0.75rem !important;

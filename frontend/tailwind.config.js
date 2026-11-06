@@ -1,3 +1,5 @@
+import animate from 'tailwindcss-animate';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -7,8 +9,38 @@ export default {
   theme: {
     extend: {
       colors: {
+        // ── Design v2 ─────────────────────────────────────
+        // Token của shadcn/ui (giá trị nằm trong src/index.css)
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+        popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        // Màu chủ đạo tím chàm
+        brand: { 50: '#EEF2FF', 100: '#E0E7FF', 200: '#C7D2FE', 500: '#6366F1', 600: '#4F46E5', 700: '#4338CA', 900: '#312E81' },
+        heading: '#1E3A8A', // tiêu đề thẻ học bổng
+        canvas: '#F8F8FA', // nền vùng nội dung
+        surface: '#FFFFFF', // nền thẻ, header, sidebar
+        line: { DEFAULT: '#E7E7EA', soft: '#F0F0F2' },
+        fg: { DEFAULT: '#0A0A0A', secondary: '#52525B', muted: '#6B6B6B' },
+        // Nhãn hạn nộp: ≤ 10 ngày / 11–30 ngày / > 30 ngày
+        urgent: { fg: '#B42318', bg: '#FEF3F2', line: '#FECDCA' },
+        soon: { fg: '#B54708', bg: '#FFFAEB', line: '#FEDF89' },
+        open: { fg: '#067647', bg: '#ECFDF3', line: '#ABEFC6' },
+        // Nhãn phạm vi
+        abroad: { fg: '#026AA2', bg: '#F0F9FF', line: '#B9E6FE' },
+        domestic: { fg: '#C11574', bg: '#FDF2FA', line: '#FCCEEE' },
+        // ── Legacy (các trang chưa làm lại) ─────────────
         // Cyan accent — 300/400 are theme-aware via CSS vars, rest static
         primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
           50:  '#ecfeff',
           100: '#cffafe',
           200: '#a5f3fc',
@@ -59,9 +91,23 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+      },
+      height: {
+        header: '64px',
+        control: '40px', // điều khiển trong header
+        nav: '38px', // mục sidebar
+        filter: '34px', // nút bộ lọc
+      },
+      width: {
+        sidebar: '256px',
       },
       fontSize: {
+        // Design v2
+        'page-title': ['24px', { lineHeight: '30px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'card-title': ['17px', { lineHeight: '23px', letterSpacing: '-0.015em', fontWeight: '700' }],
+        'block-title': ['15px', { lineHeight: '20px', fontWeight: '700' }],
+        // Legacy
         'display':   ['3.5rem', { lineHeight: '1.05', fontWeight: '800' }],
         'heading-1': ['2rem',   { lineHeight: '1.2',  fontWeight: '700' }],
         'heading-2': ['1.5rem', { lineHeight: '1.3',  fontWeight: '700' }],
@@ -72,6 +118,14 @@ export default {
         'caption':   ['0.75rem', { lineHeight: '1.4' }],
       },
       borderRadius: {
+        // Design v2
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        tile: '14px', // thẻ
+        inner: '10px', // ô con trong thẻ, ô tìm kiếm
+        control: '8px', // nút, mục menu
+        // Legacy
         'card':   '0.75rem',
         'button': '0.5rem',
         'input':  '0.5rem',
@@ -83,6 +137,11 @@ export default {
         'section': '5rem',
       },
       boxShadow: {
+        // Design v2
+        tile: '0 1px 2px rgba(16,24,40,.04)',
+        'tile-hover': '0 12px 28px -12px rgba(79,70,229,.35), 0 2px 6px rgba(16,24,40,.05)',
+        menu: '0 16px 40px -12px rgba(16,24,40,.18), 0 2px 6px rgba(16,24,40,.05)',
+        // Legacy
         'glow':    '0 0 20px rgba(34,211,238,0.25)',
         'glow-lg': '0 0 40px rgba(34,211,238,0.35)',
         'glow-sm': '0 0 10px rgba(34,211,238,0.15)',
@@ -133,5 +192,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [animate],
 };
