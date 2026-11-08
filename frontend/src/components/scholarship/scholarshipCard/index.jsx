@@ -11,21 +11,25 @@ import { cn } from '~/lib/utils';
 // 2. tiêu đề + nhà tài trợ
 // 3. 3 ô: Quốc gia | Bậc học | Tài trợ
 // 4. "Xem chi tiết" căn giữa ở đáy
+// Bấm vào bất kỳ đâu trên thẻ đều mở trang chi tiết: link ở tiêu đề được kéo phủ cả thẻ
+// (after:absolute inset-0); nút lưu nằm lớp trên (z-10) nên vẫn bấm riêng được.
 export default function ScholarshipCard({ scholarship }) {
   const { id, title, provider, country, degree, coverage, deadline } = scholarship;
   const scope = getScope(scholarship);
 
   return (
-    <Card className="group flex w-full flex-col overflow-hidden rounded-tile border-line shadow-tile transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[3px] hover:border-brand-200 hover:shadow-tile-hover">
+    <Card className="group relative flex w-full cursor-pointer flex-col overflow-hidden has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-brand-600/40 rounded-tile border-line shadow-tile transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[3px] hover:border-brand-200 hover:shadow-tile-hover">
       <div className="flex items-center gap-1.5 px-5 pt-[18px]">
         <DeadlineBadge deadline={deadline} />
         <Badge variant={scope === 'domestic' ? 'domestic' : 'abroad'}>{SCOPE_LABELS[scope]}</Badge>
-        <SaveButton scholarshipId={id} className="ml-auto" />
+        <SaveButton scholarshipId={id} className="relative z-10 ml-auto" />
       </div>
 
       <div className="px-5 pt-3.5">
         <h2 className="text-card-title text-heading transition-colors duration-200 group-hover:text-brand-600">
-          {title}
+          <Link to={`/scholarships/${id}`} className="outline-none after:absolute after:inset-0 after:content-['']">
+            {title}
+          </Link>
         </h2>
         <p className="mt-1 text-[13px] text-fg-muted">{provider}</p>
       </div>
@@ -38,15 +42,14 @@ export default function ScholarshipCard({ scholarship }) {
 
       {/* đẩy nút xuống đáy để các thẻ cùng hàng thẳng nhau */}
       <div className="min-h-[18px] flex-1" />
-      <Link
-        to={`/scholarships/${id}`}
-        className="group/more flex h-[46px] items-center justify-center gap-1.5 border-t border-line-soft text-[13.5px] font-semibold text-fg-secondary transition-colors duration-200 hover:bg-brand-50 group-hover:text-brand-600"
+      {/* Chỉ là gợi ý thị giác; cả thẻ đã là link nên phần này ẩn với trình đọc màn hình */}
+      <div
+        aria-hidden="true"
+        className="flex h-[46px] items-center justify-center gap-1.5 border-t border-line-soft text-[13.5px] font-semibold text-fg-secondary transition-colors duration-200 group-hover:bg-brand-50 group-hover:text-brand-600"
       >
         Xem chi tiết
-        <span aria-hidden="true" className="transition-transform duration-200 group-hover/more:translate-x-1">
-          →
-        </span>
-      </Link>
+        <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+      </div>
     </Card>
   );
 }
