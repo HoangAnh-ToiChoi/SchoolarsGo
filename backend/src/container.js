@@ -113,6 +113,18 @@ const ChatController = require('./controllers/chat.controller');
 
 const chatController = new ChatController(chatService);
 
+// ── Ingestion Module (kéo học bổng từ nguồn bên ngoài) ──────────
+// Module tự chứa: không import gì từ ứng dụng, mọi thứ được truyền vào ở đây.
+// Gemini tự bật khi có GEMINI_API_KEY; đặt INGESTION_USE_AI=false để tắt. Không có khoá thì chỉ dùng luật chữ.
+const { createIngestion } = require('./ingestion');
+
+const ingestionAiModel =
+  process.env.INGESTION_USE_AI !== 'false' && process.env.GEMINI_API_KEY
+    ? new (require('@google/generative-ai').GoogleGenerativeAI)(process.env.GEMINI_API_KEY).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest', generationConfig: { responseMimeType: 'application/json', temperature: 0 } })
+    : null;
+const ingestion = createIngestion({ db, aiModel: ingestionAiModel });
+const ingestionService = ingestion.service;
+
 module.exports = {
   // Admin
   adminRepo,
@@ -142,6 +154,8 @@ module.exports = {
   newsService,
   newsController,
   chatController,
+  // Ingestion
+  ingestionService,
 };
 
 // ── Event Listeners ─────────────────────────────────────────
