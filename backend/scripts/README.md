@@ -11,18 +11,13 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 | `seedTestUser.js` | Tạo tài khoản test user |
 | `seedCloud.js` | Seed từ cloud/RSS sources. Options: `--dry-run` (xem trước), `--limit=20` (giới hạn số lượng) |
 
-## Debugging
+## Cào dữ liệu
 
 | Script | Mô tả |
 |--------|--------|
-| `debugUpload.js` | Debug Supabase Storage upload - in chi tiết response |
-| `checkUsers.js` | Kiểm tra users trên cả Supabase Cloud và Docker Local |
-| `queryScholarships.js` | Query và hiển thị scholarship data (theo quốc gia, bậc học, ngôn ngữ) |
-| `testStorage.js` | Test Supabase Storage connection và upload |
-| `testAdminApi.js` | Integration test cho Admin Module (auth, RBAC, self-lockout) |
+| `scrapeMulti.js` | Cào học bổng từ nhiều nguồn (cũng chạy định kỳ qua `src/jobs/scholarshipScraper.js`). Options: `--dry-run`, `--limit=100` |
 
 ## Notes
 
 - Tất cả scripts dùng `dotenv` để load `.env`
-- Các script test/debug có thể bỏ nếu không còn cần
 - Scripts trong thư mục này chỉ chạy local, không chạy trên production

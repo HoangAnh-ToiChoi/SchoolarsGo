@@ -41,5 +41,5 @@ backend/     API Express (routes → controllers → services → repositories)
 frontend/    Ứng dụng React (xem CLAUDE.md)
 docs/        api.md, database.md; docs/archive/ là tài liệu cũ giữ để tham khảo
 database.sql, databaseChatMessages.sql   Lược đồ cơ sở dữ liệu
-tests/       Kiểm thử end-to-end (Playwright)
+docker-compose.yml   PostgreSQL + pgAdmin chạy local (tùy chọn)
 ```

@@ -2,317 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── BẢNG MÀU SCHOLARSGO ──────────────────────────────────
-   Toàn dự án chỉ có 5 màu gốc (cộng nền trắng). ĐỔI MÀU CHỈ SỬA 5 DÒNG NÀY.
-   Giá trị là kênh R G B; mọi sắc đậm/nhạt khác được pha tự động
-   (trong tailwind.config.js cho class Tailwind, và ngay dưới đây cho CSS thuần).
-   ──────────────────────────────────────────────────────── */
+/* ── BẢNG MÀU: toàn dự án chỉ có 5 màu gốc (cộng nền trắng). ĐỔI MÀU CHỈ SỬA 5 DÒNG NÀY.
+   Giá trị là kênh R G B; tailwind.config.js tự pha các sắc đậm/nhạt từ đây. */
 :root {
   --c-primary: 79 70 229; /* #4F46E5 tím chàm — nút, liên kết, mục đang chọn */
   --c-neutral: 63 63 70; /* #3F3F46 xám than — chữ, tiêu đề, viền, nền phụ */
   --c-success: 6 118 71; /* #067647 xanh lá — còn nhiều thời gian, thành công */
   --c-warning: 181 71 8; /* #B54708 cam — sắp hết hạn, cảnh báo */
   --c-danger: 180 35 24; /* #B42318 đỏ — gấp, lỗi, xóa */
-
   --radius: 0.625rem;
-
-  /* Sắc pha sẵn cho các class CSS cũ (.card, .btn-*, .input…) */
-  --color-ink-950: #FFFFFF;
-  --color-ink-900: color-mix(in srgb, rgb(var(--c-neutral)) 4%, white);
-  --color-ink-800: color-mix(in srgb, rgb(var(--c-neutral)) 10%, white);
-  --color-ink-700: color-mix(in srgb, rgb(var(--c-neutral)) 20%, white);
-  --color-ink-600: color-mix(in srgb, rgb(var(--c-neutral)) 32%, white);
-  --color-ink-500: color-mix(in srgb, rgb(var(--c-neutral)) 62%, white);
-  --color-ink-400: color-mix(in srgb, rgb(var(--c-neutral)) 80%, white);
-  --color-ink-300: color-mix(in srgb, rgb(var(--c-neutral)) 92%, white);
-  --color-ink-200: rgb(var(--c-neutral));
-  --color-ink-100: color-mix(in srgb, rgb(var(--c-neutral)) 55%, black);
-  --color-primary-400: rgb(var(--c-primary));
-  --color-primary-300: color-mix(in srgb, rgb(var(--c-primary)) 85%, white);
 }
 
-[data-theme="light"] .textGradientCyan {
-  background-image: none;
-  color: rgb(var(--c-primary));
-  -webkit-text-fill-color: rgb(var(--c-primary));
-}
-
-[data-theme="light"] .glowText {
-  text-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 25%, transparent);
-}
-
-/* ── Base ─────────────────────────────────────────── */
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
-
   body {
-    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-    color: var(--color-ink-100);
-    background-color: var(--color-ink-950);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-white font-sans text-fg antialiased;
   }
-
   ::selection {
-    background-color: color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
-    color: var(--color-primary-400);
+    @apply bg-brand-100 text-brand-700;
   }
-
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--color-ink-950); }
-  ::-webkit-scrollbar-thumb { background: var(--color-ink-700); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-600); }
-
-  select option {
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-100);
-  }
+  ::-webkit-scrollbar-thumb { @apply rounded bg-line-strong; }
 }
 
-/* ── Components ──────────────────────────────────── */
+/* ── Class dùng chung của các trang CHƯA làm lại (components/legacy và trang cũ).
+   Code mới dùng component shadcn trong components/ui, không dùng các class này. */
 @layer components {
-
-  /* Layout */
-  .containerPage   { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .containerPage { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
   .containerNarrow { @apply mx-auto max-w-3xl px-4 sm:px-6; }
 
-  /* ── Cards ── */
-  .card {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-  }
-  .cardHover {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-    transition: all 0.3s ease;
-  }
-  .cardHover:hover {
-    border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  }
-  .cardGlow {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-    transition: all 0.3s ease;
-  }
-  .cardGlow:hover {
-    border-color: color-mix(in srgb, rgb(var(--c-primary)) 40%, transparent);
-    transform: translateY(-4px);
-    box-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
-  }
-  .cardBody    { @apply p-6; }
-  .cardHeader  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
-  .cardTitle   { font-size: 1rem; font-weight: 600; color: var(--color-ink-100); }
-  .cardDescription { font-size: 0.875rem; color: var(--color-ink-400); margin-top: 0.25rem; }
-  .cardFooter  { padding: 1.5rem; border-top: 1px solid var(--color-ink-800); }
+  .card { @apply rounded-xl border border-ink-800 bg-ink-900; }
+  .cardHover { @apply card transition duration-200 hover:-translate-y-1 hover:border-brand-200 hover:shadow-tile-hover; }
+  .cardBody { @apply p-6; }
+  .cardHeader { @apply border-b border-ink-800 p-6; }
+  .cardTitle { @apply text-base font-semibold text-ink-100; }
+  .cardDescription { @apply mt-1 text-sm text-ink-400; }
+  .cardFooter { @apply border-t border-ink-800 p-6; }
 
-  /* ── Buttons ── */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 font-semibold
-           transition-all duration-200 cursor-pointer
-           disabled:opacity-40 disabled:cursor-not-allowed;
-  }
-  .btnPrimary {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: var(--color-primary-400);
-    color: var(--color-ink-950);
-  }
-  .btnPrimary:hover {
-    background-color: var(--color-primary-300);
-    box-shadow: 0 0 20px color-mix(in srgb, rgb(var(--c-primary)) 35%, transparent);
-  }
-  .btnSecondary {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-200);
-    border: 1px solid var(--color-ink-700);
-  }
-  .btnSecondary:hover {
-    border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
-    color: var(--color-primary-400);
-  }
-  .btnGhost {
-    @apply btn px-3 py-2 rounded-button;
-    color: var(--color-ink-400);
-  }
-  .btnGhost:hover {
-    color: var(--color-ink-100);
-    background-color: var(--color-ink-800);
-  }
-  .btnDanger {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent);
-    color: rgb(var(--c-danger));
-    border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent);
-  }
-  .btnDanger:hover { background-color: color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
-  .btnSm { @apply text-sm px-3.5 py-1.5; }
-  .btnLg { @apply text-lg px-7 py-3.5; }
+  .btn { @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-button font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-40; }
+  .btnPrimary { @apply btn bg-primary px-5 py-2.5 text-white hover:bg-primary-700; }
+  .btnSecondary { @apply btn border border-ink-700 bg-ink-800 px-5 py-2.5 text-ink-200 hover:border-brand-200 hover:text-primary; }
+  .btnGhost { @apply btn px-3 py-2 text-ink-400 hover:bg-ink-800 hover:text-ink-100; }
+  .btnDanger { @apply btn border border-danger-600/20 bg-danger-600/10 px-5 py-2.5 text-danger-600 hover:bg-danger-600/20; }
+  .btnSm { @apply px-3.5 py-1.5 text-sm; }
+  .btnLg { @apply px-7 py-3.5 text-lg; }
 
-  /* ── Inputs ── */
-  .input {
-    @apply w-full rounded-input px-4 py-2.5 transition-colors duration-200
-           focus:outline-none;
-    background-color: var(--color-ink-950);
-    color: var(--color-ink-100);
-    border: 1px solid var(--color-ink-700);
-  }
-  .input::placeholder { color: var(--color-ink-500); }
-  .input:focus {
-    box-shadow: 0 0 0 3px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent);
-    border-color: color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
-  }
+  .input { @apply w-full rounded-input border border-ink-700 bg-white px-4 py-2.5 text-ink-100 transition-colors duration-200 placeholder:text-ink-500 focus:border-brand-200 focus:outline-none focus:ring-[3px] focus:ring-primary/15; }
   .inputWithIcon { @apply input pl-11; }
-  .inputLabel { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
-  .inputError  { @apply text-xs mt-1; color: rgb(var(--c-danger)); }
+  .inputLabel { @apply mb-1.5 block text-sm font-medium text-ink-300; }
 
-  /* ── Badges ── */
-  .badge { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-badge; }
-  .badgePrimary { @apply badge; background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent); color: var(--color-primary-300); border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent); }
-  .badgeSuccess { @apply badge; background: color-mix(in srgb, rgb(var(--c-success)) 10%, transparent); color: rgb(var(--c-success)); border: 1px solid color-mix(in srgb, rgb(var(--c-success)) 20%, transparent); }
-  .badgeWarning { @apply badge; background: color-mix(in srgb, rgb(var(--c-warning)) 10%, transparent); color: rgb(var(--c-warning)); border: 1px solid color-mix(in srgb, rgb(var(--c-warning)) 20%, transparent); }
-  .badgeDanger  { @apply badge; background: color-mix(in srgb, rgb(var(--c-danger)) 10%, transparent); color: rgb(var(--c-danger)); border: 1px solid color-mix(in srgb, rgb(var(--c-danger)) 20%, transparent); }
-  .badgeDefault { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
+  .badge { @apply inline-flex items-center gap-1 rounded-badge px-2.5 py-0.5 text-xs font-semibold; }
+  .badgePrimary { @apply badge border border-primary/20 bg-primary/10 text-primary; }
+  .badgeSuccess { @apply badge border border-success-600/20 bg-success-600/10 text-success-600; }
+  .badgeDefault { @apply badge border border-ink-700 bg-ink-800 text-ink-300; }
+  .tag { @apply inline-flex items-center gap-1 rounded-tag border border-ink-700 bg-ink-800 px-3 py-1 text-caption text-ink-400; }
 
-  /* ── Tags ── */
-  .tag {
-    @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-400);
-    border: 1px solid var(--color-ink-700);
-  }
-  .tagPrimary {
-    @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent);
-    color: var(--color-primary-300);
-    border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
-  }
+  .emptyState { @apply flex flex-col items-center justify-center px-4 py-16 text-center; }
+  .emptyStateIcon { @apply mb-5 h-14 w-14 text-ink-700; }
+  .emptyState h3 { @apply mb-2 text-lg font-semibold text-ink-200; }
+  .emptyState p { @apply mb-6 max-w-sm text-sm leading-relaxed text-ink-500; }
 
-  /* ── Empty state ── */
-  .emptyState { @apply flex flex-col items-center justify-center text-center py-16 px-4; }
-  .emptyStateIcon { @apply w-14 h-14 mb-5; color: var(--color-ink-700); }
-  .emptyState h3 { @apply text-lg font-semibold mb-2; color: var(--color-ink-200); }
-  .emptyState p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: var(--color-ink-500); }
-
-  /* ── Page header ── */
-  .pageHeader { @apply mb-8; }
-  .pageTitle  { @apply text-2xl font-bold; color: var(--color-ink-100); }
-
-  /* ── Modal ── */
-  .modalOverlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-  }
-  .modalContent {
-    @apply relative w-full max-w-lg rounded-card animate-fade-in;
-    background-color: var(--color-ink-900);
-    border: 1px solid var(--color-ink-800);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  }
-  .modalHeader {
-    @apply flex items-start justify-between gap-4 p-6;
-    border-bottom: 1px solid var(--color-ink-800);
-  }
-  .modalTitle { @apply text-lg font-semibold; color: var(--color-ink-100); }
-  .modalDescription { @apply text-sm mt-1; color: var(--color-ink-500); }
-
-  /* ── Divider ── */
-  .divider { border-top: 1px solid var(--color-ink-800); }
-
-  /* ── Grid pattern overlay ── */
-  .bgGrid {
-    background-image:
-      linear-gradient(color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, rgb(var(--c-primary)) 3%, transparent) 1px, transparent 1px);
-    background-size: 64px 64px;
-  }
-
-  /* ── Smooth theme transitions ── */
-  * {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-}
-
-/* ── Utilities ───────────────────────────────────── */
-@layer utilities {
-  .textGradientCyan {
-    background-image: linear-gradient(135deg, color-mix(in srgb, rgb(var(--c-primary)) 70%, white), rgb(var(--c-primary)), color-mix(in srgb, rgb(var(--c-primary)) 80%, black));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .glowText {
-    text-shadow: 0 0 30px color-mix(in srgb, rgb(var(--c-primary)) 50%, transparent);
-  }
-}
-
-/* ── React Calendar theme-aware overrides ──────────────── */
-.react-calendar {
-  width: 100% !important;
-  background: transparent !important;
-  border: none !important;
-  color: var(--color-ink-100) !important;
-  font-family: 'Be Vietnam Pro', sans-serif !important;
-}
-.react-calendar__navigation {
-  margin-bottom: 0.75rem !important;
-}
-.react-calendar__navigation button {
-  color: var(--color-ink-100) !important;
-  background: transparent !important;
-  min-width: 44px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  transition: background 0.15s !important;
-}
-.react-calendar__navigation button:hover,
-.react-calendar__navigation button:focus {
-  background: var(--color-ink-800) !important;
-}
-.react-calendar__navigation__label {
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  color: var(--color-ink-100) !important;
-}
-.react-calendar__month-view__weekdays__weekday {
-  color: var(--color-ink-500) !important;
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-}
-.react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none !important;
-}
-.react-calendar__tile {
-  background: transparent !important;
-  color: var(--color-ink-300) !important;
-  border-radius: 8px !important;
-  transition: all 0.15s ease !important;
-  padding: 0.7em 0.5em !important;
-  position: relative;
-}
-.react-calendar__tile:hover {
-  background: var(--color-ink-800) !important;
-  color: var(--color-ink-100) !important;
-}
-.react-calendar__tile--now {
-  background: color-mix(in srgb, rgb(var(--c-primary)) 10%, transparent) !important;
-  color: var(--color-primary-400) !important;
-  border: 1px solid color-mix(in srgb, rgb(var(--c-primary)) 30%, transparent) !important;
-}
-.react-calendar__tile--active,
-.react-calendar__tile--active:enabled:hover,
-.react-calendar__tile--active:enabled:focus {
-  background: var(--color-primary-400) !important;
-  color: var(--color-ink-950) !important;
-  font-weight: 700 !important;
-}
-.react-calendar__month-view__days__day--neighboringMonth {
-  color: var(--color-ink-600) !important;
+  .modalOverlay { @apply fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm; }
+  .modalContent { @apply relative w-full max-w-lg animate-fade-in rounded-card border border-ink-800 bg-white shadow-menu; }
+  .modalHeader { @apply flex items-start justify-between gap-4 border-b border-ink-800 p-6; }
+  .modalTitle { @apply text-lg font-semibold text-ink-100; }
+  .modalDescription { @apply mt-1 text-sm text-ink-500; }
 }

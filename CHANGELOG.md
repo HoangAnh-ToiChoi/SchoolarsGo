@@ -2,6 +2,13 @@
 
 Mục mới thêm ở trên cùng. Các phần "Lịch sử" bên dưới là nhật ký cũ gộp từ `DEVLOG.md`, `CHANGELOG.md` và `frontend/CHANGES.md`, giữ nguyên nội dung gốc.
 
+## 11/2026 — Lịch deadline mới, rút gọn CSS, dọn file cũ
+
+- Lịch deadline chỉ hiện mốc của riêng người dùng: hạn nộp học bổng đã lưu, hạn nộp và ngày hỏi lại kết quả (14 ngày sau khi nộp) của đơn ứng tuyển. Có chú thích màu, danh sách "Sắp tới", trạng thái rỗng. Sửa lỗi một học bổng hiện 2 lần; lấy tối đa 50 đơn thay vì 20.
+- Tự vẽ lịch tháng, bỏ thư viện `react-calendar`.
+- `frontend/src/index.css` rút từ 318 xuống 63 dòng: bỏ class không còn dùng, các class cũ viết lại bằng token Tailwind.
+- Xóa file cũ: `supabase/kong`, kiểm thử e2e cũ (`tests/`, `playwright.config.js`, `package.json` gốc) vì nhắm vào giao diện đã bỏ, 7 script debug một lần trong `backend/scripts/`.
+
 ## 11/2026 — Làm lại giao diện frontend (nhánh `refactor/frontend-ui-v2`, `refactor/search-on-home`)
 
 - Cấu trúc mới: mỗi trang/component là `folder/index.jsx`, import bằng `~/`.
