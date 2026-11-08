@@ -13,7 +13,7 @@ const BOX_TONES = {
 // 4 học bổng sắp hết hạn nhất trong danh sách đang hiển thị
 export default function UpcomingDeadlinesCard({ scholarships = [] }) {
   const upcoming = [...scholarships]
-    .filter((s) => getDeadlineInfo(s.deadline).daysLeft >= 0)
+    .filter((s) => s.deadline && getDeadlineInfo(s.deadline).daysLeft >= 0)
     .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
     .slice(0, 4);
 

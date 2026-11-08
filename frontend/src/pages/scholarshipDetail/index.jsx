@@ -242,6 +242,17 @@ const ScholarshipDetailPage = () => {
                     <Heart className="w-5 h-5" fill={s.is_saved ? "currentColor" : "none"} />
                     {s.is_saved ? 'Đã lưu học bổng' : 'Lưu vào shortlist'}
                   </button>
+                  {s.source_url && (
+                    <a
+                      href={safeUrl(s.source_url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-8 py-3.5 rounded-button font-semibold border border-ink-700 text-ink-300 bg-ink-800 hover:bg-ink-700 transition-colors flex items-center gap-2"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                      Xem bài đăng gốc
+                    </a>
+                  )}
                   {s.application_url && (
                     <a
                       href={safeUrl(s.application_url)}
@@ -302,6 +313,7 @@ const ScholarshipDetailPage = () => {
         {/* Body */}
         <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
           <div className="space-y-6">
+            {s.summary && <DetailSection title="Giới thiệu" content={s.summary} delay={0} />}
             <DetailSection title="Điều kiện ứng tuyển" content={s.eligibility} delay={0}
               fallback="Chưa có mô tả chi tiết về điều kiện. Bạn nên mở link gốc hoặc liên hệ đơn vị cấp học bổng để xác nhận tiêu chí mới nhất."
             />

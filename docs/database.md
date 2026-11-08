@@ -179,7 +179,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 
 - Target: 500+ scholarships trước tuần 6 (6/5/2026)
 - Nguồn seed: scholarships4dev.com RSS, web scraping, manual entry
-- Script: `backend/scripts/seedScholarships.js`
+- Script: `backend/scripts/ingest.js`
 - **Trạng thái: ✅ Phase 1 hoàn thành — 53 scholarships đã seed (27/3/2026)**
 
 ### Đã seed phase 1 (27/3/2026): 53 records

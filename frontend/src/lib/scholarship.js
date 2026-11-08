@@ -4,8 +4,10 @@ import { differenceInCalendarDays } from 'date-fns';
 export const DEADLINE_URGENT_DAYS = 10;
 export const DEADLINE_SOON_DAYS = 30;
 
-// Số ngày còn lại và tông màu nhãn: urgent ≤ 10, soon 11–30, open > 30
+// Số ngày còn lại và tông màu nhãn: urgent ≤ 10, soon 11–30, open > 30, neutral = chưa rõ hạn
 export function getDeadlineInfo(deadline, today = new Date()) {
+  // Nhiều học bổng chưa công bố hạn nộp (deadline = null): không tính ngày, không tô màu cảnh báo
+  if (!deadline) return { daysLeft: null, tone: 'neutral' };
   const daysLeft = differenceInCalendarDays(new Date(deadline), today);
   let tone = 'open';
   if (daysLeft <= DEADLINE_URGENT_DAYS) tone = 'urgent';
