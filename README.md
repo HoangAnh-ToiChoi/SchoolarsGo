@@ -1,79 +1,45 @@
 # ScholarsGo
-Scholarship search & study-abroad profile management platform for Vietnamese students.
 
-## Tech Stack
-- **Frontend**: React.js + TailwindCSS + Vite
-- **Backend**: Node.js + Express + Supabase
-- **Database**: PostgreSQL (Supabase)
-- **AI**: OpenAI/Gemini API (P1)
-- **Deployment**: Vercel (FE) + Railway (BE)
+Nền tảng tìm học bổng (du học và trong nước) và quản lý hồ sơ ứng tuyển cho sinh viên Việt Nam.
 
-## Quick Start
+- **Quy ước code, cấu trúc thư mục, thiết kế:** xem [`CLAUDE.md`](CLAUDE.md)
+- **Bản demo giao diện:** https://hoanganh-toichoi.github.io/SchoolarsGo/
+- **API và cơ sở dữ liệu:** [`docs/api.md`](docs/api.md), [`docs/database.md`](docs/database.md)
+- **Nhật ký thay đổi:** [`CHANGELOG.md`](CHANGELOG.md)
 
-### Prerequisites
-- Node.js >= 18.0.0
-- npm >= 9.0.0
+## Công nghệ
 
-### Setup
+| Phần | Công nghệ |
+|---|---|
+| Frontend | React 18, Vite, TailwindCSS, shadcn/ui, Redux Toolkit, TanStack Query |
+| Backend | Node.js, Express |
+| Cơ sở dữ liệu | PostgreSQL (Supabase) |
+| AI | Gemini (dự phòng Groq) |
+
+## Chạy trên máy
+
+Yêu cầu Node.js 18 trở lên.
 
 ```bash
-# 1. Clone & install backend
+# Backend
 cd backend
-cp .env.example .env
-# Fill in SUPABASE_URL, SUPABASE_ANON_KEY, JWT_SECRET
+cp .env.example .env      # điền SUPABASE_URL, SUPABASE_ANON_KEY, JWT_SECRET...
 npm install
 npm run dev
 
-# 2. Install & start frontend (new terminal)
+# Frontend (cửa sổ terminal khác)
 cd frontend
-cp .env.example .env.local
-# Fill in VITE_API_BASE_URL, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+cp .env.example .env.local   # VITE_API_BASE_URL trỏ tới backend vừa chạy
 npm install
 npm run dev
 ```
 
-## Project Structure
+## Cấu trúc repo
 
 ```
-docs/                   # AI Long-term Memory (MEMORY files)
-backend/                # Express.js API Server
-  src/
-    controllers/        # Business logic
-    routes/             # Route definitions
-    middlewares/        # Auth, validation, error handling
-    services/           # Supabase, external APIs
-    utils/              # Helpers, validators
-frontend/               # React.js SPA
-  src/
-    components/         # UI components
-    pages/             # Page-level components
-    hooks/             # Custom React hooks
-    services/          # API call functions
-    stores/            # Zustand global state
-    utils/             # Helpers, constants
+backend/     API Express (routes → controllers → services → repositories)
+frontend/    Ứng dụng React (xem CLAUDE.md)
+docs/        api.md, database.md; docs/archive/ là tài liệu cũ giữ để tham khảo
+database.sql, databaseChatMessages.sql   Lược đồ cơ sở dữ liệu
+tests/       Kiểm thử end-to-end (Playwright)
 ```
-
-## Scripts
-
-### Backend
-```bash
-npm run dev     # Start dev server (nodemon)
-npm start       # Start production server
-npm run lint    # Run ESLint
-```
-
-### Frontend
-```bash
-npm run dev     # Start Vite dev server
-npm run build   # Build for production
-npm run preview # Preview production build
-npm run lint    # Run ESLint
-```
-
-## Team
-- **Ngáo** — Frontend Developer (React.js, TailwindCSS, Figma)
-- **Ngơ** — Backend Developer (Node.js, Express, PostgreSQL)
-- **Điên** — Full-stack / PM (integration, báo cáo, deployment)
-
-## License
-MIT
