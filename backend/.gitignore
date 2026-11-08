@@ -29,3 +29,4 @@ coverage/
 # Misc
 *.bak
 *.swp
+.env.cloud
