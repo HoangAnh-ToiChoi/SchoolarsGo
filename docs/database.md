@@ -1,3 +1,5 @@
+> **Lưu ý:** tài liệu này viết khoảng 04–05/2026 (trước đây là `docs/memory*.md`) và có thể lệch với code hiện tại. Khi khác nhau, code là đúng.
+
 # ============================================================
 # SCHOLARSGO — DATABASE SCHEMA
 # ============================================================
