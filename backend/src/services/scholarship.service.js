@@ -17,10 +17,12 @@ class ScholarshipService {
     if (!entity) throw new AppError(message, 404, 'SCHOLARSHIP_NOT_FOUND');
   }
 
-  #guardValidId(id) {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!id || id === 'undefined' || id === 'null' || !uuidRegex.test(id))
-      throw new AppError('ID học bổng không hợp lệ', 400, 'INVALID_ID');
+  // Trang chi tiết nhận id (UUID) hoặc slug (chữ thường, số, gạch ngang — xem migration 004)
+  #parseIdOrSlug(value) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value || '');
+    const isSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value || '') && value.length <= 120;
+    if (!isUuid && !isSlug) throw new AppError('Đường dẫn học bổng không hợp lệ', 400, 'INVALID_ID');
+    return { isUuid };
   }
 
   getAll = async (filters = {}, userId = null) => {
@@ -52,9 +54,9 @@ class ScholarshipService {
     return result;
   };
 
-  getById = async (id, userId = null) => {
-    this.#guardValidId(id);
-    const scholarship = await this.#repo.findById(id, userId);
+  getById = async (idOrSlug, userId = null) => {
+    const kind = this.#parseIdOrSlug(idOrSlug);
+    const scholarship = await this.#repo.findByIdOrSlug(idOrSlug, kind, userId);
     this.#guardFound(scholarship);
     return scholarship;
   };

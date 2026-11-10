@@ -49,6 +49,7 @@ class ApplicationService {
       updated_at: row.updated_at,
       scholarship: {
         id: row.scholarship_id,
+        slug: row.scholarship_slug,
         title: row.scholarship_title,
         country: row.country,
         deadline: row.deadline,

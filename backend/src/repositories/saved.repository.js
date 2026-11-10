@@ -8,7 +8,7 @@ class SavedRepository {
   async findAllByUser(userId) {
     const { data, error } = await this.#sb
       .from('saved_scholarships')
-      .select('id, note, created_at, scholarships(id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
+      .select('id, note, created_at, scholarships(id, slug, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;

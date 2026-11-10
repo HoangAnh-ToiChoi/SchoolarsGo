@@ -3,6 +3,7 @@ import { differenceInCalendarDays, format } from 'date-fns';
 import { Badge } from '~/components/ui/badge';
 import { statusLabel, TONE_DOT } from '~/pages/deadlines/constants';
 import { cn } from '~/utils/cn';
+import { scholarshipPath } from '~/utils/scholarship';
 
 function describe(event) {
   if (event.kind === 'followUp') return 'Nên hỏi lại kết quả';
@@ -18,7 +19,7 @@ export default function EventList({ events, emptyText }) {
     <ul className="divide-y divide-line-soft">
       {events.map((e) => (
         <li key={e.id}>
-          <Link to={`/scholarships/${e.scholarshipId}`} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-canvas">
+          <Link to={scholarshipPath({ id: e.scholarshipId, slug: e.scholarshipSlug })} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-canvas">
             <div className="w-11 shrink-0 rounded-inner bg-canvas py-1.5 text-center">
               <div className="text-base font-bold leading-none text-fg">{format(e.date, 'dd')}</div>
               <div className="mt-1 text-[11px] font-medium text-fg-muted">Th {format(e.date, 'M')}</div>

@@ -99,12 +99,12 @@ frontend/src/
 - Icon: Heroicons solid (`/24/solid`; nhỏ dùng `/20/solid`, `/16/solid`). Chỉ mũi tên xổ xuống dùng dạng nét.
 - Mỗi vùng chỉ 1 nút chính (nền tím); hành động phụ dùng nút viền hoặc nút chữ.
 - Nhãn luôn mang nghĩa, không trang trí. Hạn nộp: `getDeadlineInfo()` trong `utils/scholarship.js` (ngưỡng 10 và 30 ngày).
-- Thẻ học bổng đọc từ trên xuống: nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover nhấc lên 3px.
+- Thẻ học bổng đọc từ trên xuống: nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover nhấc lên 3px. Cả thẻ là một `<Link>`; nút lưu đặt chồng ở góc, nằm ngoài link (HTML không cho nút trong thẻ `<a>`).
 - Chuyển động 150–220ms; không gradient, không emoji trang trí.
 
 **Tìm kiếm:**
 - Chỉ **một** thanh tìm kiếm trên header (`components/scholarshipFilter`). Bảng bộ lọc `display: none` cho đến khi bấm vào ô; hiện bằng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
-- Kết quả hiện ở **trang chủ**; không có trang Tìm học bổng riêng. `/scholarships?…` tự chuyển về `/?…`; chi tiết vẫn là `/scholarships/:id`.
+- Kết quả hiện ở **trang chủ**; không có trang Tìm học bổng riêng. `/scholarships?…` tự chuyển về `/?…`; trang chi tiết là `/scholarships/:slug` (tạo đường dẫn bằng `scholarshipPath()`; link cũ dùng UUID vẫn mở được).
 
 ## Git
 

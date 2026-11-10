@@ -9,6 +9,7 @@ import { cn } from '~/utils/cn';
 import { formatDate, getStatusLabel } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import FileUpload from '~/components/legacy/FileUpload';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const DOC_TYPE_CHECKLIST_MATCH = {
   cv: (item) => /^cv$/i.test(item.trim()),
@@ -319,7 +320,7 @@ const ApplicationDetailPage = () => {
             {/* View scholarship */}
             {scholarshipId && (
               <Link
-                to={`/scholarships/${scholarshipId}`}
+                to={scholarshipPath(app.scholarship ?? { id: scholarshipId })}
                 className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-button bg-ink-800 hover:bg-ink-800 border border-ink-700 text-ink-200 font-semibold text-sm transition-colors"
               >
                 Xem học bổng gốc <ChevronRight className="w-4 h-4" />

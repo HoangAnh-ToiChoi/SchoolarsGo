@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '~/store/slices/authSlice';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { EmptyState } from '~/components/legacy';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const MatchBar = ({ score }) => {
   const pct = Math.round(score * 100);
@@ -102,7 +103,7 @@ const RecommendPage = () => {
                       <h3 className="text-heading-3 text-ink-100 leading-snug line-clamp-2">{scholarship.title}</h3>
                       <p className="text-body-sm text-ink-400 mt-1">{scholarship.provider}</p>
                     </div>
-                    <Link to={`/scholarships/${scholarship.id}`} className="shrink-0 btnPrimary btnSm">
+                    <Link to={scholarshipPath(scholarship)} className="shrink-0 btnPrimary btnSm">
                       Xem <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>

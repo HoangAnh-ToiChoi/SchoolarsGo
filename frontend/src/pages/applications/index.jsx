@@ -7,6 +7,7 @@ import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { Select } from '~/components/legacy';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const ApplicationsPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
@@ -112,7 +113,7 @@ const ApplicationsPage = () => {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                   <div className="flex-1">
                     <Link
-                      to={`/scholarships/${app.scholarship?.id}`}
+                      to={scholarshipPath(app.scholarship)}
                       className="text-2xl font-bold text-ink-100 hover:text-primary-400 transition-colors"
                     >
                       {app.scholarship?.title}

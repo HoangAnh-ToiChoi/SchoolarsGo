@@ -35,7 +35,7 @@ export function demoAdapter(config) {
   }
   const detail = url.match(/^\/scholarships\/([\w-]+)$/);
   if (method === 'GET' && detail) {
-    const item = DEMO_SCHOLARSHIPS.find((s) => s.id === detail[1]);
+    const item = DEMO_SCHOLARSHIPS.find((s) => s.slug === detail[1] || s.id === detail[1]);
     return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy học bổng');
   }
   if (method === 'GET' && url === '/saved') {

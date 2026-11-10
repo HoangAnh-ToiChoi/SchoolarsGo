@@ -36,3 +36,6 @@ export const COUNTRY_LABELS = {
 };
 
 export const labelOf = (labels, value) => labels[value] ?? value;
+
+// Đường dẫn trang chi tiết: ưu tiên slug (URL dễ đọc), chưa có slug thì dùng id
+export const scholarshipPath = (scholarship) => `/scholarships/${scholarship?.slug || scholarship?.id}`;

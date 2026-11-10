@@ -49,10 +49,11 @@ const InfoRow = ({ label, value, icon: Icon }) => {
 };
 
 const ScholarshipDetailPage = () => {
-  const { id } = useParams();
+  // :slug là slug của học bổng; link cũ dùng UUID vẫn mở được (backend nhận cả hai)
+  const { slug } = useParams();
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const { data, isLoading, error } = useScholarship(id);
+  const { data, isLoading, error } = useScholarship(slug);
   const toggleSave = useToggleSaveScholarship();
   const createApplication = useCreateApplication();
   const heroRef = useRef(null);
@@ -68,7 +69,7 @@ const ScholarshipDetailPage = () => {
     return () => observer.disconnect();
   }, [data]);
 
-  if (!id || id === 'undefined') {
+  if (!slug || slug === 'undefined') {
     return (
       <div className="min-h-screen bg-ink-950 py-16 text-center text-ink-100">
         <h2 className="mb-4 text-3xl font-bold">ID học bổng không hợp lệ</h2>

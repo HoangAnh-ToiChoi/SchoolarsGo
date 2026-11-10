@@ -9,7 +9,7 @@ export const FOLLOW_UP_DAYS = 14;
 const ACTIVE_STATUSES = ['draft', 'submitted', 'under_review'];
 
 // Gom các mốc thời gian CỦA RIÊNG người dùng: học bổng đã lưu + đơn ứng tuyển.
-// Mỗi mốc: { id, date, kind: 'deadline' | 'followUp', title, scholarshipId, status?, tone }
+// Mỗi mốc: { id, date, kind: 'deadline' | 'followUp', title, scholarshipId, scholarshipSlug, status?, tone }
 export function buildDeadlineEvents(saved = [], applications = [], today = new Date()) {
   const events = [];
   const appliedIds = new Set(applications.map((app) => app.scholarship?.id));
@@ -17,17 +17,17 @@ export function buildDeadlineEvents(saved = [], applications = [], today = new D
   applications.forEach((app) => {
     const s = app.scholarship;
     if (s?.deadline && ACTIVE_STATUSES.includes(app.status)) {
-      events.push({ id: `app-${app.id}`, date: new Date(s.deadline), kind: 'deadline', title: s.title, scholarshipId: s.id, status: app.status });
+      events.push({ id: `app-${app.id}`, date: new Date(s.deadline), kind: 'deadline', title: s.title, scholarshipId: s.id, scholarshipSlug: s.slug, status: app.status });
     }
     if (app.applied_at) {
-      events.push({ id: `follow-${app.id}`, date: addDays(new Date(app.applied_at), FOLLOW_UP_DAYS), kind: 'followUp', title: s?.title, scholarshipId: s?.id, status: app.status });
+      events.push({ id: `follow-${app.id}`, date: addDays(new Date(app.applied_at), FOLLOW_UP_DAYS), kind: 'followUp', title: s?.title, scholarshipId: s?.id, scholarshipSlug: s?.slug, status: app.status });
     }
   });
 
   // Học bổng đã lưu mà đã tạo đơn thì chỉ hiện một lần (theo đơn)
   saved.forEach(({ scholarship: s }) => {
     if (s?.deadline && !appliedIds.has(s.id)) {
-      events.push({ id: `saved-${s.id}`, date: new Date(s.deadline), kind: 'deadline', title: s.title, scholarshipId: s.id });
+      events.push({ id: `saved-${s.id}`, date: new Date(s.deadline), kind: 'deadline', title: s.title, scholarshipId: s.id, scholarshipSlug: s.slug });
     }
   });
 
