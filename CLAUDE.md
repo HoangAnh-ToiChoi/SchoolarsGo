@@ -23,6 +23,7 @@ Demo: đẩy `frontend/dist/` (sau `build:pages`) lên nhánh `gh-pages` → htt
 ```
 frontend/src/
   App.jsx, main.jsx        router (trang tải lười) · Provider Redux + React Query + Router
+  pageLoaders.js           hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
   index.css                5 màu gốc + style nền
   pages/<tenTrang>/index.jsx    trang — chỉ ghép component, không gọi API
     components/<ten>/index.jsx  component chỉ trang đó dùng
@@ -67,6 +68,7 @@ frontend/src/
 
 - Redux **không lưu token** (token nằm trong cookie httpOnly do server quản lý).
 - Mỗi màn hình đủ 4 trạng thái: đang tải (skeleton), rỗng, lỗi (có nút thử lại), có dữ liệu.
+- Chuyển trang không được nháy: `Suspense` đặt quanh `<Outlet />` trong layout (không bọc cả layout), router bật `v7_startTransition`, trang hay dùng được tải trước trong `pageLoaders.js`.
 - Tải quá 5 giây → `SlowLoading` qua `useSlowLoading(isLoading)`. Hiệu ứng `Reveal` chỉ chạy khi đã có dữ liệu, tôn trọng `prefers-reduced-motion`.
 
 **Bảo mật (XSS):** không dùng `dangerouslySetInnerHTML` (bắt buộc thì qua `sanitizeHtml()`); mọi URL từ dữ liệu phải qua `safeUrl()` vì dữ liệu được cào từ web ngoài; link tab mới có `rel="noopener noreferrer"`; không thêm script nội tuyến (bản build có CSP trong `vite.config.js`).
