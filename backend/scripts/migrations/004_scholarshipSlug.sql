@@ -5,8 +5,8 @@
 
 BEGIN;
 
--- Bỏ dấu tiếng Việt khi tạo slug (Supabase cài extension vào schema "extensions")
-CREATE EXTENSION IF NOT EXISTS unaccent;
+-- Bỏ dấu tiếng Việt khi tạo slug; Supabase đặt extension trong schema "extensions"
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA extensions;
 
 ALTER TABLE scholarships ADD COLUMN IF NOT EXISTS slug VARCHAR(120);
 
@@ -15,10 +15,11 @@ CREATE OR REPLACE FUNCTION scholarship_slugify(input TEXT) RETURNS TEXT
 LANGUAGE sql IMMUTABLE
 SET search_path = public, extensions
 AS $$
-  SELECT left(
-    trim(BOTH '-' FROM regexp_replace(lower(unaccent(replace(replace(coalesce(input, ''), 'đ', 'd'), 'Đ', 'D'))), '[^a-z0-9]+', '-', 'g')),
+  -- cắt 100 ký tự trước rồi mới bỏ '-' ở hai đầu, để slug không kết thúc bằng '-'
+  SELECT trim(BOTH '-' FROM left(
+    regexp_replace(lower(unaccent(replace(replace(coalesce(input, ''), 'đ', 'd'), 'Đ', 'D'))), '[^a-z0-9]+', '-', 'g'),
     100
-  );
+  ));
 $$;
 
 -- Gán slug cho học bổng đang có. Tiêu đề trùng nhau thì thêm -2, -3… theo thứ tự tạo.
