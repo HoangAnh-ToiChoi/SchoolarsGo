@@ -14,11 +14,14 @@ export const useScholarships = (filters) => {
   });
 };
 
-export const useScholarship = (id) => {
+// Nhận slug hoặc id (link cũ dùng UUID vẫn mở được)
+export const useScholarship = (idOrSlug) => {
   return useQuery({
-    queryKey: ['scholarship', id],
-    queryFn: () => scholarshipService.getById(id).then((res) => res.data),
-    enabled: !!id && id !== 'undefined',
+    queryKey: ['scholarship', idOrSlug],
+    queryFn: () => scholarshipService.getById(idOrSlug).then((res) => res.data),
+    enabled: !!idOrSlug && idOrSlug !== 'undefined',
+    // Không tìm thấy (404) thì thử lại cũng vô ích
+    retry: (failureCount, error) => error?.status !== 404 && failureCount < 2,
   });
 };
 

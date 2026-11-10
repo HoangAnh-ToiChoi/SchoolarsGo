@@ -18,7 +18,31 @@ export const DEMO_PROFILE = {
 };
 
 export const DEMO_SCHOLARSHIPS = [
-  { id: 'd1', slug: 'chevening-scholarship', title: 'Chevening Scholarship', provider: 'Chính phủ Vương quốc Anh', country: 'UK', degree: 'Master', coverage: 'Toàn phần', deadline: inDays(5) },
+  // d1 đủ mọi trường để demo trang chi tiết đầy đủ; d2 và d12 thiếu dữ liệu để demo phần bị ẩn
+  {
+    id: 'd1',
+    slug: 'chevening-scholarship',
+    title: 'Chevening Scholarship',
+    provider: 'Chính phủ Vương quốc Anh',
+    country: 'UK',
+    degree: 'Master',
+    coverage: 'Toàn phần',
+    deadline: inDays(5),
+    intake: '09/2027',
+    language: 'Tiếng Anh',
+    min_gpa: 3.0,
+    min_ielts: 6.5,
+    description:
+      'Chevening là chương trình học bổng toàn cầu của Chính phủ Anh, dành cho người có tiềm năng lãnh đạo, học một năm thạc sĩ tại Anh. Ứng viên chọn 3 khóa học khác nhau và nộp hồ sơ trực tuyến trên trang chính thức.',
+    benefits:
+      '- Toàn bộ học phí chương trình thạc sĩ\n- Trợ cấp sinh hoạt hằng tháng\n- Vé máy bay khứ hồi hạng phổ thông\n- Trợ cấp visa và chi phí khi đến Anh',
+    eligibility:
+      '- Quốc tịch Việt Nam, cam kết về nước ít nhất 2 năm\n- Đã tốt nghiệp đại học\n- Tối thiểu 2 năm kinh nghiệm làm việc',
+    requirements: '- CV\n- Bài luận (4 bài)\n- Bảng điểm đại học\n- 2 thư giới thiệu\n- Chứng chỉ IELTS\n- Hộ chiếu',
+    application_url: 'https://www.chevening.org/scholarships/',
+    source: 'chevening.org',
+    source_url: 'https://www.chevening.org/scholarship/vietnam/',
+  },
   { id: 'd2', slug: 'hoc-bong-vallet', title: 'Học bổng Vallet', provider: 'Quỹ Rencontres du Vietnam', country: 'Vietnam', degree: 'Bachelor', coverage: 'Một phần', deadline: inDays(9) },
   { id: 'd3', slug: 'daad-epos', title: 'DAAD EPOS', provider: 'Cơ quan Trao đổi Hàn lâm Đức', country: 'Germany', degree: 'Master', coverage: 'Toàn phần', deadline: inDays(24) },
   { id: 'd4', slug: 'toshiba-foundation', title: 'Toshiba Foundation', provider: 'Quỹ Toshiba', country: 'Vietnam', degree: 'Bachelor', coverage: 'Một phần', deadline: inDays(29) },
@@ -27,4 +51,19 @@ export const DEMO_SCHOLARSHIPS = [
   { id: 'd7', slug: 'global-korea-scholarship', title: 'Global Korea Scholarship', provider: 'Chính phủ Hàn Quốc', country: 'South Korea', degree: 'Bachelor', coverage: 'Toàn phần', deadline: inDays(114) },
   { id: 'd8', slug: 'fulbright-vietnam', title: 'Fulbright Vietnam', provider: 'Chính phủ Hoa Kỳ', country: 'USA', degree: 'Master', coverage: 'Toàn phần', deadline: inDays(62) },
   { id: 'd9', slug: 'eiffel-excellence', title: 'Eiffel Excellence', provider: 'Bộ Ngoại giao Pháp', country: 'France', degree: 'PhD', coverage: 'Toàn phần', deadline: inDays(18) },
+  { id: 'd10', slug: 'commonwealth-scholarship', title: 'Commonwealth Scholarship', provider: 'Ủy ban Học bổng Khối Thịnh vượng chung', country: 'UK', degree: 'Master', coverage: 'Toàn phần', deadline: inDays(21) },
+  { id: 'd11', slug: 'great-scholarships', title: 'GREAT Scholarships', provider: 'British Council', country: 'UK', degree: 'Master', coverage: 'Một phần', deadline: inDays(48) },
+  {
+    id: 'd12',
+    slug: 'hoc-bong-thap-sang-uoc-mo',
+    title: 'Học bổng Thắp sáng ước mơ',
+    provider: 'Quỹ Khuyến học Việt Nam',
+    country: 'Vietnam',
+    degree: 'Bachelor',
+    coverage: 'Một phần',
+    deadline: null,
+    summary: 'Học bổng dành cho sinh viên năm nhất có hoàn cảnh khó khăn, thành tích học tập tốt. Hạn nộp sẽ được công bố trên bài đăng gốc.',
+    source: 'khuyenhoc.vn',
+    source_url: 'https://example.org/hoc-bong-thap-sang-uoc-mo',
+  },
 ];

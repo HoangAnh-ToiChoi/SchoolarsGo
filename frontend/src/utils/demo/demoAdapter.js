@@ -8,8 +8,8 @@ const DELAY_MS = Number(new URLSearchParams(window.location.search).get('demoDel
 const wait = () => new Promise((resolve) => setTimeout(resolve, DELAY_MS));
 
 const ok = (config, data) => wait().then(() => ({ data, status: 200, statusText: 'OK', headers: {}, config }));
-const fail = (config, message) =>
-  Promise.reject(Object.assign(new Error(message), { config, response: { status: 503, data: { message } } }));
+const fail = (config, message, status = 503) =>
+  Promise.reject(Object.assign(new Error(message), { config, response: { status, data: { message } } }));
 
 export function demoAdapter(config) {
   const method = config.method.toUpperCase();
@@ -26,7 +26,9 @@ export function demoAdapter(config) {
       const q = String(params.search).toLowerCase();
       items = items.filter((s) => `${s.title} ${s.provider}`.toLowerCase().includes(q));
     }
-    items = [...items].sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+    // Học bổng chưa công bố hạn nộp xếp cuối
+    const time = (s) => (s.deadline ? new Date(s.deadline).getTime() : Infinity);
+    items = [...items].sort((a, b) => time(a) - time(b) || 0);
     return ok(config, { success: true, data: items, meta: { page: 1, limit: items.length, total: items.length, totalPages: 1 } });
   }
   if (method === 'GET' && url === '/scholarships/countries') {
@@ -36,7 +38,7 @@ export function demoAdapter(config) {
   const detail = url.match(/^\/scholarships\/([\w-]+)$/);
   if (method === 'GET' && detail) {
     const item = DEMO_SCHOLARSHIPS.find((s) => s.slug === detail[1] || s.id === detail[1]);
-    return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy học bổng');
+    return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy học bổng', 404);
   }
   if (method === 'GET' && url === '/saved') {
     const data = DEMO_SCHOLARSHIPS.filter((s) => savedIds.has(s.id)).map((s) => ({ id: `saved-${s.id}`, scholarship_id: s.id, scholarship: s }));
