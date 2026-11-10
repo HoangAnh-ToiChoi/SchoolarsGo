@@ -1,3 +1,6 @@
+// Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
+const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
+
 class ScholarshipRepository {
   #sb;
 
@@ -7,12 +10,15 @@ class ScholarshipRepository {
 
   async findAll(filters = {}, limit, offset, userId = null) {
     let q = this.#sb.from('scholarships').select(
-      'id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
+      'id, slug, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
       { count: 'exact' }
-    ).eq('is_active', true).gte('deadline', new Date().toISOString());
+    ).eq('is_active', true).or(this.#notExpired());
 
     q = this.#applyFilters(q, filters);
-    q = q.order('deadline', { ascending: true }).range(offset, offset + limit - 1);
+    q = q
+      .order('relevance_score', { ascending: false })
+      .order('deadline', { ascending: true, nullsFirst: false })
+      .range(offset, offset + limit - 1);
 
     const { data, count, error } = await q;
     if (error) throw error;
@@ -24,11 +30,12 @@ class ScholarshipRepository {
   async findFeatured() {
     const { data, error } = await this.#sb
       .from('scholarships')
-      .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+      .select('id, slug, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('is_active', true)
       .eq('is_featured', true)
-      .gte('deadline', new Date().toISOString())
-      .order('deadline', { ascending: true })
+      .or(this.#notExpired())
+      .order('relevance_score', { ascending: false })
+      .order('deadline', { ascending: true, nullsFirst: false })
       .limit(6);
     if (error) throw error;
     return data || [];
@@ -46,23 +53,33 @@ class ScholarshipRepository {
     return unique;
   }
 
-  async findById(id, userId = null) {
+  /** Tìm theo id (UUID) hoặc slug — URL trang chi tiết dùng slug, link cũ vẫn dùng id. */
+  async findByIdOrSlug(idOrSlug, { isUuid }, userId = null) {
     const { data: scholarship, error } = await this.#sb
       .from('scholarships')
       .select('*')
-      .eq('id', id)
+      .eq(isUuid ? 'id' : 'slug', idOrSlug)
       .eq('is_active', true)
-      .gte('deadline', new Date().toISOString())
+      .or(this.#notExpired())
       .maybeSingle();
     if (error) throw error;
     if (!scholarship) return null;
 
-    const isSaved = await this.#checkSavedStatus(userId, id);
+    const isSaved = await this.#checkSavedStatus(userId, scholarship.id);
     return { ...scholarship, is_saved: isSaved };
+  }
+
+  /** Điều kiện "chưa quá hạn": hạn nộp còn hoặc chưa rõ hạn (NULL). Dùng chung cho mọi truy vấn đọc. */
+  #notExpired() {
+    return `deadline.is.null,deadline.gte.${new Date().toISOString()}`;
   }
 
   #applyFilters(q, filters) {
     if (filters.country)      q = q.ilike('country', `%${filters.country}%`);
+    // Chưa có cột scope: "Trong nước" = quốc gia là Việt Nam, còn lại là du học.
+    // Lọc ở DB (không lọc ở frontend) để phân trang và tổng số đúng.
+    if (filters.scope === 'domestic')      q = q.in('country', DOMESTIC_COUNTRIES);
+    if (filters.scope === 'international') q = q.not('country', 'in', `(${DOMESTIC_COUNTRIES.map(c => `"${c}"`).join(',')})`);
     if (filters.degree)       q = q.eq('degree', filters.degree);
     if (filters.field)        q = q.ilike('field_of_study', `%${filters.field}%`);
     if (filters.language)     q = q.eq('language', filters.language);

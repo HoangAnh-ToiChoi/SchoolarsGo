@@ -1,351 +1,69 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties ───────────────────────── */
+/* ── BẢNG MÀU: toàn dự án chỉ có 5 màu gốc (cộng nền trắng). ĐỔI MÀU CHỈ SỬA 5 DÒNG NÀY.
+   Giá trị là kênh R G B; tailwind.config.js tự pha các sắc đậm/nhạt từ đây. */
 :root {
-  /* DARK THEME (default) */
-  /* Hex — used by CSS component classes (.card, .btn-*, etc.) */
-  --color-ink-950: #0D1117;
-  --color-ink-900: #161B22;
-  --color-ink-800: #21262D;
-  --color-ink-700: #30363D;
-  --color-ink-600: #484F58;
-  --color-ink-500: #6E7681;
-  --color-ink-400: #8B949E;
-  --color-ink-300: #B1BAC4;
-  --color-ink-200: #C9D1D9;
-  --color-ink-100: #E6EDF3;
-  --color-primary-400: #22D3EE;
-  --color-primary-300: #67E8F9;
-  /* RGB channels — used by Tailwind utility classes (bg-ink-*, text-ink-*, border-ink-*) */
-  --ink-950: 13 17 23;
-  --ink-900: 22 27 34;
-  --ink-800: 33 38 45;
-  --ink-700: 48 54 61;
-  --ink-600: 72 79 88;
-  --ink-500: 110 118 129;
-  --ink-400: 139 148 158;
-  --ink-300: 177 186 196;
-  --ink-200: 201 209 217;
-  --ink-100: 230 237 243;
-  --primary-400: 34 211 238;
-  --primary-300: 103 232 249;
+  --c-primary: 79 70 229; /* #4F46E5 tím chàm — nút, liên kết, mục đang chọn */
+  --c-neutral: 63 63 70; /* #3F3F46 xám than — chữ, tiêu đề, viền, nền phụ */
+  --c-success: 6 118 71; /* #067647 xanh lá — còn nhiều thời gian, thành công */
+  --c-warning: 181 71 8; /* #B54708 cam — sắp hết hạn, cảnh báo */
+  --c-danger: 180 35 24; /* #B42318 đỏ — gấp, lỗi, xóa */
+  --radius: 0.625rem;
 }
 
-/* LIGHT THEME */
-[data-theme="light"] {
-  /* Hex */
-  --color-ink-950: #FFFFFF;
-  --color-ink-900: #F6F8FA;
-  --color-ink-800: #EAEEF2;
-  --color-ink-700: #D0D7DE;
-  --color-ink-600: #B1BAC4;
-  --color-ink-500: #8B949E;
-  --color-ink-400: #6E7681;
-  --color-ink-300: #57606A;
-  --color-ink-200: #424A53;
-  --color-ink-100: #1F2937;
-  --color-primary-400: #0891B2;
-  --color-primary-300: #06B6D4;
-  /* RGB channels */
-  --ink-950: 255 255 255;
-  --ink-900: 246 248 250;
-  --ink-800: 234 238 242;
-  --ink-700: 208 215 222;
-  --ink-600: 177 186 196;
-  --ink-500: 139 148 158;
-  --ink-400: 110 118 129;
-  --ink-300: 87 96 106;
-  --ink-200: 66 74 83;
-  --ink-100: 31 41 55;
-  --primary-400: 8 145 178;
-  --primary-300: 6 182 212;
-}
-
-[data-theme="light"] .text-gradient-cyan {
-  background-image: none;
-  color: #0891B2;
-  -webkit-text-fill-color: #0891B2;
-}
-
-[data-theme="light"] .glow-text {
-  text-shadow: 0 0 20px rgba(8, 145, 178, 0.25);
-}
-
-/* ── Base ─────────────────────────────────────────── */
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
-
   body {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--color-ink-100);
-    background-color: var(--color-ink-950);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-white font-sans text-fg antialiased;
   }
-
   ::selection {
-    background-color: rgba(34, 211, 238, 0.2);
-    color: var(--color-primary-400);
+    @apply bg-brand-100 text-brand-700;
   }
-
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--color-ink-950); }
-  ::-webkit-scrollbar-thumb { background: var(--color-ink-700); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-600); }
-
-  select option {
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-100);
-  }
+  ::-webkit-scrollbar-thumb { @apply rounded bg-line-strong; }
 }
 
-/* ── Components ──────────────────────────────────── */
+/* ── Class dùng chung của các trang CHƯA làm lại (components/legacy và trang cũ).
+   Code mới dùng component shadcn trong components/ui, không dùng các class này. */
 @layer components {
+  .containerPage { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .containerNarrow { @apply mx-auto max-w-3xl px-4 sm:px-6; }
 
-  /* Layout */
-  .container-page   { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
-  .container-narrow { @apply mx-auto max-w-3xl px-4 sm:px-6; }
+  .card { @apply rounded-xl border border-ink-800 bg-ink-900; }
+  .cardHover { @apply card transition duration-200 hover:-translate-y-1 hover:border-brand-200 hover:shadow-tile-hover; }
+  .cardBody { @apply p-6; }
+  .cardHeader { @apply border-b border-ink-800 p-6; }
+  .cardTitle { @apply text-base font-semibold text-ink-100; }
+  .cardDescription { @apply mt-1 text-sm text-ink-400; }
+  .cardFooter { @apply border-t border-ink-800 p-6; }
 
-  /* ── Cards ── */
-  .card {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-  }
-  .card-hover {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-    transition: all 0.3s ease;
-  }
-  .card-hover:hover {
-    border-color: rgba(34, 211, 238, 0.4);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  }
-  .card-glow {
-    background-color: var(--color-ink-900);
-    border-radius: 0.75rem;
-    border: 1px solid var(--color-ink-800);
-    transition: all 0.3s ease;
-  }
-  .card-glow:hover {
-    border-color: rgba(34, 211, 238, 0.4);
-    transform: translateY(-4px);
-    box-shadow: 0 0 30px rgba(34, 211, 238, 0.2);
-  }
-  .card-body    { @apply p-6; }
-  .card-header  { padding: 1.5rem; border-bottom: 1px solid var(--color-ink-800); }
-  .card-title   { font-size: 1rem; font-weight: 600; color: var(--color-ink-100); }
-  .card-description { font-size: 0.875rem; color: var(--color-ink-400); margin-top: 0.25rem; }
-  .card-footer  { padding: 1.5rem; border-top: 1px solid var(--color-ink-800); }
+  .btn { @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-button font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-40; }
+  .btnPrimary { @apply btn bg-primary px-5 py-2.5 text-white hover:bg-primary-700; }
+  .btnSecondary { @apply btn border border-ink-700 bg-ink-800 px-5 py-2.5 text-ink-200 hover:border-brand-200 hover:text-primary; }
+  .btnGhost { @apply btn px-3 py-2 text-ink-400 hover:bg-ink-800 hover:text-ink-100; }
+  .btnDanger { @apply btn border border-danger-600/20 bg-danger-600/10 px-5 py-2.5 text-danger-600 hover:bg-danger-600/20; }
+  .btnSm { @apply px-3.5 py-1.5 text-sm; }
+  .btnLg { @apply px-7 py-3.5 text-lg; }
 
-  /* ── Buttons ── */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 font-semibold
-           transition-all duration-200 cursor-pointer
-           disabled:opacity-40 disabled:cursor-not-allowed;
-  }
-  .btn-primary {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: var(--color-primary-400);
-    color: var(--color-ink-950);
-  }
-  .btn-primary:hover {
-    background-color: var(--color-primary-300);
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
-  }
-  .btn-secondary {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-200);
-    border: 1px solid var(--color-ink-700);
-  }
-  .btn-secondary:hover {
-    border-color: rgba(34, 211, 238, 0.5);
-    color: var(--color-primary-400);
-  }
-  .btn-ghost {
-    @apply btn px-3 py-2 rounded-button;
-    color: var(--color-ink-400);
-  }
-  .btn-ghost:hover {
-    color: var(--color-ink-100);
-    background-color: var(--color-ink-800);
-  }
-  .btn-danger {
-    @apply btn px-5 py-2.5 rounded-button active:scale-[0.97];
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-  }
-  .btn-danger:hover { background-color: rgba(239, 68, 68, 0.2); }
-  .btn-sm { @apply text-sm px-3.5 py-1.5; }
-  .btn-lg { @apply text-lg px-7 py-3.5; }
+  .input { @apply w-full rounded-input border border-ink-700 bg-white px-4 py-2.5 text-ink-100 transition-colors duration-200 placeholder:text-ink-500 focus:border-brand-200 focus:outline-none focus:ring-[3px] focus:ring-primary/15; }
+  .inputWithIcon { @apply input pl-11; }
+  .inputLabel { @apply mb-1.5 block text-sm font-medium text-ink-300; }
 
-  /* ── Inputs ── */
-  .input {
-    @apply w-full rounded-input px-4 py-2.5 transition-colors duration-200
-           focus:outline-none;
-    background-color: var(--color-ink-950);
-    color: var(--color-ink-100);
-    border: 1px solid var(--color-ink-700);
-  }
-  .input::placeholder { color: var(--color-ink-500); }
-  .input:focus {
-    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
-    border-color: rgba(34, 211, 238, 0.5);
-  }
-  .input-with-icon { @apply input pl-11; }
-  .input-label { @apply block text-sm font-medium mb-1.5; color: var(--color-ink-300); }
-  .input-error  { @apply text-xs mt-1; color: #f87171; }
+  .badge { @apply inline-flex items-center gap-1 rounded-badge px-2.5 py-0.5 text-xs font-semibold; }
+  .badgePrimary { @apply badge border border-primary/20 bg-primary/10 text-primary; }
+  .badgeSuccess { @apply badge border border-success-600/20 bg-success-600/10 text-success-600; }
+  .badgeDefault { @apply badge border border-ink-700 bg-ink-800 text-ink-300; }
+  .tag { @apply inline-flex items-center gap-1 rounded-tag border border-ink-700 bg-ink-800 px-3 py-1 text-caption text-ink-400; }
 
-  /* ── Badges ── */
-  .badge { @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-badge; }
-  .badge-primary { @apply badge; background: rgba(34,211,238,0.1); color: var(--color-primary-300); border: 1px solid rgba(34,211,238,0.2); }
-  .badge-success { @apply badge; background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-  .badge-warning { @apply badge; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-  .badge-danger  { @apply badge; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-  .badge-default { @apply badge; background: var(--color-ink-800); color: var(--color-ink-300); border: 1px solid var(--color-ink-700); }
+  .emptyState { @apply flex flex-col items-center justify-center px-4 py-16 text-center; }
+  .emptyStateIcon { @apply mb-5 h-14 w-14 text-ink-700; }
+  .emptyState h3 { @apply mb-2 text-lg font-semibold text-ink-200; }
+  .emptyState p { @apply mb-6 max-w-sm text-sm leading-relaxed text-ink-500; }
 
-  /* ── Tags ── */
-  .tag {
-    @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background-color: var(--color-ink-800);
-    color: var(--color-ink-400);
-    border: 1px solid var(--color-ink-700);
-  }
-  .tag-primary {
-    @apply inline-flex items-center gap-1 text-caption px-3 py-1 rounded-tag;
-    background: rgba(34,211,238,0.1);
-    color: var(--color-primary-300);
-    border: 1px solid rgba(34,211,238,0.2);
-  }
-
-  /* ── Empty state ── */
-  .empty-state { @apply flex flex-col items-center justify-center text-center py-16 px-4; }
-  .empty-state-icon { @apply w-14 h-14 mb-5; color: var(--color-ink-700); }
-  .empty-state h3 { @apply text-lg font-semibold mb-2; color: var(--color-ink-200); }
-  .empty-state p  { @apply text-sm max-w-sm mb-6 leading-relaxed; color: var(--color-ink-500); }
-
-  /* ── Page header ── */
-  .page-header { @apply mb-8; }
-  .page-title  { @apply text-2xl font-bold; color: var(--color-ink-100); }
-
-  /* ── Modal ── */
-  .modal-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-  }
-  .modal-content {
-    @apply relative w-full max-w-lg rounded-card animate-fade-in;
-    background-color: var(--color-ink-900);
-    border: 1px solid var(--color-ink-800);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  }
-  .modal-header {
-    @apply flex items-start justify-between gap-4 p-6;
-    border-bottom: 1px solid var(--color-ink-800);
-  }
-  .modal-title { @apply text-lg font-semibold; color: var(--color-ink-100); }
-  .modal-description { @apply text-sm mt-1; color: var(--color-ink-500); }
-
-  /* ── Divider ── */
-  .divider { border-top: 1px solid var(--color-ink-800); }
-
-  /* ── Grid pattern overlay ── */
-  .bg-grid {
-    background-image:
-      linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
-    background-size: 64px 64px;
-  }
-
-  /* ── Smooth theme transitions ── */
-  * {
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-}
-
-/* ── Utilities ───────────────────────────────────── */
-@layer utilities {
-  .text-gradient-cyan {
-    background-image: linear-gradient(135deg, #67E8F9, #22D3EE, #06B6D4);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .glow-text {
-    text-shadow: 0 0 30px rgba(34, 211, 238, 0.5);
-  }
-}
-
-/* ── React Calendar theme-aware overrides ──────────────── */
-.react-calendar {
-  width: 100% !important;
-  background: transparent !important;
-  border: none !important;
-  color: var(--color-ink-100) !important;
-  font-family: 'Inter', sans-serif !important;
-}
-.react-calendar__navigation {
-  margin-bottom: 0.75rem !important;
-}
-.react-calendar__navigation button {
-  color: var(--color-ink-100) !important;
-  background: transparent !important;
-  min-width: 44px !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  transition: background 0.15s !important;
-}
-.react-calendar__navigation button:hover,
-.react-calendar__navigation button:focus {
-  background: var(--color-ink-800) !important;
-}
-.react-calendar__navigation__label {
-  font-weight: 700 !important;
-  font-size: 0.95rem !important;
-  color: var(--color-ink-100) !important;
-}
-.react-calendar__month-view__weekdays__weekday {
-  color: var(--color-ink-500) !important;
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-}
-.react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none !important;
-}
-.react-calendar__tile {
-  background: transparent !important;
-  color: var(--color-ink-300) !important;
-  border-radius: 8px !important;
-  transition: all 0.15s ease !important;
-  padding: 0.7em 0.5em !important;
-  position: relative;
-}
-.react-calendar__tile:hover {
-  background: var(--color-ink-800) !important;
-  color: var(--color-ink-100) !important;
-}
-.react-calendar__tile--now {
-  background: rgba(34,211,238,0.1) !important;
-  color: var(--color-primary-400) !important;
-  border: 1px solid rgba(34,211,238,0.3) !important;
-}
-.react-calendar__tile--active,
-.react-calendar__tile--active:enabled:hover,
-.react-calendar__tile--active:enabled:focus {
-  background: var(--color-primary-400) !important;
-  color: var(--color-ink-950) !important;
-  font-weight: 700 !important;
-}
-.react-calendar__month-view__days__day--neighboringMonth {
-  color: var(--color-ink-600) !important;
+  .modalOverlay { @apply fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm; }
+  .modalContent { @apply relative w-full max-w-lg animate-fade-in rounded-card border border-ink-800 bg-white shadow-menu; }
+  .modalHeader { @apply flex items-start justify-between gap-4 border-b border-ink-800 p-6; }
+  .modalTitle { @apply text-lg font-semibold text-ink-100; }
+  .modalDescription { @apply mt-1 text-sm text-ink-500; }
 }

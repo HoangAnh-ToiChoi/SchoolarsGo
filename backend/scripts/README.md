@@ -6,23 +6,54 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 
 | Script | Mô tả |
 |--------|--------|
-| `seed-scholarships.js` | Seed scholarship data từ nguồn cấu hình sẵn. Options: `--mock` (fake data), `--scrape-only` (scrape trước khi seed) |
-| `seed-admin.js` | Tạo tài khoản admin mặc định |
-| `seed-test-user.js` | Tạo tài khoản test user |
-| `seed-cloud.js` | Seed từ cloud/RSS sources. Options: `--dry-run` (xem trước), `--limit=20` (giới hạn số lượng) |
+| `seedAdmin.js` | Tạo tài khoản admin mặc định |
+| `seedTestUser.js` | Tạo tài khoản test user |
 
-## Debugging
+## Cào dữ liệu
 
 | Script | Mô tả |
 |--------|--------|
-| `debug-upload.js` | Debug Supabase Storage upload - in chi tiết response |
-| `check-users.js` | Kiểm tra users trên cả Supabase Cloud và Docker Local |
-| `query-scholarships.js` | Query và hiển thị scholarship data (theo quốc gia, bậc học, ngôn ngữ) |
-| `test-storage.js` | Test Supabase Storage connection và upload |
-| `test-admin-api.js` | Integration test cho Admin Module (auth, RBAC, self-lockout) |
 
 ## Notes
 
 - Tất cả scripts dùng `dotenv` để load `.env`
-- Các script test/debug có thể bỏ nếu không còn cần
 - Scripts trong thư mục này chỉ chạy local, không chạy trên production
+
+## Dọn dữ liệu cũ
+
+| Script | Mô tả |
+|---|---|
+| `cleanDb.js` | Xoá học bổng, user thường, profile, tài liệu, đơn, đã lưu, chat. **Giữ tài khoản admin.** Mặc định chỉ đếm, thêm `--yes` mới xoá. |
+| `cleanDb.sql` | Cùng nội dung ở dạng SQL, dán vào Supabase SQL Editor nếu không muốn chạy script. |
+
+```bash
+# Supabase Cloud (copy .env.cloud.example thành .env.cloud, điền mật khẩu DB)
+node scripts/cleanDb.js --env=.env.cloud --allow-remote                           # đếm
+node scripts/cleanDb.js --env=.env.cloud --allow-remote --confirm=<PG_HOST> --yes # xoá thật
+
+# Local (Docker), chỉ khi có dùng lại
+node scripts/cleanDb.js
+node scripts/cleanDb.js --yes
+```
+
+Backup trước khi dọn: Supabase Dashboard → Database → Backups.
+File đã upload trong bucket `documents` của Storage **không** bị xoá bởi SQL, cần xoá tay trong Dashboard.
+
+## Chuyển hướng giữa Supabase Cloud và Docker
+
+Mặc định dự án chạy theo **Supabase Cloud**. Phần Docker vẫn được giữ làm đường lui, chưa xoá:
+
+| Thứ | Vai trò |
+|---|---|
+| `docker-compose.yml` (ở gốc repo) | Dựng lại Postgres + Supabase local khi cần |
+| `backend/.env` | Cấu hình local (`localhost`) |
+| `backend/.env.cloud` | Cấu hình cloud (tự tạo từ `.env.cloud.example`, không commit) |
+
+Quay lại Docker: `docker compose up -d`, rồi chạy `database.sql` và `databaseChatMessages.sql`, sau đó `node scripts/seedAdmin.js`.
+
+## Kéo học bổng từ nguồn bên ngoài
+
+| Script | Mô tả |
+|---|---|
+| `ingest.js` | Kéo học bổng từ 5 nguồn (module `src/ingestion`). Chi tiết: `docs/scholarshipIngestion/architecture.md`. Dùng `--dry-run` để chạy thử |
+| `applyMigration.js` | Chạy một file trong `scripts/migrations/` (ví dụ `--file=003_ingestion.sql`) |

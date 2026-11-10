@@ -38,6 +38,7 @@ const scholarshipQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
   country: z.string().max(100).optional(),
+  scope: z.enum(['domestic', 'international']).optional(),
   degree: z
     .string()
     .refine(v => !v || DEGREES.includes(v), {

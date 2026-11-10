@@ -1,18 +1,19 @@
 import { useMutation } from '@tanstack/react-query';
-import { authService } from '../services';
-import { useAuthStore } from '../stores/authStore';
+import { authService } from '~/services/auth.service';
+import { useDispatch } from 'react-redux';
+import { loggedIn, loggedOut } from '~/store/slices/authSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 export const useLogin = () => {
-  const { login } = useAuthStore();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (data) => authService.login(data),
     onSuccess: (response) => {
       const { user } = response.data.data;
-      login(user);
+      dispatch(loggedIn(user));
       toast.success(`Chào mừng ${user.full_name || user.email}!`);
       navigate('/');
     },
@@ -23,14 +24,14 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-  const { login } = useAuthStore();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (data) => authService.register(data),
     onSuccess: (response) => {
       const { user } = response.data.data;
-      login(user);
+      dispatch(loggedIn(user));
       toast.success('Đăng ký thành công! Chào mừng bạn đến với ScholarsGo');
       navigate('/');
     },
@@ -41,13 +42,13 @@ export const useRegister = () => {
 };
 
 export const useLogout = () => {
-  const { logout } = useAuthStore();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: () => authService.logout(),
     onSettled: () => {
-      logout();
+      dispatch(loggedOut());
       navigate('/');
     },
   });

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchNews } from '../services/newsService';
+import { fetchNews } from '~/services/news.service';
 
 export const useNews = (params = {}) =>
   useQuery({

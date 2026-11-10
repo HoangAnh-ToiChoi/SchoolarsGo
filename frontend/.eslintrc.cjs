@@ -16,4 +16,11 @@ module.exports = {
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     'react/prop-types': 'off',
   },
+  overrides: [
+    {
+      // Component shadcn/ui export kèm biến thể (buttonVariants…) theo thiết kế của thư viện
+      files: ['src/components/ui/**'],
+      rules: { 'react-refresh/only-export-components': 'off' },
+    },
+  ],
 };

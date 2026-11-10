@@ -15,6 +15,7 @@ class SavedService {
       created_at: row.created_at,
       scholarship: {
         id: row.scholarship_id,
+        slug: row.slug,
         title: row.title,
         provider: row.provider,
         country: row.country,
