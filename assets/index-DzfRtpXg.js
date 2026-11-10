@@ -1,0 +1,1 @@
+import{j as i,c as s}from"./index-dt6kfnIu.js";function r({index:e=0,step:a=60,className:n,children:o,as:t="div"}){return i.jsx(t,{className:s("animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out fill-mode-both motion-reduce:animate-none",n),style:{animationDelay:`${e*a}ms`},children:o})}export{r as R};

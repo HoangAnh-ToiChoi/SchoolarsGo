@@ -1,1 +1,0 @@
-import{j as e}from"./index-CUbEB7xc.js";function r({title:s,description:t,actions:a}){return e.jsxs("div",{className:"flex flex-wrap items-end justify-between gap-4",children:[e.jsxs("div",{children:[e.jsx("h1",{className:"text-page-title text-fg",children:s}),t&&e.jsx("p",{className:"mt-1.5 text-sm text-fg-muted",children:t})]}),a]})}export{r as P};
