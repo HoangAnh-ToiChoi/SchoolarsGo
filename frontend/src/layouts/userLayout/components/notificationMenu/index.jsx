@@ -16,7 +16,7 @@ import { selectIsAuthenticated } from '~/store/slices/authSlice';
 // Chuông trên header: bấm là sổ danh sách thông báo ngay tại chỗ, không có trang thông báo riêng.
 export default function NotificationMenu() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const { items, unreadCount, isLoading, markRead, markAllRead } = useNotifications();
+  const { items, unreadCount, isLoading, isError, refetch, markRead, markAllRead } = useNotifications();
 
   return (
     <DropdownMenu>
@@ -70,6 +70,18 @@ export default function NotificationMenu() {
           </EmptyState>
         ) : isLoading ? (
           <EmptyState text="Đang tải thông báo…" />
+        ) : isError ? (
+          <EmptyState text="Không tải được thông báo.">
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                refetch();
+              }}
+              className="mt-3 h-8 justify-center rounded-control px-3 text-[13px] font-semibold text-brand-600 focus:bg-brand-50"
+            >
+              Thử lại
+            </DropdownMenuItem>
+          </EmptyState>
         ) : items.length === 0 ? (
           <EmptyState text="Chưa có thông báo. Lưu học bổng để được nhắc trước hạn nộp 14, 7 và 1 ngày." />
         ) : (

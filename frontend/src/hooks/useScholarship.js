@@ -56,6 +56,8 @@ export const useToggleSaveScholarship = () => {
       queryClient.invalidateQueries({ queryKey: ['scholarships'] });
       queryClient.invalidateQueries({ queryKey: ['scholarship'] });
       queryClient.invalidateQueries({ queryKey: ['saved'] });
+      // Lưu học bổng sắp hết hạn thì chuông có nhắc mới ngay
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       toast.success(isSaved ? 'Đã bỏ lưu học bổng' : 'Đã lưu học bổng');
     },
     onError: (error) => {

@@ -1,8 +1,24 @@
 import { DEMO_APPLICATIONS, DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
-import { getScope } from '~/utils/scholarship';
+import { getDeadlineInfo, getScope, sortByDeadline } from '~/utils/scholarship';
 
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
 const savedIds = new Set(['d1', 'd2', 'd3', 'd5']);
+const readNotificationIds = new Set();
+
+// Giả lập GET /notifications của backend: nhắc hạn ≤ 14 ngày cho học bổng đã lưu và đơn nháp
+function demoNotifications() {
+  const drafts = DEMO_APPLICATIONS.filter((a) => a.status === 'draft').map((a) => ({ scholarship: a.scholarships, application_id: a.id }));
+  const draftIds = new Set(drafts.map((d) => d.scholarship.id));
+  const saved = DEMO_SCHOLARSHIPS.filter((s) => savedIds.has(s.id) && !draftIds.has(s.id)).map((s) => ({ scholarship: s, application_id: null }));
+  const items = [...drafts, ...saved]
+    .map((item) => ({ ...item, days_left: getDeadlineInfo(item.scholarship.deadline).daysLeft }))
+    .filter((item) => item.days_left !== null && item.days_left >= 0 && item.days_left <= 14)
+    .map((item) => {
+      const id = `n-${item.scholarship.id}`;
+      return { id, type: 'deadline', ...item, read_at: readNotificationIds.has(id) ? new Date().toISOString() : null };
+    });
+  return sortByDeadline(items, (n) => n.scholarship.deadline);
+}
 
 // Giả lập độ trễ mạng. Thêm ?demoDelay=7000 vào URL để xem trạng thái tải chậm (> 5 giây).
 const DELAY_MS = Number(new URLSearchParams(window.location.search).get('demoDelay')) || 600;
@@ -64,6 +80,19 @@ export function demoAdapter(config) {
   if (method === 'GET' && application) {
     const item = DEMO_APPLICATIONS.find((a) => a.id === application[1]);
     return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy đơn', 404);
+  }
+  if (method === 'GET' && url === '/notifications') {
+    const data = demoNotifications();
+    return ok(config, { success: true, data, meta: { unread: data.filter((n) => !n.read_at).length } });
+  }
+  if (method === 'PATCH' && url === '/notifications/readAll') {
+    demoNotifications().forEach((n) => readNotificationIds.add(n.id));
+    return ok(config, { success: true });
+  }
+  const notification = url.match(/^\/notifications\/([\w-]+)\/read$/);
+  if (method === 'PATCH' && notification) {
+    readNotificationIds.add(notification[1]);
+    return ok(config, { success: true });
   }
   if (method === 'GET' && url === '/profile') return ok(config, { success: true, data: DEMO_PROFILE });
   if (method === 'POST' && url === '/auth/logout') return ok(config, { success: true });

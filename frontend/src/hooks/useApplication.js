@@ -33,6 +33,7 @@ export const useCreateApplication = () => {
     mutationFn: (data) => applicationService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       toast.success('Tạo application thành công');
     },
     onError: (error) => {

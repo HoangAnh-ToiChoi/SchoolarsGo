@@ -163,6 +163,26 @@
 
 ---
 
+### 7. notifications
+
+Migration `005_notifications.sql`. Thông báo trên chuông header.
+
+| Column | Type | Constraints | Mô tả |
+|--------|------|-------------|-------|
+| id | uuid | PK | Primary key |
+| user_id | uuid | FK → users.id, NOT NULL, ON DELETE CASCADE | Người nhận |
+| type | varchar(20) | CHECK in ('deadline', 'new_match') | Nhắc hạn / học bổng mới phù hợp (giai đoạn 3) |
+| scholarship_id | uuid | FK → scholarships.id, NOT NULL | Học bổng liên quan |
+| application_id | uuid | FK → applications.id, NULLABLE | Có khi nhắc theo đơn nháp |
+| milestone | smallint | DEFAULT 0 | Mốc nhắc 14 / 7 / 1 ngày |
+| read_at | timestamptz | NULLABLE | Thời điểm đọc; NULL = chưa đọc |
+| created_at | timestamptz | DEFAULT now() | |
+
+**Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
+**Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
+
+---
+
 ## RLS (Row Level Security)
 
 Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cập dữ liệu của mình.
@@ -171,6 +191,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 - `documents` — chỉ user tự đọc/update
 - `applications` — chỉ user tự đọc/update
 - `saved_scholarships` — chỉ user tự đọc/update
+- `notifications` — chỉ user tự đọc/update
 - `scholarships` — public read (anonymous)
 
 ---
