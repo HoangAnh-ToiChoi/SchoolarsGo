@@ -28,7 +28,7 @@ export default function DetailHeader({ scholarship }) {
   ];
 
   return (
-    <section className="-mx-8 -mt-8 border-b border-line bg-brand-50 px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
+    <section className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
       <nav aria-label="Đường dẫn" className="flex min-w-0 items-center gap-2 text-[13px] text-fg-muted">
         <Link
           to="/"

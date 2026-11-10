@@ -91,6 +91,12 @@ frontend/src/
 
 **Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar.
 
+**Responsive (bắt buộc mọi trang):** kiểm tra ở 360, 768, 1024, 1280px — không được cuộn ngang.
+- Từ `lg` (1024px): bố cục đầy đủ như trên. Dưới `lg`: sidebar ẩn, thay bằng nút ☰ mở menu trượt (`Sheet`); header chỉ còn nút menu + logo thu gọn | ô tìm kiếm | chuông + avatar; bảng bộ lọc bám hai mép màn hình.
+- Lề nội dung 16 → 24 → 32px (`p-4 sm:p-6 lg:p-8`); khối tràn sát lề (VD dải đầu trang chi tiết) phải đổi lề âm theo cùng mốc.
+- Lưới dùng `auto-fill/auto-fit` với `minmax(min(Npx,100%),1fr)`; hàng nút/nhãn cho phép `flex-wrap`; chữ không được tràn khung (`min-w-0`, `truncate`, `break-words`).
+- Chỉ chỉnh ở component gốc (`components/ui`, layout) khi lỗi lặp nhiều nơi; không vá riêng từng trang.
+
 **Kích thước:** điều khiển header 40px · mục sidebar 38px · nút bộ lọc 34px · bo góc thẻ `rounded-tile` 14px, ô con `rounded-inner` 10px, nút `rounded-control` 8px, nhãn 6px · khoảng cách bội số của 4.
 
 **Chữ:** Be Vietnam Pro · `text-page-title` 24 · `text-card-title` 17 · `text-block-title` 15 · thân 13–14 · nhãn 11.5–12.

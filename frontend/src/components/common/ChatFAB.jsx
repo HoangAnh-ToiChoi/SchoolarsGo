@@ -12,7 +12,7 @@ const ChatFAB = () => {
   if (pathname === '/chat') return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
       {/* Tooltip label */}
       <AnimatePresence>
         {hovered && (
@@ -39,7 +39,7 @@ const ChatFAB = () => {
         transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.6 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.93 }}
-        className="relative w-14 h-14 rounded-2xl bg-primary-400 text-ink-950 flex items-center justify-center shadow-glow-lg"
+        className="relative size-12 sm:size-14 rounded-2xl bg-primary-400 text-ink-950 flex items-center justify-center shadow-glow-lg"
         style={{ boxShadow: hovered ? '0 0 32px rgba(34,211,238,0.5)' : '0 0 20px rgba(34,211,238,0.25)' }}
       >
         {/* Ping ring */}

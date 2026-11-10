@@ -5,7 +5,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 export default function DetailSkeleton({ notice }) {
   return (
     <div>
-      <div aria-hidden="true" className="-mx-8 -mt-8 border-b border-line bg-brand-50 px-8 pb-[26px] pt-[22px]">
+      <div aria-hidden="true" className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]">
         <Skeleton className="h-4 w-56" />
         <div className="mt-[18px] flex gap-1.5">
           <Skeleton className="h-6 w-40" />
