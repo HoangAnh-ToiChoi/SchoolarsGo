@@ -8,9 +8,17 @@ export default function FilterPanel({ id, isOpen, draft, countryOptions, onField
   const activeCount = FILTER_FIELDS.filter((f) => draft[f.key]).length;
 
   return (
-    // Lớp ngoài chỉ lo căn giữa (dịch -50%), lớp trong chỉ lo hiệu ứng mờ → rõ.
+    // Lớp ngoài chỉ lo vị trí, lớp trong chỉ lo hiệu ứng mờ → rõ.
     // Tách 2 lớp vì hiệu ứng của tailwindcss-animate ghi đè transform, làm bảng trượt từ phải sang.
-    <div className={cn('absolute left-1/2 top-[calc(100%+10px)] z-40 w-[min(760px,calc(100vw-48px))] -translate-x-1/2', !isOpen && 'hidden')}>
+    // Màn hình nhỏ: ô tìm kiếm không nằm giữa màn hình nên bảng bám hai mép, ngay dưới header, tự cuộn nếu dài.
+    // Từ lg: căn giữa theo ô tìm kiếm như thiết kế.
+    <div
+      className={cn(
+        'fixed inset-x-3 top-[72px] z-40 max-h-[calc(100dvh-84px)] overflow-y-auto rounded-tile',
+        'lg:absolute lg:inset-x-auto lg:left-1/2 lg:top-[calc(100%+10px)] lg:max-h-none lg:w-[min(760px,calc(100vw-48px))] lg:-translate-x-1/2 lg:overflow-visible',
+        !isOpen && 'hidden'
+      )}
+    >
       <section
         id={id}
         aria-label="Bộ lọc học bổng"
