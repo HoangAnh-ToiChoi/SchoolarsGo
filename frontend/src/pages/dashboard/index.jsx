@@ -17,7 +17,8 @@ import { useProfile } from '~/hooks/useProfile';
 import { useApplications } from '~/hooks/useApplication';
 import { useSavedScholarships } from '~/hooks/useScholarship';
 import { useScholarships } from '~/hooks/useScholarship';
-import { cn, formatDate } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
+import { formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '~/components/legacy';
 

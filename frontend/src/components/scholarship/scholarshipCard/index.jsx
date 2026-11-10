@@ -3,8 +3,8 @@ import { Badge } from '~/components/ui/badge';
 import { Card } from '~/components/ui/card';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import SaveButton from '~/components/scholarship/saveButton';
-import { COUNTRY_LABELS, DEGREE_LABELS, getScope, labelOf, SCOPE_LABELS } from '~/lib/scholarship';
-import { cn } from '~/lib/utils';
+import { COUNTRY_LABELS, DEGREE_LABELS, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
+import { cn } from '~/utils/cn';
 
 // Thẻ học bổng — mắt đọc từ trên xuống:
 // 1. nhãn hạn nộp + phạm vi + nút lưu

@@ -1,7 +1,7 @@
 import FilterField from '~/components/scholarshipFilter/filterField';
 import FilterActions from '~/components/scholarshipFilter/filterActions';
 import { FILTER_FIELDS } from '~/components/scholarshipFilter/constants';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Bảng 8 bộ lọc dưới thanh tìm kiếm. Mở: hiện mờ rồi rõ dần tại chỗ (không trượt). Đóng: display: none.
 export default function FilterPanel({ id, isOpen, draft, countryOptions, onFieldChange, onReset }) {

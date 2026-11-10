@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // [1, …, 4, 5, 6, …, 12]: luôn có trang đầu, trang cuối và hai trang quanh trang hiện tại
 function getPageItems(page, totalPages) {

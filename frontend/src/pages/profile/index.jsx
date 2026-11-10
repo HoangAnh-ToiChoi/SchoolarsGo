@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '~/hooks/useProfile';
-import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '~/lib/constants';
+import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '~/utils/constants';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import FileUpload from '~/components/legacy/FileUpload';
 import { Button, Input, Select, PageHeader, EmptyState } from '~/components/legacy';

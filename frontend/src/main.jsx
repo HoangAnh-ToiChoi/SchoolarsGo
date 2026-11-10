@@ -8,9 +8,9 @@ import App from '~/App';
 import { Provider } from 'react-redux';
 import { store } from '~/store';
 import { loggedIn } from '~/store/slices/authSlice';
-import { DEMO_USER } from '~/lib/demo/demoData';
+import { DEMO_USER } from '~/utils/demo/demoData';
 import '~/index.css';
-import { color } from '~/lib/palette';
+import { color } from '~/utils/palette';
 
 // Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản
 if (import.meta.env.VITE_DEMO_MODE === 'true' && !store.getState().auth.isAuthenticated) {

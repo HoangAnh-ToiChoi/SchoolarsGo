@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdownMenu';
 import { useLogout } from '~/hooks/useAuth';
+import { getInitials } from '~/layouts/userLayout/helper';
 import { selectUser } from '~/store/slices/authSlice';
 
 const ROLE_LABELS = { admin: 'Quản trị viên', user: 'Sinh viên' };
@@ -82,11 +83,4 @@ function Initials({ value, className = 'size-8' }) {
       {value}
     </span>
   );
-}
-
-function getInitials(name = '') {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  const letters = parts.length > 1 ? parts[0][0] + parts.at(-1)[0] : parts[0][0];
-  return letters.toUpperCase();
 }

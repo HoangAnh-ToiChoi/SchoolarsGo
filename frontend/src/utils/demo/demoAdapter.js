@@ -1,4 +1,4 @@
-import { DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/lib/demo/demoData';
+import { DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
 
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
 const savedIds = new Set(['d1', 'd3', 'd5']);

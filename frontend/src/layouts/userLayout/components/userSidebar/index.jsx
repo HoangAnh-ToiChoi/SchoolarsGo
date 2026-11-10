@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { NAV_SECTIONS } from '~/layouts/userLayout/components/userSidebar/navConfig';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 export default function UserSidebar() {
   // sticky: sidebar đứng yên khi cuộn nội dung, cao bằng màn hình trừ header 64px

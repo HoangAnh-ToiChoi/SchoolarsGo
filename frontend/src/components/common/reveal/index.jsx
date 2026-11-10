@@ -1,4 +1,4 @@
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Hiệu ứng trượt từ dưới lên khi phần tử xuất hiện. index tạo độ trễ nối tiếp cho danh sách.
 // Người dùng bật "giảm chuyển động" trong hệ điều hành thì không chạy hiệu ứng.

@@ -4,7 +4,7 @@ import { Mail, Lock, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRegister } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const RegisterPage = () => {
   const [form, setForm] = useState({ email: '', password: '', full_name: '' });

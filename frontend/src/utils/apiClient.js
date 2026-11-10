@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { API_BASE_URL } from '~/lib/constants';
+import { API_BASE_URL } from '~/utils/constants';
 import { store } from '~/store';
-import { demoAdapter } from '~/lib/demo/demoAdapter';
+import { demoAdapter } from '~/utils/demo/demoAdapter';
 import { loggedOut } from '~/store/slices/authSlice';
 
 const api = axios.create({

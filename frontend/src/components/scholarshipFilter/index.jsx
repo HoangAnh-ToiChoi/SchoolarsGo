@@ -5,7 +5,7 @@ import SearchInput from '~/components/scholarshipFilter/searchInput';
 import FilterPanel from '~/components/scholarshipFilter/filterPanel';
 import { useCountries } from '~/hooks/useScholarship';
 import { useScholarshipFilters } from '~/hooks/useScholarshipFilters';
-import { COUNTRY_LABELS, labelOf } from '~/lib/scholarship';
+import { COUNTRY_LABELS, labelOf } from '~/utils/scholarship';
 import { filterClosed, filterOpened, selectIsFilterOpen } from '~/store/slices/uiSlice';
 
 export { default as ActiveFilters } from '~/components/scholarshipFilter/activeFilters';

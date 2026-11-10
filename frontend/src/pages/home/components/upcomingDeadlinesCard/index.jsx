@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Card } from '~/components/ui/card';
-import { formatDate } from '~/lib/helpers';
-import { getDeadlineInfo } from '~/lib/scholarship';
-import { cn } from '~/lib/utils';
+import { formatDate } from '~/utils/format';
+import { getDeadlineInfo } from '~/utils/scholarship';
+import { cn } from '~/utils/cn';
 
 const BOX_TONES = {
   urgent: 'bg-urgent-bg text-urgent-fg',

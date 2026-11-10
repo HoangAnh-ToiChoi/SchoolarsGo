@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
-import { addDays, startOfDay } from 'date-fns';
-import { useApplications } from '~/hooks/useApplication';
-import { useSavedScholarships } from '~/hooks/useScholarship';
-import { getDeadlineInfo } from '~/lib/scholarship';
+import { addDays, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { getDeadlineInfo } from '~/utils/scholarship';
+
+// Tính toán chỉ dùng trong trang Lịch deadline
 
 // Sau khi nộp đơn bao nhiêu ngày thì nhắc hỏi lại kết quả
 export const FOLLOW_UP_DAYS = 14;
@@ -42,22 +41,10 @@ export function buildDeadlineEvents(saved = [], applications = [], today = new D
     .sort((a, b) => a.date - b.date);
 }
 
-export function useDeadlineEvents() {
-  const saved = useSavedScholarships();
-  const applications = useApplications({ limit: 50 });
-
-  const events = useMemo(
-    () => buildDeadlineEvents(saved.data?.data ?? [], applications.data?.data ?? []),
-    [saved.data, applications.data]
-  );
-
-  return {
-    events,
-    isLoading: saved.isLoading || applications.isLoading,
-    isError: saved.isError || applications.isError,
-    refetch: () => {
-      saved.refetch();
-      applications.refetch();
-    },
-  };
+// Các ngày hiển thị trên lưới lịch tháng (bắt đầu từ thứ Hai, gồm cả ngày tràn của tháng trước/sau)
+export function getMonthDays(month) {
+  const days = [];
+  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
+  for (let d = startOfWeek(startOfMonth(month), { weekStartsOn: 1 }); d <= end; d = addDays(d, 1)) days.push(d);
+  return days;
 }

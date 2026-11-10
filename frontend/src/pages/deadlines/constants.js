@@ -1,4 +1,4 @@
-import { APPLICATION_STATUSES } from '~/lib/constants';
+import { APPLICATION_STATUSES } from '~/utils/constants';
 
 // Màu chấm/nhãn của từng loại mốc (khớp nhãn hạn nộp trên thẻ học bổng)
 export const TONE_DOT = {

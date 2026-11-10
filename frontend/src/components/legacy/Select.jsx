@@ -1,4 +1,4 @@
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const Select = ({ label, options, placeholder, className, id, onChange, ...props }) => {
   const selectId = id || props.name;

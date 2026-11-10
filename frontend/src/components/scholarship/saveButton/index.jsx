@@ -5,7 +5,7 @@ import { BookmarkIcon as BookmarkOutlineIcon } from '@heroicons/react/24/outline
 import { Button } from '~/components/ui/button';
 import { useSavedScholarships, useToggleSaveScholarship } from '~/hooks/useScholarship';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Nút lưu/bỏ lưu học bổng. Chưa đăng nhập thì nhắc đăng nhập.
 export default function SaveButton({ scholarshipId, className }) {

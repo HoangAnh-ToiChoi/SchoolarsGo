@@ -1,4 +1,4 @@
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const Card = ({ className, hover = false, children, ...props }) => {
   return (

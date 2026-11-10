@@ -5,7 +5,7 @@ import {
 import { Users, BookOpen, FileText, TrendingUp, Star } from 'lucide-react';
 import { useAdminStats, useAdminChartStats } from '~/hooks/useAdmin';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
-import { color } from '~/lib/palette';
+import { color } from '~/utils/palette';
 
 // Màu trạng thái đơn, lấy từ bảng 5 màu trong index.css
 const getStatusColors = () => ({

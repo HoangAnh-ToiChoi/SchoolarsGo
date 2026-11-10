@@ -5,11 +5,12 @@ import { motion } from 'framer-motion';
 import { useToggleSaveScholarship, useSavedScholarships } from '~/hooks/useScholarship';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn, formatCurrency, formatDate } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
+import { formatCurrency, formatDate } from '~/utils/format';
 import { compareToggled, selectCompareItems, selectIsCompared } from '~/store/slices/comparisonSlice';
 import { useInView } from '~/hooks/useInView';
 import toast from 'react-hot-toast';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
 
 const ScholarshipCard = ({ scholarship, index = 0 }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);

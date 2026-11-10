@@ -1,9 +1,9 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
 import { useScholarship } from '~/hooks/useScholarship';
-import { formatCurrency, formatDate } from '~/lib/helpers';
+import { formatCurrency, formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
 
 const useScholarships = (ids) => {
   const q1 = useScholarship(ids[0]);

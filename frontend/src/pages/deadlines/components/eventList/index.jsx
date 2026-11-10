@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { Badge } from '~/components/ui/badge';
 import { statusLabel, TONE_DOT } from '~/pages/deadlines/constants';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 function describe(event) {
   if (event.kind === 'followUp') return 'Nên hỏi lại kết quả';

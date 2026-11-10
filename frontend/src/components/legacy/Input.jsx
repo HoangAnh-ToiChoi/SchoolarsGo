@@ -1,4 +1,4 @@
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const Input = ({ label, icon: Icon, error, helperText, wrapperClassName, className, id, ...props }) => {
   const inputId = id || props.name;

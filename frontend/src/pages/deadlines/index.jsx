@@ -8,11 +8,11 @@ import SlowLoading from '~/components/common/slowLoading';
 import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
-import { useDeadlineEvents } from '~/hooks/useDeadlineEvents';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
 import ColorLegend from '~/pages/deadlines/components/colorLegend';
 import EventList from '~/pages/deadlines/components/eventList';
 import MonthCalendar from '~/pages/deadlines/components/monthCalendar';
+import { useDeadlineEvents } from '~/pages/deadlines/useDeadlineEvents';
 
 const UPCOMING_LIMIT = 6;
 const cardClass = 'rounded-tile border-line p-5 shadow-tile';

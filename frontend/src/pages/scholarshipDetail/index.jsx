@@ -6,9 +6,10 @@ import { useCreateApplication } from '~/hooks/useApplication';
 import { useScholarship, useToggleSaveScholarship } from '~/hooks/useScholarship';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn, formatCurrency, formatDate, formatRelativeTime } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
+import { formatCurrency, formatDate, formatRelativeTime } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },

@@ -4,7 +4,7 @@ import { useNews } from '~/hooks/useNews';
 import { Card, CardContent } from '~/components/legacy';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import PageHeader from '~/components/legacy/PageHeader';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
 
 const CATEGORIES = ['Tất cả', 'Học bổng', 'Du học', 'Visa', 'Giáo dục'];
 

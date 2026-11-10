@@ -4,8 +4,9 @@ import { ArrowLeft, Calendar, MapPin, CheckCircle, Circle, Trash2, Save, Chevron
 import { useApplication, useUpdateApplication, useDeleteApplication } from '~/hooks/useApplication';
 import { useDocuments, useUploadDocument, useDeleteDocument } from '~/hooks/useProfile';
 import AnimatedPage from '~/components/legacy/AnimatedPage';
-import { DOCUMENT_TYPES } from '~/lib/constants';
-import { cn, formatDate, getStatusLabel } from '~/lib/helpers';
+import { DOCUMENT_TYPES } from '~/utils/constants';
+import { cn } from '~/utils/cn';
+import { formatDate, getStatusLabel } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import FileUpload from '~/components/legacy/FileUpload';
 

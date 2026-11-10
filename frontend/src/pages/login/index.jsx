@@ -4,7 +4,7 @@ import { Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLogin } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
