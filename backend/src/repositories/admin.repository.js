@@ -7,10 +7,6 @@
  * [1] Phân tách tầng — chỉ chứa SQL, không logic.
  * [5] An toàn SQL — 100% parameterized queries ($1, $2...). KHÔNG string interpolation.
  * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
- *
- * Lưu ý: AdminRepository KHÔNG kế thừa BaseRepository vì không tái sử dụng
- * bất kỳ method chung nào (findAll, findById, create...).
- * Việc giữ extends chỉ tạo ra coupling thừa thãi.
  */
 
 class AdminRepository {
