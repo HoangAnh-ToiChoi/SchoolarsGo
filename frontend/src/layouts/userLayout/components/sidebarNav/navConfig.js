@@ -1,5 +1,4 @@
 import {
-  BellIcon,
   BookmarkIcon,
   CalendarDaysIcon,
   DocumentTextIcon,
@@ -8,6 +7,7 @@ import {
 } from '@heroicons/react/24/solid';
 
 // Danh sách mục của sidebar. Thêm trang mới chỉ cần thêm một dòng ở đây.
+// Thông báo không có trang riêng: nằm ở chuông trên header.
 export const NAV_SECTIONS = [
   {
     title: 'Khám phá',
@@ -22,7 +22,6 @@ export const NAV_SECTIONS = [
       { to: '/saved', label: 'Đã lưu', icon: BookmarkIcon },
       { to: '/applications', label: 'Đơn ứng tuyển', icon: DocumentTextIcon },
       { to: '/deadlines', label: 'Lịch deadline', icon: CalendarDaysIcon },
-      { to: '/notifications', label: 'Thông báo', icon: BellIcon },
     ],
   },
 ];

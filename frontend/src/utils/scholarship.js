@@ -39,3 +39,12 @@ export const labelOf = (labels, value) => labels[value] ?? value;
 
 // Đường dẫn trang chi tiết: ưu tiên slug (URL dễ đọc), chưa có slug thì dùng id
 export const scholarshipPath = (scholarship) => `/scholarships/${scholarship?.slug || scholarship?.id}`;
+
+// Sắp theo hạn nộp tăng dần; chưa công bố hạn xếp cuối (dùng ở trang đã lưu, đơn ứng tuyển, thông báo)
+export function sortByDeadline(items, getDeadline = (item) => item.deadline) {
+  const time = (item) => {
+    const deadline = getDeadline(item);
+    return deadline ? new Date(deadline).getTime() : Infinity;
+  };
+  return [...items].sort((a, b) => time(a) - time(b));
+}

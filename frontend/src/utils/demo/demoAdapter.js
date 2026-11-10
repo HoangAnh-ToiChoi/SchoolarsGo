@@ -1,8 +1,8 @@
-import { DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
+import { DEMO_APPLICATIONS, DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
 import { getScope } from '~/utils/scholarship';
 
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
-const savedIds = new Set(['d1', 'd3', 'd5']);
+const savedIds = new Set(['d1', 'd2', 'd3', 'd5']);
 
 // Giả lập độ trễ mạng. Thêm ?demoDelay=7000 vào URL để xem trạng thái tải chậm (> 5 giây).
 const DELAY_MS = Number(new URLSearchParams(window.location.search).get('demoDelay')) || 600;
@@ -58,13 +58,12 @@ export function demoAdapter(config) {
     return ok(config, { success: true });
   }
   if (method === 'GET' && url === '/applications') {
-    const daysAgo = (n) => new Date(Date.now() - n * 864e5).toISOString();
-    const find = (id) => DEMO_SCHOLARSHIPS.find((s) => s.id === id);
-    const data = [
-      { id: 'a1', status: 'submitted', applied_at: daysAgo(4), scholarship: find('d2') },
-      { id: 'a2', status: 'draft', applied_at: null, scholarship: find('d9') },
-    ];
-    return ok(config, { success: true, data, meta: { page: 1, limit: 50, total: data.length } });
+    return ok(config, { success: true, data: DEMO_APPLICATIONS, meta: { page: 1, limit: 50, total: DEMO_APPLICATIONS.length } });
+  }
+  const application = url.match(/^\/applications\/([\w-]+)$/);
+  if (method === 'GET' && application) {
+    const item = DEMO_APPLICATIONS.find((a) => a.id === application[1]);
+    return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy đơn', 404);
   }
   if (method === 'GET' && url === '/profile') return ok(config, { success: true, data: DEMO_PROFILE });
   if (method === 'POST' && url === '/auth/logout') return ok(config, { success: true });

@@ -27,7 +27,7 @@ frontend/src/
   pages/<tenTrang>/index.jsx    trang — chỉ ghép component, không gọi API
     components/<ten>/index.jsx  component chỉ trang đó dùng
   layouts/                 khung giao diện: index.jsx để dùng, components/ là phần triển khai
-    userLayout/            components/ userHeader, userSidebar, mobileNav, sidebarNav (+ navConfig.js), userMenu
+    userLayout/            components/ userHeader, userSidebar, mobileNav, sidebarNav (+ navConfig.js), userMenu, notificationMenu
     adminLayout/           components/ adminSidebar, adminMobileNav (+ constants.js)
   components/
     ui/                    shadcn/ui gốc (button, card, badge, dropdownMenu, tabs…)
@@ -89,7 +89,9 @@ frontend/src/
 - Cần màu dạng giá trị JS (biểu đồ, framer-motion, toast) → `color('primary', { mix, alpha })` trong `utils/palette.js`.
 - Chế độ tối chưa làm: giao diện luôn sáng.
 
-**Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar.
+**Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar. Thông báo **không có trang riêng**: bấm chuông là sổ danh sách (`notificationMenu`).
+
+**Danh sách học bổng** (trang chủ, đã lưu, tương tự) luôn dùng `ScholarshipGrid` + `ScholarshipCard`; danh sách đơn ứng tuyển dùng dạng dòng (học bổng | giấy tờ | trạng thái).
 
 **Responsive (bắt buộc mọi trang):** kiểm tra ở 360, 768, 1024, 1280px — không được cuộn ngang.
 - Từ `lg` (1024px): bố cục đầy đủ như trên. Dưới `lg`: sidebar ẩn, thay bằng nút ☰ mở menu trượt (`Sheet`); header chỉ còn nút menu + logo thu gọn | ô tìm kiếm | chuông + avatar; bảng bộ lọc bám hai mép màn hình.

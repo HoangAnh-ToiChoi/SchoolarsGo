@@ -67,3 +67,19 @@ export const DEMO_SCHOLARSHIPS = [
     source_url: 'https://example.org/hoc-bong-thap-sang-uoc-mo',
   },
 ];
+
+// Đơn ứng tuyển minh họa đủ 3 chặng (chuẩn bị, chờ kết quả, đã có kết quả).
+// Học bổng đi kèm ở khóa `scholarships` giống hệt backend (tên bảng Supabase).
+const daysAgo = (n) => new Date(Date.now() - n * 864e5).toISOString();
+const findScholarship = (id) => DEMO_SCHOLARSHIPS.find((s) => s.id === id);
+const checklist = (names, doneCount) => names.map((item, i) => ({ item, done: i < doneCount }));
+const DOCS = ['CV', 'Bảng điểm', 'Thư giới thiệu', 'Bài luận', 'Chứng chỉ IELTS'];
+
+export const DEMO_APPLICATIONS = [
+  { id: 'a1', status: 'draft', applied_at: null, checklist: checklist(DOCS, 3), scholarships: findScholarship('d1') },
+  { id: 'a2', status: 'draft', applied_at: null, checklist: checklist(DOCS.slice(0, 4), 1), scholarships: findScholarship('d9') },
+  { id: 'a3', status: 'under_review', applied_at: daysAgo(12), checklist: checklist(DOCS, 5), scholarships: findScholarship('d2') },
+  { id: 'a4', status: 'interview', applied_at: daysAgo(30), checklist: checklist(DOCS.slice(0, 3), 3), scholarships: findScholarship('d6') },
+  { id: 'a5', status: 'submitted', applied_at: daysAgo(3), checklist: checklist(DOCS, 5), scholarships: findScholarship('d8') },
+  { id: 'a6', status: 'rejected', applied_at: daysAgo(80), checklist: checklist(DOCS.slice(0, 3), 3), scholarships: findScholarship('d7') },
+].map((a) => ({ ...a, notes: null, created_at: a.applied_at ?? daysAgo(2), updated_at: daysAgo(1) }));
