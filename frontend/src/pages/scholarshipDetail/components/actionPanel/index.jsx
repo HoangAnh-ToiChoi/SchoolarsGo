@@ -5,6 +5,7 @@ import { ArrowTopRightOnSquareIcon, DocumentPlusIcon } from '@heroicons/react/16
 import { CalendarDaysIcon } from '@heroicons/react/24/solid';
 import SaveButton from '~/components/scholarship/saveButton';
 import { Button } from '~/components/ui/button';
+import { Card } from '~/components/ui/card';
 import { useCreateApplication } from '~/hooks/useApplication';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
@@ -54,7 +55,7 @@ export default function ActionPanel({ scholarship }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <section aria-label="Nộp hồ sơ" className="rounded-tile border border-line bg-surface p-5 shadow-tile">
+      <Card role="region" aria-label="Nộp hồ sơ" className="p-5">
         {daysLeft === null ? (
           <div className="flex items-center gap-3.5">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-tile bg-hover text-fg-muted">
@@ -81,7 +82,7 @@ export default function ActionPanel({ scholarship }) {
         )}
 
         {primary && (
-          <Button asChild className="mt-4 h-[46px] w-full rounded-inner bg-brand-600 text-[14.5px] font-semibold shadow-none hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-600/40 focus-visible:ring-offset-2">
+          <Button asChild size="lg" className="mt-4 w-full rounded-inner">
             <a href={primary.href} target="_blank" rel="noopener noreferrer">
               {primary.label}
               <ArrowTopRightOnSquareIcon aria-hidden="true" />
@@ -96,14 +97,14 @@ export default function ActionPanel({ scholarship }) {
             variant="outline"
             onClick={handleCreateApplication}
             disabled={createApplication.isPending}
-            className="h-[42px] flex-1 gap-1.5 rounded-control border-line px-3 text-[13.5px] font-semibold text-fg-secondary shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600"
+            className="h-[42px] flex-1 gap-1.5 px-3 text-[13.5px]"
           >
             <DocumentPlusIcon aria-hidden="true" />
             {createApplication.isPending ? 'Đang tạo…' : 'Tạo đơn ứng tuyển'}
           </Button>
           <SaveButton scholarshipId={scholarship.id} withLabel className="flex-1" />
         </div>
-      </section>
+      </Card>
 
       {/* Cột này sẽ thêm khối "so điều kiện với hồ sơ của bạn" và "nhắc hạn nộp"; chưa hiện vì backend chưa hỗ trợ hai tính năng đó */}
       {(scholarship.source || showSourceLink) && (

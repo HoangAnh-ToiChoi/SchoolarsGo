@@ -15,7 +15,7 @@ import MonthCalendar from '~/pages/deadlines/components/monthCalendar';
 import { useDeadlineEvents } from '~/pages/deadlines/useDeadlineEvents';
 
 const UPCOMING_LIMIT = 6;
-const cardClass = 'rounded-tile border-line p-5 shadow-tile';
+const cardClass = 'p-5';
 
 // Lịch deadline CỦA RIÊNG người dùng: chỉ hiện học bổng đã lưu và đơn ứng tuyển,
 // không hiện toàn bộ học bổng trong hệ thống.
@@ -62,7 +62,7 @@ export default function DeadlinesPage() {
             <p className="mt-1 max-w-md text-sm text-fg-muted">
               Bấm nút lưu trên thẻ học bổng hoặc tạo đơn ứng tuyển, hạn nộp sẽ tự hiện ở đây.
             </p>
-            <Button asChild className="mt-5 rounded-control bg-brand-600 hover:bg-brand-700">
+            <Button asChild className="mt-5">
               <Link to="/">Tìm học bổng</Link>
             </Button>
           </Card>

@@ -23,7 +23,7 @@ export default function UserMenu() {
 
   if (!user) {
     return (
-      <Button asChild className="h-control rounded-inner bg-brand-600 px-4 hover:bg-brand-700">
+      <Button asChild className="h-control rounded-inner px-4">
         <Link to="/login">Đăng nhập</Link>
       </Button>
     );

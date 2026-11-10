@@ -1,41 +1,25 @@
-import { useRef, useState } from 'react';
-import { Tabs, TabsContent } from '~/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import CheckList from '~/pages/scholarshipDetail/components/detailTabs/checkList';
 import DocumentGrid from '~/pages/scholarshipDetail/components/detailTabs/documentGrid';
 import EmptyDetail from '~/pages/scholarshipDetail/components/detailTabs/emptyDetail';
-import TabBar from '~/pages/scholarshipDetail/components/detailTabs/tabBar';
 import TextContent from '~/pages/scholarshipDetail/components/detailTabs/textContent';
 
-// Chiều cao header dính (64px) — thanh tab dính ngay bên dưới
-const HEADER_HEIGHT = 64;
-
-// Nội dung chi tiết chia tab: mỗi lúc chỉ hiện một mục để trang ngắn, không phải cuộn qua hết các mục.
+// Nội dung chi tiết chia tab: mỗi lúc chỉ hiện một mục nên trang ngắn, không phải cuộn qua hết các mục.
 // Chỉ nhận những mục có dữ liệu (xem buildSections trong helper.js).
 export default function DetailTabs({ sections }) {
-  const [activeId, setActiveId] = useState(sections[0]?.id);
-  const rootRef = useRef(null);
-
-  // Đang cuộn sâu (thanh tab đã dính trên đầu) mà đổi tab thì đưa về đầu nội dung tab mới,
-  // nếu không người dùng sẽ thấy giữa chừng hoặc khoảng trống khi tab mới ngắn hơn.
-  const handleChange = (id) => {
-    setActiveId(id);
-    const top = rootRef.current?.getBoundingClientRect().top ?? 0;
-    if (top >= HEADER_HEIGHT) return;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: window.scrollY + top - HEADER_HEIGHT, behavior: reduceMotion ? 'auto' : 'smooth' });
-  };
-
   if (sections.length === 0) return <EmptyDetail />;
 
   return (
-    <Tabs ref={rootRef} value={activeId} onValueChange={handleChange} className="mt-2">
-      <TabBar sections={sections} />
+    <Tabs defaultValue={sections[0].id} className="mt-6">
+      <TabsList className="max-w-full justify-start overflow-x-auto">
+        {sections.map((section) => (
+          <TabsTrigger key={section.id} value={section.id}>
+            {section.title}
+          </TabsTrigger>
+        ))}
+      </TabsList>
       {sections.map((section) => (
-        <TabsContent
-          key={section.id}
-          value={section.id}
-          className="mt-0 py-6 duration-200 animate-in fade-in-0 focus-visible:ring-brand-600/40 focus-visible:ring-offset-0 motion-reduce:animate-none"
-        >
+        <TabsContent key={section.id} value={section.id} className="mt-5">
           <SectionPanel section={section} />
         </TabsContent>
       ))}

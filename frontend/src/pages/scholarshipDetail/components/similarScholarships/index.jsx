@@ -1,6 +1,7 @@
 import Reveal from '~/components/common/reveal';
 import ScholarshipCard from '~/components/scholarship/scholarshipCard';
 import ScholarshipCardSkeleton from '~/components/scholarship/scholarshipCardSkeleton';
+import ScholarshipGrid from '~/components/scholarship/scholarshipGrid';
 import { useScholarships } from '~/hooks/useScholarship';
 
 const SIMILAR_LIMIT = 3;
@@ -20,7 +21,7 @@ export default function SimilarScholarships({ scholarship }) {
       <h2 id="similar-title" className="mb-3 text-card-title text-heading">
         Học bổng tương tự
       </h2>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-4">
+      <ScholarshipGrid>
         {isLoading
           ? Array.from({ length: SIMILAR_LIMIT }, (_, i) => <ScholarshipCardSkeleton key={i} />)
           : items.map((s, i) => (
@@ -28,7 +29,7 @@ export default function SimilarScholarships({ scholarship }) {
                 <ScholarshipCard scholarship={s} />
               </Reveal>
             ))}
-      </div>
+      </ScholarshipGrid>
     </section>
   );
 }

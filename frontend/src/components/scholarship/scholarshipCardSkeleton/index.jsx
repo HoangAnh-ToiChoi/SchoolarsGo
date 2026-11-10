@@ -4,7 +4,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 // Khung chờ cùng kích thước với ScholarshipCard để trang không bị nhảy khi tải xong
 export default function ScholarshipCardSkeleton() {
   return (
-    <Card className="flex flex-col gap-4 rounded-tile border-line p-5 shadow-tile" aria-hidden="true">
+    <Card className="flex flex-col gap-4 p-5" aria-hidden="true">
       <div className="flex gap-1.5">
         <Skeleton className="h-6 w-40" />
         <Skeleton className="h-6 w-16" />

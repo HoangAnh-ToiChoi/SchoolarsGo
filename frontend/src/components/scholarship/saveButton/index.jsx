@@ -37,8 +37,7 @@ export default function SaveButton({ scholarshipId, withLabel = false, className
       aria-label={withLabel ? undefined : isSaved ? 'Bỏ lưu học bổng' : 'Lưu học bổng'}
       aria-pressed={isSaved}
       className={cn(
-        'rounded-control border-line text-fg-secondary shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600',
-        withLabel ? 'h-[42px] gap-1.5 px-3 text-[13.5px] font-semibold' : 'size-8',
+        withLabel ? 'h-[42px] gap-1.5 px-3 text-[13.5px]' : 'size-8',
         isSaved && 'border-brand-200 bg-brand-50 text-brand-600',
         className
       )}
