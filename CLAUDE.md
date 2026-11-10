@@ -32,14 +32,15 @@ frontend/src/
     adminLayout/           components/ adminSidebar, adminMobileNav (+ constants.js)
   components/
     ui/                    shadcn/ui gốc (button, card, badge, dropdownMenu, tabs…)
-    common/                dùng nhiều trang: pageHeader, pagination, reveal, slowLoading
+    common/                dùng nhiều trang: pageHeader, backLink, pagination, reveal, slowLoading
+    application/           phần dùng chung của đơn ứng tuyển (statusBadge)
     scholarship/           thẻ học bổng và các phần của nó
     scholarshipFilter/     thanh tìm kiếm + bộ lọc
     legacy/                UI kit cũ — không dùng cho code mới
   hooks/                   useScholarships, useScholarshipFilters, useSlowLoading…
   services/<nhom>.service.js    gọi API qua utils/apiClient.js
   store/                   Redux: slices/ auth, comparison, ui
-  utils/                   hàm dùng chung toàn dự án: cn, format, scholarship (hạn nộp, nhãn), security, palette, constants, apiClient, demo/
+  utils/                   hàm dùng chung toàn dự án: cn, format, scholarship (hạn nộp, nhãn), application (trạng thái đơn), security, palette, constants, apiClient, demo/
 ```
 
 1. **Mỗi trang, mỗi component, mỗi layout là một thư mục có `index.jsx`.**
@@ -94,6 +95,10 @@ frontend/src/
 **Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar. Thông báo **không có trang riêng**: bấm chuông là sổ danh sách (`notificationMenu`).
 
 **Danh sách học bổng** (trang chủ, đã lưu, tương tự) luôn dùng `ScholarshipGrid` + `ScholarshipCard`; danh sách đơn ứng tuyển dùng dạng dòng (học bổng | giấy tờ | trạng thái).
+
+**Trang chi tiết** gói thông tin chính trong một màn hình (1280×800 không phải cuộn): đầu trang gồm tên, nhãn trạng thái/hạn và hành động bên phải; nội dung chia cột chính | cột phụ `sticky`. Không dàn thông tin thành nhiều khối xếp dọc.
+
+**Nút quay lại** luôn dùng `BackLink` (`components/common/backLink`), đặt trên cùng nội dung; nhãn ghi tên trang sẽ về ("Đơn ứng tuyển", "Đăng nhập"), không ghi chung chung "Quay lại".
 
 **Responsive (bắt buộc mọi trang):** kiểm tra ở 360, 768, 1024, 1280px — không được cuộn ngang.
 - Từ `lg` (1024px): bố cục đầy đủ như trên. Dưới `lg`: sidebar ẩn, thay bằng nút ☰ mở menu trượt (`Sheet`); header chỉ còn nút menu + logo thu gọn | ô tìm kiếm | chuông + avatar; bảng bộ lọc bám hai mép màn hình.

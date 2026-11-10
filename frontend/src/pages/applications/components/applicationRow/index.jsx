@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
-import StatusBadge from '~/pages/applications/components/statusBadge';
+import StatusBadge from '~/components/application/statusBadge';
 import { formatDate } from '~/utils/format';
 import { COUNTRY_LABELS, labelOf } from '~/utils/scholarship';
-import { getChecklistProgress } from '~/pages/applications/helper';
+import { getChecklistProgress } from '~/utils/application';
 
 // Một dòng trong danh sách đơn: học bổng | tiến độ hồ sơ | trạng thái. Cả dòng là link tới trang chi tiết đơn.
 // Từ md là 3 cột thẳng hàng với tiêu đề cột; nhỏ hơn thì tiến độ + trạng thái xuống dòng dưới.
