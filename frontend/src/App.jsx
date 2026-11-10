@@ -3,29 +3,31 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import UserLayout from '~/layouts/userLayout';
 import ProtectedRoute from '~/components/common/ProtectedRoute';
+import PageLoader from '~/components/common/pageLoader';
 import { selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
+import { PAGE_LOADERS } from '~/pageLoaders';
 
-// Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu
-const HomePage = lazy(() => import('~/pages/home'));
-const ScholarshipDetailPage = lazy(() => import('~/pages/scholarshipDetail'));
-const LoginPage = lazy(() => import('~/pages/login'));
-const RegisterPage = lazy(() => import('~/pages/register'));
-const ForgotPasswordPage = lazy(() => import('~/pages/forgotPassword'));
-const ResetPasswordPage = lazy(() => import('~/pages/resetPassword'));
-const ApplicationsPage = lazy(() => import('~/pages/applications'));
-const ApplicationDetailPage = lazy(() => import('~/pages/applicationDetail'));
-const SavedPage = lazy(() => import('~/pages/saved'));
-const DashboardPage = lazy(() => import('~/pages/dashboard'));
-const DeadlinesPage = lazy(() => import('~/pages/deadlines'));
-const RecommendPage = lazy(() => import('~/pages/recommend'));
-const ComparePage = lazy(() => import('~/pages/compare'));
-const ChatPage = lazy(() => import('~/pages/chat'));
-const NewsPage = lazy(() => import('~/pages/news'));
-const NotFoundPage = lazy(() => import('~/pages/notFound'));
-const AdminLayout = lazy(() => import('~/layouts/adminLayout'));
-const AdminDashboardPage = lazy(() => import('~/pages/admin/dashboard'));
-const AdminUsersPage = lazy(() => import('~/pages/admin/users'));
-const AdminScholarshipsPage = lazy(() => import('~/pages/admin/scholarships'));
+// Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu (hàm tải ở pageLoaders.js)
+const HomePage = lazy(PAGE_LOADERS.home);
+const ScholarshipDetailPage = lazy(PAGE_LOADERS.scholarshipDetail);
+const LoginPage = lazy(PAGE_LOADERS.login);
+const RegisterPage = lazy(PAGE_LOADERS.register);
+const ForgotPasswordPage = lazy(PAGE_LOADERS.forgotPassword);
+const ResetPasswordPage = lazy(PAGE_LOADERS.resetPassword);
+const ApplicationsPage = lazy(PAGE_LOADERS.applications);
+const ApplicationDetailPage = lazy(PAGE_LOADERS.applicationDetail);
+const SavedPage = lazy(PAGE_LOADERS.saved);
+const DashboardPage = lazy(PAGE_LOADERS.dashboard);
+const DeadlinesPage = lazy(PAGE_LOADERS.deadlines);
+const RecommendPage = lazy(PAGE_LOADERS.recommend);
+const ComparePage = lazy(PAGE_LOADERS.compare);
+const ChatPage = lazy(PAGE_LOADERS.chat);
+const NewsPage = lazy(PAGE_LOADERS.news);
+const NotFoundPage = lazy(PAGE_LOADERS.notFound);
+const AdminLayout = lazy(PAGE_LOADERS.adminLayout);
+const AdminDashboardPage = lazy(PAGE_LOADERS.adminDashboard);
+const AdminUsersPage = lazy(PAGE_LOADERS.adminUsers);
+const AdminScholarshipsPage = lazy(PAGE_LOADERS.adminScholarships);
 
 function AdminRoute({ children }) {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -33,14 +35,6 @@ function AdminRoute({ children }) {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
-}
-
-function PageLoader() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Đang tải">
-      <div className="size-8 animate-spin rounded-full border-2 border-line border-t-brand-600" />
-    </div>
-  );
 }
 
 // Link cũ /scholarships?search=… chuyển về trang chủ, giữ nguyên từ khóa và bộ lọc

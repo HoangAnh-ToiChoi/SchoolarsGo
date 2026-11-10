@@ -43,7 +43,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
+            vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
+        <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
           <App />
           <Toaster
             position="bottom-center"
