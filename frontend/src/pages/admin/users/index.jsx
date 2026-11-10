@@ -3,7 +3,6 @@ import { Search, Shield, ShieldOff, ChevronLeft, ChevronRight, Lock, Unlock } fr
 import { useAdminUsers, useUpdateUserRole, useUpdateUserStatus } from '~/hooks/useAdmin';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
 import Modal from '~/components/legacy/Modal';
 
 const ROLE_OPTIONS = [

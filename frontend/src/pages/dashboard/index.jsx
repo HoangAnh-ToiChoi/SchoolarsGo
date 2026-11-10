@@ -91,7 +91,7 @@ const DashboardPage = () => {
     {
       id: 'saved-scholarships',
       label: 'Học bổng đã lưu',
-      value: saved?.length ?? 0,
+      value: saved?.data?.length ?? 0,
       icon: BookmarkIcon,
       color: 'text-warning-400',
     },

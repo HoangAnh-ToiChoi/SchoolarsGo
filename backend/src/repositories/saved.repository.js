@@ -12,9 +12,11 @@ class SavedRepository {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;
+    // Trải cột học bổng trước để `id` là id bản ghi đã lưu, không bị id học bổng ghi đè
     return (data || []).map(r => ({
+      ...r.scholarships,
       id: r.id, note: r.note, created_at: r.created_at,
-      scholarship_id: r.scholarships?.id, ...r.scholarships,
+      scholarship_id: r.scholarships?.id,
     }));
   }
 

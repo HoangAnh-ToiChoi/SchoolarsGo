@@ -7,7 +7,6 @@ import {
 import { useScholarships } from '~/hooks/useScholarship';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
 
 const EMPTY_FORM = {
   title: '', provider: '', country: '', degree: '', language: '',

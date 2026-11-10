@@ -4,7 +4,7 @@ Nền tảng tìm học bổng (du học và trong nước) cho sinh viên Việ
 
 - Frontend (`frontend/`): React 18 + Vite, TailwindCSS 3, shadcn/ui (Radix), Redux Toolkit, TanStack Query, Heroicons.
 - Backend (`backend/`): Node.js + Express, PostgreSQL (Supabase). **Chưa tái cấu trúc** — giữ cách tổ chức hiện tại (routes → controllers → services → repositories).
-- Tài liệu: `docs/api.md`, `docs/database.md` (viết trước đây, có thể lệch code — code là đúng); `docs/archive/` chỉ để tham khảo.
+- Tài liệu: `docs/roadmap.md` (lộ trình, việc còn dở), `docs/api.md`, `docs/database.md` (viết trước đây, có thể lệch code — code là đúng); `docs/archive/` chỉ để tham khảo.
 - Trang nào chưa làm lại vẫn dùng `components/legacy/`; code mới không dùng thư mục này.
 
 ## Lệnh (trong `frontend/`)
