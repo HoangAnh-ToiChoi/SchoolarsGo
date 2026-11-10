@@ -8,7 +8,7 @@ import { useSlowLoading } from '~/hooks/useSlowLoading';
 import ActionPanel from '~/pages/scholarshipDetail/components/actionPanel';
 import DetailHeader from '~/pages/scholarshipDetail/components/detailHeader';
 import DetailMessage from '~/pages/scholarshipDetail/components/detailMessage';
-import DetailSections from '~/pages/scholarshipDetail/components/detailSections';
+import DetailTabs from '~/pages/scholarshipDetail/components/detailTabs';
 import DetailSkeleton from '~/pages/scholarshipDetail/components/detailSkeleton';
 import SimilarScholarships from '~/pages/scholarshipDetail/components/similarScholarships';
 import { buildSections } from '~/pages/scholarshipDetail/helper';
@@ -59,7 +59,7 @@ export default function ScholarshipDetailPage() {
 
       <Reveal index={1} className="grid grid-cols-1 items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0">
-          <DetailSections sections={sections} />
+          <DetailTabs sections={sections} />
         </div>
         {/* Màn hình hẹp: khung hành động lên trước nội dung để nút nộp đơn luôn trong tầm mắt */}
         <aside aria-label="Hành động" className="order-first mt-6 lg:sticky lg:top-[88px] lg:order-none">
