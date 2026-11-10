@@ -1,54 +1,61 @@
-# Lộ trình phát triển — xét điều kiện học bổng
+# Roadmap ScholarsGo
 
-Cập nhật: 10/11/2026.
+Cập nhật: 10/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
-## Vấn đề
+## Hai tính năng đã báo với thầy
 
-Trang chi tiết học bổng muốn trả lời "Bạn có đủ điều kiện không?", nhưng hiện cả hai phía đều thiếu dữ liệu có cấu trúc:
+1. **AI gợi ý học bổng phù hợp với hồ sơ sinh viên** — mô hình 2 bước:
+   - Bước 1: **lọc** học bổng sinh viên đủ điều kiện (luật, không AI).
+   - Bước 2: **xếp hạng** độ phù hợp bằng vector (TF-IDF / embedding, cosine / Euclid).
+2. **Thông báo thông minh** — báo học bổng mới phù hợp (đủ điều kiện + độ tương đồng ≥ ngưỡng) và nhắc hạn nộp.
 
-| Phía | Hiện có | Thiếu |
+Đọc CV và trích yêu cầu học bổng là **dữ liệu đầu vào của tính năng 1** ("trích xuất đặc trưng hồ sơ / học bổng"), không phải tính năng riêng, không gọi là pipeline.
+
+## Giai đoạn 0 — Việc đang dở
+
+| FE | BE | AI |
 |---|---|---|
-| Sinh viên | Hồ sơ tự gõ tay: GPA, trình độ tiếng Anh (chuỗi tự do), ngành, quốc gia, bậc học mục tiêu (`profiles`). CV/SOP chỉ được **lưu file**, không đọc nội dung (`documents`) | Kinh nghiệm làm việc, chứng chỉ cụ thể (IELTS/TOEFL/Duolingo + điểm), bằng cấp đã có, quốc tịch, năm sinh. Không có API đọc CV |
-| Học bổng | `min_gpa`, `min_ielts` (phần lớn trống với dữ liệu thu thập), `eligibility`/`requirements`/`benefits` dạng văn bản | Module thu thập **không điền** `eligibility`, `requirements`, `benefits`, `application_url`. Không có yêu cầu dạng có cấu trúc (kinh nghiệm, quốc tịch, tuổi, chứng chỉ) |
+| Trang chi tiết học bổng theo **mẫu B**: khối chưa có dữ liệu thì ẩn; chừa chỗ cho khối điều kiện và nhắc hạn | Chạy migration slug (`004_scholarshipSlug.sql`) trên Supabase | Chốt hướng: TF-IDF và embedding đa ngôn ngữ, dịch vụ Python (FastAPI) riêng |
+| Merge `feat/scholarshipDetail` vào `dev`, cập nhật GitHub Pages | Sửa lỗi lưu học bổng: `id` bản ghi đã lưu bị ghi đè bằng `id` học bổng | Ghi vào báo cáo tuần: mô hình 2 bước, kế hoạch thí nghiệm |
 
-Vì vậy mọi tính năng "so khớp" (xét điều kiện, gợi ý AI, thông báo đúng người, checklist hồ sơ) đều đang thiếu nền.
+## Giai đoạn 1 — Bài toán dữ liệu
 
-## Thứ tự làm (cái sau dùng kết quả cái trước)
+| FE | BE | AI |
+|---|---|---|
+| Trang hồ sơ thêm trường: kinh nghiệm, chứng chỉ (loại + điểm), bằng cấp, quốc tịch, năm sinh | Thêm cột hồ sơ sinh viên; thêm cột yêu cầu học bổng (GPA, chứng chỉ, kinh nghiệm, quốc tịch, tuổi, bậc học, **ngành**) | Prompt trích yêu cầu từ bài đăng học bổng |
+| Upload CV và **form xác nhận/sửa** kết quả trích | Nhận CV, lấy chữ (`pdf-parse`, `mammoth`), bỏ thông tin liên hệ, gọi Gemini, chỉ lưu các trường đã trích | Prompt + định dạng JSON trích từ CV, kiểm tra độ chính xác |
+| — | Mở rộng module thu thập: điền `eligibility`, `requirements`, `benefits`, `application_url` và yêu cầu có cấu trúc | Quy về **cùng tiêu chí, cùng đơn vị** (GPA thang 4, chứng chỉ có loại và điểm) |
 
-```
-1. Mở rộng hồ sơ sinh viên ─┐
-2. Đọc CV → điền hồ sơ  ────┼─→ 4. Bộ xét điều kiện ─┬─→ 5. Trang chi tiết: "Bạn có đủ điều kiện?"
-3. Trích yêu cầu học bổng ──┘                        ├─→ 6. AI gợi ý (tính năng 1)
-                                                     ├─→ 7. Thông báo thông minh (tính năng 2)
-                                                     └─→ 8. Checklist hồ sơ tự sinh
-```
+## Giai đoạn 2 — Tính năng 1: AI gợi ý
 
-## Danh sách tính năng
+| FE | BE | AI |
+|---|---|---|
+| Khối **"Bạn có đủ điều kiện?"** ở trang chi tiết (Đạt / Thiếu / Chưa rõ) | **API xét điều kiện** (bắt buộc): so từng tiêu chí; "Chưa rõ" khác "Thiếu" | **Bộ hồ sơ mẫu có đáp án** (10–20 hồ sơ) |
+| Trang "Gợi ý cho bạn" kèm **lý do gợi ý** | Lưu vector bằng `pgvector`; API gợi ý gọi dịch vụ AI | Xử lý **khác ngôn ngữ** (hồ sơ tiếng Việt, học bổng tiếng Anh) |
+| "Học bổng tương tự" chuyển sang độ tương đồng vector | Người dùng mới chưa có hồ sơ: hiện học bổng sắp hết hạn / được lưu nhiều | **Thí nghiệm 4 phương án**, đo precision@5: (A) TF-IDF + cosine, (B) TF-IDF + Euclid, (C) embedding + cosine, (D) lọc điều kiện + embedding + cosine |
+| Bộ lọc "Chỉ học bổng tôi đủ điều kiện" (tùy chọn) | Tính lại khi có học bổng mới hoặc hồ sơ đổi | Logistic regression / kNN trên bộ mẫu (phần "train"). Lưu ý: vector đã chuẩn hóa thì cosine và Euclid cho cùng thứ tự |
 
-| # | Tính năng | Nội dung | Phía | Cần AI |
-|---|---|---|---|---|
-| 1 | Mở rộng hồ sơ sinh viên | Thêm trường: số năm kinh nghiệm, chứng chỉ ngoại ngữ (loại + điểm, thay cho `english_level` dạng chuỗi), bằng cấp đã có, quốc tịch, năm sinh. Trang hồ sơ cho nhập các trường này | BE + FE | Không |
-| 2 | Đọc CV → điền hồ sơ | Upload CV (PDF/Word) → lấy văn bản (`pdf-parse`, `mammoth`) → Gemini trích JSON (GPA, chứng chỉ, kinh nghiệm, bằng cấp, ngành, kỹ năng) → **người dùng xác nhận/sửa** rồi mới lưu vào hồ sơ | BE + FE | Có |
-| 3 | Trích yêu cầu học bổng | Mở rộng module thu thập: trích `eligibility`, `requirements`, `benefits`, `application_url` và yêu cầu có cấu trúc (GPA, chứng chỉ, kinh nghiệm, quốc tịch, tuổi, bậc học) vào bảng/ cột riêng | BE (ingestion) | Có (Gemini, đã có sẵn trong module) |
-| 4 | Bộ xét điều kiện | So hồ sơ (1, 2) với yêu cầu (3) bằng luật → mỗi tiêu chí trả **Đạt / Thiếu / Chưa rõ**. Một API dùng chung, VD `GET /api/scholarships/:slug/eligibility` | BE | Không |
-| 5 | Trang chi tiết | Khối "Bạn có đủ điều kiện?" dùng kết quả (4); các mục Quyền lợi/Điều kiện/Hồ sơ dùng dữ liệu (3); nút "Nộp đơn trên trang chính thức" khi có `application_url` | FE | Không |
-| 6 | AI gợi ý (tính năng 1) | Dùng (4) làm bộ lọc cứng, rồi xếp hạng bằng độ tương đồng vector giữa hồ sơ và học bổng (cosine/Euclid) | BE + AI | Có |
-| 7 | Thông báo thông minh (tính năng 2) | Chỉ báo học bổng mới mà người dùng **đủ điều kiện** hoặc gần đủ; nhắc deadline; nhắc tài liệu còn thiếu | BE + FE | Không |
-| 8 | Checklist hồ sơ tự sinh | Checklist đơn ứng tuyển lấy từ `requirements` của học bổng (hiện cố định 6 mục), tự đánh dấu mục đã có tài liệu upload | BE + FE | Có (tách danh sách) |
-| 9 | Lọc "Chỉ học bổng tôi đủ điều kiện" | Thêm vào bảng bộ lọc trên header, dùng (4) | FE + BE | Không |
-| 10 | Góp ý CV/SOP theo học bổng | AI nhận xét CV/SOP so với yêu cầu của một học bổng cụ thể | BE + AI | Có (tùy chọn) |
+## Giai đoạn 3 — Tính năng 2: Thông báo thông minh
+
+| FE | BE | AI |
+|---|---|---|
+| Trang `/notifications` (hiện 404) | Job node-cron nhắc hạn trước 14/7/1 ngày (không AI) | **Chọn ngưỡng** tương đồng bằng thí nghiệm |
+| Trang cài đặt nhận thông báo | Báo học bổng mới khi đủ điều kiện **và** tương đồng ≥ ngưỡng; trong web + email; không gửi trùng | — |
+| Khối nhắc hạn ở trang chi tiết, lịch deadline | API `GET /api/deadlines?from=&to=` | — |
+
+## Giai đoạn 4 — Kiểm thử toàn hệ thống
+
+| FE | BE | AI |
+|---|---|---|
+| Playwright cả luồng: đăng nhập → upload CV → xác nhận → nhận gợi ý → nhận thông báo | **Cloudflare Tunnel**: `app.` → FE, `api.` → BE, `ai.` → dịch vụ AI (cùng tên miền gốc nên cookie đăng nhập hoạt động) | **Giả lập tấn công**: prompt injection qua CV và bài đăng học bổng, file độc / file scan; đo trước và sau khi thêm biện pháp chặn |
+| Thử XSS từ dữ liệu thu thập | Quét bảo mật (OWASP ZAP), giới hạn số lần gọi API, kiểm tra miền giá trị (GPA ≤ 4) | Tổng hợp bảng, biểu đồ kết quả cho báo cáo |
+
+## Song song (FE, khi rảnh)
+
+Làm lại các trang còn dùng `components/legacy`: đã lưu, đơn ứng tuyển, dashboard, chat, tin tức, admin.
 
 ## Lưu ý chung
 
-- **Dữ liệu cá nhân**: CV có họ tên, điện thoại, email, địa chỉ. Xin phép trước khi đọc CV; lọc thông tin liên hệ trước khi gửi cho Gemini; chỉ lưu các trường đã trích, không lưu toàn văn CV.
-- **AI có thể sai**: mọi thông tin AI trích ra (từ CV hay từ bài đăng học bổng) cần đánh dấu nguồn; với hồ sơ sinh viên thì người dùng phải xác nhận.
-- **"Chưa rõ" khác "Thiếu"**: học bổng không ghi yêu cầu thì trả "Chưa rõ", không được coi là đạt hay không đạt.
-
-## Việc còn dở khác
-
-- `/notifications`, `/settings/notifications` chưa có trang (bấm vào ra 404).
-- API `GET /api/deadlines?from=&to=` cho lịch deadline và job nhắc hạn (tính năng 2).
-- Các trang còn dùng `components/legacy`: chi tiết học bổng, đã lưu, đơn ứng tuyển, dashboard, gợi ý, chat, tin tức, admin.
-- Chưa có kiểm thử giao diện tự động cho UI mới (bộ e2e cũ đã xóa).
-- Lỗi nhỏ `backend/src/repositories/saved.repository.js`: `id` của bản ghi đã lưu bị ghi đè bằng `id` học bổng.
-- Migration `004_scholarshipSlug.sql` (nhánh `feat/scholarshipDetail`) chưa chạy trên Supabase.
+- **Dữ liệu cá nhân**: xin phép trước khi đọc CV; bỏ thông tin liên hệ trước khi gửi Gemini; không lưu toàn văn CV.
+- **AI có thể sai**: thông tin trích từ CV phải được người dùng xác nhận; kiểm tra miền giá trị.
+- Không commit file credentials của Cloudflare Tunnel, `.env`, khóa API.
