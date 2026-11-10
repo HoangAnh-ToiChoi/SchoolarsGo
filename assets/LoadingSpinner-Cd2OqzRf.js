@@ -1,0 +1,1 @@
+import{j as e}from"./index-Kyhm8SPx.js";const n=({size:r="md"})=>{const s={sm:"w-5 h-5",md:"w-8 h-8",lg:"w-12 h-12"};return e.jsx("div",{className:"flex items-center justify-center py-20",children:e.jsx("div",{className:`${s[r]} border-2 border-ink-800 border-t-primary-400 rounded-full animate-spin`})})};export{n as L};
