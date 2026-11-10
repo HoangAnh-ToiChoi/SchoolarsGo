@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Search, Shield, ShieldOff, ChevronLeft, ChevronRight, Lock, Unlock } from 'lucide-react';
 import { useAdminUsers, useUpdateUserRole, useUpdateUserStatus } from '~/hooks/useAdmin';
 import { cn, formatDate } from '~/lib/helpers';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
 import Modal from '~/components/legacy/Modal';
 
 const ROLE_OPTIONS = [
