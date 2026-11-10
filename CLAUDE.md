@@ -27,7 +27,7 @@ frontend/src/
   pages/<tenTrang>/index.jsx    trang — chỉ ghép component, không gọi API
     components/<ten>/index.jsx  component chỉ trang đó dùng
   layouts/                 khung giao diện: index.jsx để dùng, components/ là phần triển khai
-    userLayout/            components/ userHeader, userSidebar (+ navConfig.js), userMenu
+    userLayout/            components/ userHeader, userSidebar, mobileNav, sidebarNav (+ navConfig.js), userMenu
     adminLayout/           components/ adminSidebar, adminMobileNav (+ constants.js)
   components/
     ui/                    shadcn/ui gốc (button, card, badge, dropdownMenu, tabs…)
