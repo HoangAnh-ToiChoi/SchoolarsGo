@@ -39,7 +39,7 @@ Cập nhật: 10/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
 | FE | BE | AI |
 |---|---|---|
-| Chuông thông báo trên header (đã có, đang nhắc hạn tính ở máy khách) → chuyển sang đọc API | Job node-cron nhắc hạn trước 14/7/1 ngày (không AI) | **Chọn ngưỡng** tương đồng bằng thí nghiệm |
+| ✅ Chuông thông báo trên header, đọc API, đánh dấu đã đọc lưu ở server | ✅ Bảng `notifications`, API `/api/notifications`, job node-cron nhắc hạn 14/7/1 ngày lúc 7:00 (không AI) | **Chọn ngưỡng** tương đồng bằng thí nghiệm |
 | Trang cài đặt nhận thông báo | Báo học bổng mới khi đủ điều kiện **và** tương đồng ≥ ngưỡng; trong web + email; không gửi trùng | — |
 | Khối nhắc hạn ở trang chi tiết, lịch deadline | API `GET /api/deadlines?from=&to=` | — |
 

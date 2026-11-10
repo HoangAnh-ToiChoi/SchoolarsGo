@@ -482,6 +482,45 @@ Unsave a scholarship (auth required).
 
 ---
 
+## Notifications (chuông trên header)
+
+Server tự tạo **nhắc hạn nộp** ở các mốc 14 / 7 / 1 ngày cho học bổng đã lưu và đơn còn nháp: job chạy 7:00 mỗi sáng (GMT+7), và chạy lại cho riêng người dùng mỗi lần gọi `GET` (không tạo trùng). Cần đăng nhập.
+
+### GET /api/notifications
+
+Query: `limit` (1–50, mặc định 30). Mỗi học bổng chỉ trả thông báo mới nhất; bỏ nhắc hạn đã quá hạn hoặc của đơn đã nộp.
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "type": "deadline",
+      "milestone": 7,
+      "days_left": 5,
+      "application_id": "uuid | null",
+      "read_at": null,
+      "created_at": "2026-11-10T00:00:00Z",
+      "scholarship": { "id": "uuid", "slug": "chevening-scholarship", "title": "Chevening Scholarship", "provider": "…", "deadline": "2026-11-15T00:00:00" }
+    }
+  ],
+  "meta": { "unread": 1 }
+}
+```
+
+`application_id` có giá trị → nhắc theo đơn nháp (FE mở `/applications/:id`); `null` → nhắc học bổng đã lưu (FE mở trang học bổng).
+
+### PATCH /api/notifications/:id/read
+
+Đánh dấu một thông báo đã đọc. 404 nếu thông báo không thuộc người dùng.
+
+### PATCH /api/notifications/readAll
+
+Đánh dấu tất cả đã đọc. Trả `{ "updated": <số thông báo> }`.
+
+---
+
 ## AI Recommender (P1)
 
 ### POST /api/recommend
@@ -558,6 +597,9 @@ Get scholarship recommendations based on user profile (auth required).
 | POST | /api/v2/applications | ✅ Implemented (17/4/2026) | VÙNG 2: Tạo đơn mới (status='draft'). Bắt lỗi UNIQUE constraint ở Repository. |
 | PATCH | /api/v2/applications/:id | ✅ Implemented (17/4/2026) | VÙNG 2: Validate status enum + status transition. Auto-set applied_at khi draft→submitted. |
 | DELETE | /api/v2/applications/:id | ✅ Implemented (17/4/2026) | VÙNG 2: Chặn xóa đơn đã submitted/under_review. |
+| GET | /api/notifications | ✅ Implemented (10/11/2026) | Nhắc hạn 14/7/1 ngày + meta.unread |
+| PATCH | /api/notifications/:id/read | ✅ Implemented (10/11/2026) | 404 nếu không phải của người dùng |
+| PATCH | /api/notifications/readAll | ✅ Implemented (10/11/2026) | — |
 | GET | /api/saved | Chưa implement | — |
 | POST | /api/saved/:scholarshipId | Chưa implement | — |
 | DELETE | /api/saved/:scholarshipId | Chưa implement | — |

@@ -19,6 +19,7 @@ const recommendRoutes = require('./routes/recommend.routes');
 const adminRoutes = require('./routes/admin.routes');
 const chatRoutes = require('./routes/chat.routes');
 const newsRoutes = require('./routes/news.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use('/api/recommend', recommendRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ── Swagger UI ─────────────────────────────────────────
 app.use(

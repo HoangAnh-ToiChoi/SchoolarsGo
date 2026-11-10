@@ -177,7 +177,18 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').max(128),
 });
 
+// ── Notifications ───────────────────────────────────────
+const notificationQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).optional().default(30),
+});
+
+const notificationIdSchema = z.object({
+  id: z.string().uuid('id thông báo không hợp lệ'),
+});
+
 module.exports = {
+  notificationQuerySchema,
+  notificationIdSchema,
   registerSchema,
   loginSchema,
   forgotPasswordSchema,

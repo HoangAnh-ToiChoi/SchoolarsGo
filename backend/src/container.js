@@ -81,6 +81,15 @@ const savedRepo = new SavedRepository(sb);
 const savedService = new SavedService(savedRepo);
 const savedController = new SavedController(savedService);
 
+// ── Notification Module (chuông thông báo) ─────────────────
+const NotificationRepository = require('./repositories/notification.repository');
+const NotificationService = require('./services/notification.service');
+const NotificationController = require('./controllers/notification.controller');
+
+const notificationRepo = new NotificationRepository(sb);
+const notificationService = new NotificationService(notificationRepo);
+const notificationController = new NotificationController(notificationService);
+
 // ── Auth Module (SRP: inject hashService + tokenService) ───
 const AuthRepository = require('./repositories/auth.repository');
 const AuthService = require('./services/auth.service');
@@ -156,6 +165,9 @@ module.exports = {
   chatController,
   // Ingestion
   ingestionService,
+  // Notification
+  notificationService,
+  notificationController,
 };
 
 // ── Event Listeners ─────────────────────────────────────────
