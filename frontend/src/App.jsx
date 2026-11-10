@@ -65,7 +65,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="scholarships" element={<LegacySearchRedirect />} />
           <Route path="scholarships/:slug" element={<ScholarshipDetailPage />} />
-          <Route path="saved" element={<SavedPage />} />
+          <Route path="saved" element={guard(<SavedPage />)} />
           <Route path="compare" element={<ComparePage />} />
           <Route path="news" element={<NewsPage />} />
           <Route path="profile" element={<Navigate to="/dashboard" replace />} />

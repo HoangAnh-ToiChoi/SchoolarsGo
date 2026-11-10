@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { AcademicCapIcon, BellIcon } from '@heroicons/react/24/solid';
-import { Button } from '~/components/ui/button';
+import { AcademicCapIcon } from '@heroicons/react/24/solid';
 import MobileNav from '~/layouts/userLayout/components/mobileNav';
+import NotificationMenu from '~/layouts/userLayout/components/notificationMenu';
 import UserMenu from '~/layouts/userLayout/components/userMenu';
 import ScholarshipFilter from '~/components/scholarshipFilter';
 
@@ -25,11 +25,7 @@ export default function UserHeader() {
       <ScholarshipFilter />
 
       <div className="flex items-center gap-1 justify-self-end sm:gap-2">
-        <Button asChild variant="outline" size="icon-lg" className="relative text-fg-soft hover:border-line hover:bg-hover hover:text-fg-soft">
-          <Link to="/notifications" aria-label="Thông báo">
-            <BellIcon aria-hidden="true" />
-          </Link>
-        </Button>
+        <NotificationMenu />
         <span aria-hidden="true" className="mx-1 hidden h-6 w-px bg-line md:block" />
         <UserMenu />
       </div>

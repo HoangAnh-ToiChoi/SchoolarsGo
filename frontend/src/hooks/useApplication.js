@@ -1,18 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { applicationService } from '~/services/application.service';
 import toast from 'react-hot-toast';
+import { selectIsAuthenticated } from '~/store/slices/authSlice';
+
+// Backend trả học bổng kèm theo ở khóa `scholarships` (tên bảng của Supabase); đổi về `scholarship` cho dễ đọc
+const withScholarship = (app) => (app ? { ...app, scholarship: app.scholarship ?? app.scholarships ?? null } : app);
 
 export const useApplications = (filters = {}) => {
+  // Chuông thông báo trên header cũng đọc danh sách đơn: chưa đăng nhập thì không gọi (tránh 401)
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   return useQuery({
     queryKey: ['applications', filters],
-    queryFn: () => applicationService.getAll(filters).then((res) => res.data),
+    enabled: isAuthenticated,
+    queryFn: () =>
+      applicationService.getAll(filters).then((res) => ({ ...res.data, data: (res.data?.data ?? []).map(withScholarship) })),
   });
 };
 
 export const useApplication = (id) => {
   return useQuery({
     queryKey: ['application', id],
-    queryFn: () => applicationService.getById(id).then((res) => res.data),
+    queryFn: () => applicationService.getById(id).then((res) => ({ ...res.data, data: withScholarship(res.data?.data) })),
     enabled: !!id,
   });
 };

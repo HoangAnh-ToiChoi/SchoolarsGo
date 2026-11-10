@@ -39,7 +39,7 @@ Cập nhật: 10/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
 | FE | BE | AI |
 |---|---|---|
-| Trang `/notifications` (hiện 404) | Job node-cron nhắc hạn trước 14/7/1 ngày (không AI) | **Chọn ngưỡng** tương đồng bằng thí nghiệm |
+| Chuông thông báo trên header (đã có, đang nhắc hạn tính ở máy khách) → chuyển sang đọc API | Job node-cron nhắc hạn trước 14/7/1 ngày (không AI) | **Chọn ngưỡng** tương đồng bằng thí nghiệm |
 | Trang cài đặt nhận thông báo | Báo học bổng mới khi đủ điều kiện **và** tương đồng ≥ ngưỡng; trong web + email; không gửi trùng | — |
 | Khối nhắc hạn ở trang chi tiết, lịch deadline | API `GET /api/deadlines?from=&to=` | — |
 
@@ -52,7 +52,7 @@ Cập nhật: 10/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
 ## Song song (FE, khi rảnh)
 
-Làm lại các trang còn dùng `components/legacy`: đã lưu, đơn ứng tuyển, dashboard, chat, tin tức, admin.
+Làm lại các trang còn dùng `components/legacy`: chi tiết đơn ứng tuyển, dashboard, chat, tin tức, admin. (Đã xong: đã lưu, đơn ứng tuyển, chuông thông báo.)
 
 ## Lưu ý chung
 

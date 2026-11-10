@@ -1,186 +1,98 @@
-import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { BookOpen, ChevronRight, CheckCircle, Circle, Calendar, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useApplications, useUpdateApplication } from '~/hooks/useApplication';
-import { cn } from '~/utils/cn';
-import { formatDate } from '~/utils/format';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
-import { Select } from '~/components/legacy';
-import { scholarshipPath } from '~/utils/scholarship';
+import { Link } from 'react-router-dom';
+import { DocumentTextIcon } from '@heroicons/react/24/solid';
+import PageHeader from '~/components/common/pageHeader';
+import SlowLoading from '~/components/common/slowLoading';
+import { Button } from '~/components/ui/button';
+import { Card } from '~/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { useApplications } from '~/hooks/useApplication';
+import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { MAX_LIMIT } from '~/utils/constants';
+import { sortByDeadline } from '~/utils/scholarship';
+import ApplicationRow from '~/pages/applications/components/applicationRow';
+import ApplicationRowSkeleton from '~/pages/applications/components/applicationRowSkeleton';
+import { inStage, STAGES } from '~/pages/applications/helper';
 
-const ApplicationsPage = () => {
-  const [statusFilter, setStatusFilter] = useState('');
-  const { data, isLoading } = useApplications(statusFilter ? { status: statusFilter } : {});
-  const updateApplication = useUpdateApplication();
+// Đơn ứng tuyển: dạng danh sách (khác lưới thẻ của trang chủ/đã lưu) vì việc chính ở đây là
+// theo dõi tiến độ từng đơn. Lọc theo chặng ở máy khách để số đếm trên tab luôn đúng.
+export default function ApplicationsPage() {
+  const [stageValue, setStageValue] = useState('all');
+  const { data, isLoading, isError, refetch } = useApplications({ limit: MAX_LIMIT });
+  const isSlow = useSlowLoading(isLoading);
 
-  const applications = data?.data || [];
-
-  const handleChecklistToggle = (applicationId, itemIndex) => {
-    const application = applications.find(app => app.id === applicationId);
-    if (!application) return;
-
-    const updatedChecklist = [...application.checklist];
-    updatedChecklist[itemIndex] = {
-      ...updatedChecklist[itemIndex],
-      done: !updatedChecklist[itemIndex].done
-    };
-
-    updateApplication.mutate({
-      id: applicationId,
-      checklist: updatedChecklist
-    });
-  };
-
-  const handleStatusChange = (applicationId, newStatus) => {
-    updateApplication.mutate({
-      id: applicationId,
-      status: newStatus
-    });
-  };
-
-  const statusOptions = [
-    { value: '', label: 'Tất cả trạng thái' },
-    { value: 'draft', label: 'Nháp' },
-    { value: 'submitted', label: 'Đã nộp' },
-    { value: 'under_review', label: 'Đang xét duyệt' },
-    { value: 'interview', label: 'Phỏng vấn' },
-    { value: 'accepted', label: 'Được chấp nhận' },
-    { value: 'rejected', label: 'Bị từ chối' },
-    { value: 'withdrawn', label: 'Đã rút' },
-  ];
+  const all = (data?.data ?? []).filter((app) => app.scholarship);
+  // Đơn nháp (còn phải làm) lên đầu, hạn gần trước; đơn đã nộp giữ thứ tự mới tạo trước
+  const drafts = sortByDeadline(all.filter((app) => app.status === 'draft'), (app) => app.scholarship.deadline);
+  const ordered = [...drafts, ...all.filter((app) => app.status !== 'draft')];
+  const stage = STAGES.find((s) => s.value === stageValue);
+  const visible = ordered.filter((app) => inStage(stage, app));
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
-      <div className="containerPage pt-10 mb-12">
-        <div className="text-center mb-12 relative">
-          <div className="absolute right-0 top-0 hidden md:block">
-            <Link to="/" className="inline-flex items-center gap-2 bg-ink-900 hover:bg-ink-800 border border-ink-800 text-ink-200 px-5 py-2.5 rounded-full font-medium transition-all">
-              <BookOpen className="w-4 h-4" />Tìm học bổng
-            </Link>
-          </div>
+    <section className="flex min-w-0 flex-col gap-5" aria-labelledby="applications-title">
+      <PageHeader
+        title={<span id="applications-title">Đơn ứng tuyển</span>}
+        description="Theo dõi tiến độ hồ sơ và kết quả từng đơn"
+        actions={
+          <Tabs value={stageValue} onValueChange={setStageValue} className="max-w-full">
+            <TabsList className="max-w-full justify-start overflow-x-auto">
+              {STAGES.map((s) => (
+                <TabsTrigger key={s.value} value={s.value} className="gap-1.5 px-3">
+                  {s.label}
+                  {!isLoading && (
+                    <span className="text-xs font-semibold text-fg-muted">{all.filter((app) => inStage(s, app)).length}</span>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        }
+      />
+      {isSlow && <SlowLoading />}
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-ink-800 bg-ink-900 px-4 py-1.5 text-sm text-ink-300 mb-5">
-            <BookOpen className="w-4 h-4 text-primary-400" />
-            <span>Quản lý hồ sơ</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-ink-100 mb-4">
-            Đơn Ứng Tuyển
-          </h1>
-          <p className="text-ink-400 max-w-2xl mx-auto">
-            Theo dõi tiến độ và quản lý checklist các đơn ứng tuyển của bạn.
+      {isError ? (
+        <Card className="p-8 text-center">
+          <p className="font-semibold">Không tải được đơn ứng tuyển</p>
+          <Button variant="link" onClick={() => refetch()} className="mt-1">
+            Thử lại
+          </Button>
+        </Card>
+      ) : !isLoading && visible.length === 0 ? (
+        <Card className="flex flex-col items-center border-dashed px-6 py-12 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+            <DocumentTextIcon className="size-6" aria-hidden="true" />
+          </span>
+          <p className="mt-4 text-block-title text-heading">
+            {all.length === 0 ? 'Chưa có đơn ứng tuyển nào' : 'Không có đơn nào ở mục này'}
           </p>
-        </div>
-
-        <div className="mb-8 flex items-center gap-4 bg-ink-900 border border-ink-800 rounded-card p-4 w-fit mx-auto md:mx-0">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-ink-500" />
-            <span className="text-sm font-medium text-ink-300">Lọc:</span>
+          <p className="mt-1 max-w-sm text-sm text-fg-muted">
+            {all.length === 0
+              ? 'Mở một học bổng và bấm "Ứng tuyển" để tạo đơn, kèm danh sách giấy tờ cần chuẩn bị.'
+              : 'Chọn mục khác để xem các đơn còn lại.'}
+          </p>
+          {all.length === 0 && (
+            <Button asChild className="mt-5">
+              <Link to="/">Tìm học bổng</Link>
+            </Button>
+          )}
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          {/* Tiêu đề cột chỉ hiện khi đủ rộng để các dòng xếp thành 3 cột */}
+          <div className="hidden items-center gap-6 border-b border-line bg-canvas px-5 py-2.5 text-xs font-medium text-fg-muted md:flex">
+            <span className="flex-1">Học bổng</span>
+            <span className="flex w-[340px] shrink-0 justify-between">
+              <span className="w-[160px]">Giấy tờ</span>
+              <span className="pr-7">Trạng thái</span>
+            </span>
           </div>
-          <Select
-            options={statusOptions}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            className="w-48"
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center"><LoadingSpinner /></div>
-        ) : applications.length === 0 ? (
-          <div className="max-w-2xl mx-auto bg-ink-900 border border-ink-800 rounded-card p-12 text-center">
-            <div className="w-20 h-20 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">
-              <BookOpen className="w-10 h-10 text-ink-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-ink-100 mb-4">Chưa có đơn ứng tuyển nào</h2>
-            <p className="text-ink-400 text-lg mb-8">
-              Bắt đầu tìm kiếm và ứng tuyển học bổng ngay hôm nay.
-            </p>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 bg-primary-400 text-ink-950 px-8 py-3 rounded-full font-semibold hover:bg-primary-300 transition-colors"
-            >
-              Tìm học bổng để ứng tuyển
-              <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {applications.map((app) =>{
-              if(!app.scholarship) return null;
-            return (
-              <div key={app.id} className="overflow-hidden bg-ink-900 border border-ink-800 rounded-card p-6 transition-all hover:border-ink-700">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-                  <div className="flex-1">
-                    <Link
-                      to={scholarshipPath(app.scholarship)}
-                      className="text-2xl font-bold text-ink-100 hover:text-primary-400 transition-colors"
-                    >
-                      {app.scholarship?.title}
-                    </Link>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-ink-400">
-                      <span className="bg-ink-800 border border-ink-700 px-3 py-1 rounded-full">{app.scholarship?.country}</span>
-                      <div className="flex items-center gap-1.5 bg-ink-800 border border-ink-700 px-3 py-1 rounded-full">
-                        <Calendar className="w-4 h-4 text-primary-400" />
-                        Deadline: {app.applied_at ? formatDate(app.applied_at) : 'Chưa nộp'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-full md:w-auto">
-                    <Select
-                      options={statusOptions.slice(1)}
-                      value={app.status}
-                      onChange={(value) => handleStatusChange(app.id, value)}
-                      className="w-full md:w-48"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-6 bg-ink-950 rounded-card p-5 border border-ink-800">
-                  <h4 className="text-sm font-semibold uppercase tracking-[0.15em] text-primary-400 mb-4">Danh sách kiểm tra:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {app.checklist?.map((item, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleChecklistToggle(app.id, index)}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-ink-800 transition-colors text-left border border-transparent hover:border-ink-700"
-                      >
-                        {item.done ? (
-                          <CheckCircle className="w-5 h-5 text-success-500 flex-shrink-0" />
-                        ) : (
-                          <Circle className="w-5 h-5 text-ink-600 flex-shrink-0" />
-                        )}
-                        <span className={cn(
-                          'text-sm font-medium transition-all',
-                          item.done ? 'text-ink-500 line-through' : 'text-ink-200'
-                        )}>
-                          {item.item}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-5 border-t border-ink-800">
-                  <div className="text-xs text-ink-500 font-medium tracking-wide uppercase">
-                    Cập nhật: {formatDate(app.updated_at)}
-                  </div>
-                  <Link
-                    to={`/applications/${app.id}`}
-                    className="flex items-center gap-2 text-primary-400 hover:text-primary-400 text-sm font-semibold bg-primary-400/10 px-4 py-2 rounded-full transition-all hover:bg-primary-400/15"
-                  >
-                    Xem chi tiết
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-          </div>
-        )}
-      </div>
-    </motion.div>
+          <ul className="divide-y divide-line-soft">
+            {isLoading
+              ? Array.from({ length: 4 }, (_, i) => <ApplicationRowSkeleton key={i} />)
+              : visible.map((app) => <ApplicationRow key={app.id} application={app} />)}
+          </ul>
+        </Card>
+      )}
+    </section>
   );
-};
-
-export default ApplicationsPage;
+}

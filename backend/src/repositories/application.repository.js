@@ -18,7 +18,7 @@ class ApplicationRepository {
     const offset = (page - 1) * limit;
     let q = this.#sb
       .from('applications')
-      .select('id, status, applied_at, notes, checklist, documents_used, result, created_at, updated_at, scholarships(id, slug, title, country, deadline, amount, image_url)', { count: 'exact' })
+      .select('id, status, applied_at, notes, checklist, documents_used, result, created_at, updated_at, scholarships(id, slug, title, provider, country, deadline, amount, image_url)', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -59,7 +59,7 @@ class ApplicationRepository {
   async findByIdAndUser(applicationId, userId) {
     const { data } = await this.#sb
       .from('applications')
-      .select('*, scholarships(id, slug, title, country, deadline, amount, image_url)')
+      .select('*, scholarships(id, slug, title, provider, country, deadline, amount, image_url)')
       .eq('id', applicationId).eq('user_id', userId).maybeSingle();
     if (!data) return null;
     return { ...data, scholarship_id: data.scholarships?.id, scholarship_slug: data.scholarships?.slug, scholarship_title: data.scholarships?.title, country: data.scholarships?.country, deadline: data.scholarships?.deadline, amount: data.scholarships?.amount, image_url: data.scholarships?.image_url };
