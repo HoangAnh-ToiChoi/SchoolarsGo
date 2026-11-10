@@ -25,7 +25,7 @@ export default function FilterBar() {
             type="button"
             variant="outline"
             onClick={() => apply({ ...filters, degree: d.value })}
-            className="h-filter rounded-control border-dashed border-line-strong px-3 text-[13px] text-fg shadow-none hover:bg-hover"
+            className="h-filter border-dashed border-line-strong px-3 text-[13px] font-medium text-fg"
           >
             <PlusIcon className="text-fg-muted" aria-hidden="true" />
             {d.label}

@@ -6,6 +6,7 @@ import Pagination from '~/components/common/pagination';
 import Reveal from '~/components/common/reveal';
 import SlowLoading from '~/components/common/slowLoading';
 import ScholarshipCard from '~/components/scholarship/scholarshipCard';
+import ScholarshipGrid from '~/components/scholarship/scholarshipGrid';
 import ScholarshipCardSkeleton from '~/components/scholarship/scholarshipCardSkeleton';
 import { Button } from '~/components/ui/button';
 import { useScholarships } from '~/hooks/useScholarship';
@@ -53,7 +54,7 @@ export default function HomePage() {
                 type="button"
                 variant="outline"
                 onClick={() => dispatch(filterOpened())}
-                className="h-control gap-2 rounded-inner border-line px-3 text-[13px] font-semibold shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600"
+                className="h-control rounded-inner px-3 text-[13px]"
               >
                 <AdjustmentsHorizontalIcon aria-hidden="true" />
                 Bộ lọc
@@ -78,7 +79,7 @@ export default function HomePage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
+          <ScholarshipGrid>
             {isLoading
               ? Array.from({ length: 6 }, (_, i) => <ScholarshipCardSkeleton key={i} />)
               : scholarships.map((s, i) => (
@@ -87,7 +88,7 @@ export default function HomePage() {
                     <ScholarshipCard scholarship={s} />
                   </Reveal>
                 ))}
-          </div>
+          </ScholarshipGrid>
         )}
         {!isLoading && !isError && scholarships.length === 0 && (
           <p className="rounded-tile border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-muted">

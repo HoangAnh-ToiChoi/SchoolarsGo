@@ -19,7 +19,7 @@ export default function UpcomingDeadlinesCard({ scholarships = [] }) {
     .slice(0, 4);
 
   return (
-    <Card className="flex flex-col rounded-tile border-line px-5 pb-2 pt-5 shadow-tile">
+    <Card className="flex flex-col px-5 pb-2 pt-5">
       <div className="flex items-center justify-between pb-2.5">
         <h2 className="text-block-title">Sắp hết hạn</h2>
         <Link to="/deadlines" className="text-[13px] font-semibold text-brand-600 hover:text-brand-700">

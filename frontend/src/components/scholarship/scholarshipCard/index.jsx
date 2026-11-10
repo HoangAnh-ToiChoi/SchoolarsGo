@@ -23,7 +23,7 @@ export default function ScholarshipCard({ scholarship }) {
         className="flex w-full flex-col overflow-hidden rounded-tile border border-line bg-card shadow-tile outline-none transition-[box-shadow,border-color] duration-200 group-hover:border-brand-200 group-hover:shadow-tile-hover focus-visible:ring-2 focus-visible:ring-brand-600/40"
       >
         {/* pr-14 chừa chỗ cho nút lưu đặt chồng ở góc phải */}
-        <div className="flex items-center gap-1.5 pl-5 pr-14 pt-[18px]">
+        <div className="flex flex-wrap items-center gap-1.5 pl-5 pr-14 pt-[18px]">
           <DeadlineBadge deadline={deadline} />
           <Badge variant={scope === 'domestic' ? 'domestic' : 'abroad'}>{SCOPE_LABELS[scope]}</Badge>
         </div>

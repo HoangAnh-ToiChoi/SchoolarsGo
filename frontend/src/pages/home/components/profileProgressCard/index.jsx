@@ -22,7 +22,7 @@ export default function ProfileProgressCard() {
   const percent = Math.round(((REQUIRED_FIELDS.length - missing.length) / REQUIRED_FIELDS.length) * 100);
 
   return (
-    <Card className="flex flex-col gap-3.5 rounded-tile border-line p-5 shadow-tile">
+    <Card className="flex flex-col gap-3.5 p-5">
       <div>
         <h2 className="text-block-title">{isAuthenticated ? 'Hoàn thiện hồ sơ' : 'Nhận gợi ý học bổng'}</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-fg-muted">
@@ -55,7 +55,7 @@ export default function ProfileProgressCard() {
         </>
       )}
 
-      <Button asChild variant="outline" className="h-[38px] rounded-inner border-line font-semibold shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600">
+      <Button asChild variant="outline" className="h-[38px] rounded-inner">
         <Link to={isAuthenticated ? '/dashboard' : '/login'}>{isAuthenticated ? 'Cập nhật hồ sơ' : 'Đăng nhập'}</Link>
       </Button>
     </Card>

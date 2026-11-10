@@ -22,7 +22,7 @@ export default function DetailSkeleton({ notice }) {
       {notice && <div className="mt-6">{notice}</div>}
       <div aria-hidden="true" className="mt-6 grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-4">
-          <Skeleton className="h-[46px] w-full" />
+          <Skeleton className="h-control w-80 max-w-full rounded-inner" />
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-5 w-40" />

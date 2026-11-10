@@ -20,7 +20,7 @@ export default function UserHeader() {
       <ScholarshipFilter />
 
       <div className="flex items-center gap-2 justify-self-end">
-        <Button asChild variant="outline" size="icon-lg" className="relative border-line text-fg-soft shadow-none hover:bg-hover">
+        <Button asChild variant="outline" size="icon-lg" className="relative text-fg-soft hover:border-line hover:bg-hover hover:text-fg-soft">
           <Link to="/notifications" aria-label="Thông báo">
             <BellIcon aria-hidden="true" />
           </Link>
