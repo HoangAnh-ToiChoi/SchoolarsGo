@@ -23,7 +23,7 @@ const ROWS = [
   { label: 'Nhà cung cấp', key: 'provider' },
   { label: 'Quốc gia', key: 'country', icon: MapPin },
   { label: 'Bậc học', key: 'degree', icon: GraduationCap },
-  { label: 'Hạn nộp', key: 'deadline', format: (v) => formatDate(v, 'dd/MM/yyyy'), icon: Calendar },
+  { label: 'Hạn nộp', key: 'deadline', format: (v) => (v ? formatDate(v, 'dd/MM/yyyy') : 'Chưa rõ hạn'), icon: Calendar },
   { label: 'Học phí', key: 'amount', format: (v, s) => v ? formatCurrency(v, s.currency) : null, icon: DollarSign },
   { label: 'GPA tối thiểu', key: 'min_gpa', format: (v) => v ? `${v}/4.0` : null },
   { label: 'IELTS tối thiểu', key: 'min_ielts' },

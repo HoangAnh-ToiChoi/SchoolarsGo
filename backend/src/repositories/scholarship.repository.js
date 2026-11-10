@@ -9,10 +9,13 @@ class ScholarshipRepository {
     let q = this.#sb.from('scholarships').select(
       'id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
       { count: 'exact' }
-    ).eq('is_active', true).gte('deadline', new Date().toISOString());
+    ).eq('is_active', true).or(this.#notExpired());
 
     q = this.#applyFilters(q, filters);
-    q = q.order('deadline', { ascending: true }).range(offset, offset + limit - 1);
+    q = q
+      .order('relevance_score', { ascending: false })
+      .order('deadline', { ascending: true, nullsFirst: false })
+      .range(offset, offset + limit - 1);
 
     const { data, count, error } = await q;
     if (error) throw error;
@@ -27,8 +30,9 @@ class ScholarshipRepository {
       .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('is_active', true)
       .eq('is_featured', true)
-      .gte('deadline', new Date().toISOString())
-      .order('deadline', { ascending: true })
+      .or(this.#notExpired())
+      .order('relevance_score', { ascending: false })
+      .order('deadline', { ascending: true, nullsFirst: false })
       .limit(6);
     if (error) throw error;
     return data || [];
@@ -52,13 +56,18 @@ class ScholarshipRepository {
       .select('*')
       .eq('id', id)
       .eq('is_active', true)
-      .gte('deadline', new Date().toISOString())
+      .or(this.#notExpired())
       .maybeSingle();
     if (error) throw error;
     if (!scholarship) return null;
 
     const isSaved = await this.#checkSavedStatus(userId, id);
     return { ...scholarship, is_saved: isSaved };
+  }
+
+  /** Điều kiện "chưa quá hạn": hạn nộp còn hoặc chưa rõ hạn (NULL). Dùng chung cho mọi truy vấn đọc. */
+  #notExpired() {
+    return `deadline.is.null,deadline.gte.${new Date().toISOString()}`;
   }
 
   #applyFilters(q, filters) {

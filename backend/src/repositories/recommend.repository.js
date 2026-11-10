@@ -26,8 +26,9 @@ class RecommendRepository {
       .from('scholarships')
       .select('*')
       .eq('is_active', true)
-      .gte('deadline', new Date().toISOString())
-      .order('deadline', { ascending: true })
+      .or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`)
+      .order('relevance_score', { ascending: false })
+      .order('deadline', { ascending: true, nullsFirst: false })
       .limit(limit);
     if (error) throw error;
     return data || [];

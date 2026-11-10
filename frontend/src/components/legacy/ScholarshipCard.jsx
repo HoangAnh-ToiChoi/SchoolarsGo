@@ -120,7 +120,7 @@ const ScholarshipCard = ({ scholarship, index = 0 }) => {
           <div className="flex flex-wrap gap-1.5 mb-3">
             <span className="tag"><MapPin className="w-3 h-3" />{country}</span>
             <span className="tag"><GraduationCap className="w-3 h-3" />{degree}</span>
-            <span className="tag"><Calendar className="w-3 h-3" />{formatDate(deadline, 'dd/MM/yyyy')}</span>
+            <span className="tag"><Calendar className="w-3 h-3" />{deadline ? formatDate(deadline, 'dd/MM/yyyy') : 'Chưa rõ hạn'}</span>
           </div>
 
           {amount && (
