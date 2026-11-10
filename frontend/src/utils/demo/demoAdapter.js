@@ -1,4 +1,5 @@
 import { DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
+import { getScope } from '~/utils/scholarship';
 
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
 const savedIds = new Set(['d1', 'd3', 'd5']);
@@ -20,6 +21,7 @@ export function demoAdapter(config) {
     let items = DEMO_SCHOLARSHIPS;
     if (params.degree) items = items.filter((s) => s.degree === params.degree);
     if (params.country) items = items.filter((s) => s.country === params.country);
+    if (params.scope) items = items.filter((s) => getScope(s) === params.scope);
     if (params.coverage === 'Full') items = items.filter((s) => s.coverage === 'Toàn phần');
     if (params.coverage === 'Partial') items = items.filter((s) => s.coverage === 'Một phần');
     if (params.search) {
@@ -29,7 +31,12 @@ export function demoAdapter(config) {
     // Học bổng chưa công bố hạn nộp xếp cuối
     const time = (s) => (s.deadline ? new Date(s.deadline).getTime() : Infinity);
     items = [...items].sort((a, b) => time(a) - time(b) || 0);
-    return ok(config, { success: true, data: items, meta: { page: 1, limit: items.length, total: items.length, totalPages: 1 } });
+    // Phân trang giống backend: page bắt đầu từ 1, limit mặc định 20
+    const limit = Number(params.limit) || 20;
+    const totalPages = Math.max(1, Math.ceil(items.length / limit));
+    const page = Math.min(Math.max(1, Number(params.page) || 1), totalPages);
+    const data = items.slice((page - 1) * limit, page * limit);
+    return ok(config, { success: true, data, meta: { page, limit, total: items.length, totalPages } });
   }
   if (method === 'GET' && url === '/scholarships/countries') {
     const countries = [...new Set(DEMO_SCHOLARSHIPS.map((s) => s.country))].sort();

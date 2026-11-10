@@ -10,7 +10,7 @@ function getPageItems(page, totalPages) {
 }
 
 const itemClass =
-  'flex h-9 min-w-9 items-center justify-center rounded-control px-2 text-sm font-semibold transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40';
+  'flex h-9 min-w-9 items-center justify-center rounded-control px-2 text-sm font-semibold outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-40';
 
 export default function Pagination({ page, totalPages, onChange }) {
   if (totalPages <= 1) return null;

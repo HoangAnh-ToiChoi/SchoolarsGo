@@ -117,6 +117,7 @@ List scholarships with filters.
 | page | int | 1 | Trang |
 | limit | int | 20 | Số item/trang (max 50) |
 | country | string | — | Lọc theo quốc gia |
+| scope | string | — | `domestic` (Việt Nam) hoặc `international` (du học) |
 | degree | string | — | Bachelor, Master, PhD, Any |
 | field | string | — | Ngành học |
 | language | string | — | Ngôn ngữ giảng dạy |

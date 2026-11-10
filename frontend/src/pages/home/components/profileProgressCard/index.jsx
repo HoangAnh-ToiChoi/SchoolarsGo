@@ -21,41 +21,37 @@ export default function ProfileProgressCard() {
   const missing = REQUIRED_FIELDS.filter((f) => !profile[f.key]);
   const percent = Math.round(((REQUIRED_FIELDS.length - missing.length) / REQUIRED_FIELDS.length) * 100);
 
+  // Dải ngang gọn ở đầu trang chủ: không chiếm cột riêng để lưới học bổng đủ 3 thẻ một hàng
   return (
-    <Card className="flex flex-col gap-3.5 p-5">
-      <div>
+    <Card className="flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3.5">
+      <div className="min-w-0 flex-[1_1_240px]">
         <h2 className="text-block-title">{isAuthenticated ? 'Hoàn thiện hồ sơ' : 'Nhận gợi ý học bổng'}</h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-fg-muted">
-          {isAuthenticated
-            ? 'Hồ sơ đủ thông tin thì gợi ý học bổng chính xác hơn.'
-            : 'Đăng nhập và điền hồ sơ để hệ thống gợi ý học bổng hợp với bạn.'}
+        <p className="mt-0.5 truncate text-[13px] text-fg-muted">
+          {!isAuthenticated
+            ? 'Đăng nhập và điền hồ sơ để hệ thống gợi ý học bổng hợp với bạn.'
+            : missing.length > 0
+              ? `Còn thiếu: ${missing.map((f) => f.label).join(', ')}`
+              : 'Hồ sơ đã đủ thông tin để gợi ý học bổng.'}
         </p>
       </div>
 
       {isAuthenticated && (
-        <>
-          <div className="flex items-center gap-3">
-            <div
-              className="h-2 flex-1 overflow-hidden rounded-full bg-track"
-              role="progressbar"
-              aria-valuenow={percent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Mức hoàn thiện hồ sơ"
-            >
-              <div className="h-full rounded-full bg-brand-600 transition-[width] duration-500" style={{ width: `${percent}%` }} />
-            </div>
-            <span className="text-[13px] font-bold text-brand-700">{percent}%</span>
+        <div className="flex flex-[0_1_200px] items-center gap-3">
+          <div
+            className="h-2 flex-1 overflow-hidden rounded-full bg-track"
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Mức hoàn thiện hồ sơ"
+          >
+            <div className="h-full rounded-full bg-brand-600 transition-[width] duration-500" style={{ width: `${percent}%` }} />
           </div>
-          {missing.length > 0 && (
-            <p className="text-[13px] text-fg-secondary">
-              Còn thiếu: <strong className="font-semibold text-fg">{missing.map((f) => f.label).join(', ')}</strong>
-            </p>
-          )}
-        </>
+          <span className="text-[13px] font-bold text-brand-700">{percent}%</span>
+        </div>
       )}
 
-      <Button asChild variant="outline" className="h-[38px] rounded-inner">
+      <Button asChild variant="outline" className="h-9 shrink-0">
         <Link to={isAuthenticated ? '/dashboard' : '/login'}>{isAuthenticated ? 'Cập nhật hồ sơ' : 'Đăng nhập'}</Link>
       </Button>
     </Card>

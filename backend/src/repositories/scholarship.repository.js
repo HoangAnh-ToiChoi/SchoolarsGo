@@ -1,3 +1,6 @@
+// Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
+const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
+
 class ScholarshipRepository {
   #sb;
 
@@ -73,6 +76,10 @@ class ScholarshipRepository {
 
   #applyFilters(q, filters) {
     if (filters.country)      q = q.ilike('country', `%${filters.country}%`);
+    // Chưa có cột scope: "Trong nước" = quốc gia là Việt Nam, còn lại là du học.
+    // Lọc ở DB (không lọc ở frontend) để phân trang và tổng số đúng.
+    if (filters.scope === 'domestic')      q = q.in('country', DOMESTIC_COUNTRIES);
+    if (filters.scope === 'international') q = q.not('country', 'in', `(${DOMESTIC_COUNTRIES.map(c => `"${c}"`).join(',')})`);
     if (filters.degree)       q = q.eq('degree', filters.degree);
     if (filters.field)        q = q.ilike('field_of_study', `%${filters.field}%`);
     if (filters.language)     q = q.eq('language', filters.language);
