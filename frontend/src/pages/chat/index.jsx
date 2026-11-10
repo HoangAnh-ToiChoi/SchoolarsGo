@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Sparkles, Copy, Check, GraduationCap, FileText, Globe, Clock, Zap, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { sanitizeHtml } from '~/lib/security';
+import { sanitizeHtml } from '~/utils/security';
 import { chatService } from '~/services/chat.service';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn } from '~/lib/helpers';
-import { color } from '~/lib/palette';
+import { cn } from '~/utils/cn';
+import { color } from '~/utils/palette';
 
 const WELCOME_MESSAGE = {
   role: 'assistant',

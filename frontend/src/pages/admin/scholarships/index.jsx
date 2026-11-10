@@ -5,7 +5,8 @@ import {
   useAdminToggleFeatured, useAdminDeleteScholarship,
 } from '~/hooks/useAdmin';
 import { useScholarships } from '~/hooks/useScholarship';
-import { cn, formatDate } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
+import { formatDate } from '~/utils/format';
 
 const EMPTY_FORM = {
   title: '', provider: '', country: '', degree: '', language: '',

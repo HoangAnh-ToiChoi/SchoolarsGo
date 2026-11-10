@@ -31,7 +31,7 @@ router.get('/countries', scholarshipController.getCountries);
 
 /**
  * GET /api/scholarships/:id
- * @desc Get scholarship detail (public)
+ * @desc Get scholarship detail (public). :id là UUID hoặc slug
  */
 router.get('/:id', optionalAuth, scholarshipController.getById);
 

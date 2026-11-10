@@ -1,4 +1,4 @@
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 const colorMap = {
   gray:   'bg-ink-800 text-ink-300 border border-ink-700',

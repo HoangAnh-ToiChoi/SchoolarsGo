@@ -1,9 +1,10 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
 import { useScholarship } from '~/hooks/useScholarship';
-import { formatCurrency, formatDate } from '~/lib/helpers';
+import { formatCurrency, formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const useScholarships = (ids) => {
   const q1 = useScholarship(ids[0]);
@@ -66,7 +67,7 @@ const ComparisonPage = () => {
                 <th className="px-4 py-4 text-left text-body-sm font-semibold text-ink-400 w-36">Tiêu chí</th>
                 {scholarships.map((s, i) => (
                   <th key={s.id} className={`px-4 py-4 text-center ${i === 0 ? 'bg-primary-400/8' : ''}`}>
-                    <Link to={`/scholarships/${s.id}`} className="text-body-sm font-bold text-ink-100 hover:text-primary-400 line-clamp-2">
+                    <Link to={scholarshipPath(s)} className="text-body-sm font-bold text-ink-100 hover:text-primary-400 line-clamp-2">
                       {s.title}
                     </Link>
                   </th>

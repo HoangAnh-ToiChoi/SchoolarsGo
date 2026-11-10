@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { useToggleSaveScholarship, useSavedScholarships } from '~/hooks/useScholarship';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn, formatCurrency, formatDate } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
+import { formatCurrency, formatDate } from '~/utils/format';
 import { compareToggled, selectCompareItems, selectIsCompared } from '~/store/slices/comparisonSlice';
 import { useInView } from '~/hooks/useInView';
 import toast from 'react-hot-toast';
-import { safeUrl } from '~/lib/security';
+import { safeUrl } from '~/utils/security';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const ScholarshipCard = ({ scholarship, index = 0 }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -53,7 +55,7 @@ const ScholarshipCard = ({ scholarship, index = 0 }) => {
       transition={{ delay: (index % 6) * 0.06, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
       <Link
-        to={`/scholarships/${id}`}
+        to={scholarshipPath(scholarship)}
         className={cn(
           'block overflow-hidden bg-ink-900 border rounded-card transition-all duration-300 group',
           isSelected

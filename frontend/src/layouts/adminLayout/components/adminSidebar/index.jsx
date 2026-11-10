@@ -1,7 +1,7 @@
 import { NavLink, Link } from 'react-router-dom';
 import { Home } from 'lucide-react';
 import { ADMIN_NAV } from '~/layouts/adminLayout/constants';
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 
 export default function AdminSidebar() {
   return (

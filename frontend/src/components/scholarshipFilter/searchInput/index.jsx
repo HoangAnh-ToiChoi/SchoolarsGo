@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { XMarkIcon } from '@heroicons/react/16/solid';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Ô nhập từ khóa trên header. Bấm vào ô (onFocus) thì mở bảng bộ lọc.
 const SearchInput = forwardRef(({ value, onChange, onFocus, isOpen, controlsId }, ref) => (

@@ -64,7 +64,7 @@ export default function App() {
         <Route element={<UserLayout />}>
           <Route index element={<HomePage />} />
           <Route path="scholarships" element={<LegacySearchRedirect />} />
-          <Route path="scholarships/:id" element={<ScholarshipDetailPage />} />
+          <Route path="scholarships/:slug" element={<ScholarshipDetailPage />} />
           <Route path="saved" element={<SavedPage />} />
           <Route path="compare" element={<ComparePage />} />
           <Route path="news" element={<NewsPage />} />

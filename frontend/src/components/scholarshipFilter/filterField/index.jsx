@@ -1,4 +1,4 @@
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 const controlClass =
   'h-[38px] w-full rounded-control border bg-surface px-2.5 text-sm text-fg outline-none transition-[border-color,box-shadow] duration-150 ' +

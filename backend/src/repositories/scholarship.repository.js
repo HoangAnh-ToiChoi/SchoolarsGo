@@ -7,7 +7,7 @@ class ScholarshipRepository {
 
   async findAll(filters = {}, limit, offset, userId = null) {
     let q = this.#sb.from('scholarships').select(
-      'id, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
+      'id, slug, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
       { count: 'exact' }
     ).eq('is_active', true).or(this.#notExpired());
 
@@ -27,7 +27,7 @@ class ScholarshipRepository {
   async findFeatured() {
     const { data, error } = await this.#sb
       .from('scholarships')
-      .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
+      .select('id, slug, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('is_active', true)
       .eq('is_featured', true)
       .or(this.#notExpired())
@@ -50,18 +50,19 @@ class ScholarshipRepository {
     return unique;
   }
 
-  async findById(id, userId = null) {
+  /** Tìm theo id (UUID) hoặc slug — URL trang chi tiết dùng slug, link cũ vẫn dùng id. */
+  async findByIdOrSlug(idOrSlug, { isUuid }, userId = null) {
     const { data: scholarship, error } = await this.#sb
       .from('scholarships')
       .select('*')
-      .eq('id', id)
+      .eq(isUuid ? 'id' : 'slug', idOrSlug)
       .eq('is_active', true)
       .or(this.#notExpired())
       .maybeSingle();
     if (error) throw error;
     if (!scholarship) return null;
 
-    const isSaved = await this.#checkSavedStatus(userId, id);
+    const isSaved = await this.#checkSavedStatus(userId, scholarship.id);
     return { ...scholarship, is_saved: isSaved };
   }
 

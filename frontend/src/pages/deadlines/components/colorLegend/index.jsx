@@ -1,5 +1,5 @@
 import { LEGEND, TONE_DOT } from '~/pages/deadlines/constants';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Chú thích màu chấm trên lịch
 export default function ColorLegend() {

@@ -1,33 +1,17 @@
 import { useMemo } from 'react';
-import {
-  addDays,
-  addMonths,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  isToday,
-  startOfMonth,
-  startOfWeek,
-} from 'date-fns';
+import { addMonths, format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { TONE_DOT } from '~/pages/deadlines/constants';
-import { cn } from '~/lib/utils';
+import { getMonthDays } from '~/pages/deadlines/helper';
+import { cn } from '~/utils/cn';
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const MAX_DOTS = 3;
 
 // Lịch tháng tự vẽ: mỗi ngày có tối đa 3 chấm màu theo các mốc trong ngày đó
 export default function MonthCalendar({ month, onMonthChange, selected, onSelect, events }) {
-  const days = useMemo(() => {
-    const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
-    const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
-    const list = [];
-    for (let d = start; d <= end; d = addDays(d, 1)) list.push(d);
-    return list;
-  }, [month]);
+  const days = useMemo(() => getMonthDays(month), [month]);
 
   const eventsOf = (day) => events.filter((e) => isSameDay(e.date, day));
 

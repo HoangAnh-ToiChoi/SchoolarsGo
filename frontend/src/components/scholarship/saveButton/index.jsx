@@ -5,10 +5,11 @@ import { BookmarkIcon as BookmarkOutlineIcon } from '@heroicons/react/24/outline
 import { Button } from '~/components/ui/button';
 import { useSavedScholarships, useToggleSaveScholarship } from '~/hooks/useScholarship';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-import { cn } from '~/lib/utils';
+import { cn } from '~/utils/cn';
 
 // Nút lưu/bỏ lưu học bổng. Chưa đăng nhập thì nhắc đăng nhập.
-export default function SaveButton({ scholarshipId, className }) {
+// withLabel: hiện cả chữ (trang chi tiết); mặc định chỉ có icon (thẻ học bổng).
+export default function SaveButton({ scholarshipId, withLabel = false, className }) {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const { data: saved } = useSavedScholarships();
   const toggleSave = useToggleSaveScholarship();
@@ -29,18 +30,21 @@ export default function SaveButton({ scholarshipId, className }) {
     <Button
       type="button"
       variant="outline"
-      size="icon"
+      size={withLabel ? 'default' : 'icon'}
       onClick={handleClick}
       disabled={toggleSave.isPending}
-      aria-label={isSaved ? 'Bỏ lưu học bổng' : 'Lưu học bổng'}
+      // Có chữ thì chữ đã là tên nút; chỉ có icon thì cần aria-label
+      aria-label={withLabel ? undefined : isSaved ? 'Bỏ lưu học bổng' : 'Lưu học bổng'}
       aria-pressed={isSaved}
       className={cn(
-        'size-8 rounded-control border-line text-fg-secondary shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600',
+        'rounded-control border-line text-fg-secondary shadow-none hover:border-brand-200 hover:bg-brand-50 hover:text-brand-600',
+        withLabel ? 'h-[42px] gap-1.5 px-3 text-[13.5px] font-semibold' : 'size-8',
         isSaved && 'border-brand-200 bg-brand-50 text-brand-600',
         className
       )}
     >
       <Icon aria-hidden="true" />
+      {withLabel && (isSaved ? 'Đã lưu' : 'Lưu học bổng')}
     </Button>
   );
 }

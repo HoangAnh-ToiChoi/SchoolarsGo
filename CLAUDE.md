@@ -36,16 +36,20 @@ frontend/src/
     scholarshipFilter/     thanh tìm kiếm + bộ lọc
     legacy/                UI kit cũ — không dùng cho code mới
   hooks/                   useScholarships, useScholarshipFilters, useSlowLoading…
-  services/<nhom>.service.js    gọi API qua lib/apiClient.js
+  services/<nhom>.service.js    gọi API qua utils/apiClient.js
   store/                   Redux: slices/ auth, comparison, ui
-  lib/                     utils (cn), scholarship (hạn nộp, nhãn), security, palette, constants, demo/
+  utils/                   hàm dùng chung toàn dự án: cn, format, scholarship (hạn nộp, nhãn), security, palette, constants, apiClient, demo/
 ```
 
 1. **Mỗi trang, mỗi component, mỗi layout là một thư mục có `index.jsx`.**
 2. **Component lớn chia thư mục con, gom ở `index.jsx` cha.** Mẫu chuẩn: `components/scholarshipFilter/` gồm `index.jsx` (ghép + state), `constants.js`, `searchInput/`, `filterPanel/`, `filterField/`, `filterActions/`, `activeFilters/`.
 3. **Import từ gốc `src` bằng `~/`**, không dùng `../`.
 4. Chỉ một trang dùng → `pages/<trang>/components/`. Từ hai trang trở lên → `components/`.
-5. Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/lib`, `~/store`, `~/services`.
+5. Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/utils`, `~/store`, `~/services`.
+6. **Đặt hàm tính toán ở đâu:**
+   - `utils/`: dùng ở nhiều nơi trong dự án (định dạng ngày, tính hạn nộp, chống XSS…).
+   - `helper.js` đặt ngay trong thư mục page hoặc layout (`pages/deadlines/helper.js`, `layouts/userLayout/helper.js`): tính toán chỉ trang/layout đó dùng. Khi có nơi thứ hai cần thì chuyển lên `utils/`.
+   - `lib/`: chỉ dành cho phần cấu hình/bọc framework; hiện chưa có nên không tạo.
 
 ## Viết code
 
@@ -82,7 +86,7 @@ frontend/src/
 | `--c-danger` | #B42318 đỏ | hạn nộp ≤ 10 ngày, lỗi, xóa |
 
 - `tailwind.config.js` chỉ pha sắc đậm/nhạt từ 5 màu (`tone`, `scale`, `badge`). Component **không viết mã màu** (`#…`, `text-blue-500`, `bg-[#…]`) — dùng token: `brand-600`, `heading`, `fg`, `fg-muted`, `line`, `canvas`, `hover`, `urgent`/`soon`/`open`, `abroad`/`domestic`.
-- Cần màu dạng giá trị JS (biểu đồ, framer-motion, toast) → `color('primary', { mix, alpha })` trong `lib/palette.js`.
+- Cần màu dạng giá trị JS (biểu đồ, framer-motion, toast) → `color('primary', { mix, alpha })` trong `utils/palette.js`.
 - Chế độ tối chưa làm: giao diện luôn sáng.
 
 **Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar.
@@ -94,13 +98,13 @@ frontend/src/
 **Component:**
 - Icon: Heroicons solid (`/24/solid`; nhỏ dùng `/20/solid`, `/16/solid`). Chỉ mũi tên xổ xuống dùng dạng nét.
 - Mỗi vùng chỉ 1 nút chính (nền tím); hành động phụ dùng nút viền hoặc nút chữ.
-- Nhãn luôn mang nghĩa, không trang trí. Hạn nộp: `getDeadlineInfo()` trong `lib/scholarship.js` (ngưỡng 10 và 30 ngày).
-- Thẻ học bổng đọc từ trên xuống: nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover nhấc lên 3px.
+- Nhãn luôn mang nghĩa, không trang trí. Hạn nộp: `getDeadlineInfo()` trong `utils/scholarship.js` (ngưỡng 10 và 30 ngày).
+- Thẻ học bổng đọc từ trên xuống: nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover nhấc lên 3px. Cả thẻ là một `<Link>`; nút lưu đặt chồng ở góc, nằm ngoài link (HTML không cho nút trong thẻ `<a>`).
 - Chuyển động 150–220ms; không gradient, không emoji trang trí.
 
 **Tìm kiếm:**
 - Chỉ **một** thanh tìm kiếm trên header (`components/scholarshipFilter`). Bảng bộ lọc `display: none` cho đến khi bấm vào ô; hiện bằng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
-- Kết quả hiện ở **trang chủ**; không có trang Tìm học bổng riêng. `/scholarships?…` tự chuyển về `/?…`; chi tiết vẫn là `/scholarships/:id`.
+- Kết quả hiện ở **trang chủ**; không có trang Tìm học bổng riêng. `/scholarships?…` tự chuyển về `/?…`; trang chi tiết là `/scholarships/:slug` (tạo đường dẫn bằng `scholarshipPath()`; link cũ dùng UUID vẫn mở được).
 
 ## Git
 

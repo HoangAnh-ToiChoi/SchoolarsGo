@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { cn } from '~/lib/helpers';
+import { cn } from '~/utils/cn';
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 const FileUpload = ({

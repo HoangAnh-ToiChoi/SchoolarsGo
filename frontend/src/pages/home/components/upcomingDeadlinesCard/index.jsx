@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Card } from '~/components/ui/card';
-import { formatDate } from '~/lib/helpers';
-import { getDeadlineInfo } from '~/lib/scholarship';
-import { cn } from '~/lib/utils';
+import { formatDate } from '~/utils/format';
+import { getDeadlineInfo } from '~/utils/scholarship';
+import { cn } from '~/utils/cn';
+import { scholarshipPath } from '~/utils/scholarship';
 
 const BOX_TONES = {
   urgent: 'bg-urgent-bg text-urgent-fg',
@@ -31,7 +32,7 @@ export default function UpcomingDeadlinesCard({ scholarships = [] }) {
           const { daysLeft, tone } = getDeadlineInfo(s.deadline);
           return (
             <li key={s.id} className="border-t border-line-soft">
-              <Link to={`/scholarships/${s.id}`} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-canvas">
+              <Link to={scholarshipPath(s)} className="-mx-2 flex items-center gap-3 rounded-control px-2 py-3 transition-colors duration-150 hover:bg-canvas">
                 <div className={cn('w-11 shrink-0 rounded-inner py-1.5 text-center', BOX_TONES[tone])}>
                   <div className="text-base font-bold leading-none">{formatDate(s.deadline, 'dd')}</div>
                   <div className="mt-1 text-[11px] font-medium">Th {formatDate(s.deadline, 'M')}</div>

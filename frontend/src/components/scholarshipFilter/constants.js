@@ -1,5 +1,5 @@
-import { COVERAGES, DEGREES, LANGUAGES } from '~/lib/constants';
-import { COUNTRY_LABELS, labelOf } from '~/lib/scholarship';
+import { COVERAGES, DEGREES, LANGUAGES } from '~/utils/constants';
+import { COUNTRY_LABELS, labelOf } from '~/utils/scholarship';
 
 // Danh sách 8 bộ lọc. Thêm/bớt bộ lọc chỉ cần sửa mảng này.
 // options: 'countries' = lấy từ API; mảng = danh sách cố định

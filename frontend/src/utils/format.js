@@ -1,9 +1,6 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-// Giữ export cn cho các trang cũ; code mới import từ ~/lib/utils
-export { cn } from '~/lib/utils';
-
 // Format date theo locale tiếng Việt
 export const formatDate = (date, pattern = 'dd/MM/yyyy') => {
   if (!date) return '';
