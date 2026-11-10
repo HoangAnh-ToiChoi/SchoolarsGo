@@ -42,18 +42,29 @@ export const useCreateApplication = () => {
   });
 };
 
+// Cập nhật ngay trên giao diện rồi mới gọi API (tick giấy tờ phải phản hồi tức thì); lỗi thì trả lại như cũ.
+// Không báo thành công ở đây vì tick checklist rất thường xuyên — nơi gọi tự báo khi cần.
 export const useUpdateApplication = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, ...data }) => applicationService.update(id, data),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-      queryClient.invalidateQueries({ queryKey: ['application', variables.id] });
-      toast.success('Cập nhật application thành công');
+    onMutate: async ({ id, ...data }) => {
+      const key = ['application', id];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData(key);
+      if (previous?.data) queryClient.setQueryData(key, { ...previous, data: { ...previous.data, ...data } });
+      return { previous };
     },
-    onError: (error) => {
-      toast.error(error.message || 'Cập nhật thất bại');
+    onError: (error, { id }, context) => {
+      if (context?.previous) queryClient.setQueryData(['application', id], context.previous);
+      toast.error(error.message || 'Cập nhật đơn thất bại');
+    },
+    onSettled: (_data, _error, { id, status }) => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
+      // Nộp/rút đơn làm thay đổi nhắc hạn trên chuông
+      if (status) queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 };
@@ -65,10 +76,11 @@ export const useDeleteApplication = () => {
     mutationFn: (id) => applicationService.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
-      toast.success('Xóa application thành công');
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('Đã xóa đơn ứng tuyển');
     },
     onError: (error) => {
-      toast.error(error.message || 'Xóa thất bại');
+      toast.error(error.message || 'Xóa đơn thất bại');
     },
   });
 };

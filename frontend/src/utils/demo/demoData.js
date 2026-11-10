@@ -75,11 +75,18 @@ const findScholarship = (id) => DEMO_SCHOLARSHIPS.find((s) => s.id === id);
 const checklist = (names, doneCount) => names.map((item, i) => ({ item, done: i < doneCount }));
 const DOCS = ['CV', 'Bảng điểm', 'Thư giới thiệu', 'Bài luận', 'Chứng chỉ IELTS'];
 
+// Tệp minh họa trong hồ sơ; đơn a1 gắn sẵn CV và bảng điểm vào dòng giấy tờ tương ứng
+export const DEMO_DOCUMENTS = [
+  { id: 'doc1', type: 'cv', file_name: 'CV_NguyenVanA.pdf', file_url: null, file_size: 182_000, created_at: daysAgo(5) },
+  { id: 'doc2', type: 'transcript', file_name: 'BangDiem_HK1-HK6.pdf', file_url: null, file_size: 1_450_000, created_at: daysAgo(4) },
+];
+const withFiles = (items, files) => items.map((item, i) => (files[i] ? { ...item, document_id: files[i] } : item));
+
 export const DEMO_APPLICATIONS = [
-  { id: 'a1', status: 'draft', applied_at: null, checklist: checklist(DOCS, 3), scholarships: findScholarship('d1') },
+  { id: 'a1', status: 'draft', applied_at: null, checklist: withFiles(checklist(DOCS, 3), ['doc1', 'doc2']), documents_used: ['doc1', 'doc2'], scholarships: findScholarship('d1') },
   { id: 'a2', status: 'draft', applied_at: null, checklist: checklist(DOCS.slice(0, 4), 1), scholarships: findScholarship('d9') },
   { id: 'a3', status: 'under_review', applied_at: daysAgo(12), checklist: checklist(DOCS, 5), scholarships: findScholarship('d2') },
   { id: 'a4', status: 'interview', applied_at: daysAgo(30), checklist: checklist(DOCS.slice(0, 3), 3), scholarships: findScholarship('d6') },
   { id: 'a5', status: 'submitted', applied_at: daysAgo(3), checklist: checklist(DOCS, 5), scholarships: findScholarship('d8') },
   { id: 'a6', status: 'rejected', applied_at: daysAgo(80), checklist: checklist(DOCS.slice(0, 3), 3), scholarships: findScholarship('d7') },
-].map((a) => ({ ...a, notes: null, created_at: a.applied_at ?? daysAgo(2), updated_at: daysAgo(1) }));
+].map((a) => ({ documents_used: [], ...a, notes: null, created_at: a.applied_at ?? daysAgo(2), updated_at: daysAgo(1) }));

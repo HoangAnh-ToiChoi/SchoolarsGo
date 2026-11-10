@@ -1,7 +1,8 @@
-import { DEMO_APPLICATIONS, DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
+import { DEMO_APPLICATIONS, DEMO_DOCUMENTS, DEMO_PROFILE, DEMO_SCHOLARSHIPS } from '~/utils/demo/demoData';
 import { getDeadlineInfo, getScope, sortByDeadline } from '~/utils/scholarship';
 
 // Axios adapter giả lập API cho bản demo tĩnh. Chỉ dùng khi VITE_DEMO_MODE=true.
+// Dữ liệu sửa tại chỗ nên luôn trả bản sao: trả lại cùng một đối tượng thì React Query coi như không đổi.
 const savedIds = new Set(['d1', 'd2', 'd3', 'd5']);
 const readNotificationIds = new Set();
 
@@ -74,12 +75,36 @@ export function demoAdapter(config) {
     return ok(config, { success: true });
   }
   if (method === 'GET' && url === '/applications') {
-    return ok(config, { success: true, data: DEMO_APPLICATIONS, meta: { page: 1, limit: 50, total: DEMO_APPLICATIONS.length } });
+    return ok(config, { success: true, data: DEMO_APPLICATIONS.map((a) => ({ ...a })), meta: { page: 1, limit: 50, total: DEMO_APPLICATIONS.length } });
   }
   const application = url.match(/^\/applications\/([\w-]+)$/);
   if (method === 'GET' && application) {
     const item = DEMO_APPLICATIONS.find((a) => a.id === application[1]);
-    return item ? ok(config, { success: true, data: item }) : fail(config, 'Không tìm thấy đơn', 404);
+    return item ? ok(config, { success: true, data: { ...item } }) : fail(config, 'Không tìm thấy đơn', 404);
+  }
+  if (method === 'PATCH' && application) {
+    const item = DEMO_APPLICATIONS.find((a) => a.id === application[1]);
+    if (!item) return fail(config, 'Không tìm thấy đơn', 404);
+    const body = JSON.parse(config.data || '{}');
+    // Giống backend: nộp đơn thì ghi ngày nộp
+    if (item.status === 'draft' && body.status === 'submitted') item.applied_at = new Date().toISOString();
+    ['status', 'notes', 'checklist', 'documents_used'].forEach((key) => {
+      if (body[key] !== undefined) item[key] = body[key];
+    });
+    return ok(config, { success: true, data: { ...item } });
+  }
+  if (method === 'DELETE' && application) {
+    const index = DEMO_APPLICATIONS.findIndex((a) => a.id === application[1]);
+    if (index >= 0) DEMO_APPLICATIONS.splice(index, 1);
+    return ok(config, { success: true, data: { deleted: true } });
+  }
+  if (method === 'GET' && url === '/documents') return ok(config, { success: true, data: [...DEMO_DOCUMENTS] });
+  if (method === 'POST' && url === '/documents/upload') {
+    // Bản demo không có nơi lưu tệp: chỉ ghi lại tên và dung lượng
+    const file = config.data.get('file');
+    const doc = { id: `doc${Date.now()}`, type: config.data.get('type'), file_name: file.name, file_url: null, file_size: file.size, created_at: new Date().toISOString() };
+    DEMO_DOCUMENTS.unshift(doc);
+    return ok(config, { success: true, data: doc });
   }
   if (method === 'GET' && url === '/notifications') {
     const data = demoNotifications();

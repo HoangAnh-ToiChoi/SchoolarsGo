@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import BackLink from '~/components/common/backLink';
 import { motion } from 'framer-motion';
 import { useForgotPassword } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
@@ -18,10 +18,7 @@ const ForgotPasswordPage = () => {
   return (
     <motion.div className="min-h-screen bg-ink-950 flex items-center justify-center px-4 py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="w-full max-w-md">
-        <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-200 transition-colors mb-8">
-          <ArrowLeft className="h-4 w-4" />
-          Quay lại đăng nhập
-        </Link>
+        <BackLink to="/login" className="mb-8">Đăng nhập</BackLink>
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-ink-100 mb-2">Quên mật khẩu</h1>

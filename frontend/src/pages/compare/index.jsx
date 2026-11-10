@@ -1,5 +1,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, Calendar, GraduationCap, DollarSign, ArrowLeft } from 'lucide-react';
+import { MapPin, Calendar, GraduationCap, DollarSign } from 'lucide-react';
+import BackLink from '~/components/common/backLink';
 import { useScholarship } from '~/hooks/useScholarship';
 import { formatCurrency, formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
@@ -53,9 +54,7 @@ const ComparisonPage = () => {
 
   return (
     <div className="containerPage py-8 bg-ink-950 min-h-screen">
-      <Link to="/" className="inline-flex items-center gap-1 text-ink-500 hover:text-ink-100 font-medium mb-6">
-        <ArrowLeft className="w-4 h-4" />Quay lại
-      </Link>
+      <BackLink to="/" className="mb-6">Trang chủ</BackLink>
 
       <h1 className="text-heading-1 text-ink-100 mb-8">So sánh học bổng</h1>
 

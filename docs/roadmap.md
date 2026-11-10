@@ -52,7 +52,7 @@ Cập nhật: 10/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
 ## Song song (FE, khi rảnh)
 
-Làm lại các trang còn dùng `components/legacy`: chi tiết đơn ứng tuyển, dashboard, chat, tin tức, admin. (Đã xong: đã lưu, đơn ứng tuyển, chuông thông báo.)
+Làm lại các trang còn dùng `components/legacy`: dashboard, chat, tin tức, admin. (Đã xong: đã lưu, đơn ứng tuyển, chi tiết đơn ứng tuyển, chuông thông báo.)
 
 ## Lưu ý chung
 

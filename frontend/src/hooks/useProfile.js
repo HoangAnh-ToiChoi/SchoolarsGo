@@ -45,10 +45,10 @@ export const useUploadDocument = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      toast.success('Upload document thành công');
+      toast.success('Đã tải tệp lên');
     },
     onError: (error) => {
-      toast.error(error.message || 'Upload thất bại');
+      toast.error(error.message || 'Tải tệp thất bại');
     },
   });
 };
