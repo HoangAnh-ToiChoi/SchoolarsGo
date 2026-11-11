@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { checkBeforeExtract, checkAfterExtract } = require('../../src/ingestion/shared/filters');
+const { checkBasic: checkBeforeExtract, checkDetails: checkAfterExtract } = require('../../src/ingestion/filter');
 const { NOW, rawPost } = require('./helpers');
 
 const facts = (overrides = {}) => ({

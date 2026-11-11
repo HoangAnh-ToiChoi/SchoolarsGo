@@ -2,8 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const IngestionService = require('../../src/ingestion/ingestionService');
-const ScholarshipWriter = require('../../src/ingestion/shared/scholarshipWriter');
+const { runIngestion } = require('../../src/ingestion');
+const { createAiFill } = require('../../src/ingestion/aiExtract');
 const { NOW, rawPost } = require('./helpers');
 
 const silent = { info() {}, warn() {}, error() {} };
@@ -40,13 +40,7 @@ function fakeStore(existing = []) {
 }
 
 function build(sources, store = fakeStore()) {
-  const service = new IngestionService({
-    createSources: () => sources,
-    writer: new ScholarshipWriter(store),
-    store,
-    logger: silent,
-    now: () => NOW,
-  });
+  const service = { run: (options) => runIngestion({ sources, store, logger: silent, now: () => NOW }, options) };
   return { service, store };
 }
 
@@ -130,44 +124,32 @@ test('luật R4 chạy sau khi trích xuất và loại bài chỉ dành cho nh�
 
 test('bộ trích xuất AI chỉ được gọi cho bài đã qua luật giai đoạn 1', async () => {
   const calls = [];
-  const aiExtractor = {
-    fill: async (raw, facts) => {
-      calls.push(raw.title);
-      return facts;
-    },
+  const aiFill = async (raw, facts) => {
+    calls.push(raw.title);
+    return facts;
   };
   const store = fakeStore();
   const hiring = rawPost({ title: 'Hiring Marketing Manager Now Open', link: 'https://example.org/j/' });
-  const service = new IngestionService({
-    createSources: () => [fakeSource('a', 1, [good(1), hiring])],
-    writer: new ScholarshipWriter(store),
-    store,
-    aiExtractor,
-    logger: silent,
-    now: () => NOW,
-  });
-  await service.run();
+  await runIngestion({ sources: [fakeSource('a', 1, [good(1), hiring])], store, aiFill, logger: silent, now: () => NOW });
   assert.equal(calls.length, 1);
 });
 
 test('Gemini: lỗi vĩnh viễn (model không còn) thì tắt AI, chỉ báo một lần', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   const warnings = [];
   let calls = 0;
   const model = { generateContent: async () => { calls++; throw new Error('[404 Not Found] This model is no longer available'); } };
-  const extractor = createGeminiExtractor({ model, logger: { ...silent, warn: (m) => warnings.push(m) }, minIntervalMs: 0 });
+  const extractor = createAiFill({ model, logger: { ...silent, warn: (m) => warnings.push(m) }, minIntervalMs: 0 });
   const facts = { country: null, degreeKnown: false, provider: null, deadline: null };
-  for (let i = 0; i < 5; i++) await extractor.fill(rawPost(), facts);
+  for (let i = 0; i < 5; i++) await extractor(rawPost(), facts);
   assert.equal(calls, 1);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /model không còn tồn tại/);
 });
 
 test('Gemini: chỉ điền chỗ trống, không ghi đè thứ đã có', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   const model = { generateContent: async () => ({ response: { text: () => '{"country":"Japan","degree":"PhD","provider":"Kyoto University","deadline":"2027-02-01"}' } }) };
-  const extractor = createGeminiExtractor({ model, logger: silent, now: () => NOW, minIntervalMs: 0 });
-  const filled = await extractor.fill(rawPost(), { country: 'Germany', degree: 'Any', degreeKnown: false, provider: null, deadline: null });
+  const extractor = createAiFill({ model, logger: silent, now: () => NOW, minIntervalMs: 0 });
+  const filled = await extractor(rawPost(), { country: 'Germany', degree: 'Any', degreeKnown: false, provider: null, deadline: null });
   assert.equal(filled.country, 'Germany');
   assert.equal(filled.degree, 'PhD');
   assert.equal(filled.provider, 'Kyoto University');
@@ -175,17 +157,15 @@ test('Gemini: chỉ điền chỗ trống, không ghi đè thứ đã có', asyn
 });
 
 test('Gemini: treo quá lâu thì bỏ bài đó, lỗi liên tiếp 3 lần thì tắt AI', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   let calls = 0;
   const model = { generateContent: () => { calls++; return new Promise(() => {}); } }; // không bao giờ trả về
-  const extractor = createGeminiExtractor({ model, logger: silent, timeoutMs: 20, minIntervalMs: 0 });
+  const extractor = createAiFill({ model, logger: silent, timeoutMs: 20, minIntervalMs: 0 });
   const facts = { country: null, degreeKnown: false, provider: null, deadline: null };
-  for (let i = 0; i < 6; i++) assert.equal(await extractor.fill(rawPost(), facts), facts);
+  for (let i = 0; i < 6; i++) assert.equal(await extractor(rawPost(), facts), facts);
   assert.equal(calls, 3);
 });
 
 test('Gemini: bị giới hạn theo phút thì nghỉ rồi gọi tiếp, không tắt hẳn', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   let t = 1000;
   let calls = 0;
   const model = {
@@ -195,43 +175,40 @@ test('Gemini: bị giới hạn theo phút thì nghỉ rồi gọi tiếp, khôn
       return { response: { text: () => '{"country":"Japan"}' } };
     },
   };
-  const extractor = createGeminiExtractor({ model, logger: silent, minIntervalMs: 0, cooldownMs: 60000, clock: () => t });
+  const extractor = createAiFill({ model, logger: silent, minIntervalMs: 0, cooldownMs: 60000, clock: () => t });
   const facts = { country: null, degreeKnown: true, provider: 'X', deadline: new Date('2027-01-01') };
-  await extractor.fill(rawPost(), facts);                 // bị 429 → bắt đầu nghỉ
-  assert.equal((await extractor.fill(rawPost(), facts)).country, null);   // đang nghỉ: bỏ qua, không gọi
+  await extractor(rawPost(), facts);                 // bị 429 → bắt đầu nghỉ
+  assert.equal((await extractor(rawPost(), facts)).country, null);   // đang nghỉ: bỏ qua, không gọi
   assert.equal(calls, 1);
   t += 61000;                                              // hết nghỉ
-  assert.equal((await extractor.fill(rawPost(), facts)).country, 'Japan');
+  assert.equal((await extractor(rawPost(), facts)).country, 'Japan');
   assert.equal(calls, 2);
 });
 
 test('Gemini: hết hạn mức theo ngày thì tắt hẳn', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   let calls = 0;
   const model = { generateContent: async () => { calls++; throw new Error('429 Quota exceeded: GenerateRequestsPerDayPerProjectPerModel'); } };
-  const extractor = createGeminiExtractor({ model, logger: silent, minIntervalMs: 0 });
+  const extractor = createAiFill({ model, logger: silent, minIntervalMs: 0 });
   const facts = { country: null, degreeKnown: false, provider: null, deadline: null };
-  for (let i = 0; i < 4; i++) await extractor.fill(rawPost(), facts);
+  for (let i = 0; i < 4; i++) await extractor(rawPost(), facts);
   assert.equal(calls, 1);
 });
 
 test('Gemini: các lệnh gọi liên tiếp bị giãn cách tối thiểu minIntervalMs', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   let t = 0;
   const waits = [];
   const model = { generateContent: async () => ({ response: { text: () => '{}' } }) };
-  const extractor = createGeminiExtractor({
+  const extractor = createAiFill({
     model, logger: silent, minIntervalMs: 5000, clock: () => t,
-    sleepImpl: async (ms) => { waits.push(ms); t += ms; },
+    sleep: async (ms) => { waits.push(ms); t += ms; },
   });
   const facts = { country: null, degreeKnown: false, provider: null, deadline: null };
-  await extractor.fill(rawPost(), facts);
-  await extractor.fill(rawPost(), facts);
+  await extractor(rawPost(), facts);
+  await extractor(rawPost(), facts);
   assert.deepEqual(waits, [5000]);
 });
 
 test('Gemini: đọc được JSON dù có rào ```json hoặc chữ thừa phía sau', async () => {
-  const { createGeminiExtractor } = require('../../src/ingestion/shared/extract');
   const replies = [
     '```json\n{"country":"Japan","degree":null}\n```',
     '{"country":"Japan"}\nNote: this is {an example} of extra text',
@@ -239,8 +216,8 @@ test('Gemini: đọc được JSON dù có rào ```json hoặc chữ thừa phí
   ];
   for (const reply of replies) {
     const model = { generateContent: async () => ({ response: { text: () => reply } }) };
-    const extractor = createGeminiExtractor({ model, logger: silent, minIntervalMs: 0 });
-    const out = await extractor.fill(rawPost(), { country: null, degreeKnown: true, provider: 'X', deadline: new Date('2027-01-01') });
+    const extractor = createAiFill({ model, logger: silent, minIntervalMs: 0 });
+    const out = await extractor(rawPost(), { country: null, degreeKnown: true, provider: 'X', deadline: new Date('2027-01-01') });
     assert.equal(out.country, 'Japan', reply);
   }
 });

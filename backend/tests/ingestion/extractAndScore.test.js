@@ -2,8 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { extractFacts } = require('../../src/ingestion/shared/extract');
-const { score } = require('../../src/ingestion/shared/filters');
+const { extractInfo: extractFacts } = require('../../src/ingestion/extract');
+const { scorePost: score } = require('../../src/ingestion/score');
 const { NOW, rawPost } = require('./helpers');
 
 test('trích xuất: hạn, nước, bậc học, đơn vị cấp, GPA, IELTS', () => {

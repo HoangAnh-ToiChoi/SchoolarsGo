@@ -4,52 +4,57 @@ Mã nguồn: `backend/src/ingestion/`. Tiêu chí lọc xem [filterCriteria.md](
 
 ## Luồng chạy
 
+Đọc `index.js` trước: luồng 7 bước được viết từ trên xuống trong hàm `collectRows`.
+
 ```
-sources/<tênNguồn>  →  RawPost  →  luật R5,R6,R1  →  trích xuất  →  luật R2,R3,R4  →  chấm điểm  →  chuẩn hoá  →  writer  →  DB
-(mỗi nguồn 1 folder)               (shared/filters)  (shared/extract)  (shared/filters)  (scorer)    (shared/normalize)  (shared)
+sources.js ─→ 1 fetchPosts ─→ 2 checkBasic ─→ 3 extractInfo (+ aiFill) ─→ 4 checkDetails ─→ 5 scorePost ─→ 6 toRow ─→ 7 saveRows ─→ DB
+              wordpress.js     filter.js       extract.js  aiExtract.js    filter.js         score.js       toRow.js    save.js
+              lấy bài          loại rác        tìm hạn, nước, bậc học      loại hết hạn,     chấm 0–100     dòng DB     thêm / làm mới
+              (post)           R5 R6 R1        (info)                      R2 R3 R4                         + khoá      / bỏ qua
+                                                                                                             chống trùng
 ```
 
-`ingestionService.js` là nhạc trưởng: gọi từng nguồn theo thứ tự ưu tiên và cho mọi bài đi qua cùng một đường.
-Các nguồn không biết đến nhạc trưởng, và chỉ nhạc trưởng gọi bộ lọc.
+Bước 2 chạy trước bước 3 để không tốn lượt gọi Gemini cho bài rác. Một trang lỗi (sập, bị chặn) thì ghi lỗi rồi chạy trang tiếp theo.
 
 ## Cấu trúc
 
+Mỗi file là một bước, tên file là việc nó làm:
+
 ```
 src/ingestion/
-├── index.js                  cửa vào: createIngestion({ db, logger, aiModel, fetchImpl, now })
-├── ingestionService.js       nhạc trưởng
-├── types.js                  kiểu dữ liệu (JSDoc): RawPost, Facts, Source, IngestionStore
-├── sources/
-│   ├── index.js              sổ đăng ký nguồn (tắt/bật/thêm nguồn ở đây)
-│   └── <tênNguồn>/           config.js (URL, chuyên mục, ưu tiên) · mapper.js (đổi dữ liệu thô) · index.js
-├── shared/
-│   ├── wordpressClient.js    gọi /wp-json/wp/v2/posts, tự thử lại khi 429/5xx
-│   ├── wordpressMapper.js    bài WordPress → RawPost, suy gợi ý từ chuyên mục
-│   ├── createWordPressSource.js  ghép config + mapper thành một Source
-│   ├── filters/              keywords.js · hardRules.js (R1–R6) · scorer.js
-│   ├── extract/              dateParser.js · countries.js · heuristicExtractor.js · geminiExtractor.js (tuỳ chọn)
-│   ├── normalize/            normalizer.js · dedupKey.js
-│   └── scholarshipWriter.js  quyết định thêm / làm mới / bỏ qua
-└── store/ingestion.repository.js   toàn bộ SQL của module
+├── index.js       ĐỌC TRƯỚC — createIngestion() lắp DB + Gemini; runIngestion() chạy 7 bước
+├── sources.js     5 trang web và cấu hình (thêm/tắt trang ở đây)
+├── wordpress.js   1. gọi API WordPress, thử lại khi 429/5xx, đổi HTML → chữ (post)
+├── filter.js      2 + 4. luật loại bài R1–R6 và danh sách từ khoá
+├── extract.js     3. tìm hạn nộp, nước, bậc học, đơn vị cấp, GPA, IELTS bằng regex (info)
+├── aiExtract.js   3. (tuỳ chọn) Gemini điền chỗ regex không tìm được
+├── countries.js   danh sách tên nước và cách viết khác
+├── score.js       5. chấm độ phù hợp với sinh viên Việt Nam
+├── toRow.js       6. đổi thành dòng bảng scholarships + khoá chống trùng
+└── save.js        7. quyết định thêm / làm mới / bỏ qua + toàn bộ SQL
 ```
 
-## Quy tắc thiết kế (để đợt đổi cấu trúc thư mục sau này an toàn)
+Dữ liệu đi qua các bước:
 
-1. **Module không import gì từ phần còn lại của backend.** DB, Gemini, logger, `fetch`, đồng hồ đều được truyền vào qua `createIngestion()`. Chuyển folder thì chỉ sửa hai nơi ráp nối: `src/container.js` và `scripts/ingest.js`.
-2. **Mỗi nguồn là một folder tách biệt**, trả ra cùng dạng `RawPost`. Một nguồn hỏng không ảnh hưởng nguồn khác (nhạc trưởng bắt lỗi từng nguồn).
-3. **Luật lọc là hàm thuần** (nhận dữ liệu, trả đạt/không), không đụng DB hay mạng, nên test được ngay. Từ khoá nằm riêng ở `keywords.js`.
-4. **Nguồn chỉ được gợi ý (`signals`), không được tự lọc.** Mọi luật chỉ nằm ở một chỗ.
-5. **SQL chỉ nằm trong `store/ingestion.repository.js`**, đúng quy tắc tầng của dự án.
-6. **Gemini là tuỳ chọn.** Tự bật khi có `GEMINI_API_KEY` trong `backend/.env`; không có khoá thì chỉ dùng luật chữ. Tắt bằng `INGESTION_USE_AI=false` (server) hoặc `--no-ai` (script). Gemini chỉ điền chỗ trống (nước, bậc học, đơn vị cấp, hạn nộp), không ghi đè thứ luật chữ đã tìm được.
+| Tên | Tạo ở | Gồm |
+|---|---|---|
+| `post` | `wordpress.js` | `sourceName, priority, title, link, publishedAt, excerpt, contentText, categories, signals` |
+| `info` | `extract.js` | `deadline, degree, degreeKnown, country, provider, coverage, language, minGpa, minIelts` |
+| `row` | `toRow.js` | đúng cột bảng `scholarships` + `dedup_key` |
 
-## Thêm một nguồn WordPress mới
+`signals` là gợi ý suy từ chuyên mục của trang, dạng `region:southeastAsia`, `degree:Master`, `country:Japan`.
 
-1. Sao chép một folder trong `sources/` (ví dụ `scholarshipRoar`), đổi tên theo trang.
-2. Sửa `config.js`: `name`, `priority`, `baseUrl`, `queries`.
-3. Thêm một dòng `require` vào `sources/index.js`.
-4. Chạy `npm run ingest:dry -- --source=<tênNguồn>` rồi đọc tay vài bài.
+## Quy tắc
 
-Nguồn không phải WordPress (ví dụ DAAD) thì viết `index.js` tự lấy dữ liệu, chỉ cần trả `{ name, priority, fetchPosts }` với `fetchPosts` là async generator trả `RawPost`.
+1. **Module không require gì của phần còn lại của backend.** DB và Gemini được truyền vào qua `createIngestion({ db, aiModel })`. Hai nơi gọi: `src/container.js` (server, cron) và `scripts/ingest.js` (chạy tay).
+2. **Luật lọc, trích xuất, chấm điểm là hàm thuần** (nhận dữ liệu, trả kết quả), không đụng DB hay mạng, nên test được ngay.
+3. **SQL chỉ nằm trong `save.js`.**
+4. **Gemini là tuỳ chọn.** Tự bật khi có `GEMINI_API_KEY`; tắt bằng `INGESTION_USE_AI=false` (server) hoặc `--no-ai` (script). Chỉ điền chỗ trống, không ghi đè thứ regex đã tìm được.
+
+## Thêm một trang WordPress mới
+
+1. Thêm một object vào mảng `SOURCES` trong `sources.js`: `name`, `priority`, `baseUrl`, `queries`.
+2. Chạy `npm run ingest:dry -- --source=<tên>` rồi đọc tay vài bài.
 
 ## Chạy
 

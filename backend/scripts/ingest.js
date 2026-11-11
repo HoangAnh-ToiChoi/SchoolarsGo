@@ -29,7 +29,7 @@ if (argValue('env')) require('dotenv').config({ path: path.resolve(__dirname, '.
 const db = require('../src/utils/db');
 const { createIngestion, sourceNames } = require('../src/ingestion');
 
-const RULE_NAMES = require('../src/ingestion/shared/filters').RULES;
+const { RULES: RULE_NAMES } = require('../src/ingestion/filter');
 
 async function buildAiModel() {
   if (hasFlag('no-ai') || process.env.INGESTION_USE_AI === 'false') return null;
@@ -78,8 +78,8 @@ async function main() {
   const limit = argValue('limit') ? Number(argValue('limit')) : Infinity;
   console.log(`🌐 Kéo học bổng → ${process.env.PG_DATABASE}@${host}  (nguồn: ${only.join(', ') || sourceNames().join(', ')})`);
 
-  const { service } = createIngestion({ db, aiModel: await buildAiModel(), logger: { info: console.log, warn: console.warn, error: console.error } });
-  const results = await service.run({ only, dryRun, limit });
+  const ingestion = createIngestion({ db, aiModel: await buildAiModel(), logger: { info: console.log, warn: console.warn, error: console.error } });
+  const results = await ingestion.run({ only, dryRun, limit });
   results.forEach((r) => printResult(r, hasFlag('verbose')));
 
   const total = results.reduce((acc, r) => ({ inserted: acc.inserted + r.inserted, updated: acc.updated + r.updated }), { inserted: 0, updated: 0 });
