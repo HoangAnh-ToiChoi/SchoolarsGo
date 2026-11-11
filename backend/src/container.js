@@ -131,8 +131,7 @@ const ingestionAiModel =
   process.env.INGESTION_USE_AI !== 'false' && process.env.GEMINI_API_KEY
     ? new (require('@google/generative-ai').GoogleGenerativeAI)(process.env.GEMINI_API_KEY).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest', generationConfig: { responseMimeType: 'application/json', temperature: 0 } })
     : null;
-const ingestion = createIngestion({ db, aiModel: ingestionAiModel });
-const ingestionService = ingestion.service;
+const ingestionService = createIngestion({ db, aiModel: ingestionAiModel });
 
 module.exports = {
   // Admin

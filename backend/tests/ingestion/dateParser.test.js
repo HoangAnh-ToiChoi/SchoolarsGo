@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { parseDeadline } = require('../../src/ingestion/shared/extract');
+const { parseDeadline } = require('../../src/ingestion/extract');
 const { NOW } = require('./helpers');
 
 const iso = (d) => (d ? d.toISOString().slice(0, 10) : null);
