@@ -1,129 +1,176 @@
 # ScholarsGo — Quy ước dự án
 
-Nền tảng tìm học bổng (du học và trong nước) cho sinh viên Việt Nam. File này là **nguồn quy ước duy nhất** cho người và AI.
+Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồn quy ước duy nhất** cho người và AI.
 
-- Frontend (`frontend/`): React 18 + Vite, TailwindCSS 3, shadcn/ui (Radix), Redux Toolkit, TanStack Query, Heroicons.
-- Backend (`backend/`): Node.js + Express, PostgreSQL (Supabase). **Chưa tái cấu trúc** — giữ cách tổ chức hiện tại (routes → controllers → services → repositories).
-- Tài liệu: `docs/roadmap.md` (lộ trình, việc còn dở), `docs/api.md`, `docs/database.md` (viết trước đây, có thể lệch code — code là đúng); `docs/archive/` chỉ để tham khảo.
-- Trang nào chưa làm lại vẫn dùng `components/legacy/`; code mới không dùng thư mục này.
+**Stack:** React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query (FE) · Node.js + Express, Supabase PostgreSQL (BE) · GitHub Pages (demo FE)
 
-## Lệnh (trong `frontend/`)
+**Tài liệu:** `docs/roadmap.md` (việc của từng vai trò FE/BE/AI) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` (module kéo học bổng). Tài liệu lệch code thì **code là đúng**.
 
-```bash
-npm run dev          # chạy local, gọi API theo VITE_API_BASE_URL trong .env.local
-npm run lint         # 0 lỗi trước khi commit
-npm run build        # build được trước khi commit
-npm run build:pages  # bản demo GitHub Pages: dữ liệu minh họa, base /SchoolarsGo/
+---
+
+## Quy trình
+
+1. **Làm rõ yêu cầu.** Mơ hồ → hỏi trước. Rõ → làm luôn.
+2. **Tạo nhánh từ `dev`:** `feat/…`, `fix/…`, `refactor/…`, `docs/…`.
+3. **Làm từng phần:** viết → tự review → kiểm tra checklist → test → commit `feat|fix|refactor|style|docs: mô tả ngắn`.
+4. **Pull Request vào `dev`:** ít nhất 1 người review, lint + build + test phải qua. Không commit thẳng `main`, không commit `.env`, khóa API, dữ liệu cá nhân.
+
+### Checklist trước khi báo xong
+
+```
+□ Số dòng: file vừa sửa/tạo có vượt ngưỡng (bảng dưới)? → tách trước
+□ BE route mới: có auth / requireRole? dữ liệu của người dùng có lọc theo user_id?
+□ BE query: không SELECT * · không await trong vòng lặp (N+1) · đọc song song dùng Promise.all
+□ BE service mới: có test trong backend/tests/
+□ FE màn hình: đủ 4 trạng thái — đang tải (skeleton), rỗng, lỗi (có nút thử lại), có dữ liệu
+□ FE: kiểm tra 360 / 768 / 1024 / 1280px, không cuộn ngang
+□ Không còn console.log, import thừa, code bị comment
 ```
 
-Demo: đẩy `frontend/dist/` (sau `build:pages`) lên nhánh `gh-pages` → https://hoanganh-toichoi.github.io/SchoolarsGo/ (thêm `?demoDelay=7000` để xem trạng thái tải chậm).
+### Giới hạn số dòng (vượt → tách)
 
-## Cấu trúc frontend
+| FE | | BE | |
+|---|---|---|---|
+| component | 200 | controller | 100 |
+| hook | 150 | service | 200 |
+| service | 200 | repository | 250 |
+
+File cũ đang vượt — tách khi sửa tới, để file sạch hơn lúc mở ra:
+- BE: `admin.controller`, `admin.service`, `chat.service`, `recommend.service`
+- FE: trang `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users` (đều là trang legacy chờ làm lại)
+
+### Viết code (chung FE + BE)
+
+- **Đơn giản trước.** Không thêm lớp trừu tượng, thư mục con, file `index.js` re-export khi chưa có ≥ 3 chỗ dùng. Tên file nói rõ việc nó làm.
+- **Tên do dự án đặt đều `camelCase`:** thư mục, file, route (`/forgotPassword`), endpoint, class CSS tự định nghĩa. Giữ tên do thư viện áp đặt (class Tailwind, tên gói npm, `README.md`…). Component `PascalCase` · hook `useXxx` · hằng số `UPPER_SNAKE` · biến môi trường FE `VITE_UPPER_SNAKE`.
+- **Comment tiếng Việt**, chỉ giải thích *vì sao* hoặc quy tắc nghiệp vụ; không comment điều hiển nhiên. Không để code chết.
+- Không bắt lỗi cho trường hợp không thể xảy ra.
+
+---
+
+## Lệnh
+
+```bash
+# frontend/
+npm run dev           # chạy local, gọi API theo VITE_API_BASE_URL trong .env.local
+npm run lint          # 0 lỗi
+npm run build         # build được
+npm run build:pages   # bản demo GitHub Pages (dữ liệu minh họa)
+
+# backend/
+npm run dev               # nodemon src/server.js
+npm run lint              # 0 lỗi
+npm run test:contract     # test service với repository giả, không cần DB
+npm run test:ingestion    # test module kéo học bổng, không cần mạng, không cần DB
+npm run ingest:dry        # chạy thử kéo học bổng, không ghi DB
+```
+
+Demo: đẩy `frontend/dist/` (sau `build:pages`) lên nhánh `gh-pages` → https://hoanganh-toichoi.github.io/SchoolarsGo/
+
+---
+
+## Backend
+
+### Luồng một request
+
+```
+routes/        URL + middleware: auth, requireRole, validate(schema)
+  → controllers/   đọc req → gọi service → trả res. Không nghiệp vụ, không gọi DB
+  → services/      nghiệp vụ (luật chuyển trạng thái đơn, mốc nhắc hạn…). Không gọi DB client trực tiếp
+  → repositories/  chỉ truy vấn DB (Supabase client hoặc pg). Không nghiệp vụ
+```
+
+Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.repository`.)
+
+**`src/container.js`** là nơi duy nhất `new` repository → service → controller và truyền vào nhau qua constructor. Route lấy controller từ container. Module mới: **thêm một khối**, không sửa khối của module khác. Nhờ vậy test đưa được repository giả vào service.
+
+### Cấu trúc
+
+```
+backend/
+  src/
+    server.js            mở cổng + bật cron (jobs/)
+    app.js               middleware chung (helmet, cors, cookie, rate limit) + gắn routes
+    container.js         lắp các tầng
+    routes/ controllers/ services/ repositories/   một file mỗi nhóm: notification.routes.js …
+    middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter, errorHandler
+    jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
+    ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
+    events/              eventBus + listeners
+    utils/               AppError, responseHelper, validators (zod), db (pg), supabase
+  scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
+  tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
+```
+
+### Phân quyền
+
+- **Đăng nhập:** `auth` (bắt buộc) hoặc `optionalAuth` (có thì đọc) → `req.user = { id, role }`. Token nằm trong cookie httpOnly.
+- **Admin:** `router.use(auth, requireRole('admin'))` ở đầu file route.
+- **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): repository **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
+
+### Lỗi và response
+
+- Service ném `new AppError(message, statusCode, 'MA_LOI')`. Controller `try { … } catch (err) { next(err) }` → `errorHandler` trả JSON.
+- Thành công: `success(res, data, message, meta)` / `created(…)` trong `utils/responseHelper.js` → `{ success, data, message, meta }`.
+- Đầu vào kiểm tra bằng zod trong `utils/validators.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`.
+
+### Query
+
+- Chọn cột cụ thể, không `SELECT *` / `select('*')`.
+- Không N+1: dùng JOIN / select lồng (`scholarships(id, title)`) hoặc `Promise.all`.
+- Lọc theo cột mới → kiểm tra đã có index, chưa có thì thêm trong migration.
+- Thời gian theo giờ Việt Nam (`Asia/Ho_Chi_Minh`) khi tính "hôm nay", "còn N ngày".
+
+### Test
+
+Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, không tìm thấy. Dùng repository giả (object có cùng tên hàm), không gọi DB thật.
+
+---
+
+## Frontend
 
 ```
 frontend/src/
-  App.jsx, main.jsx        router (trang tải lười) · Provider Redux + React Query + Router
-  pageLoaders.js           hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
-  index.css                5 màu gốc + style nền
-  pages/<tenTrang>/index.jsx    trang — chỉ ghép component, không gọi API
-    components/<ten>/index.jsx  component chỉ trang đó dùng
-  layouts/                 khung giao diện: index.jsx để dùng, components/ là phần triển khai
-    userLayout/            components/ userHeader, userSidebar, mobileNav, sidebarNav (+ navConfig.js), userMenu, notificationMenu
-    adminLayout/           components/ adminSidebar, adminMobileNav (+ constants.js)
-  components/
-    ui/                    shadcn/ui gốc (button, card, badge, dropdownMenu, tabs…)
-    common/                dùng nhiều trang: pageHeader, backLink, pagination, reveal, slowLoading
-    application/           phần dùng chung của đơn ứng tuyển (statusBadge)
-    scholarship/           thẻ học bổng và các phần của nó
-    scholarshipFilter/     thanh tìm kiếm + bộ lọc
-    legacy/                UI kit cũ — không dùng cho code mới
-  hooks/                   useScholarships, useScholarshipFilters, useSlowLoading…
-  services/<nhom>.service.js    gọi API qua utils/apiClient.js
-  store/                   Redux: slices/ auth, comparison, ui
-  utils/                   hàm dùng chung toàn dự án: cn, format, scholarship (hạn nộp, nhãn), application (trạng thái đơn), security, palette, constants, apiClient, demo/
+  App.jsx, main.jsx      router (trang tải lười) · Provider Redux + React Query + Router
+  pageLoaders.js         hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
+  pages/<trang>/index.jsx       chỉ ghép component, không gọi API · components/ riêng của trang · helper.js
+  layouts/               userLayout, adminLayout: index.jsx để dùng, components/ là phần triển khai
+  components/  ui/ (shadcn) · common/ (pageHeader, backLink, pagination, reveal, slowLoading)
+               application/ · scholarship/ · scholarshipFilter/ · legacy/ (UI cũ, code mới không dùng)
+  hooks/                 TanStack Query + logic dùng lại     services/<nhóm>.service.js   gọi API qua utils/apiClient
+  store/slices/          Redux: auth, comparison, ui         utils/   cn, format, scholarship, application, security, palette, demo/
 ```
 
-1. **Mỗi trang, mỗi component, mỗi layout là một thư mục có `index.jsx`.**
-2. **Component lớn chia thư mục con, gom ở `index.jsx` cha.** Mẫu chuẩn: `components/scholarshipFilter/` gồm `index.jsx` (ghép + state), `constants.js`, `searchInput/`, `filterPanel/`, `filterField/`, `filterActions/`, `activeFilters/`.
-3. **Import từ gốc `src` bằng `~/`**, không dùng `../`.
-4. Chỉ một trang dùng → `pages/<trang>/components/`. Từ hai trang trở lên → `components/`.
-5. Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/utils`, `~/store`, `~/services`.
-6. **Đặt hàm tính toán ở đâu:**
-   - `utils/`: dùng ở nhiều nơi trong dự án (định dạng ngày, tính hạn nộp, chống XSS…).
-   - `helper.js` đặt ngay trong thư mục page hoặc layout (`pages/deadlines/helper.js`, `layouts/userLayout/helper.js`): tính toán chỉ trang/layout đó dùng. Khi có nơi thứ hai cần thì chuyển lên `utils/`.
-   - `lib/`: chỉ dành cho phần cấu hình/bọc framework; hiện chưa có nên không tạo.
+- Mỗi trang / component / layout là **một thư mục có `index.jsx`**. Import bằng `~/`, không `../`.
+- Một trang dùng → `pages/<trang>/components/`. Hai trang trở lên → `components/`. Tính toán một trang dùng → `helper.js` cạnh trang; nơi thứ hai cần → `utils/`.
+- Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/utils`, `~/store`, `~/services`.
+- Component: `export default function Ten()`; riêng `components/ui/` giữ named export kiểu shadcn.
 
-## Viết code
-
-- **Mọi tên do dự án tự đặt đều `camelCase`**: thư mục, file (`apiClient.js`, `seedCloud.js`), route (`/forgotPassword`), endpoint API, class CSS tự định nghĩa trong `index.css` (`btnPrimary`, `pageHeader`). Giữ nguyên tên do công cụ/thư viện áp đặt: class Tailwind, class của thư viện (`react-calendar`), tên gói npm, `package-lock.json`, `docker-compose.yml`, `README.md`/`CLAUDE.md`/`CHANGELOG.md`, tiền tố ngày của tài liệu kế hoạch (`2026-05-22-…`).
-- Component `PascalCase` · hook bắt đầu bằng `use` · hằng số `UPPER_SNAKE` · biến môi trường `VITE_UPPER_SNAKE`.
-- Component: `export default function TenComponent()`; riêng `components/ui/` giữ kiểu shadcn (named export).
-- Comment tiếng Việt, giải thích *vì sao* hoặc quy tắc nghiệp vụ. Không để code chết hay code bị comment.
-
-| Dữ liệu | Đặt ở đâu |
+| Dữ liệu | Đặt ở |
 |---|---|
-| Từ server | TanStack Query trong `hooks/`, gọi `services/` — không gọi axios trong component |
-| State toàn cục (giao diện, phiên đăng nhập) | Redux Toolkit `store/slices/`, đọc bằng selector `selectXxx` |
-| Từ khóa + bộ lọc | URL trang chủ (`/?search=…&degree=…`) qua `useScholarshipFilters()` |
+| Từ server | TanStack Query trong `hooks/` gọi `services/`, không gọi axios trong component |
+| Toàn cục (giao diện, phiên đăng nhập) | Redux, đọc bằng selector `selectXxx`. **Không lưu token** |
+| Từ khóa + bộ lọc | URL trang chủ qua `useScholarshipFilters()` |
 | Cục bộ | `useState` |
 
-- Redux **không lưu token** (token nằm trong cookie httpOnly do server quản lý).
-- Mỗi màn hình đủ 4 trạng thái: đang tải (skeleton), rỗng, lỗi (có nút thử lại), có dữ liệu.
-- Chuyển trang không được nháy: `Suspense` đặt quanh `<Outlet />` trong layout (không bọc cả layout), router bật `v7_startTransition`, trang hay dùng được tải trước trong `pageLoaders.js`.
-- Tải quá 5 giây → `SlowLoading` qua `useSlowLoading(isLoading)`. Hiệu ứng `Reveal` chỉ chạy khi đã có dữ liệu, tôn trọng `prefers-reduced-motion`.
+- Chuyển trang không nháy: `Suspense` quanh `<Outlet />` trong layout, router bật `v7_startTransition`.
+- Tải quá 5 giây → `SlowLoading`. `Reveal` chỉ chạy khi đã có dữ liệu, tôn trọng `prefers-reduced-motion`.
+- **XSS:** không `dangerouslySetInnerHTML` (bắt buộc thì qua `sanitizeHtml()`); URL từ dữ liệu qua `safeUrl()`; link tab mới có `rel="noopener noreferrer"`.
+- **Accessibility:** thẻ thật (`<button>`, `<a href>`, `<label>`); nút chỉ có icon có `aria-label`; icon trang trí `aria-hidden`; có hover và focus nhìn thấy được.
 
-**Bảo mật (XSS):** không dùng `dangerouslySetInnerHTML` (bắt buộc thì qua `sanitizeHtml()`); mọi URL từ dữ liệu phải qua `safeUrl()` vì dữ liệu được cào từ web ngoài; link tab mới có `rel="noopener noreferrer"`; không thêm script nội tuyến (bản build có CSP trong `vite.config.js`).
+### Thiết kế
 
-**Accessibility:** dùng thẻ thật (`<button>`, `<a href>`, `<label>` gắn input); nút chỉ có icon phải có `aria-label`; icon trang trí `aria-hidden="true"`; mọi thứ bấm được có hover và focus nhìn thấy được.
+**Chỉ 5 màu**, khai báo duy nhất trong `src/index.css`: primary #4F46E5 (nút chính, liên kết, "Du học") · neutral #3F3F46 (chữ, viền, "Trong nước") · success #067647 (hạn > 30 ngày) · warning #B54708 (hạn 11–30 ngày) · danger #B42318 (hạn ≤ 10 ngày, lỗi, xóa).
 
-## Thiết kế
-
-**Chỉ 5 màu**, khai báo duy nhất trong `src/index.css`:
-
-| Biến | Màu | Dùng cho |
-|---|---|---|
-| `--c-primary` | #4F46E5 tím chàm | nút chính, liên kết, mục đang chọn, nhãn "Du học" |
-| `--c-neutral` | #3F3F46 xám than | chữ, tiêu đề thẻ, viền, nền phụ, nhãn "Trong nước" |
-| `--c-success` | #067647 xanh lá | hạn nộp > 30 ngày, thành công |
-| `--c-warning` | #B54708 cam | hạn nộp 11–30 ngày, cảnh báo |
-| `--c-danger` | #B42318 đỏ | hạn nộp ≤ 10 ngày, lỗi, xóa |
-
-- `tailwind.config.js` chỉ pha sắc đậm/nhạt từ 5 màu (`tone`, `scale`, `badge`). Component **không viết mã màu** (`#…`, `text-blue-500`, `bg-[#…]`) — dùng token: `brand-600`, `heading`, `fg`, `fg-muted`, `line`, `canvas`, `hover`, `urgent`/`soon`/`open`, `abroad`/`domestic`.
-- Cần màu dạng giá trị JS (biểu đồ, framer-motion, toast) → `color('primary', { mix, alpha })` trong `utils/palette.js`.
-- Chế độ tối chưa làm: giao diện luôn sáng.
-
-**Bố cục:** header 64px chia 3 cột (logo | thanh tìm kiếm ở chính giữa | thông báo + tài khoản); sidebar 256px `sticky`; nội dung lề 32px. Cài đặt, đăng xuất nằm trong menu sổ xuống của avatar. Thông báo **không có trang riêng**: bấm chuông là sổ danh sách (`notificationMenu`).
-
-**Danh sách học bổng** (trang chủ, đã lưu, tương tự) luôn dùng `ScholarshipGrid` + `ScholarshipCard`; danh sách đơn ứng tuyển dùng dạng dòng (học bổng | giấy tờ | trạng thái).
-
-**Trang chi tiết** gói thông tin chính trong một màn hình (1280×800 không phải cuộn): đầu trang gồm tên, nhãn trạng thái/hạn và hành động bên phải; nội dung chia cột chính | cột phụ `sticky`. Không dàn thông tin thành nhiều khối xếp dọc.
-
-**Nút quay lại** luôn dùng `BackLink` (`components/common/backLink`), đặt trên cùng nội dung; nhãn ghi tên trang sẽ về ("Đơn ứng tuyển", "Đăng nhập"), không ghi chung chung "Quay lại".
-
-**Responsive (bắt buộc mọi trang):** kiểm tra ở 360, 768, 1024, 1280px — không được cuộn ngang.
-- Từ `lg` (1024px): bố cục đầy đủ như trên. Dưới `lg`: sidebar ẩn, thay bằng nút ☰ mở menu trượt (`Sheet`); header chỉ còn nút menu + logo thu gọn | ô tìm kiếm | chuông + avatar; bảng bộ lọc bám hai mép màn hình.
-- Lề nội dung 16 → 24 → 32px (`p-4 sm:p-6 lg:p-8`); khối tràn sát lề (VD dải đầu trang chi tiết) phải đổi lề âm theo cùng mốc.
-- Lưới dùng `auto-fill/auto-fit` với `minmax(min(Npx,100%),1fr)`; hàng nút/nhãn cho phép `flex-wrap`; chữ không được tràn khung (`min-w-0`, `truncate`, `break-words`).
-- Chỉ chỉnh ở component gốc (`components/ui`, layout) khi lỗi lặp nhiều nơi; không vá riêng từng trang.
-
-**Kích thước:** điều khiển header 40px · mục sidebar 38px · nút bộ lọc 34px · bo góc thẻ `rounded-tile` 14px, ô con `rounded-inner` 10px, nút `rounded-control` 8px, nhãn 6px · khoảng cách bội số của 4.
-
-**Chữ:** Be Vietnam Pro · `text-page-title` 24 · `text-card-title` 17 · `text-block-title` 15 · thân 13–14 · nhãn 11.5–12.
-
-**Component:**
-- Icon: Heroicons solid (`/24/solid`; nhỏ dùng `/20/solid`, `/16/solid`). Chỉ mũi tên xổ xuống dùng dạng nét.
-- Mỗi vùng chỉ 1 nút chính (nền tím); hành động phụ dùng nút viền hoặc nút chữ.
-- Nhãn luôn mang nghĩa, không trang trí. Hạn nộp: `getDeadlineInfo()` trong `utils/scholarship.js` (ngưỡng 10 và 30 ngày).
-- Thẻ học bổng đọc từ trên xuống: nhãn hạn nộp + phạm vi + nút lưu → tiêu đề + nhà tài trợ → 3 ô Quốc gia | Bậc học | Tài trợ → "Xem chi tiết" căn giữa ở đáy. Hover nhấc lên 3px. Cả thẻ là một `<Link>`; nút lưu đặt chồng ở góc, nằm ngoài link (HTML không cho nút trong thẻ `<a>`).
-- Chuyển động 150–220ms; không gradient, không emoji trang trí.
-
-**Tìm kiếm:**
-- Chỉ **một** thanh tìm kiếm trên header (`components/scholarshipFilter`). Bảng bộ lọc `display: none` cho đến khi bấm vào ô; hiện bằng mờ → rõ tại chỗ (không trượt); đóng bằng Esc, bấm ra ngoài, tìm xong hoặc chuyển trang.
-- Kết quả hiện ở **trang chủ**; không có trang Tìm học bổng riêng. `/scholarships?…` tự chuyển về `/?…`; trang chi tiết là `/scholarships/:slug` (tạo đường dẫn bằng `scholarshipPath()`; link cũ dùng UUID vẫn mở được).
-
-## Git
-
-- Nhánh `feat/…`, `fix/…`, `refactor/…`, `docs/…`; không commit thẳng lên `main`.
-- Commit dạng `feat: …`, `fix: …`, `refactor: …`, `style: …`, `docs: …`.
-- Merge vào `dev` hoặc `main` qua Pull Request: ít nhất 1 người review, `lint` và `build` phải qua.
-- Không commit `.env`, khóa API, dữ liệu cá nhân.
+- Component **không viết mã màu** (`#…`, `text-blue-500`): dùng token `brand-600`, `heading`, `fg`, `fg-muted`, `line`, `canvas`, `hover`, `urgent`/`soon`/`open`, `abroad`/`domestic`. Màu trong JS → `color()` ở `utils/palette.js`. Chưa làm chế độ tối.
+- **Bố cục:** header 64px (logo | tìm kiếm ở giữa | chuông + tài khoản), sidebar 256px `sticky`, lề nội dung `p-4 sm:p-6 lg:p-8`. Dưới `lg`: sidebar thành menu trượt (`Sheet`).
+- **Thông báo** không có trang riêng: bấm chuông sổ danh sách (`notificationMenu`).
+- **Tìm kiếm:** một thanh duy nhất trên header, kết quả ở trang chủ. Chi tiết học bổng `/scholarships/:slug` (tạo bằng `scholarshipPath()`).
+- **Danh sách học bổng** dùng `ScholarshipGrid` + `ScholarshipCard`; danh sách đơn dùng dạng dòng (học bổng | giấy tờ | trạng thái).
+- **Trang chi tiết** gói trong một màn hình 1280×800: đầu trang (tên, nhãn, hành động bên phải) + cột chính | cột phụ `sticky`.
+- **Nút quay lại** luôn dùng `BackLink`, nhãn ghi tên trang sẽ về ("Đơn ứng tuyển"), không ghi "Quay lại".
+- Mỗi vùng chỉ 1 nút chính (nền tím). Nhãn luôn mang nghĩa; hạn nộp dùng `getDeadlineInfo()` (ngưỡng 10 và 30 ngày).
+- Lưới `auto-fill` + `minmax(min(Npx,100%),1fr)`; chữ không tràn (`min-w-0`, `truncate`). Lỗi lặp nhiều nơi → sửa ở component gốc.
+- **Kích thước:** điều khiển 40px · mục sidebar 38px · bo góc thẻ 14px, ô con 10px, nút 8px · khoảng cách bội số 4.
+- **Chữ:** Be Vietnam Pro · tiêu đề trang 24 · tiêu đề thẻ 17 · tiêu đề khối 15 · thân 13–14 · nhãn 11.5–12.
+- Icon Heroicons solid. Chuyển động 150–220ms. Không gradient, không emoji trang trí.
