@@ -12,17 +12,7 @@ const { apiLimiter } = require('./middlewares/rateLimiter');
 const checkOrigin = require('./middlewares/checkOrigin');
 const { corsOrigin } = require('./config/cors.config');
 const { getTrustProxy } = require('./config/jwt.config');
-const authRoutes = require('./routes/auth.routes');
-const scholarshipRoutes = require('./routes/scholarship.routes');
-const profileRoutes = require('./routes/profile.routes');
-const documentRoutes = require('./routes/document.routes');
-const applicationRoutes = require('./routes/application.routes');
-const savedRoutes = require('./routes/saved.routes');
-const recommendRoutes = require('./routes/recommend.routes');
-const adminRoutes = require('./routes/admin.routes');
-const chatRoutes = require('./routes/chat.routes');
-const newsRoutes = require('./routes/news.routes');
-const notificationRoutes = require('./routes/notification.routes');
+const routes = require('./routes');
 
 const app = express();
 app.set('trust proxy', getTrustProxy());
@@ -56,18 +46,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── API Routes ─────────────────────────────────────────
-app.use('/api', apiLimiter);
-app.use('/api/auth', authRoutes);
-app.use('/api/scholarships', scholarshipRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/documents', documentRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/saved', savedRoutes);
-app.use('/api/recommend', recommendRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api', apiLimiter, routes);
 
 // ── Swagger UI ─────────────────────────────────────────
 app.use(
