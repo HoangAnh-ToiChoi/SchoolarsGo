@@ -11,9 +11,9 @@
 
 | Environment | URL |
 |-------------|-----|
-| Development | `http://localhost:5000/api` |
-| Staging | `https://api-staging.scholarsgo.com/api` |
-| Production | `https://api.scholarsgo.com/api` |
+| Local backend (with `backend/.env.example`) | `http://localhost:3001/api` |
+| Local frontend | `/api` (Vite proxies to `http://localhost:3001`) |
+| Deployed frontend | `/api` (Vercel proxies to the configured `BACKEND_URL`) |
 
 ---
 

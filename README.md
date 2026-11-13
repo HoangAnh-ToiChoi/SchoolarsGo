@@ -23,16 +23,18 @@ Yêu cầu Node.js 18 trở lên.
 ```bash
 # Backend
 cd backend
-cp .env.example .env      # điền SUPABASE_URL, SUPABASE_ANON_KEY, JWT_SECRET...
+cp .env.example .env      # điền SUPABASE_URL, SUPABASE_ANON_KEY, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET...
 npm install
 npm run dev
 
 # Frontend (cửa sổ terminal khác)
 cd frontend
-cp .env.example .env.local   # VITE_API_BASE_URL trỏ tới backend vừa chạy
+cp .env.example .env.local   # Vite proxy /api tới backend localhost:3001
 npm install
 npm run dev
 ```
+
+Frontend luôn gọi API qua `/api`. Khi chạy local, Vite chuyển tiếp đường dẫn này tới backend ở `http://localhost:3001` (cổng trong `backend/.env.example`). Khi backend deploy đã được xác nhận, đặt biến môi trường `BACKEND_URL` trong Vercel thành origin HTTPS của backend, không kèm `/api`; cấu hình `frontend/vercel.json` sẽ chuyển tiếp `/api/*` tới backend. Thêm origin của frontend vào `CORS_ORIGINS` trên backend. FE không cần đổi URL API giữa local và production.
 
 ## Cấu trúc repo
 
