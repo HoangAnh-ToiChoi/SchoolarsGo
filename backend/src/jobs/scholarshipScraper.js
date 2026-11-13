@@ -1,7 +1,7 @@
 'use strict';
 
 const cron = require('node-cron');
-const { ingestionService } = require('../container');
+const { ingestionService, sessionRepository } = require('../container');
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 let isRunning = false;
@@ -36,6 +36,15 @@ async function deactivateExpiredJob() {
   }
 }
 
+async function deleteOldSessionsJob() {
+  try {
+    const count = await sessionRepository.deleteOld();
+    console.log(`[Auth] Đã dọn ${count} phiên đăng nhập cũ`);
+  } catch (e) {
+    console.error('[Auth] Lỗi khi dọn phiên đăng nhập:', e.message);
+  }
+}
+
 function startScrapeJob() {
   // Chủ nhật 2:00 sáng: kéo học bổng mới
   cron.schedule('0 2 * * 0', () => {
@@ -45,8 +54,9 @@ function startScrapeJob() {
 
   // Mỗi đêm 3:00 sáng: tắt học bổng quá hạn
   cron.schedule('0 3 * * *', deactivateExpiredJob, { timezone: TIMEZONE });
+  cron.schedule('0 3 * * *', deleteOldSessionsJob, { timezone: TIMEZONE });
 
   console.log('[Ingestion] Cron đã đăng ký: kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn mỗi đêm 3:00 (GMT+7)');
 }
 
-module.exports = { startScrapeJob, runJob, deactivateExpiredJob };
+module.exports = { startScrapeJob, runJob, deactivateExpiredJob, deleteOldSessionsJob };

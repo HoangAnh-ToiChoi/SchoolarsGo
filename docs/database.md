@@ -11,7 +11,7 @@
 
 | Database | Provider | Connection |
 |----------|----------|------------|
-| PostgreSQL | Supabase | Raw pg Pool (`src/utils/db.js`) | Raw SQL — không Supabase SDK cho API |
+| PostgreSQL | Supabase | Raw pg Pool (`src/config/database.config.js`) | Raw SQL — không Supabase SDK cho API |
 
 ---
 
@@ -181,6 +181,27 @@ Migration `005_notifications.sql`. Thông báo trên chuông header.
 **Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
 **Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
 
+### 8. user_sessions
+
+Migration `006_userSessions.sql`. Mỗi dòng là một thiết bị đăng nhập; database chỉ giữ SHA-256 của refresh token hiện tại và token liền trước để xoay vòng an toàn.
+
+| Column | Type | Constraints | Mô tả |
+|--------|------|-------------|-------|
+| id | uuid | PK, default gen_random_uuid() | Session ID (`sid` trong access token) |
+| user_id | uuid | FK → users.id, ON DELETE CASCADE | Chủ phiên |
+| refresh_token_hash | text | NOT NULL | SHA-256 refresh token hiện tại |
+| previous_token_hash | text | NULLABLE | Hash token trước lần xoay gần nhất |
+| rotated_at | timestamptz | NULLABLE | Lần xoay gần nhất |
+| device_name | text | NULLABLE | Tên suy từ User-Agent |
+| last_used_at | timestamptz | NOT NULL, DEFAULT now() | Lần refresh gần nhất |
+| expires_at | timestamptz | NOT NULL | Hạn refresh token |
+| revoked_at | timestamptz | NULLABLE | Thời điểm thu hồi |
+| revoked_reason | text | NULLABLE | Lý do thu hồi |
+| created_at | timestamptz | NOT NULL, DEFAULT now() | Thời điểm tạo |
+
+**Indexes:** partial `(user_id, last_used_at DESC) WHERE revoked_at IS NULL`; `(expires_at)`.
+Giới hạn ba thiết bị được áp dụng trong một transaction khóa dòng user; job dọn xóa phiên hết hạn và phiên bị thu hồi quá bảy ngày.
+
 ---
 
 ## RLS (Row Level Security)
@@ -242,6 +263,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 | 27/3/2026 | v0.2 | Deploy lên Supabase local Docker. Thêm: RLS policies đầy đủ, auto-update `updated_at` trigger, indexes mở rộng. 6 tables + 16 indexes + 20 policies. |
 | 20/4/2026 | v0.3 | Refactor toàn bộ backend sang OOP 4-layer architecture (Scholarship, Profile, Document modules). Thêm DocumentRepository, container.js wiring đầy đủ. |
 | 2/5/2026 | v0.4 | Thêm 2 cột vào bảng `users`: `role` (varchar, DEFAULT 'user') và `last_login_at` (timestamptz). Refactor Auth module hoàn tất OOP 4 tầng với EventBus. Hợp nhất Auth V1+V2 tại `/api/auth/*`. |
+| 13/11/2026 | v0.5 | Thêm `user_sessions` để xoay refresh token, giới hạn 3 thiết bị và thu hồi phiên. |
 
 ## Local Docker Setup
 
@@ -306,7 +328,7 @@ Routes → Controller → Service → Repository → DB
 | **Controller** | HTTP handling, parse req/res | KHÔNG chứa business logic hay SQL |
 | **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận repo qua constructor |
 | **Repository** | Toàn bộ SQL của module | Kế thừa `BaseRepository`, KHÔNG SQL ở tầng khác |
-| **DB** (`utils/db.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
+| **DB** (`config/database.config.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
 
 ### Dependency Injection — `container.js`
 
@@ -324,7 +346,7 @@ db → ApplicationRepository → ApplicationService
 ### Quy tắc viết Class
 
 - **Constructor:** nhận dependency qua tham số (không import trực tiếp bên trong class)
-- **Public methods:** arrow functions (`methodName = async (params) => {}`)
+- **Public async methods:** `async function` expressions (`methodName = async function methodName(params) {}`). Bind controller handlers before passing them to Express.
 - **Private methods/helpers:** dùng `#methodName` (JS private field syntax)
 - **Error helper:** `#throwError(message, statusCode)` — throw Error có `.statusCode` và `.isOperational = true`
 - **Guard helper:** `#ensureFound(item, message)` — throw 404 nếu item null
@@ -377,7 +399,7 @@ db → ApplicationRepository → ApplicationService
 - Nhận `profileRepository` qua constructor
 
 **ProfileController** — `backend/src/controllers/profile.controller.js`
-- Class + arrow functions
+- Class + async function expressions
 - Inject `profileService` qua constructor
 - Import từ `container.js`
 
@@ -414,7 +436,7 @@ await deleteFile(uploadResult.storagePath);
 ```
 
 **DocumentController** — `backend/src/controllers/document.controller.js`
-- Class + arrow functions, inject `documentService` qua constructor
+- Class + async function expressions, inject `documentService` qua constructor
 - Import từ `container.js`
 
 **Document Routes** — `backend/src/routes/document.routes.js`

@@ -12,16 +12,16 @@ class SavedController {
     if (!this.#service) throw new Error('SavedService is required');
   }
 
-  getAll = async (req, res, next) => {
+  async getAll(req, res, next) {
     try {
       const data = await this.#service.getAll(req.user.id);
       return success(res, data);
     } catch (err) {
       next(err);
     }
-  };
+  }
 
-  save = async (req, res, next) => {
+  async save(req, res, next) {
     try {
       const { scholarshipId } = req.params;
       const { note } = req.body;
@@ -30,9 +30,9 @@ class SavedController {
     } catch (err) {
       next(err);
     }
-  };
+  }
 
-  remove = async (req, res, next) => {
+  async remove(req, res, next) {
     try {
       const { scholarshipId } = req.params;
       await this.#service.remove(req.user.id, scholarshipId);
@@ -40,7 +40,7 @@ class SavedController {
     } catch (err) {
       next(err);
     }
-  };
+  }
 }
 
 module.exports = SavedController;

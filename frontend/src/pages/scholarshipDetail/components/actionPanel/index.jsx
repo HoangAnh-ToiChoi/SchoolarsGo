@@ -40,7 +40,7 @@ export default function ActionPanel({ scholarship }) {
   const sourceUrl = safeUrl(scholarship.source_url);
   const showSourceLink = sourceUrl && primary?.href !== sourceUrl;
 
-  const handleCreateApplication = async () => {
+  async function handleCreateApplication() {
     if (!isAuthenticated) {
       toast.error('Vui lòng đăng nhập để tạo đơn ứng tuyển');
       return;
@@ -51,7 +51,7 @@ export default function ActionPanel({ scholarship }) {
     } catch {
       // Thông báo lỗi đã hiện trong useCreateApplication
     }
-  };
+  }
 
   return (
     <div className="flex flex-col gap-3.5">

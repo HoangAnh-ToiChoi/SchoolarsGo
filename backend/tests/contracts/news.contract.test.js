@@ -8,7 +8,7 @@ const { createJsonApp, withServer, requestJson } = require('./helpers/http');
 const buildApp = (service) => {
   const controller = new NewsController(service);
   const router = Router();
-  router.get('/', controller.getNews);
+  router.get('/', controller.getNews.bind(controller));
 
   return createJsonApp((app) => {
     app.use('/api/news', router);

@@ -9,10 +9,11 @@ const { auth } = require('../../src/middlewares/auth');
 const AppError = require('../../src/utils/AppError');
 const { createJsonApp, withServer, requestJson } = require('./helpers/http');
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'contracts-secret';
+process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'contract-access-secret-at-least-32-chars';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'contract-refresh-secret-at-least-32-chars';
 
 const buildToken = () =>
-  jwt.sign({ id: 'chat-user-1', email: 'chat@test.dev' }, process.env.JWT_SECRET);
+  jwt.sign({ sub: 'chat-user-1', sid: 'chat-session-1', role: 'user' }, process.env.JWT_ACCESS_SECRET, { algorithm: 'HS256' });
 
 const buildApp = (service) => {
   const controller = new ChatController(service);
@@ -23,8 +24,8 @@ const buildApp = (service) => {
   });
 
   const router = Router();
-  router.get('/history', auth, controller.getChatHistory);
-  router.post('/', auth, chatLimiter, controller.sendMessage);
+  router.get('/history', auth, controller.getChatHistory.bind(controller));
+  router.post('/', auth, chatLimiter, controller.sendMessage.bind(controller));
 
   return createJsonApp((app) => {
     app.use('/api/chat', router);

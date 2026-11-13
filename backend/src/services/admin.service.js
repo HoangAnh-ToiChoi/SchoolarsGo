@@ -15,15 +15,16 @@ class AdminService {
   /**
    * @param {AdminRepository} adminRepository
    */
-  constructor(adminRepository) {
+  constructor(adminRepository, sessionService) {
     this.#repo = adminRepository;
+    this.#sessions = sessionService;
   }
 
   // ═══════════════════════════════════════════════════════════
   // DASHBOARD STATS — Commands
   // ═══════════════════════════════════════════════════════════
 
-  fetchDashboardStats = async () => {
+  async fetchDashboardStats() {
     const [
       totalUsers,
       newUsersThisWeek,
@@ -48,22 +49,22 @@ class AdminService {
       totalApplications,
       applicationsByStatus: this.#normalizeStatusCounts(applicationsByStatusRows),
     };
-  };
+  }
 
-  fetchDashboardChart = async () => {
+  async fetchDashboardChart() {
     const [userRegistrationsByWeek, applicationsByStatus] = await Promise.all([
       this.#repo.getUserRegistrationsByWeek(),
       this.#repo.getApplicationsByStatusChart(),
     ]);
 
     return { userRegistrationsByWeek, applicationsByStatus };
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════
   // USER MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════
 
-  paginateUsers = async filters => {
+  async paginateUsers(filters) {
     const { users, total } = await this.#repo.findUsers(filters);
     const { page = 1, limit = 20 } = filters;
     return {
@@ -75,13 +76,13 @@ class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
-  };
+  }
 
-  getUserById = async userId => {
+  async getUserById(userId) {
     const user = await this.#repo.findUserById(userId);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
     return user;
-  };
+  }
 
   /**
    * Thay đổi role của user.
@@ -91,7 +92,7 @@ class AdminService {
    * @param {string} newRole
    * @param {string} adminId - UUID string
    */
-  changeUserRole = async (targetUserId, newRole, adminId) => {
+  async changeUserRole(targetUserId, newRole, adminId) {
     this.#guardSelfModification(targetUserId, adminId);
     this.#validateRole(newRole);
 
@@ -102,22 +103,24 @@ class AdminService {
       404,
       'USER_NOT_FOUND'
     );
+    await this.#sessions?.endAllForUser(targetUserId, 'role_changed');
     return user;
-  };
+  }
 
-  changeUserStatus = async (targetUserId, isActive, adminId) => {
+  async changeUserStatus(targetUserId, isActive, adminId) {
     this.#guardSelfModification(targetUserId, adminId);
 
     const user = await this.#repo.updateUserStatus(targetUserId, isActive);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    if (!isActive) await this.#sessions?.endAllForUser(targetUserId, 'locked');
     return user;
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════
   // SCHOLARSHIP MANAGEMENT — Commands
   // ═══════════════════════════════════════════════════════════
 
-  addScholarship = async data => {
+  async addScholarship(data) {
     const scholarshipData = {
       ...data,
       is_active: data.is_active !== undefined ? data.is_active : true,
@@ -125,9 +128,9 @@ class AdminService {
     const scholarship = await this.#repo.createScholarship(scholarshipData);
     this.#guardFound(scholarship, 'Không thể tạo học bổng', 500, 'CREATE_SCHOLARSHIP_FAILED');
     return scholarship;
-  };
+  }
 
-  modifyScholarship = async (id, data) => {
+  async modifyScholarship(id, data) {
     const scholarship = await this.#repo.updateScholarship(id, data);
     this.#guardFound(
       scholarship,
@@ -136,9 +139,9 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return scholarship;
-  };
+  }
 
-  toggleScholarshipFeatured = async (id, isFeatured) => {
+  async toggleScholarshipFeatured(id, isFeatured) {
     const scholarship = await this.#repo.updateScholarshipFeatured(id, isFeatured);
     this.#guardFound(
       scholarship,
@@ -147,9 +150,9 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return scholarship;
-  };
+  }
 
-  removeScholarship = async id => {
+  async removeScholarship(id) {
     const scholarship = await this.#repo.softDeleteScholarship(id);
     this.#guardFound(
       scholarship,
@@ -158,7 +161,7 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return { id: scholarship.id, title: scholarship.title };
-  };
+  }
 
   // ═══════════════════════════════════════════════════════════
   // PRIVATE — Encapsulation (Tiêu chí 3)
@@ -226,6 +229,7 @@ class AdminService {
 
   /** @type {AdminRepository} */
   #repo;
+  #sessions;
 }
 
 module.exports = AdminService;
