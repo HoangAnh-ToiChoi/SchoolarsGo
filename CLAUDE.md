@@ -82,7 +82,7 @@ routes/        URL + middleware: auth, requireRole, validate(schema)
 
 Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.repository`.)
 
-**`src/container.js`** là nơi duy nhất `new` repository → service → controller và truyền vào nhau qua constructor. Route lấy controller từ container. Module mới: **thêm một khối**, không sửa khối của module khác. Nhờ vậy test đưa được repository giả vào service.
+**`src/container/`** chỉ wiring repository → service → controller qua constructor, chia theo nghiệp vụ; `src/container.js` chỉ gom và export các instance singleton cho routes/jobs. Không đăng ký listener hoặc khởi động tiến trình trong container. Module mới: thêm wiring vào file nghiệp vụ tương ứng, không sửa wiring của module khác. Nhờ vậy test đưa được repository giả vào service.
 
 ### Cấu trúc
 
@@ -91,7 +91,8 @@ backend/
   src/
     server.js            mở cổng + bật cron (jobs/)
     app.js               middleware chung (helmet, cors, cookie, rate limit) + gắn routes
-    container.js         lắp các tầng
+    container/           wiring singleton theo nghiệp vụ
+    container.js         export các instance cho routes/jobs
     routes/ controllers/ services/ repositories/   một file mỗi nhóm: notification.routes.js …
     middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter, errorHandler
     jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
@@ -110,7 +111,7 @@ backend/
 - **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): repository **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
 - Cấu hình môi trường / CORS đặt trong `backend/src/config/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
 - Access token sống 15 phút; refresh token 7 ngày, lưu dạng hash trong `user_sessions`. LocalStorage FE chỉ được giữ `{ full_name, avatar_url }`; quyền admin luôn lấy từ `/auth/me`.
-- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. `container.js` bind controller method trước khi truyền cho Express.
+- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. Container bind controller method trước khi truyền cho Express.
 
 ### Lỗi và response
 
