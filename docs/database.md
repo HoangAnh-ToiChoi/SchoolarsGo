@@ -11,7 +11,7 @@
 
 | Database | Provider | Connection |
 |----------|----------|------------|
-| PostgreSQL | Supabase | Raw pg Pool (`src/utils/db.js`) | Raw SQL — không Supabase SDK cho API |
+| PostgreSQL | Supabase | Raw pg Pool (`src/config/database.config.js`) | Raw SQL — không Supabase SDK cho API |
 
 ---
 
@@ -328,7 +328,7 @@ Routes → Controller → Service → Repository → DB
 | **Controller** | HTTP handling, parse req/res | KHÔNG chứa business logic hay SQL |
 | **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận repo qua constructor |
 | **Repository** | Toàn bộ SQL của module | Kế thừa `BaseRepository`, KHÔNG SQL ở tầng khác |
-| **DB** (`utils/db.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
+| **DB** (`config/database.config.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
 
 ### Dependency Injection — `container.js`
 

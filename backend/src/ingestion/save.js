@@ -46,7 +46,7 @@ const INSERT_COLUMNS = [
 ];
 const INSERT_CHUNK = 100; // mỗi câu INSERT tối đa 100 dòng
 
-/** @param {{ query: Function }} db kết nối pg (src/utils/db.js) */
+/** @param {{ query: Function }} db kết nối pg (src/config/database.config.js) */
 function createStore(db) {
   return {
     /** Học bổng đã có, trùng khoá chống trùng hoặc trùng link bài. */

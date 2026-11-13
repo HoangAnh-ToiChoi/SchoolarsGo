@@ -9,4 +9,15 @@ const getAuthSecrets = (env = process.env) => {
 const getCookieSameSite = () => process.env.COOKIE_SAME_SITE || 'lax';
 const getTrustProxy = () => Number(process.env.TRUST_PROXY || 1);
 
-module.exports = { getAuthSecrets, getCookieSameSite, getTrustProxy };
+const jwtConfig = {
+  accessExpiresIn: '15m',
+  refreshExpiresIn: '7d',
+  algorithm: 'HS256',
+};
+
+module.exports = {
+  getAuthSecrets,
+  getCookieSameSite,
+  getTrustProxy,
+  jwtConfig,
+};

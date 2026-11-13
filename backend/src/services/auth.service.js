@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const AppError = require('../utils/AppError');
-const { sendResetEmail } = require('../utils/mailer');
+const { sendResetEmail } = require('../config/nodemailer');
 const { toSessionUser } = require('../utils/sessionUser');
 const { authorization } = require('../constants/errors');
 

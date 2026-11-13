@@ -14,7 +14,7 @@
  */
 const getSupabase = require('./config/supabase');
 const sb = getSupabase();
-const db = require('./utils/db');
+const db = require('./config/database.config');
 
 function bindController(controller) {
   return Object.fromEntries(

@@ -34,5 +34,7 @@ coverage/
 
 # Claude Code
 .claude/
+.codegraph/
+newFeature.md
 
 .newFeature.md/.env.cloud

@@ -97,8 +97,8 @@ backend/
     jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
     ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
     events/              eventBus + listeners
-    config/               env, CORS and Supabase client configuration
-    utils/               AppError, responseHelper, validators (zod), db (pg)
+    config/               CORS, database, JWT, nodemailer and Supabase client configuration
+    utils/               AppError, responseHelper, validators (zod)
   scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
   tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
 ```

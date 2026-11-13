@@ -1,5 +1,5 @@
 const { success } = require('../utils/responseHelper');
-const { getCookieSameSite } = require('../config/env');
+const { getCookieSameSite } = require('../config/jwt.config');
 
 const cookieOptions = (path, maxAge) => ({
   httpOnly: true,

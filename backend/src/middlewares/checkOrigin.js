@@ -1,5 +1,5 @@
 const AppError = require('../utils/AppError');
-const { isAllowedOrigin } = require('../config/cors');
+const { isAllowedOrigin } = require('../config/cors.config');
 const { authorization } = require('../constants/errors');
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);

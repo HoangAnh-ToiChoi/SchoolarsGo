@@ -7,7 +7,7 @@ const AuthService = require('../../src/services/auth.service');
 const AdminService = require('../../src/services/admin.service');
 const { toSessionUser } = require('../../src/utils/sessionUser');
 process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
-const { isAllowedOrigin } = require('../../src/config/cors');
+const { isAllowedOrigin } = require('../../src/config/cors.config');
 
 const env = { JWT_ACCESS_SECRET: 'access-secret-that-is-at-least-32-chars', JWT_REFRESH_SECRET: 'refresh-secret-that-is-also-32-chars' };
 
