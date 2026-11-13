@@ -10,7 +10,7 @@ const createTransport = () => {
   });
 };
 
-const sendResetEmail = async (email, resetLink) => {
+async function sendResetEmail(email, resetLink) {
   const transport = createTransport();
   if (!transport) {
     console.info(`[Mailer] SMTP chưa cấu hình. Reset link cho ${email}: ${resetLink}`);
@@ -33,6 +33,6 @@ const sendResetEmail = async (email, resetLink) => {
       </div>
     `,
   });
-};
+}
 
 module.exports = { sendResetEmail };

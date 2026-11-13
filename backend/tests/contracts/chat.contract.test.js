@@ -24,8 +24,8 @@ const buildApp = (service) => {
   });
 
   const router = Router();
-  router.get('/history', auth, controller.getChatHistory);
-  router.post('/', auth, chatLimiter, controller.sendMessage);
+  router.get('/history', auth, controller.getChatHistory.bind(controller));
+  router.post('/', auth, chatLimiter, controller.sendMessage.bind(controller));
 
   return createJsonApp((app) => {
     app.use('/api/chat', router);

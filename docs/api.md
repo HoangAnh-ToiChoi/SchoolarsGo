@@ -3,7 +3,7 @@
 # ============================================================
 # SCHOLARSGO — API CONTRACTS
 # ============================================================
-# Last Updated: 17/4/2026
+# Last Updated: 13/11/2026
 
 ---
 
@@ -33,7 +33,7 @@
 {
   "success": false,
   "message": "Mô tả lỗi",
-  "code": 400,
+  "code": "ACCESS_TOKEN_EXPIRED",
   "errors": [{ "field": "email", "message": "Email không hợp lệ" }]
 }
 ```
@@ -42,8 +42,10 @@
 
 ## Auth
 
-### POST /api/auth/register
-Register new user.
+Authentication uses an HttpOnly access cookie (15 minutes, path `/api`) and refresh cookie (7 days, path `/api/auth`). Refresh tokens rotate on use; only their SHA-256 hashes are stored.
+
+### POST /api/auth/register and POST /api/auth/login
+Create an account or start a session. Both return `{ user }` with only `id`, `full_name`, `avatar_url`, and `role`; credentials are set as cookies. Register also accepts `full_name`.
 
 **Body:**
 ```json
@@ -54,37 +56,12 @@ Register new user.
 }
 ```
 
-**Response 201:**
+**Response:**
 ```json
 {
   "success": true,
   "data": {
-    "user": { "id": "uuid", "email": "...", "full_name": "..." },
-    "token": "jwt_token"
-  }
-}
-```
-
----
-
-### POST /api/auth/login
-Login with email/password.
-
-**Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "securePassword123"
-}
-```
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "data": {
-    "user": { "id": "uuid", "email": "...", "full_name": "..." },
-    "token": "jwt_token"
+    "user": { "id": "uuid", "full_name": "...", "avatar_url": null, "role": "user" }
   }
 }
 ```
@@ -94,15 +71,27 @@ Login with email/password.
 ### GET /api/auth/me
 Get current user profile (auth required).
 
-**Headers:** `Authorization: Bearer <token>`
+**Headers:** Access cookie, or `Authorization: Bearer <accessToken>` for Swagger.
 
 **Response 200:**
 ```json
 {
   "success": true,
-  "data": { "id": "uuid", "email": "...", "full_name": "..." }
+  "data": { "id": "uuid", "full_name": "...", "avatar_url": null, "role": "user" }
 }
 ```
+
+### POST /api/auth/refresh
+Does not require the access token. Rotates the refresh cookie and returns the same `{ user }` fields as login.
+
+### POST /api/auth/logout
+Revokes the current refresh session when available and clears both new cookies and the legacy `token` cookie.
+
+### GET /api/auth/account
+Returns private account fields for the signed-in user: `email`, `phone`, and `date_of_birth`.
+
+### GET /api/auth/sessions and DELETE /api/auth/sessions/:id
+List up to three active devices, including `is_current`, or revoke a session owned by the signed-in user. A session belonging to another user returns 404.
 
 ---
 
@@ -575,11 +564,14 @@ Get scholarship recommendations based on user profile (auth required).
 
 | Method | Path | Status | Notes |
 |--------|------|--------|-------|
-| POST | /api/auth/register | ✅ Implemented | Raw SQL + bcryptjs + jwt. Rate limit: 3 req/phút/IP |
-| POST | /api/auth/login | ✅ Implemented | Raw SQL + bcryptjs + jwt. Rate limit: 5 req/phút/IP |
-| GET | /api/auth/me | ✅ Implemented | Auth required |
-| POST | /api/auth/logout | ✅ Implemented | Clear cookie |
-| POST | /api/auth/refresh | ✅ Implemented | Auth required |
+| POST | /api/auth/register | ✅ Implemented | Cookie access 15 phút + refresh 7 ngày; tối đa 3 thiết bị |
+| POST | /api/auth/login | ✅ Implemented | Chặn tài khoản bị khóa; trả dữ liệu user tối thiểu |
+| GET | /api/auth/me | ✅ Implemented | Trả id, tên, ảnh và role |
+| POST | /api/auth/logout | ✅ Implemented | Thu hồi phiên refresh và xóa cookie |
+| POST | /api/auth/refresh | ✅ Implemented | Xoay refresh token, không cần access auth |
+| GET | /api/auth/account | ✅ Implemented | Trả email, số điện thoại, ngày sinh |
+| GET | /api/auth/sessions | ✅ Implemented | Tối đa 3 thiết bị đang hoạt động |
+| DELETE | /api/auth/sessions/:id | ✅ Implemented | Chỉ thu hồi phiên của user hiện tại |
 | GET | /api/scholarships | ✅ Implemented | Filters: country, degree, min_gpa, search, language, coverage, featured... Pagination. Raw SQL. |
 | GET | /api/scholarships/:id | ✅ Implemented | Detail. is_active + deadline > NOW(). Raw SQL. |
 | GET | /api/scholarships/featured | ✅ Implemented | Top 6 featured scholarships |

@@ -33,23 +33,23 @@ pool.on('error', err => {
  * @param {any[]} params - Query parameters
  * @returns {Promise<{rows: any[], rowCount: number}>}
  */
-const query = async (text, params) => {
+async function query(text, params) {
   const result = await pool.query(text, params);
   return { rows: result.rows, rowCount: result.rowCount };
-};
+}
 
 /**
  * Execute a query and return the first row or null.
  */
-const queryOne = async (text, params) => {
+async function queryOne(text, params) {
   const result = await pool.query(text, params);
   return result.rows[0] || null;
-};
+}
 
 /**
  * Execute a transaction (array of {text, params}).
  */
-const transaction = async queries => {
+async function transaction(queries) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -66,6 +66,6 @@ const transaction = async queries => {
   } finally {
     client.release();
   }
-};
+}
 
 module.exports = { pool, query, queryOne, transaction };

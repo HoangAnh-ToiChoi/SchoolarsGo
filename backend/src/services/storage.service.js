@@ -101,7 +101,7 @@ const slugifyFileName = fileName => {
  * @param {string}   mimeType     - MIME type của file
  * @returns {Promise<{publicUrl: string, storagePath: string}>}
  */
-const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) => {
+async function uploadFile(userId, docType, fileBuffer, originalName, mimeType) {
   // Slugify tên file để tránh lỗi path từ ký tự đặc biệt / tiếng Việt
   const slugifiedName = slugifyFileName(originalName);
   const randomSuffix = crypto.randomUUID().slice(0, 8);
@@ -151,7 +151,7 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
     publicUrl: urlData.publicUrl,
     storagePath: uploadData ? uploadData.path : storagePath,
   };
-};
+}
 
 /**
  * Xóa file khỏi Supabase Storage
@@ -160,13 +160,13 @@ const uploadFile = async (userId, docType, fileBuffer, originalName, mimeType) =
  * @param {string} storagePath - Đường dẫn file trong bucket (VD: userId/docType/filename)
  * @returns {Promise<void>}
  */
-const deleteFile = async storagePath => {
+async function deleteFile(storagePath) {
   const { error } = await getSupabaseStorage().storage.from(BUCKET_NAME).remove([storagePath]);
 
   if (error) {
     // Chỉ warn — không throw để không chặn luồng xóa chính
     console.warn(`[Storage] Không thể xóa file ${storagePath}:`, error.message);
   }
-};
+}
 
 module.exports = { uploadFile, deleteFile, slugifyFileName };

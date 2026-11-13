@@ -97,16 +97,20 @@ backend/
     jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
     ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
     events/              eventBus + listeners
-    utils/               AppError, responseHelper, validators (zod), db (pg), supabase
+    config/               env, CORS and Supabase client configuration
+    utils/               AppError, responseHelper, validators (zod), db (pg)
   scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
   tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
 ```
 
 ### Phân quyền
 
-- **Đăng nhập:** `auth` (bắt buộc) hoặc `optionalAuth` (có thì đọc) → `req.user = { id, role }`. Token nằm trong cookie httpOnly.
+- **Đăng nhập:** `auth` (bắt buộc) hoặc `optionalAuth` (có thì đọc) → `req.user = { id, sid, role }`. Token nằm trong cookie httpOnly.
 - **Admin:** `router.use(auth, requireRole('admin'))` ở đầu file route.
 - **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): repository **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
+- Cấu hình môi trường / CORS đặt trong `backend/src/config/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
+- Access token sống 15 phút; refresh token 7 ngày, lưu dạng hash trong `user_sessions`. LocalStorage FE chỉ được giữ `{ full_name, avatar_url }`; quyền admin luôn lấy từ `/auth/me`.
+- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. `container.js` bind controller method trước khi truyền cho Express.
 
 ### Lỗi và response
 

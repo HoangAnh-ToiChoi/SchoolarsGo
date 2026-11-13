@@ -2,9 +2,9 @@ const AppError = require('../utils/AppError');
 const { authorization } = require('../constants/errors');
 
 const extractToken = req => {
-  if (req.cookies?.accessToken) return req.cookies.accessToken;
   const authorization = req.headers.authorization || '';
-  return authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
+  if (authorization.startsWith('Bearer ')) return authorization.slice(7);
+  return req.cookies?.accessToken || null;
 };
 
 let tokenService;

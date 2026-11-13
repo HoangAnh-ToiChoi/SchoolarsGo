@@ -7,7 +7,7 @@ class SavedService {
     this.#repo = savedRepository;
   }
 
-  getAll = async userId => {
+  async getAll(userId) {
     const rows = await this.#repo.findAllByUser(userId);
     return rows.map(row => ({
       id: row.id,
@@ -27,9 +27,9 @@ class SavedService {
         is_featured: row.is_featured,
       },
     }));
-  };
+  }
 
-  save = async (userId, scholarshipId, note) => {
+  async save(userId, scholarshipId, note) {
     const exists = await this.#repo.scholarshipExists(scholarshipId);
     if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
 
@@ -43,13 +43,13 @@ class SavedService {
       }
       throw err;
     }
-  };
+  }
 
-  remove = async (userId, scholarshipId) => {
+  async remove(userId, scholarshipId) {
     const deleted = await this.#repo.deleteByUserAndScholarship(userId, scholarshipId);
     if (deleted === 0) throw new AppError('Học bổng này chưa được lưu.', 404, 'NOT_SAVED');
     return { deleted: true };
-  };
+  }
 }
 
 module.exports = SavedService;

@@ -19,7 +19,7 @@ const buildToken = () =>
 const buildApp = (service) => {
   const controller = new RecommendController(service);
   const router = Router();
-  router.post('/', auth, validate(recommendSchema), controller.recommend);
+  router.post('/', auth, validate(recommendSchema), controller.recommend.bind(controller));
 
   return createJsonApp((app) => {
     app.use('/api/recommend', router);

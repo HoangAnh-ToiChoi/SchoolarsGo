@@ -12,9 +12,17 @@
  *
  * Wiring: db → AdminRepository → AdminService → AdminController
  */
-const getSupabase = require('./utils/supabase');
+const getSupabase = require('./config/supabase');
 const sb = getSupabase();
 const db = require('./utils/db');
+
+function bindController(controller) {
+  return Object.fromEntries(
+    Object.getOwnPropertyNames(Object.getPrototypeOf(controller))
+      .filter((method) => method !== 'constructor')
+      .map((method) => [method, controller[method].bind(controller)])
+  );
+}
 
 // ── EventBus ────────────────────────────────────────────────
 const eventBus = require('./events/eventBus');
@@ -39,7 +47,7 @@ const sessionRepository = new SessionRepository(db);
 const authRepo = new AuthRepository(sb);
 const sessionService = new SessionService(sessionRepository, authRepo, tokenService);
 const adminService = new AdminService(adminRepo, sessionService);
-const adminController = new AdminController(adminService);
+const adminController = bindController(new AdminController(adminService));
 
 // ── Scholarship Module ─────────────────────────────────────
 const ScholarshipRepository = require('./repositories/scholarship.repository');
@@ -48,7 +56,7 @@ const ScholarshipController = require('./controllers/scholarship.controller');
 
 const scholarshipRepo = new ScholarshipRepository(sb);
 const scholarshipService = new ScholarshipService(scholarshipRepo);
-const scholarshipController = new ScholarshipController(scholarshipService);
+const scholarshipController = bindController(new ScholarshipController(scholarshipService));
 
 // ── Profile Module ──────────────────────────────────────────
 const ProfileRepository = require('./repositories/profile.repository');
@@ -57,7 +65,7 @@ const ProfileController = require('./controllers/profile.controller');
 
 const profileRepo = new ProfileRepository(sb);
 const profileService = new ProfileService(profileRepo);
-const profileController = new ProfileController(profileService);
+const profileController = bindController(new ProfileController(profileService));
 
 // ── Application Module ──────────────────────────────────────
 const ApplicationRepository = require('./repositories/application.repository');
@@ -66,7 +74,7 @@ const ApplicationService = require('./services/application.service');
 const applicationRepo = new ApplicationRepository(sb);
 const applicationService = new ApplicationService(applicationRepo);
 const ApplicationController = require('./controllers/application.controller');
-const applicationController = new ApplicationController(applicationService);
+const applicationController = bindController(new ApplicationController(applicationService));
 
 // ── Document Module ─────────────────────────────────────────
 const DocumentRepository = require('./repositories/document.repository');
@@ -76,7 +84,7 @@ const DocumentController = require('./controllers/document.controller');
 const documentRepo = new DocumentRepository(sb);
 const storageService = require('./services/storage.service');
 const documentService = new DocumentService(documentRepo, eventBus, storageService);
-const documentController = new DocumentController(documentService);
+const documentController = bindController(new DocumentController(documentService));
 
 // ── Saved Module ──────────────────────────────────────────
 const SavedRepository = require('./repositories/saved.repository');
@@ -85,7 +93,7 @@ const SavedController = require('./controllers/saved.controller');
 
 const savedRepo = new SavedRepository(sb);
 const savedService = new SavedService(savedRepo);
-const savedController = new SavedController(savedService);
+const savedController = bindController(new SavedController(savedService));
 
 // ── Notification Module (chuông thông báo) ─────────────────
 const NotificationRepository = require('./repositories/notification.repository');
@@ -94,14 +102,14 @@ const NotificationController = require('./controllers/notification.controller');
 
 const notificationRepo = new NotificationRepository(sb);
 const notificationService = new NotificationService(notificationRepo);
-const notificationController = new NotificationController(notificationService);
+const notificationController = bindController(new NotificationController(notificationService));
 
 // ── Auth Module (SRP: inject hashService + tokenService) ───
 const AuthService = require('./services/auth.service');
 const AuthController = require('./controllers/auth.controller');
 
 const authService = new AuthService(authRepo, eventBus, hashService, tokenService, sessionService);
-const authController = new AuthController(authService);
+const authController = bindController(new AuthController(authService));
 
 // ── Recommend Module (DIP: inject geminiService) ────────────
 const RecommendRepository = require('./repositories/recommend.repository');
@@ -111,20 +119,20 @@ const geminiService = require('./services/gemini.service');
 
 const recommendRepo = new RecommendRepository(sb);
 const recommendService = new RecommendService(recommendRepo, geminiService);
-const recommendController = new RecommendController(recommendService);
+const recommendController = bindController(new RecommendController(recommendService));
 
 // ── News Module (DIP: chuyển sang class, inject qua container) ──
 const NewsService = require('./services/news.service');
 const NewsController = require('./controllers/news.controller');
 
 const newsService = new NewsService();
-const newsController = new NewsController(newsService);
+const newsController = bindController(new NewsController(newsService));
 
 // ── Chat Module (DIP: controller nhận chatService qua constructor) ──
 const chatService = require('./services/chat.service');
 const ChatController = require('./controllers/chat.controller');
 
-const chatController = new ChatController(chatService);
+const chatController = bindController(new ChatController(chatService));
 
 // ── Ingestion Module (kéo học bổng từ nguồn bên ngoài) ──────────
 // Module tự chứa: không import gì từ ứng dụng, mọi thứ được truyền vào ở đây.

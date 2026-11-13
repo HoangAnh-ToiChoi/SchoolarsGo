@@ -29,7 +29,7 @@ export default function UserMenu() {
     );
   }
 
-  const initials = getInitials(user.full_name || user.email);
+  const initials = getInitials(user.full_name || 'SG');
   return (
     <DropdownMenu>
       <DropdownMenuTrigger aria-label="Tài khoản" className="flex h-control items-center gap-2.5 rounded-inner pl-1 pr-1 md:pr-2 outline-none transition-colors duration-200 hover:bg-hover focus-visible:ring-2 focus-visible:ring-brand-600/30 data-[state=open]:bg-hover">
@@ -46,7 +46,6 @@ export default function UserMenu() {
           <Initials value={initials} className="size-9" />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">{user.full_name}</div>
-            <div className="truncate text-xs text-fg-muted">{user.email}</div>
           </div>
         </div>
         <DropdownMenuSeparator className="-mx-1.5 bg-line-soft" />

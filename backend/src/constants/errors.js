@@ -13,6 +13,9 @@ const authorization = Object.freeze({
   INVALID_CREDENTIALS: { statusCode: 401, code: 'INVALID_CREDENTIALS', message: 'Email hoặc mật khẩu không đúng.' },
   USER_EXISTS: { statusCode: 409, code: 'USER_EXISTS', message: 'Email đã được sử dụng.' },
   USER_NOT_FOUND: { statusCode: 404, code: 'USER_NOT_FOUND', message: 'Không tìm thấy tài khoản.' },
+  CREATE_USER_FAILED: { statusCode: 500, code: 'CREATE_USER_FAILED', message: 'Không thể tạo tài khoản.' },
+  INVALID_RESET_TOKEN: { statusCode: 400, code: 'INVALID_RESET_TOKEN', message: 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.' },
+  EXPIRED_RESET_TOKEN: { statusCode: 400, code: 'EXPIRED_RESET_TOKEN', message: 'Liên kết đã hết hạn. Vui lòng yêu cầu lại.' },
   ORIGIN_NOT_ALLOWED: { statusCode: 403, code: 'ORIGIN_NOT_ALLOWED', message: 'Nguồn gửi yêu cầu không được phép.' },
 });
 

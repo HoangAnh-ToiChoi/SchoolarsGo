@@ -29,7 +29,7 @@ class NotificationService {
    * Gọi mỗi đêm cho mọi người dùng (userId = null), và trước khi trả danh sách cho một người
    * để chuông luôn đúng kể cả khi server ngủ qua giờ chạy job. Chạy lại nhiều lần không tạo trùng.
    */
-  generateDeadlineReminders = async ({ userId = null, now = new Date() } = {}) => {
+  async generateDeadlineReminders({ userId = null, now = new Date() } = {}) {
     const today = vnToday(now);
     const until = addDays(today, REMIND_DAYS.at(-1) + 1);
     const [saved, drafts] = await Promise.all([
@@ -55,9 +55,9 @@ class NotificationService {
     }
     await this.#repo.insertIgnoreDuplicates(rows);
     return rows.length;
-  };
+  }
 
-  getAll = async (userId, { limit = 30 } = {}) => {
+  async getAll(userId, { limit = 30 } = {}) {
     await this.generateDeadlineReminders({ userId });
     const today = vnToday();
     const rows = await this.#repo.findByUser(userId, limit);
@@ -93,15 +93,17 @@ class NotificationService {
       });
     }
     return { data, unread: data.filter(n => !n.read_at).length };
-  };
+  }
 
-  markRead = async (userId, notificationId) => {
+  async markRead(userId, notificationId) {
     const found = await this.#repo.markRead(userId, notificationId);
     if (!found) throw new AppError('Không tìm thấy thông báo.', 404, 'NOTIFICATION_NOT_FOUND');
     return { id: notificationId };
-  };
+  }
 
-  markAllRead = async userId => ({ updated: await this.#repo.markAllRead(userId) });
+  async markAllRead(userId) {
+    return { updated: await this.#repo.markAllRead(userId) };
+  }
 }
 
 module.exports = NotificationService;

@@ -263,6 +263,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 | 27/3/2026 | v0.2 | Deploy lên Supabase local Docker. Thêm: RLS policies đầy đủ, auto-update `updated_at` trigger, indexes mở rộng. 6 tables + 16 indexes + 20 policies. |
 | 20/4/2026 | v0.3 | Refactor toàn bộ backend sang OOP 4-layer architecture (Scholarship, Profile, Document modules). Thêm DocumentRepository, container.js wiring đầy đủ. |
 | 2/5/2026 | v0.4 | Thêm 2 cột vào bảng `users`: `role` (varchar, DEFAULT 'user') và `last_login_at` (timestamptz). Refactor Auth module hoàn tất OOP 4 tầng với EventBus. Hợp nhất Auth V1+V2 tại `/api/auth/*`. |
+| 13/11/2026 | v0.5 | Thêm `user_sessions` để xoay refresh token, giới hạn 3 thiết bị và thu hồi phiên. |
 
 ## Local Docker Setup
 
@@ -345,7 +346,7 @@ db → ApplicationRepository → ApplicationService
 ### Quy tắc viết Class
 
 - **Constructor:** nhận dependency qua tham số (không import trực tiếp bên trong class)
-- **Public methods:** arrow functions (`methodName = async (params) => {}`)
+- **Public async methods:** `async function` expressions (`methodName = async function methodName(params) {}`). Bind controller handlers before passing them to Express.
 - **Private methods/helpers:** dùng `#methodName` (JS private field syntax)
 - **Error helper:** `#throwError(message, statusCode)` — throw Error có `.statusCode` và `.isOperational = true`
 - **Guard helper:** `#ensureFound(item, message)` — throw 404 nếu item null
@@ -398,7 +399,7 @@ db → ApplicationRepository → ApplicationService
 - Nhận `profileRepository` qua constructor
 
 **ProfileController** — `backend/src/controllers/profile.controller.js`
-- Class + arrow functions
+- Class + async function expressions
 - Inject `profileService` qua constructor
 - Import từ `container.js`
 
@@ -435,7 +436,7 @@ await deleteFile(uploadResult.storagePath);
 ```
 
 **DocumentController** — `backend/src/controllers/document.controller.js`
-- Class + arrow functions, inject `documentService` qua constructor
+- Class + async function expressions, inject `documentService` qua constructor
 - Import từ `container.js`
 
 **Document Routes** — `backend/src/routes/document.routes.js`

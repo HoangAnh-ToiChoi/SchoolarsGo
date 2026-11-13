@@ -4,8 +4,9 @@ import { useSelector } from 'react-redux';
 import UserLayout from '~/layouts/userLayout';
 import ProtectedRoute from '~/components/common/ProtectedRoute';
 import PageLoader from '~/components/common/pageLoader';
-import { selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
+import { selectAuthLoading, selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
 import { PAGE_LOADERS } from '~/pageLoaders';
+import { useSessionBootstrap } from '~/hooks/useAuth';
 
 // Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu (hàm tải ở pageLoaders.js)
 const HomePage = lazy(PAGE_LOADERS.home);
@@ -32,7 +33,10 @@ const AdminScholarshipsPage = lazy(PAGE_LOADERS.adminScholarships);
 function AdminRoute({ children }) {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isAdmin = useSelector(selectIsAdmin);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const isLoading = useSelector(selectAuthLoading);
+  const location = useLocation();
+  if (isLoading) return <PageLoader />;
+  if (!isAuthenticated) return <Navigate to={`/login?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`} replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
   return children;
 }
@@ -46,6 +50,7 @@ function LegacySearchRedirect() {
 const guard = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
 
 export default function App() {
+  useSessionBootstrap();
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>

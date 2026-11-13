@@ -15,7 +15,7 @@ const getClient = () => {
  * @param {Array} recommendations - array of { scholarship, match_score, reasons }
  * @returns {Array} same array but each item has ai_reason string added
  */
-const enrichRecommendations = async (profile, recommendations) => {
+async function enrichRecommendations(profile, recommendations) {
   const client = getClient();
   if (!client || recommendations.length === 0) return recommendations;
 
@@ -77,6 +77,6 @@ Yêu cầu:
     console.error('[Gemini] enrichRecommendations error:', err.message);
     return recommendations;
   }
-};
+}
 
 module.exports = { enrichRecommendations };
