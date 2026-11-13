@@ -181,6 +181,27 @@ Migration `005_notifications.sql`. Thông báo trên chuông header.
 **Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
 **Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
 
+### 8. user_sessions
+
+Migration `006_userSessions.sql`. Mỗi dòng là một thiết bị đăng nhập; database chỉ giữ SHA-256 của refresh token hiện tại và token liền trước để xoay vòng an toàn.
+
+| Column | Type | Constraints | Mô tả |
+|--------|------|-------------|-------|
+| id | uuid | PK, default gen_random_uuid() | Session ID (`sid` trong access token) |
+| user_id | uuid | FK → users.id, ON DELETE CASCADE | Chủ phiên |
+| refresh_token_hash | text | NOT NULL | SHA-256 refresh token hiện tại |
+| previous_token_hash | text | NULLABLE | Hash token trước lần xoay gần nhất |
+| rotated_at | timestamptz | NULLABLE | Lần xoay gần nhất |
+| device_name | text | NULLABLE | Tên suy từ User-Agent |
+| last_used_at | timestamptz | NOT NULL, DEFAULT now() | Lần refresh gần nhất |
+| expires_at | timestamptz | NOT NULL | Hạn refresh token |
+| revoked_at | timestamptz | NULLABLE | Thời điểm thu hồi |
+| revoked_reason | text | NULLABLE | Lý do thu hồi |
+| created_at | timestamptz | NOT NULL, DEFAULT now() | Thời điểm tạo |
+
+**Indexes:** partial `(user_id, last_used_at DESC) WHERE revoked_at IS NULL`; `(expires_at)`.
+Giới hạn ba thiết bị được áp dụng trong một transaction khóa dòng user; job dọn xóa phiên hết hạn và phiên bị thu hồi quá bảy ngày.
+
 ---
 
 ## RLS (Row Level Security)
