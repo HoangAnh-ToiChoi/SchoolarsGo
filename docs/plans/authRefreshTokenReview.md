@@ -71,3 +71,22 @@
 ## 6. Báo lại sau khi sửa
 
 Push lên `feat/authSession`, ghi trong commit hoặc tin nhắn: L1 ✅/❌, L2 ✅/❌, D3 ✅/❌, N1–N3 ✅/❌, kèm log Network cho bước nghiệm thu L1.
+
+---
+
+# Kiểm tra lần 2 — commit `261474e`
+
+| Mục | Kết quả | Bằng chứng |
+|---|---|---|
+| Test có sẵn | ✅ | BE `test:contract` 31/31 (thêm test upload) · `test:ingestion` 57/57 · BE lint 56 cảnh báo, bằng `dev` · FE lint 0 · FE build qua |
+| API thật | ✅ 109/109 | `POST /documents/upload` không token → 401; `REFRESH_RACE` trả 409 như `docs/api.md` |
+| **L1** refresh khi đang dùng app | ✅ | Bấm "Người dùng" khi access hết hạn: `401 GET /api/admin/users` → `200 POST /api/auth/refresh` → `200 GET /api/admin/users`. 5 request hết hạn cùng lúc → đúng **1** lần refresh, 4 request GET trả 200 |
+| **L2** upload khi hết hạn | ✅ | `401 POST /documents/upload` → refresh → gửi lại qua được `auth` và multer, vào tới controller (500 ở bước lưu file là do môi trường test không có Supabase Storage) |
+| D3 `vercel.json` | ⚠️ chưa kiểm chứng | Dùng `routes` + `"dest": "${BACKEND_URL}/api/$1"` + `"env": ["BACKEND_URL"]`. Chưa xác nhận được Vercel có thay biến môi trường trong `vercel.json` hay không → **thử trên bản Preview của Vercel trước**; không chạy thì ghi thẳng địa chỉ Railway vào `dest` |
+| N1 mã 409 | ✅ | đã ghi trong `docs/api.md` |
+| N2 màu `sessionList` | ✅ | dùng `line`, `fg`, `fg-muted`, `brand-600`, `urgent-*`; nút có `aria-label` |
+| N3 lint | ✅ | về lại 56 cảnh báo như `dev` |
+| Local dev | ✅ | FE gọi `/api`, Vite chuyển tiếp tới `localhost:3001`; đăng nhập, phân quyền, 3 thiết bị chạy đúng qua proxy |
+| N4 phần ngoài kế hoạch | ⏸ chờ chủ dự án | đề xuất gộp `container/` (7 file) về một `container.js` |
+
+**Còn lại trước khi deploy:** D2 (secret + `CORS_ORIGINS` trên Railway, thêm `BACKEND_URL` trên Vercel) và thử D3 trên Preview.
