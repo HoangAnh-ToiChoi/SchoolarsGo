@@ -11,14 +11,15 @@ class AppError extends Error {
    * @param {number} statusCode - HTTP status code (400, 404, 409, 500...)
    * @param {string} [code] - Mã lỗi UPPER_SNAKE_CASE (optional)
    */
-  constructor(message, statusCode = 500, code) {
-    if (typeof message === 'object') {
-      ({ message, statusCode, code } = message);
-    }
-    super(message);
-    this.statusCode = statusCode;
+  constructor(messageOrDetails, statusCode = 500, code) {
+    const details = typeof messageOrDetails === 'object' && messageOrDetails !== null
+      ? messageOrDetails
+      : { message: messageOrDetails, statusCode, code };
+
+    super(details.message);
+    this.statusCode = details.statusCode;
     this.isOperational = true;
-    if (code) this.code = code;
+    if (details.code) this.code = details.code;
   }
 }
 

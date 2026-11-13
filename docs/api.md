@@ -84,6 +84,8 @@ Get current user profile (auth required).
 ### POST /api/auth/refresh
 Does not require the access token. Rotates the refresh cookie and returns the same `{ user }` fields as login.
 
+If another tab has already rotated the same refresh token within the 30-second race window, returns HTTP `409` with code `REFRESH_RACE`. The client waits briefly and retries with the updated cookie.
+
 ### POST /api/auth/logout
 Revokes the current refresh session when available and clears both new cookies and the legacy `token` cookie.
 
@@ -544,6 +546,7 @@ Get scholarship recommendations based on user profile (auth required).
 | 401 | Unauthorized |
 | 403 | Forbidden |
 | 404 | Not Found |
+| 409 | Conflict (refresh rotation race or duplicate resource) |
 | 422 | Unprocessable Entity |
 | 429 | Too Many Requests (rate limit) |
 | 500 | Server Error |

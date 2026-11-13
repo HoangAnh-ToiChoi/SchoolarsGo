@@ -11,6 +11,7 @@ const api = axios.create({
 });
 
 let refreshPromise;
+const NO_REFRESH = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
 
 const refreshOnce = () => {
   if (!refreshPromise) {
@@ -20,7 +21,7 @@ const refreshOnce = () => {
   return refreshPromise;
 };
 
-const canRefresh = url => ['/auth/me', '/auth/account', '/auth/sessions'].some(path => url?.includes(path));
+const canRefresh = url => !NO_REFRESH.some(path => url?.includes(path));
 
 const sessionEnded = code => {
   store.dispatch(loggedOut());
