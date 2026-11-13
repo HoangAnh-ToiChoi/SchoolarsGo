@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS user_sessions (
 CREATE INDEX IF NOT EXISTS idx_user_sessions_active
   ON user_sessions(user_id, last_used_at DESC) WHERE revoked_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expiry ON user_sessions(expires_at);
+
+-- Chỉ backend (pg, chủ bảng) được đọc/ghi; chặn anon/authenticated qua REST của Supabase
+ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;

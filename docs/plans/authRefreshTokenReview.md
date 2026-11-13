@@ -50,7 +50,7 @@
 
 | # | Việc | Lý do |
 |---|---|---|
-| D1 | Chạy migration `006_userSessions.sql` lên Supabase | DB thật **chưa có** bảng `user_sessions` (đã kiểm tra) |
+| D1 | ✅ Đã chạy migration `006_userSessions.sql` lên Supabase và bật RLS (dòng cuối file migration) | Không bật RLS thì ai có anon key cũng đọc/xóa được phiên qua REST |
 | D2 | Thêm `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (khác nhau, ≥ 32 ký tự), `CORS_ORIGINS`, `TRUST_PROXY` trên Railway | Thiếu secret thì server **không khởi động** |
 | D3 | Thay `frontend/vercel.mjs` bằng `vercel.json` có rewrite `/api/(.*)` → địa chỉ Railway, đặt trước rewrite về `index.html` | Chưa kiểm chứng được Vercel đọc file `.mjs` có `export const config`; `vercel.json` là cách chắc chắn |
 
