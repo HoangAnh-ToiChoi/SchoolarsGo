@@ -87,6 +87,6 @@ Push lên `feat/authSession`, ghi trong commit hoặc tin nhắn: L1 ✅/❌, L2
 | N2 màu `sessionList` | ✅ | dùng `line`, `fg`, `fg-muted`, `brand-600`, `urgent-*`; nút có `aria-label` |
 | N3 lint | ✅ | về lại 56 cảnh báo như `dev` |
 | Local dev | ✅ | FE gọi `/api`, Vite chuyển tiếp tới `localhost:3001`; đăng nhập, phân quyền, 3 thiết bị chạy đúng qua proxy |
-| N4 phần ngoài kế hoạch | ⏸ chờ chủ dự án | đề xuất gộp `container/` (7 file) về một `container.js` |
+| N4 phần ngoài kế hoạch | ✅ chủ dự án giữ | tách `container/`, `config/`, tự dò route là theo yêu cầu của chủ dự án |
 
-**Còn lại trước khi deploy:** D2 (secret + `CORS_ORIGINS` trên Railway, thêm `BACKEND_URL` trên Vercel) và thử D3 trên Preview.
+**Kết luận: đạt, merge vào `dev`.** Deploy chưa làm (chưa có thông tin Railway/Vercel); khi deploy: D2 (secret + `CORS_ORIGINS` trên Railway, thêm `BACKEND_URL` trên Vercel) và thử D3 trên Preview.
