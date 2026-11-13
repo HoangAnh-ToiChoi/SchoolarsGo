@@ -15,8 +15,9 @@ class AdminService {
   /**
    * @param {AdminRepository} adminRepository
    */
-  constructor(adminRepository) {
+  constructor(adminRepository, sessionService) {
     this.#repo = adminRepository;
+    this.#sessions = sessionService;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -102,6 +103,7 @@ class AdminService {
       404,
       'USER_NOT_FOUND'
     );
+    await this.#sessions?.endAllForUser(targetUserId, 'role_changed');
     return user;
   };
 
@@ -110,6 +112,7 @@ class AdminService {
 
     const user = await this.#repo.updateUserStatus(targetUserId, isActive);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    if (!isActive) await this.#sessions?.endAllForUser(targetUserId, 'locked');
     return user;
   };
 
@@ -226,6 +229,7 @@ class AdminService {
 
   /** @type {AdminRepository} */
   #repo;
+  #sessions;
 }
 
 module.exports = AdminService;

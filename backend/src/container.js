@@ -22,6 +22,9 @@ const eventBus = require('./events/eventBus');
 // ── Shared Services (SRP: tách riêng hash + token) ──────────
 const HashService = require('./services/hash.service');
 const TokenService = require('./services/token.service');
+const SessionRepository = require('./repositories/session.repository');
+const SessionService = require('./services/session.service');
+const AuthRepository = require('./repositories/auth.repository');
 
 const hashService = new HashService();
 const tokenService = new TokenService();
@@ -32,7 +35,10 @@ const AdminService = require('./services/admin.service');
 const AdminController = require('./controllers/admin.controller');
 
 const adminRepo = new AdminRepository(db);
-const adminService = new AdminService(adminRepo);
+const sessionRepository = new SessionRepository(db);
+const authRepo = new AuthRepository(sb);
+const sessionService = new SessionService(sessionRepository, authRepo, tokenService);
+const adminService = new AdminService(adminRepo, sessionService);
 const adminController = new AdminController(adminService);
 
 // ── Scholarship Module ─────────────────────────────────────
@@ -91,12 +97,10 @@ const notificationService = new NotificationService(notificationRepo);
 const notificationController = new NotificationController(notificationService);
 
 // ── Auth Module (SRP: inject hashService + tokenService) ───
-const AuthRepository = require('./repositories/auth.repository');
 const AuthService = require('./services/auth.service');
 const AuthController = require('./controllers/auth.controller');
 
-const authRepo = new AuthRepository(sb);
-const authService = new AuthService(authRepo, eventBus, hashService, tokenService);
+const authService = new AuthService(authRepo, eventBus, hashService, tokenService, sessionService);
 const authController = new AuthController(authService);
 
 // ── Recommend Module (DIP: inject geminiService) ────────────
@@ -153,6 +157,9 @@ module.exports = {
   savedService,
   savedController,
   authRepo,
+  sessionRepository,
+  sessionService,
+  tokenService,
   authService,
   authController,
   recommendRepo,

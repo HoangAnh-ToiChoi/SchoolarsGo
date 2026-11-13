@@ -10,10 +10,11 @@ const { recommendSchema } = require('../../src/utils/validators');
 const AppError = require('../../src/utils/AppError');
 const { createJsonApp, withServer, requestJson } = require('./helpers/http');
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'contracts-secret';
+process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'contract-access-secret-at-least-32-chars';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'contract-refresh-secret-at-least-32-chars';
 
 const buildToken = () =>
-  jwt.sign({ id: 'user-123', email: 'contract@test.dev' }, process.env.JWT_SECRET);
+  jwt.sign({ sub: 'user-123', sid: 'contract-session-1', role: 'user' }, process.env.JWT_ACCESS_SECRET, { algorithm: 'HS256' });
 
 const buildApp = (service) => {
   const controller = new RecommendController(service);

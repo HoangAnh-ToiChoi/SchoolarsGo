@@ -43,10 +43,12 @@ const apiLimiter = isProd
  * Tier 3 — Upload: Moderate
  */
 const uploadLimiter = createLimiter(20, 60, 'Quá nhiều yêu cầu tải lên, vui lòng thử lại sau.');
+const refreshLimiter = createLimiter(30, 15 * 60, 'Quá nhiều yêu cầu làm mới phiên, vui lòng thử lại sau.');
 
 module.exports = {
   authLimiter,
   apiLimiter,
   uploadLimiter,
+  refreshLimiter,
   createLimiter,
 };

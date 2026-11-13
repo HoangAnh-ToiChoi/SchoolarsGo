@@ -9,6 +9,9 @@ const swaggerUi = require('swagger-ui-express');
 const { swaggerSpec } = require('./utils/swagger');
 const errorHandler = require('./middlewares/errorHandler');
 const { apiLimiter } = require('./middlewares/rateLimiter');
+const checkOrigin = require('./middlewares/checkOrigin');
+const { corsOrigin } = require('./config/cors');
+const { getTrustProxy } = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
 const scholarshipRoutes = require('./routes/scholarship.routes');
 const profileRoutes = require('./routes/profile.routes');
@@ -22,22 +25,20 @@ const newsRoutes = require('./routes/news.routes');
 const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
+app.set('trust proxy', getTrustProxy());
 
 // ── Security & Middleware ──────────────────────────────
 app.use(helmet());
-const ALLOWED_ORIGINS = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL].filter(Boolean)
-  : /^http:\/\/localhost:\d+$/;
-
 app.use(
   cors({
-    origin: ALLOWED_ORIGINS,
+    origin: corsOrigin,
     credentials: true,
   })
 );
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(checkOrigin);
 
 // Logging — chỉ log trong development
 if (process.env.NODE_ENV !== 'production') {

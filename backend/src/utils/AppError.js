@@ -12,6 +12,9 @@ class AppError extends Error {
    * @param {string} [code] - Mã lỗi UPPER_SNAKE_CASE (optional)
    */
   constructor(message, statusCode = 500, code) {
+    if (typeof message === 'object') {
+      ({ message, statusCode, code } = message);
+    }
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;

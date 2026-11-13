@@ -1,14 +1,12 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
+const { getAuthSecrets } = require('../config/env');
+const { authorization } = require('../constants/errors');
 
 class TokenService {
   constructor(env = process.env) {
-    this.accessSecret = env.JWT_ACCESS_SECRET;
-    this.refreshSecret = env.JWT_REFRESH_SECRET;
-    if (!this.accessSecret || this.accessSecret.length < 32) throw new Error('JWT_ACCESS_SECRET must contain at least 32 characters');
-    if (!this.refreshSecret || this.refreshSecret.length < 32) throw new Error('JWT_REFRESH_SECRET must contain at least 32 characters');
-    if (this.accessSecret === this.refreshSecret) throw new Error('JWT access and refresh secrets must be different');
+    ({ accessSecret: this.accessSecret, refreshSecret: this.refreshSecret } = getAuthSecrets(env));
   }
 
   signAccess({ userId, sessionId, role }) {
@@ -19,8 +17,7 @@ class TokenService {
     try {
       return jwt.verify(token, this.accessSecret, { algorithms: ['HS256'] });
     } catch (error) {
-      const expired = error.name === 'TokenExpiredError';
-      throw new AppError(expired ? 'Access token đã hết hạn' : 'Access token không hợp lệ', 401, expired ? 'ACCESS_TOKEN_EXPIRED' : 'ACCESS_TOKEN_INVALID');
+      throw new AppError(error.name === 'TokenExpiredError' ? authorization.ACCESS_TOKEN_EXPIRED : authorization.ACCESS_TOKEN_INVALID);
     }
   }
 
@@ -32,8 +29,7 @@ class TokenService {
     try {
       return jwt.verify(token, this.refreshSecret, { algorithms: ['HS256'] });
     } catch (error) {
-      const expired = error.name === 'TokenExpiredError';
-      throw new AppError(expired ? 'Refresh token đã hết hạn' : 'Refresh token không hợp lệ', 401, expired ? 'REFRESH_TOKEN_EXPIRED' : 'REFRESH_TOKEN_INVALID');
+      throw new AppError(error.name === 'TokenExpiredError' ? authorization.REFRESH_TOKEN_EXPIRED : authorization.REFRESH_TOKEN_INVALID);
     }
   }
 

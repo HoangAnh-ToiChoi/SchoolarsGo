@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const AppError = require('../utils/AppError');
 const { toSessionUser } = require('../utils/sessionUser');
+const { authorization } = require('../constants/errors');
 
 class SessionService {
   #repo;
@@ -24,16 +25,16 @@ class SessionService {
   }
 
   async refresh(rawToken) {
-    if (!rawToken) throw new AppError('Thiếu refresh token', 401, 'REFRESH_TOKEN_MISSING');
+    if (!rawToken) throw new AppError(authorization.REFRESH_TOKEN_MISSING);
     const claims = this.#token.verifyRefresh(rawToken);
     const session = await this.#repo.findById(claims.sid);
-    if (!session || session.revoked_at) throw new AppError('Phiên đăng nhập đã bị thu hồi', 401, 'SESSION_REVOKED');
+    if (!session || session.revoked_at) throw new AppError(authorization.SESSION_REVOKED);
     const hash = this.#token.hashToken(rawToken);
     if (hash !== session.refresh_token_hash) return this.#handleReused(session, hash);
     const user = await this.#users.findSessionUserById(claims.sub);
     if (!user || !user.is_active) {
       await this.#repo.revoke(session.id, 'locked');
-      throw new AppError('Tài khoản không hoạt động', 401, 'SESSION_REVOKED');
+      throw new AppError(authorization.SESSION_REVOKED);
     }
     const refreshToken = this.#token.signRefresh({ userId: user.id, sessionId: session.id });
     const updated = await this.#repo.rotate(session.id, {
@@ -43,19 +44,19 @@ class SessionService {
     if (!updated) {
       const latest = await this.#repo.findById(session.id);
       if (latest?.previous_token_hash === hash && Date.now() - new Date(latest.rotated_at).getTime() < 30000) {
-        throw new AppError('Đang làm mới phiên ở tab khác', 409, 'REFRESH_RACE');
+        throw new AppError(authorization.REFRESH_RACE);
       }
-      throw new AppError('Phiên đăng nhập đã bị thu hồi', 401, 'SESSION_REVOKED');
+      throw new AppError(authorization.SESSION_REVOKED);
     }
     return { accessToken: this.#token.signAccess({ userId: user.id, sessionId: session.id, role: user.role }), refreshToken, user: toSessionUser(user) };
   }
 
   async #handleReused(session, hash) {
     if (hash === session.previous_token_hash && Date.now() - new Date(session.rotated_at).getTime() < 30000) {
-      throw new AppError('Đang làm mới phiên ở tab khác', 409, 'REFRESH_RACE');
+      throw new AppError(authorization.REFRESH_RACE);
     }
     await this.#repo.revoke(session.id, 'reused');
-    throw new AppError('Refresh token đã được sử dụng lại', 401, 'REFRESH_TOKEN_REUSED');
+    throw new AppError(authorization.REFRESH_TOKEN_REUSED);
   }
 
   async end(rawToken) {
@@ -80,7 +81,7 @@ class SessionService {
 
   async endOne(userId, sessionId) {
     const session = await this.#repo.revokeForUser(sessionId, userId, 'logout');
-    if (!session) throw new AppError('Không tìm thấy thiết bị', 404, 'SESSION_NOT_FOUND');
+    if (!session) throw new AppError(authorization.SESSION_NOT_FOUND);
   }
 
   #deviceName(userAgent = '') {

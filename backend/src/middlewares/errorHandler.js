@@ -72,7 +72,7 @@ const errorHandler = (err, req, res, _next) => {
     return res.status(err.statusCode || 400).json({
       success: false,
       message: err.message,
-      code: err.statusCode || 400,
+      code: err.code || err.statusCode || 400,
     });
   }
 
