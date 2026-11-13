@@ -5,7 +5,7 @@ class SessionRepository {
     this.#db = db;
   }
 
-  async createWithLimit({ userId, refreshTokenHash, expiresAt, deviceName }) {
+  async createWithLimit({ sessionId, userId, refreshTokenHash, expiresAt, deviceName }) {
     const client = await this.#db.pool.connect();
     try {
       await client.query('BEGIN');
@@ -17,9 +17,9 @@ class SessionRepository {
         [userId]
       );
       const { rows } = await client.query(
-        `INSERT INTO user_sessions (user_id, refresh_token_hash, expires_at, device_name)
-         VALUES ($1, $2, $3, $4) RETURNING id, user_id, refresh_token_hash, expires_at`,
-        [userId, refreshTokenHash, expiresAt, deviceName]
+        `INSERT INTO user_sessions (id, user_id, refresh_token_hash, expires_at, device_name)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, refresh_token_hash, expires_at`,
+        [sessionId, userId, refreshTokenHash, expiresAt, deviceName]
       );
       await client.query('COMMIT');
       return rows[0];
@@ -35,12 +35,12 @@ class SessionRepository {
     return this.#db.queryOne('SELECT * FROM user_sessions WHERE id = $1', [id]);
   }
 
-  async rotate(id, { refreshTokenHash, previousTokenHash, expiresAt }) {
+  async rotate(id, { refreshTokenHash, previousTokenHash, expiresAt, currentTokenHash }) {
     return this.#db.queryOne(
       `UPDATE user_sessions SET refresh_token_hash = $2, previous_token_hash = $3,
        rotated_at = now(), expires_at = $4, last_used_at = now()
-       WHERE id = $1 AND revoked_at IS NULL RETURNING *`,
-      [id, refreshTokenHash, previousTokenHash, expiresAt]
+       WHERE id = $1 AND revoked_at IS NULL AND refresh_token_hash = $5 RETURNING *`,
+      [id, refreshTokenHash, previousTokenHash, expiresAt, currentTokenHash]
     );
   }
 
@@ -49,6 +49,14 @@ class SessionRepository {
       `UPDATE user_sessions SET revoked_at = now(), revoked_reason = $2
        WHERE id = $1 AND revoked_at IS NULL RETURNING id`,
       [id, reason]
+    );
+  }
+
+  revokeForUser(id, userId, reason) {
+    return this.#db.queryOne(
+      `UPDATE user_sessions SET revoked_at = now(), revoked_reason = $3
+       WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL RETURNING id`,
+      [id, userId, reason]
     );
   }
 
