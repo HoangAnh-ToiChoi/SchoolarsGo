@@ -1,6 +1,6 @@
 /**
  * Kiểm tra req.body | req.query | req.params bằng schema zod.
- * Sai → zod ném ZodError, Express chuyển sang errorHandler (400 + danh sách lỗi từng trường).
+ * Sai → zod ném ZodError, Express chuyển sang errorHandle.controller (400 + danh sách lỗi từng trường).
  */
 const validate = (schema, source = 'body') => (req, res, next) => {
   const parsed = schema.parse(req[source]);

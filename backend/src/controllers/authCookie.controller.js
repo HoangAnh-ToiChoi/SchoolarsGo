@@ -1,4 +1,4 @@
-import { getCookieSameSite } from '#configs/jwt.config.js';
+import { getCookieSameSite } from '~/configs/jwt.config.js';
 
 const ACCESS_PATH = '/api';
 const REFRESH_PATH = '/api/auth';

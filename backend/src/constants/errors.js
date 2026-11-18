@@ -19,4 +19,27 @@ const authorization = Object.freeze({
   ORIGIN_NOT_ALLOWED: { statusCode: 403, code: 'ORIGIN_NOT_ALLOWED', message: 'Nguồn gửi yêu cầu không được phép.' },
 });
 
-export { authorization };
+// Lỗi chung của server (errorHandle.controller dùng khi gặp lỗi không phải AppError)
+const common = Object.freeze({
+  INTERNAL_SERVER_ERROR: { statusCode: 500, code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi máy chủ, vui lòng thử lại sau' },
+  VALIDATION_ERROR: { statusCode: 400, code: 'VALIDATION_ERROR', message: 'Dữ liệu không hợp lệ' },
+  MALFORMED_JSON: { statusCode: 400, code: 'MALFORMED_JSON', message: 'Request body không phải JSON hợp lệ' },
+  ROUTE_NOT_FOUND: { statusCode: 404, code: 'ROUTE_NOT_FOUND', message: 'Endpoint not found' },
+  INVALID_TOKEN: { statusCode: 401, code: 'INVALID_TOKEN', message: 'Token không hợp lệ' },
+  TOKEN_EXPIRED: { statusCode: 401, code: 'TOKEN_EXPIRED', message: 'Phiên đăng nhập đã hết hạn' },
+});
+
+// Mã lỗi của Postgres/Supabase (khóa là SQLSTATE)
+const postgres = Object.freeze({
+  23505: { statusCode: 409, code: 'DUPLICATE_ENTRY', message: 'Dữ liệu đã tồn tại (unique constraint violation)' },
+  23503: { statusCode: 400, code: 'INVALID_REFERENCE', message: 'Tham chiếu không hợp lệ (foreign key violation)' },
+  '22P02': { statusCode: 400, code: 'INVALID_DATA_FORMAT', message: 'Dữ liệu có định dạng không hợp lệ' },
+});
+
+// Mã lỗi của multer (khóa là err.code)
+const multer = Object.freeze({
+  LIMIT_FILE_SIZE: { statusCode: 400, code: 'FILE_TOO_LARGE', message: 'File quá lớn (tối đa 10MB)' },
+  LIMIT_UNEXPECTED_FILE: { statusCode: 400, code: 'UNEXPECTED_FILE', message: 'Field upload không hợp lệ' },
+});
+
+export { authorization, common, postgres, multer };

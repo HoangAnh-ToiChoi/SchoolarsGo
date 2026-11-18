@@ -1,6 +1,6 @@
-import AppError from '#utils/AppError.js';
-import { isAllowedOrigin } from '#configs/cors.config.js';
-import { authorization } from '#constants/errors.js';
+import AppError from '~/utils/AppError.js';
+import { isAllowedOrigin } from '~/configs/cors.config.js';
+import { authorization } from '~/constants/errors.js';
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 

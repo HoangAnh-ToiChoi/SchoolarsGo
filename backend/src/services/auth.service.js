@@ -1,10 +1,10 @@
 import crypto from 'node:crypto';
-import AppError from '#utils/AppError.js';
-import { sendResetEmail } from '#configs/nodemailer.js';
-import { toSessionUser } from '#utils/sessionUser.js';
-import { authorization } from '#constants/errors.js';
-import authModel from '#models/auth.model.js';
-import hashService from './hash.service.js';
+import AppError from '~/utils/AppError.js';
+import { sendResetEmail } from '~/configs/nodemailer.js';
+import { toSessionUser } from '~/utils/sessionUser.js';
+import { authorization } from '~/constants/errors.js';
+import authModel from '~/models/auth.model.js';
+import hashService from '~/utils/hash.js';
 import sessionService from './session.service.js';
 
 class AuthService {
@@ -39,10 +39,21 @@ class AuthService {
     return { email: user.email, phone: user.phone, date_of_birth: user.date_of_birth };
   }
 
-  refresh = rawToken => sessionService.refresh(rawToken);
-  logout = rawToken => sessionService.end(rawToken);
-  listSessions = (userId, currentSessionId) => sessionService.list(userId, currentSessionId);
-  endSession = (userId, sessionId) => sessionService.endOne(userId, sessionId);
+  async refresh(rawToken) {
+    return sessionService.refresh(rawToken);
+  }
+
+  async logout(rawToken) {
+    return sessionService.end(rawToken);
+  }
+
+  async listSessions(userId, currentSessionId) {
+    return sessionService.list(userId, currentSessionId);
+  }
+
+  async endSession(userId, sessionId) {
+    return sessionService.endOne(userId, sessionId);
+  }
 
   async forgotPassword(email) {
     const user = await authModel.findByEmail(email);

@@ -5,7 +5,7 @@
  */
 
 import multer from 'multer';
-import { ApiResponse } from '#utils/responseHelper.js';
+import AppError from '~/utils/AppError.js';
 
 const ALLOWED_EXTS_BY_TYPE = {
   transcript: ['.pdf'],
@@ -58,18 +58,18 @@ const upload = multer({
 });
 
 /**
- * Đổi lỗi của fileFilter (Error thường, không phải MulterError) thành JSON 400; nếu không client chỉ thấy "Failed to fetch".
+ * MulterError (file quá lớn, sai field...) chuyển thẳng cho errorHandle.controller, nơi đã có mã lỗi và thông báo riêng.
+ * Lỗi của fileFilter (Error thường) đổi thành AppError 400; nếu không client chỉ thấy "Failed to fetch".
  * Phải return ngay khi có lỗi, không thì controller chạy tiếp và gửi response lần hai.
  */
 const handleUploadError = (err, req, res, next) => {
-  if (err?.statusCode) return next(err);
+  if (!err) return next();
+  if (err.statusCode) return next(err);
 
-  if (err) {
-    // Đọc hết body trước khi trả lời, nếu không client bị ERR_CONNECTION_RESET khi multer từ chối sớm
-    req.resume();
-    return res.status(400).json(ApiResponse.error({ message: err.message || 'Upload file không hợp lệ', code: 400, errorCode: 'UPLOAD_INVALID' }));
-  }
-  return next();
+  // Đọc hết body trước khi trả lời, nếu không client bị ERR_CONNECTION_RESET khi multer từ chối sớm
+  req.resume();
+  if (err instanceof multer.MulterError) return next(err);
+  return next(AppError.badRequest(err.message || 'Upload file không hợp lệ', 'UPLOAD_INVALID'));
 };
 
 export { upload, handleUploadError };

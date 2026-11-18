@@ -1,4 +1,4 @@
-import getSupabase from '#configs/supabase.js';
+import getSupabase from '~/configs/supabase.js';
 
 const DEFAULT_CHECKLIST = [
   { item: 'CV', done: false },

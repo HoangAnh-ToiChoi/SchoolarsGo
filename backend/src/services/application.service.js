@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import applicationModel from '#models/application.model.js';
+import AppError from '~/utils/AppError.js';
+import applicationModel from '~/models/application.model.js';
 
 class ApplicationService {
   static #VALID_TRANSITIONS = {

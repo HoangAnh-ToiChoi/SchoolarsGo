@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
-import getSupabase from '#configs/supabase.js';
-import { extractIeltsScore } from '#utils/helpers.js';
+import getSupabase from '~/configs/supabase.js';
+import { extractIeltsScore } from '~/utils/helpers.js';
 import { buildSystemInstruction } from './chat.policy.js';
 
 // Rút bộ lọc từ lời người dùng bằng regex (không tốn quota AI)

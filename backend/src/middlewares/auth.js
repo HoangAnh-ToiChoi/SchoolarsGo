@@ -1,6 +1,6 @@
-import AppError from '#utils/AppError.js';
-import tokenService from '#services/token.service.js';
-import { authorization } from '#constants/errors.js';
+import AppError from '~/utils/AppError.js';
+import tokenService from '~/services/token.service.js';
+import { authorization } from '~/constants/errors.js';
 
 const extractToken = req => {
   const authorization = req.headers.authorization || '';

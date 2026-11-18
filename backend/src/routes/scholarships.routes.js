@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import scholarshipController from '#controllers/scholarship.controller.js';
-import { optionalAuth } from '#middlewares/auth.js';
-import validate from '#middlewares/validate.js';
-import { scholarshipQuerySchema } from '#validations/scholarship.validation.js';
+import scholarshipController from '~/controllers/scholarship.controller.js';
+import { optionalAuth } from '~/middlewares/auth.js';
+import validate from '~/middlewares/validate.js';
+import { scholarshipQuerySchema } from '~/validations/scholarship.validation.js';
 
 const router = Router();
 

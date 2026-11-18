@@ -13,8 +13,6 @@
  * tên host ở --confirm để không dọn nhầm. Nhớ backup trước (xem scripts/README.md).
  */
 
-'use strict';
-
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

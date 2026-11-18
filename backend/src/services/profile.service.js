@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import profileModel from '#models/profile.model.js';
+import AppError from '~/utils/AppError.js';
+import profileModel from '~/models/profile.model.js';
 
 class ProfileService {
   async getProfile(userId) {

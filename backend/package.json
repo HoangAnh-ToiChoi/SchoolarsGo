@@ -4,16 +4,13 @@
   "description": "ScholarsGo API Server — Scholarship search & study-abroad platform",
   "type": "module",
   "main": "src/server.js",
-  "imports": {
-    "#*": "./src/*"
-  },
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
-    "test:contract": "node --import ./tests/setupEnv.js --experimental-test-module-mocks --test tests/contracts/*.test.js",
-    "test:ingestion": "node --test tests/ingestion/*.test.js",
-    "ingest": "node scripts/ingest.js",
-    "ingest:dry": "node scripts/ingest.js --dry-run --verbose",
+    "dev": "nodemon --import ./register.js src/server.js",
+    "start": "node --import ./register.js src/server.js",
+    "test:contract": "node --import ./register.js --import ./tests/setupEnv.js --experimental-test-module-mocks --test tests/contracts/*.test.js",
+    "test:ingestion": "node --import ./register.js --test tests/ingestion/*.test.js",
+    "ingest": "node --import ./register.js scripts/ingest.js",
+    "ingest:dry": "node --import ./register.js scripts/ingest.js --dry-run --verbose",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",

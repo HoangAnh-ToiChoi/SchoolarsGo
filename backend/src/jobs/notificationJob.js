@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import notificationService from '#services/notification.service.js';
+import notificationService from '~/services/notification.service.js';
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 

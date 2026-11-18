@@ -6,8 +6,8 @@ import { Router } from 'express';
 process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'upload-access-secret-at-least-32-characters';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'upload-refresh-secret-at-least-32-characters';
 
-import { auth } from '#middlewares/auth.js';
-import { upload, handleUploadError } from '#middlewares/upload.js';
+import { auth } from '~/middlewares/auth.js';
+import { upload, handleUploadError } from '~/middlewares/upload.js';
 import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
 function buildApp() {

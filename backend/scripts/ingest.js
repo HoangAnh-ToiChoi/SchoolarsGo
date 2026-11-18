@@ -15,8 +15,6 @@
  *   --allow-remote  bắt buộc khi DB không phải localhost
  */
 
-'use strict';
-
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
@@ -30,10 +28,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 if (argValue('env')) dotenv.config({ path: path.resolve(__dirname, '..', argValue('env')), override: true });
 
-import * as db from '../src/configs/database.config.js';
-import { createIngestion, sourceNames } from '../src/ingestion/index.js';
-
-import { RULES as RULE_NAMES } from '../src/ingestion/filter.js';
+// Nạp động sau dotenv.config: database.config tạo Pool từ biến PG_* ngay lúc import
+const db = await import('../src/configs/database.config.js');
+const { createIngestion, sourceNames } = await import('../src/ingestion/index.js');
+const { RULES: RULE_NAMES } = await import('../src/ingestion/filter.js');
 
 async function buildAiModel() {
   if (hasFlag('no-ai') || process.env.INGESTION_USE_AI === 'false') return null;

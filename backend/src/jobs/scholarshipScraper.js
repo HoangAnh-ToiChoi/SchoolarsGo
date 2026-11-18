@@ -1,8 +1,8 @@
 import cron from 'node-cron';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import * as db from '#configs/database.config.js';
-import sessionModel from '#models/session.model.js';
-import { createIngestion } from '#ingestion/index.js';
+import * as db from '~/configs/database.config.js';
+import sessionModel from '~/models/session.model.js';
+import { createIngestion } from '~/ingestion/index.js';
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 

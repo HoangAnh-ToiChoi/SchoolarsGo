@@ -5,8 +5,8 @@ import { mockSupabase } from './helpers/mockService.js';
 
 // Model gọi getSupabase() nên giả lập configs/supabase.js trước khi nạp model và service
 const supabaseRef = mockSupabase();
-const { default: savedModel } = await import('#models/saved.model.js');
-const { default: savedService } = await import('#services/saved.service.js');
+const { default: savedModel } = await import('~/models/saved.model.js');
+const { default: savedService } = await import('~/services/saved.service.js');
 
 // Giả lập chuỗi truy vấn Supabase: from().select().eq().order() trả về rows cố định
 const fakeSupabase = (rows) => {

@@ -1,4 +1,4 @@
-import getSupabase from '#configs/supabase.js';
+import getSupabase from '~/configs/supabase.js';
 // Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
 const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
 

@@ -1,6 +1,6 @@
-import AppError from '#utils/AppError.js';
-import { extractIeltsScore } from '#utils/helpers.js';
-import recommendModel from '#models/recommend.model.js';
+import AppError from '~/utils/AppError.js';
+import { extractIeltsScore } from '~/utils/helpers.js';
+import recommendModel from '~/models/recommend.model.js';
 import * as gemini from './gemini.service.js';
 
 const CORE_PROFILE_FIELDS = ['gpa', 'english_level', 'target_country', 'target_major', 'target_degree'];

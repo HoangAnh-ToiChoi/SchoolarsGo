@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import AppError from '#utils/AppError.js';
-import { getAuthSecrets, jwtConfig } from '#configs/jwt.config.js';
-import { authorization } from '#constants/errors.js';
+import AppError from '~/utils/AppError.js';
+import { getAuthSecrets, jwtConfig } from '~/configs/jwt.config.js';
+import { authorization } from '~/constants/errors.js';
 
 class TokenService {
   constructor() {
