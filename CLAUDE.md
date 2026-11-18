@@ -2,7 +2,7 @@
 
 Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồn quy ước duy nhất** cho người và AI.
 
-**Stack:** React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query (FE) · Node.js + Express, Supabase PostgreSQL (BE) · GitHub Pages (demo FE)
+**Stack:** React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query (FE) · Node.js (ESM) + Express 5, Supabase PostgreSQL (BE) · GitHub Pages (demo FE)
 
 **Tài liệu:** `docs/roadmap.md` (việc của từng vai trò FE/BE/AI) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` (module kéo học bổng). Tài liệu lệch code thì **code là đúng**.
 
@@ -82,7 +82,9 @@ routes/        URL + middleware: auth, requireRole, validate(schema)
 
 Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.model`.)
 
-**Không có container / DI riêng.** Mỗi tầng tự tạo tầng dưới bằng tham số mặc định của constructor, ví dụ `constructor(model = new SavedModel())`, `constructor(service = new SavedService())`. Route tạo controller một lần ở đầu file và bind method bằng `utils/bindControllerMethods`. Test truyền model giả vào constructor của service. Không dùng event bus: việc gì cần làm thì gọi thẳng trong service.
+**Mỗi file class xuất sẵn một bản dùng chung, không có container, không `this` cho phụ thuộc.** Cuối file model / service / controller chỉ có `export default new SavedService();` (không `export { Class }`, không constructor nhận phụ thuộc). Nơi dùng `import savedService from '#services/saved.service.js'` rồi gọi thẳng. Service gọi model đã import (`savedModel.findAllByUser(...)`); model gọi `getSupabase()` trong từng hàm. `this` chỉ còn cho trạng thái riêng của chính class (cache, parser) và hàm private. Bản dùng chung chạy ngay lúc import nên cần `.env` đã nạp (`import 'dotenv/config'` là dòng đầu của `app.js`, `server.js`). Không dùng event bus: việc gì cần làm thì gọi thẳng trong service.
+
+**ESM + Express 5.** `package.json` có `"type": "module"`: dùng `import` / `export` (có đuôi `.js`), không `require` / `module.exports`. Nhiều hàm xuất `export { a, b }`. **Import nội bộ dùng `#` (= `backend/src/`), không dùng `../`**: `import AppError from '#utils/AppError.js'`; cùng thư mục thì `./`. Đây là `imports` có sẵn của Node (khai báo trong `package.json`), chạy thẳng không cần cờ hay file phụ; `jsconfig.json` chỉ để VS Code gợi ý và nhảy tới file. Node không cho dùng `~/` hay `#/`. `__dirname` lấy bằng `path.dirname(fileURLToPath(import.meta.url))`. `import` chạy trước code của file: đặt biến môi trường rồi mới nạp module cần nó thì dùng `await import()`. Express 5: `req.query` chỉ đọc (`validate` đã xử lý), `req.body` luôn là object (`app.js`).
 
 ### Cấu trúc
 
@@ -92,12 +94,13 @@ backend/
     server.js            mở cổng + bật cron (jobs/)
     app.js               middleware chung (helmet, cors, cookie, rate limit) + gắn routes
     routes/ controllers/ services/ models/   một file mỗi nhóm: notification.routes.js …
+                         routes/index.js tự nạp mọi *.routes.js, tên file thành đường dẫn (saved.routes.js → /saved)
     middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter, errorHandler
-    jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
+    jobs/                tự nạp, gọi mọi hàm start*: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
     ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
-    configs/             CORS, database, JWT, nodemailer, Supabase client
+    configs/             CORS, database, JWT, nodemailer, Supabase client, error.config (đổi lỗi → response)
     validations/         schema zod theo nghiệp vụ: auth.validation.js …
-    utils/               AppError, responseHelper, bindControllerMethods
+    utils/               AppError, responseHelper, helpers
   scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
   tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
 ```
@@ -109,24 +112,31 @@ backend/
 - **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): model **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
 - Cấu hình môi trường / CORS đặt trong `backend/src/configs/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
 - Access token sống 15 phút; refresh token 7 ngày, lưu dạng hash trong `user_sessions`. LocalStorage FE chỉ được giữ `{ full_name, avatar_url }`; quyền admin luôn lấy từ `/auth/me`.
-- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. Route bind controller method (`utils/bindControllerMethods`) trước khi truyền cho Express.
+- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field.
 
 ### Lỗi và response
 
-- Service ném `new AppError(message, statusCode, 'MA_LOI')`. Controller `try { … } catch (err) { next(err) }` → `errorHandler` trả JSON.
-- Thành công: `success(res, data, message, meta)` / `created(…)` trong `utils/responseHelper.js` → `{ success, data, message, meta }`.
-- Đầu vào kiểm tra bằng zod trong `validations/<nghiệpVụ>.validation.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`.
+- **Controller không `try/catch/next`.** Express 5 tự chuyển lỗi của handler `async` sang `errorHandler`. Handler chỉ có 2 tham số `(req, res)`.
+- **Ném lỗi nghiệp vụ** bằng hàm tạo sẵn của `AppError`: `AppError.badRequest | unauthorized | forbidden | notFound | conflict | internal(message, 'MA_LOI')`. Mã dựng sẵn (đăng nhập, phiên) dùng `new AppError(authorization.X)`. Status không có hàm tạo (vd. 503) dùng `new AppError(message, 503, 'MA_LOI')`.
+- `errorHandler` → `resolveError()` (`configs/error.config.js`) đổi mọi lỗi (zod, Postgres, JWT, multer, JSON hỏng, `AppError`, lỗi lạ) thành `{ statusCode, code, errorCode, message, details }`. Lỗi lạ trả 500 chung chung, không lộ chi tiết. Thêm kiểu lỗi mới = thêm một mapper ở đó.
+- **Dạng response** (`ApiResponse` trong `utils/responseHelper.js`): thành công `{ success, data, message, meta }` qua `success(res, …)` / `created(res, …)`; lỗi `{ success: false, message, code, error, errors? }`. `code` (số HTTP hoặc mã chữ như `SESSION_REVOKED`) và `errors` là thứ FE đang đọc, **không đổi tên / bỏ**. `error` là mã chuẩn UPPER_SNAKE_CASE. Mọi response lỗi (kể cả 404, giới hạn tần suất, upload) tạo bằng `ApiResponse.error`, không tự viết JSON.
+- Đầu vào kiểm tra bằng zod trong `validations/<nghiệpVụ>.validation.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`. Sai → `ZodError` → 400 `VALIDATION_ERROR` kèm `errors` từng trường.
 
 ### Query
 
 - Chọn cột cụ thể, không `SELECT *` / `select('*')`.
 - Không N+1: dùng JOIN / select lồng (`scholarships(id, title)`) hoặc `Promise.all`.
 - Lọc theo cột mới → kiểm tra đã có index, chưa có thì thêm trong migration.
+- **Lấy dữ liệu 2 bước: SQL lấy nhẹ → code lọc → rồi mới lấy dữ liệu đầy đủ theo kết quả lọc.** Khi điều kiện lọc không viết được gọn bằng SQL (tính điểm, so khớp hồ sơ, xếp hạng, luật nghiệp vụ):
+  1. Model chạy SQL chỉ lấy cột cần để lọc (`id` + vài cột điều kiện), không kéo cả bản ghi.
+  2. Service lọc / chấm điểm / sắp xếp bằng code, cắt phân trang trên danh sách `id` đã lọc.
+  3. Model lấy bản ghi đầy đủ chỉ cho các `id` còn lại (`.in('id', ids)` / `WHERE id = ANY($1)`), một lần, rồi service ghép lại theo đúng thứ tự đã xếp.
+  Điều kiện SQL viết được gọn (bằng, khoảng, `ILIKE`, theo `user_id`…) thì để SQL lọc luôn, không cần 2 bước.
 - Thời gian theo giờ Việt Nam (`Asia/Ho_Chi_Minh`) khi tính "hôm nay", "còn N ngày".
 
 ### Test
 
-Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, không tìm thấy. Dùng model giả (object có cùng tên hàm), không gọi DB thật.
+Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, không tìm thấy. Vì service import thẳng model, test giả lập module bằng `tests/contracts/helpers/mockService.js` (`mockService`, `mockSupabase`) **trước** khi `await import()` service; mỗi test gán `ref.current` = model giả (object có cùng tên hàm), không gọi DB thật. `tests/setupEnv.js` đặt biến môi trường giả. Test lỗi / response: `tests/contracts/errorResponse.contract.test.js`.
 
 ---
 
