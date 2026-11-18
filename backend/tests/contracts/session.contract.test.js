@@ -7,7 +7,7 @@ const AuthService = require('../../src/services/auth.service');
 const AdminService = require('../../src/services/admin.service');
 const { toSessionUser } = require('../../src/utils/sessionUser');
 process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
-const { isAllowedOrigin } = require('../../src/config/cors.config');
+const { isAllowedOrigin } = require('../../src/configs/cors.config');
 
 const env = { JWT_ACCESS_SECRET: 'access-secret-that-is-at-least-32-chars', JWT_REFRESH_SECRET: 'refresh-secret-that-is-also-32-chars' };
 
@@ -96,8 +96,8 @@ test('T16: missing or short secrets fail at service construction', () => {
 
 test('T2: locked accounts cannot log in or create sessions', async () => {
   let started = false;
-  const service = new AuthService({ findByEmailWithCredentials: async () => ({ id: 'u1', is_active: false, password_hash: 'hash' }) }, {},
-    { compare: async () => true }, {}, { start: async () => { started = true; } });
+  const service = new AuthService({ findByEmailWithCredentials: async () => ({ id: 'u1', is_active: false, password_hash: 'hash' }) },
+    { compare: async () => true }, { start: async () => { started = true; } });
   await assert.rejects(service.login('a@b.com', 'pass'), error => error.code === 'ACCOUNT_LOCKED' && error.statusCode === 403);
   assert.equal(started, false);
 });
@@ -129,11 +129,11 @@ test('T10/T11: role, lock and password reset revoke only the affected user sessi
   await admin.changeUserStatus('u2', false, 'admin-1');
   assert.deepEqual(revoked, [{ id: 'u1', reason: 'role_changed' }, { id: 'u2', reason: 'locked' }]);
 
-  const resetRepo = {
+  const resetModel = {
     findByResetToken: async () => ({ id: 'u3', reset_token_expires: new Date(Date.now() + 60000) }),
     clearResetToken: async () => {},
   };
-  const auth = new AuthService(resetRepo, {}, { hash: async () => 'new-hash' }, {}, sessionService);
+  const auth = new AuthService(resetModel, { hash: async () => 'new-hash' }, sessionService);
   await auth.resetPassword('raw', 'new-password');
   assert.deepEqual(revoked[2], { id: 'u3', reason: 'password_reset' });
 });

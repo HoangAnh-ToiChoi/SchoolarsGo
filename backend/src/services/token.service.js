@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
-const { getAuthSecrets, jwtConfig } = require('../config/jwt.config');
+const { getAuthSecrets, jwtConfig } = require('../configs/jwt.config');
 const { authorization } = require('../constants/errors');
 
 class TokenService {

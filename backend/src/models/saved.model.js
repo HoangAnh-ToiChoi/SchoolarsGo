@@ -1,4 +1,4 @@
-class SavedRepository {
+class SavedModel {
   #sb;
 
   constructor(sb) {
@@ -66,4 +66,4 @@ class SavedRepository {
   }
 }
 
-module.exports = SavedRepository;
+module.exports = SavedModel;

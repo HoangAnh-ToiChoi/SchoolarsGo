@@ -1,14 +1,14 @@
 const AppError = require('../utils/AppError');
 
 class SavedService {
-  #repo;
+  #model;
 
-  constructor(savedRepository) {
-    this.#repo = savedRepository;
+  constructor(savedModel) {
+    this.#model = savedModel;
   }
 
   async getAll(userId) {
-    const rows = await this.#repo.findAllByUser(userId);
+    const rows = await this.#model.findAllByUser(userId);
     return rows.map(row => ({
       id: row.id,
       note: row.note,
@@ -30,12 +30,12 @@ class SavedService {
   }
 
   async save(userId, scholarshipId, note) {
-    const exists = await this.#repo.scholarshipExists(scholarshipId);
+    const exists = await this.#model.scholarshipExists(scholarshipId);
     if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
 
     try {
-      const saved = await this.#repo.create({ userId, scholarshipId, note });
-      const scholarship = await this.#repo.getScholarshipDetails(scholarshipId);
+      const saved = await this.#model.create({ userId, scholarshipId, note });
+      const scholarship = await this.#model.getScholarshipDetails(scholarshipId);
       return { ...saved, scholarship };
     } catch (err) {
       if (err.message === 'SCHOLARSHIP_ALREADY_SAVED') {
@@ -46,7 +46,7 @@ class SavedService {
   }
 
   async remove(userId, scholarshipId) {
-    const deleted = await this.#repo.deleteByUserAndScholarship(userId, scholarshipId);
+    const deleted = await this.#model.deleteByUserAndScholarship(userId, scholarshipId);
     if (deleted === 0) throw new AppError('Học bổng này chưa được lưu.', 404, 'NOT_SAVED');
     return { deleted: true };
   }

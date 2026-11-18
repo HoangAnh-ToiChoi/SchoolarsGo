@@ -13,12 +13,7 @@ if (process.env.SENTRY_DSN) {
 
 const app = require('./app');
 const { startJobs } = require('./jobs');
-const { registerStorageListeners } = require('./events/listeners/storage.listener');
-const { registerAuthListeners } = require('./events/listeners/auth.listener');
 const PORT = process.env.PORT || 5000;
-
-registerStorageListeners();
-registerAuthListeners();
 
 const server = app.listen(PORT, function onServerStarted() {
   console.log(`🚀 ScholarsGo API running on http://localhost:${PORT}`);

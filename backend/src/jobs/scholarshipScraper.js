@@ -1,7 +1,7 @@
 'use strict';
 
 const cron = require('node-cron');
-const { ingestionService, sessionRepository } = require('../container');
+const { ingestionService, sessionModel } = require('../container');
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 let isRunning = false;
@@ -38,7 +38,7 @@ async function deactivateExpiredJob() {
 
 async function deleteOldSessionsJob() {
   try {
-    const count = await sessionRepository.deleteOld();
+    const count = await sessionModel.deleteOld();
     console.log(`[Auth] Đã dọn ${count} phiên đăng nhập cũ`);
   } catch (e) {
     console.error('[Auth] Lỗi khi dọn phiên đăng nhập:', e.message);

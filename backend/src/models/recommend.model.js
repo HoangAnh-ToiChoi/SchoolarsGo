@@ -1,4 +1,4 @@
-class RecommendRepository {
+class RecommendModel {
   #sb;
 
   constructor(sb) {
@@ -35,4 +35,4 @@ class RecommendRepository {
   }
 }
 
-module.exports = RecommendRepository;
+module.exports = RecommendModel;

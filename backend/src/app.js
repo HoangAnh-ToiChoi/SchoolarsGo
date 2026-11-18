@@ -9,12 +9,12 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 
 const { swaggerSpec } = require('./utils/swagger');
-const { corsOrigin } = require('./config/cors.config');
-const { getTrustProxy } = require('./config/jwt.config');
+const { corsOrigin } = require('./configs/cors.config');
+const { getTrustProxy } = require('./configs/jwt.config');
 const { apiLimiter } = require('./middlewares/rateLimiter');
 const checkOrigin = require('./middlewares/checkOrigin');
 const errorHandler = require('./middlewares/errorHandler');
-require('./config/database.config');
+require('./configs/database.config');
 const routes = require('./routes');
 
 const app = express();

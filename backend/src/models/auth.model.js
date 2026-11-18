@@ -1,4 +1,4 @@
-class AuthRepository {
+class AuthModel {
   #sb;
 
   constructor(sb) {
@@ -84,4 +84,4 @@ class AuthRepository {
   }
 }
 
-module.exports = AuthRepository;
+module.exports = AuthModel;

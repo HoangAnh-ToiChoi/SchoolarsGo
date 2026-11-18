@@ -1,4 +1,4 @@
-class DocumentRepository {
+class DocumentModel {
   #sb;
 
   constructor(sb) {
@@ -31,4 +31,4 @@ class DocumentRepository {
   }
 }
 
-module.exports = DocumentRepository;
+module.exports = DocumentModel;

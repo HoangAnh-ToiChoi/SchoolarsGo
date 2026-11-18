@@ -13,10 +13,10 @@
 const AppError = require('../utils/AppError');
 class AdminService {
   /**
-   * @param {AdminRepository} adminRepository
+   * @param {AdminModel} adminModel
    */
-  constructor(adminRepository, sessionService) {
-    this.#repo = adminRepository;
+  constructor(adminModel, sessionService) {
+    this.#model = adminModel;
     this.#sessions = sessionService;
   }
 
@@ -33,12 +33,12 @@ class AdminService {
       totalApplications,
       applicationsByStatusRows,
     ] = await Promise.all([
-      this.#repo.countTotalUsers(),
-      this.#repo.countNewUsersThisWeek(),
-      this.#repo.countTotalScholarships(),
-      this.#repo.countActiveScholarships(),
-      this.#repo.countTotalApplications(),
-      this.#repo.countApplicationsByStatus(),
+      this.#model.countTotalUsers(),
+      this.#model.countNewUsersThisWeek(),
+      this.#model.countTotalScholarships(),
+      this.#model.countActiveScholarships(),
+      this.#model.countTotalApplications(),
+      this.#model.countApplicationsByStatus(),
     ]);
 
     return {
@@ -53,8 +53,8 @@ class AdminService {
 
   async fetchDashboardChart() {
     const [userRegistrationsByWeek, applicationsByStatus] = await Promise.all([
-      this.#repo.getUserRegistrationsByWeek(),
-      this.#repo.getApplicationsByStatusChart(),
+      this.#model.getUserRegistrationsByWeek(),
+      this.#model.getApplicationsByStatusChart(),
     ]);
 
     return { userRegistrationsByWeek, applicationsByStatus };
@@ -65,7 +65,7 @@ class AdminService {
   // ═══════════════════════════════════════════════════════════
 
   async paginateUsers(filters) {
-    const { users, total } = await this.#repo.findUsers(filters);
+    const { users, total } = await this.#model.findUsers(filters);
     const { page = 1, limit = 20 } = filters;
     return {
       data: users,
@@ -79,7 +79,7 @@ class AdminService {
   }
 
   async getUserById(userId) {
-    const user = await this.#repo.findUserById(userId);
+    const user = await this.#model.findUserById(userId);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
     return user;
   }
@@ -96,7 +96,7 @@ class AdminService {
     this.#guardSelfModification(targetUserId, adminId);
     this.#validateRole(newRole);
 
-    const user = await this.#repo.updateUserRole(targetUserId, newRole);
+    const user = await this.#model.updateUserRole(targetUserId, newRole);
     this.#guardFound(
       user,
       'Không tìm thấy user hoặc user đã bị vô hiệu hóa',
@@ -110,7 +110,7 @@ class AdminService {
   async changeUserStatus(targetUserId, isActive, adminId) {
     this.#guardSelfModification(targetUserId, adminId);
 
-    const user = await this.#repo.updateUserStatus(targetUserId, isActive);
+    const user = await this.#model.updateUserStatus(targetUserId, isActive);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
     if (!isActive) await this.#sessions?.endAllForUser(targetUserId, 'locked');
     return user;
@@ -125,13 +125,13 @@ class AdminService {
       ...data,
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
-    const scholarship = await this.#repo.createScholarship(scholarshipData);
+    const scholarship = await this.#model.createScholarship(scholarshipData);
     this.#guardFound(scholarship, 'Không thể tạo học bổng', 500, 'CREATE_SCHOLARSHIP_FAILED');
     return scholarship;
   }
 
   async modifyScholarship(id, data) {
-    const scholarship = await this.#repo.updateScholarship(id, data);
+    const scholarship = await this.#model.updateScholarship(id, data);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -142,7 +142,7 @@ class AdminService {
   }
 
   async toggleScholarshipFeatured(id, isFeatured) {
-    const scholarship = await this.#repo.updateScholarshipFeatured(id, isFeatured);
+    const scholarship = await this.#model.updateScholarshipFeatured(id, isFeatured);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -153,7 +153,7 @@ class AdminService {
   }
 
   async removeScholarship(id) {
-    const scholarship = await this.#repo.softDeleteScholarship(id);
+    const scholarship = await this.#model.softDeleteScholarship(id);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -227,8 +227,8 @@ class AdminService {
     }
   }
 
-  /** @type {AdminRepository} */
-  #repo;
+  /** @type {AdminModel} */
+  #model;
   #sessions;
 }
 

@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Groq = require('groq-sdk');
 const OpenAI = require('openai');
-const getSupabase = require('../config/supabase');
+const getSupabase = require('../configs/supabase');
 const { extractIeltsScore } = require('../utils/helpers');
 const { buildSystemInstruction } = require('./chat.policy');
 

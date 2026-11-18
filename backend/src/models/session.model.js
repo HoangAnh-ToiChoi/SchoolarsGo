@@ -1,4 +1,4 @@
-class SessionRepository {
+class SessionModel {
   #db;
 
   constructor(db) {
@@ -86,4 +86,4 @@ class SessionRepository {
   }
 }
 
-module.exports = SessionRepository;
+module.exports = SessionModel;

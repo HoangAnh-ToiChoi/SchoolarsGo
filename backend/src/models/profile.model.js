@@ -1,4 +1,4 @@
-class ProfileRepository {
+class ProfileModel {
   #sb;
 
   constructor(sb) {
@@ -33,4 +33,4 @@ class ProfileRepository {
   }
 }
 
-module.exports = ProfileRepository;
+module.exports = ProfileModel;

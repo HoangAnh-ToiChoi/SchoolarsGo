@@ -1,19 +1,19 @@
 const AppError = require('../utils/AppError');
 
 class ProfileService {
-  #repo;
+  #model;
 
-  constructor(profileRepository) {
-    this.#repo = profileRepository;
+  constructor(profileModel) {
+    this.#model = profileModel;
   }
 
   async getProfile(userId) {
-    return this.#repo.findByUserId(userId);
+    return this.#model.findByUserId(userId);
   }
 
   async updateProfile(userId, updates) {
     this.#validateUpdate(updates);
-    return this.#repo.upsertProfile(userId, updates);
+    return this.#model.upsertProfile(userId, updates);
   }
 
   #validateUpdate(updates) {

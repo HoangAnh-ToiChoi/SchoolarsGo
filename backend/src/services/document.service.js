@@ -1,15 +1,13 @@
 const AppError = require('../utils/AppError');
 
 class DocumentService {
-  #repo;
-  #eventBus;
+  #model;
   #storage;
 
   static #VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-  constructor(documentRepository, eventBus, storageService) {
-    this.#repo = documentRepository;
-    this.#eventBus = eventBus;
+  constructor(documentModel, storageService) {
+    this.#model = documentModel;
     this.#storage = storageService;
   }
 
@@ -51,7 +49,7 @@ class DocumentService {
   }
 
   async getAll(userId) {
-    return this.#repo.findAllByUserId(userId);
+    return this.#model.findAllByUserId(userId);
   }
 
   async upload(userId, docType, file) {
@@ -61,7 +59,7 @@ class DocumentService {
     const uploadResult = await this.#uploadToStorage(userId, docType, file);
 
     try {
-      const doc = await this.#repo.insertDocument({
+      const doc = await this.#model.insertDocument({
         userId,
         docType,
         fileName: file.originalname,
@@ -69,18 +67,6 @@ class DocumentService {
         fileSize: file.size,
         mimeType: file.mimetype,
       });
-
-      try {
-        this.#eventBus.emit('document.uploaded', {
-          userId,
-          documentId: doc.id,
-          docType,
-          fileSize: file.size,
-          fileName: file.originalname,
-        });
-      } catch (emitErr) {
-        console.error('[DocumentService] EventBus emit error (document.uploaded):', emitErr.message);
-      }
 
       return doc;
     } catch (dbErr) {
@@ -90,7 +76,7 @@ class DocumentService {
   }
 
   async remove(userId, documentId) {
-    const doc = await this.#repo.findByIdAndUserId(documentId, userId);
+    const doc = await this.#model.findByIdAndUserId(documentId, userId);
     this.#guardFound(doc);
 
     if (doc.file_url) {
@@ -98,17 +84,7 @@ class DocumentService {
       if (path) await this.#storage.deleteFile(path);
     }
 
-    await this.#repo.deleteByIdAndUserId(documentId, userId);
-
-    try {
-      this.#eventBus.emit('document.deleted', {
-        userId,
-        documentId,
-        fileSize: doc.file_size,
-      });
-    } catch (emitErr) {
-      console.error('[DocumentService] EventBus emit error (document.deleted):', emitErr.message);
-    }
+    await this.#model.deleteByIdAndUserId(documentId, userId);
   }
 }
 

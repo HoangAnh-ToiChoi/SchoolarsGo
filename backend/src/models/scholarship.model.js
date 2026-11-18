@@ -1,7 +1,7 @@
 // Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
 const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
 
-class ScholarshipRepository {
+class ScholarshipModel {
   #sb;
 
   constructor(sb) {
@@ -118,4 +118,4 @@ class ScholarshipRepository {
   }
 }
 
-module.exports = ScholarshipRepository;
+module.exports = ScholarshipModel;

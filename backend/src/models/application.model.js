@@ -7,7 +7,7 @@ const DEFAULT_CHECKLIST = [
   { item: 'Hộ chiếu', done: false },
 ];
 
-class ApplicationRepository {
+class ApplicationModel {
   #sb;
 
   constructor(sb) {
@@ -87,4 +87,4 @@ class ApplicationRepository {
   }
 }
 
-module.exports = ApplicationRepository;
+module.exports = ApplicationModel;
