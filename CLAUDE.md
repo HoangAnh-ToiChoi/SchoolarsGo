@@ -14,6 +14,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 2. **Tạo nhánh từ `dev`:** `feat/…`, `fix/…`, `refactor/…`, `docs/…`.
 3. **Làm từng phần:** viết → tự review → kiểm tra checklist → test → commit `feat|fix|refactor|style|docs: mô tả ngắn`.
 4. **Pull Request vào `dev`:** ít nhất 1 người review, lint + build + test phải qua. Không commit thẳng `main`, không commit `.env`, khóa API, dữ liệu cá nhân.
+5. **Quy trình bắt buộc khi đưa code vào `dev`:** luôn tạo nhánh mới, commit trên nhánh đó, push nhánh lên GitHub, rồi **từ nhánh đó** merge vào `dev` (`git merge --no-ff <nhánh>`) và push `dev`. **Cấm** commit hay merge thẳng trên `dev` rồi mới tạo nhánh, và cấm force-push `dev`.
 
 ### Checklist trước khi báo xong
 
