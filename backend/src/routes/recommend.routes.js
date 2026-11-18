@@ -1,8 +1,10 @@
 const { Router } = require('express');
-const { recommendController } = require('../container');
+const RecommendController = require('../controllers/recommend.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const recommendController = bindControllerMethods(new RecommendController());
 const { auth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
-const { recommendSchema } = require('../utils/validators');
+const { recommendSchema } = require('../validations/recommend.validation');
 
 const router = Router();
 

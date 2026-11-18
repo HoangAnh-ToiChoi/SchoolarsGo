@@ -1,3 +1,4 @@
+const database = require('../configs/database.config');
 /**
  * AdminModel — TẦNG 3: Database Access (Raw SQL)
  *
@@ -13,7 +14,7 @@ class AdminModel {
   /**
    * @param {object} db - Database driver instance (pg pool hoặc tương đương)
    */
-  constructor(db) {
+  constructor(db = database) {
     this.#db = db;
   }
 

@@ -2,20 +2,18 @@
  * ApplicationRoutes — VÙNG 2 (Controller → Service → Repository → DB)
  *
  * Quy tắc:
- * - Import controller từ container.js (Singleton)
+ * - Tạo controller một lần ở đầu file, bind method trước khi gắn vào route
  * - Dùng middleware auth để lấy req.user.id
  * - Validate request body/query bằng Zod schemas
  * - Controller nhận req → gọi service → trả res JSON
  */
 const { Router } = require('express');
-const { applicationController } = require('../container');
+const ApplicationController = require('../controllers/application.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const applicationController = bindControllerMethods(new ApplicationController());
 const { auth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
-const {
-  applicationCreateSchema,
-  applicationUpdateSchema,
-  applicationQuerySchema,
-} = require('../utils/validators');
+const { applicationCreateSchema, applicationUpdateSchema, applicationQuerySchema } = require('../validations/application.validation');
 
 const router = Router();
 

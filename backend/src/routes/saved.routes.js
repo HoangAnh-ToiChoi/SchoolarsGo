@@ -2,11 +2,13 @@
  * SavedRoutes — VÙNG 2 (Controller → Service → Repository → DB)
  *
  * Quy tắc:
- * - Import controller từ container.js (Singleton)
+ * - Tạo controller một lần ở đầu file, bind method trước khi gắn vào route
  * - Dùng middleware auth để lấy req.user.id
  */
 const { Router } = require('express');
-const { savedController } = require('../container');
+const SavedController = require('../controllers/saved.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const savedController = bindControllerMethods(new SavedController());
 const { auth } = require('../middlewares/auth');
 
 const router = Router();

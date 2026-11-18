@@ -1,4 +1,6 @@
 const AppError = require('../utils/AppError');
+const DocumentModel = require('../models/document.model');
+const defaultStorage = require('./storage.service');
 
 class DocumentService {
   #model;
@@ -6,7 +8,7 @@ class DocumentService {
 
   static #VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
 
-  constructor(documentModel, storageService) {
+  constructor(documentModel = new DocumentModel(), storageService = defaultStorage) {
     this.#model = documentModel;
     this.#storage = storageService;
   }

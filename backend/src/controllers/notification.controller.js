@@ -1,9 +1,10 @@
 const { success } = require('../utils/responseHelper');
+const NotificationService = require('../services/notification.service');
 
 class NotificationController {
   #service;
 
-  constructor(notificationService) {
+  constructor(notificationService = new NotificationService()) {
     this.#service = notificationService;
     if (!this.#service) throw new Error('NotificationService is required');
   }

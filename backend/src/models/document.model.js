@@ -1,7 +1,8 @@
+const getSupabase = require('../configs/supabase');
 class DocumentModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 

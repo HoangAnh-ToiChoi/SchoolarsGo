@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const ScholarshipModel = require('../models/scholarship.model');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
@@ -9,7 +10,7 @@ class ScholarshipService {
   #countriesCache = null;
   #countriesCachedAt = 0;
 
-  constructor(scholarshipModel) {
+  constructor(scholarshipModel = new ScholarshipModel()) {
     this.#model = scholarshipModel;
   }
 

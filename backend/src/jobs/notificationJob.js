@@ -1,9 +1,10 @@
 'use strict';
 
 const cron = require('node-cron');
-const { notificationService } = require('../container');
+const NotificationService = require('../services/notification.service');
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
+const notificationService = new NotificationService();
 
 /** Tạo thông báo nhắc hạn cho mọi người dùng. Chạy lại cùng ngày không tạo trùng. */
 async function runDeadlineReminders() {

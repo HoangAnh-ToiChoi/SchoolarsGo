@@ -33,7 +33,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 |---|---|---|---|
 | component | 200 | controller | 100 |
 | hook | 150 | service | 200 |
-| service | 200 | repository | 250 |
+| service | 200 | model | 250 |
 
 File cũ đang vượt — tách khi sửa tới, để file sạch hơn lúc mở ra:
 - BE: `admin.controller`, `admin.service`, `chat.service`, `recommend.service`
@@ -60,7 +60,7 @@ npm run build:pages   # bản demo GitHub Pages (dữ liệu minh họa)
 # backend/
 npm run dev               # nodemon src/server.js
 npm run lint              # 0 lỗi
-npm run test:contract     # test service với repository giả, không cần DB
+npm run test:contract     # test service với model giả, không cần DB
 npm run test:ingestion    # test module kéo học bổng, không cần mạng, không cần DB
 npm run ingest:dry        # chạy thử kéo học bổng, không ghi DB
 ```
@@ -77,12 +77,12 @@ Demo: đẩy `frontend/dist/` (sau `build:pages`) lên nhánh `gh-pages` → htt
 routes/        URL + middleware: auth, requireRole, validate(schema)
   → controllers/   đọc req → gọi service → trả res. Không nghiệp vụ, không gọi DB
   → services/      nghiệp vụ (luật chuyển trạng thái đơn, mốc nhắc hạn…). Không gọi DB client trực tiếp
-  → repositories/  chỉ truy vấn DB (Supabase client hoặc pg). Không nghiệp vụ
+  → models/        chỉ truy vấn DB (Supabase client hoặc pg). Không nghiệp vụ
 ```
 
-Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.repository`.)
+Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.model`.)
 
-**`src/container/`** chỉ wiring repository → service → controller qua constructor, chia theo nghiệp vụ; `src/container.js` chỉ gom và export các instance singleton cho routes/jobs. Không đăng ký listener hoặc khởi động tiến trình trong container. Module mới: thêm wiring vào file nghiệp vụ tương ứng, không sửa wiring của module khác. Nhờ vậy test đưa được repository giả vào service.
+**Không có container / DI riêng.** Mỗi tầng tự tạo tầng dưới bằng tham số mặc định của constructor, ví dụ `constructor(model = new SavedModel())`, `constructor(service = new SavedService())`. Route tạo controller một lần ở đầu file và bind method bằng `utils/bindControllerMethods`. Test truyền model giả vào constructor của service. Không dùng event bus: việc gì cần làm thì gọi thẳng trong service.
 
 ### Cấu trúc
 
@@ -91,15 +91,13 @@ backend/
   src/
     server.js            mở cổng + bật cron (jobs/)
     app.js               middleware chung (helmet, cors, cookie, rate limit) + gắn routes
-    container/           wiring singleton theo nghiệp vụ
-    container.js         export các instance cho routes/jobs
-    routes/ controllers/ services/ repositories/   một file mỗi nhóm: notification.routes.js …
+    routes/ controllers/ services/ models/   một file mỗi nhóm: notification.routes.js …
     middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter, errorHandler
     jobs/                cron: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
     ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
-    events/              eventBus + listeners
-    config/               CORS, database, JWT, nodemailer and Supabase client configuration
-    utils/               AppError, responseHelper, validators (zod)
+    configs/             CORS, database, JWT, nodemailer, Supabase client
+    validations/         schema zod theo nghiệp vụ: auth.validation.js …
+    utils/               AppError, responseHelper, bindControllerMethods
   scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
   tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
 ```
@@ -108,16 +106,16 @@ backend/
 
 - **Đăng nhập:** `auth` (bắt buộc) hoặc `optionalAuth` (có thì đọc) → `req.user = { id, sid, role }`. Token nằm trong cookie httpOnly.
 - **Admin:** `router.use(auth, requireRole('admin'))` ở đầu file route.
-- **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): repository **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
-- Cấu hình môi trường / CORS đặt trong `backend/src/config/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
+- **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): model **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
+- Cấu hình môi trường / CORS đặt trong `backend/src/configs/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
 - Access token sống 15 phút; refresh token 7 ngày, lưu dạng hash trong `user_sessions`. LocalStorage FE chỉ được giữ `{ full_name, avatar_url }`; quyền admin luôn lấy từ `/auth/me`.
-- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. Container bind controller method trước khi truyền cho Express.
+- Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field. Route bind controller method (`utils/bindControllerMethods`) trước khi truyền cho Express.
 
 ### Lỗi và response
 
 - Service ném `new AppError(message, statusCode, 'MA_LOI')`. Controller `try { … } catch (err) { next(err) }` → `errorHandler` trả JSON.
 - Thành công: `success(res, data, message, meta)` / `created(…)` trong `utils/responseHelper.js` → `{ success, data, message, meta }`.
-- Đầu vào kiểm tra bằng zod trong `utils/validators.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`.
+- Đầu vào kiểm tra bằng zod trong `validations/<nghiệpVụ>.validation.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`.
 
 ### Query
 
@@ -128,7 +126,7 @@ backend/
 
 ### Test
 
-Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, không tìm thấy. Dùng repository giả (object có cùng tên hàm), không gọi DB thật.
+Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, không tìm thấy. Dùng model giả (object có cùng tên hàm), không gọi DB thật.
 
 ---
 

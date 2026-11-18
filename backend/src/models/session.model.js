@@ -1,7 +1,8 @@
+const database = require('../configs/database.config');
 class SessionModel {
   #db;
 
-  constructor(db) {
+  constructor(db = database) {
     this.#db = db;
   }
 

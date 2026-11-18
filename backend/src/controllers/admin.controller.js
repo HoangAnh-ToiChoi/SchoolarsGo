@@ -1,3 +1,4 @@
+const AdminService = require('../services/admin.service');
 /**
  * AdminController — TẦNG 1: HTTP Handling
  *
@@ -13,7 +14,7 @@ class AdminController {
   /**
    * @param {AdminService} adminService
    */
-  constructor(adminService) {
+  constructor(adminService = new AdminService()) {
     this.#validateService(adminService);
     this.#service = adminService;
   }

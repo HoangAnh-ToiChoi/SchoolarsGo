@@ -1,3 +1,4 @@
+const getSupabase = require('../configs/supabase');
 const DEFAULT_CHECKLIST = [
   { item: 'CV', done: false },
   { item: 'SOP', done: false },
@@ -10,7 +11,7 @@ const DEFAULT_CHECKLIST = [
 class ApplicationModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 

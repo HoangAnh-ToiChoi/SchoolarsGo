@@ -2,13 +2,16 @@ const crypto = require('crypto');
 const AppError = require('../utils/AppError');
 const { toSessionUser } = require('../utils/sessionUser');
 const { authorization } = require('../constants/errors');
+const SessionModel = require('../models/session.model');
+const AuthModel = require('../models/auth.model');
+const TokenService = require('./token.service');
 
 class SessionService {
   #model;
   #users;
   #token;
 
-  constructor(sessionModel, authModel, tokenService) {
+  constructor(sessionModel = new SessionModel(), authModel = new AuthModel(), tokenService = new TokenService()) {
     this.#model = sessionModel;
     this.#users = authModel;
     this.#token = tokenService;

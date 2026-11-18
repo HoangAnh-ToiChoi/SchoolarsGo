@@ -1,9 +1,10 @@
 const AppError = require('../utils/AppError');
+const SavedModel = require('../models/saved.model');
 
 class SavedService {
   #model;
 
-  constructor(savedModel) {
+  constructor(savedModel = new SavedModel()) {
     this.#model = savedModel;
   }
 

@@ -1,10 +1,11 @@
+const getSupabase = require('../configs/supabase');
 const NOTIFICATION_COLUMNS =
   'id, type, milestone, application_id, read_at, created_at, scholarships(id, slug, title, provider, deadline), applications(status)';
 
 class NotificationModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 

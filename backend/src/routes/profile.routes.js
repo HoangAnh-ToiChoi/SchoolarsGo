@@ -1,8 +1,10 @@
 const { Router } = require('express');
-const { profileController } = require('../container');
+const ProfileController = require('../controllers/profile.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const profileController = bindControllerMethods(new ProfileController());
 const { auth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
-const { profileUpdateSchema } = require('../utils/validators');
+const { profileUpdateSchema } = require('../validations/profile.validation');
 
 const router = Router();
 

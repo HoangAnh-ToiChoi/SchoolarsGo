@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const NotificationModel = require('../models/notification.model');
 
 // Nhắc trước hạn nộp 14, 7 và 1 ngày. Mỗi mốc là một thông báo riêng.
 const REMIND_DAYS = [1, 7, 14];
@@ -20,7 +21,7 @@ const milestoneFor = daysLeft => (daysLeft < 0 ? null : (REMIND_DAYS.find(d => d
 class NotificationService {
   #model;
 
-  constructor(notificationModel) {
+  constructor(notificationModel = new NotificationModel()) {
     this.#model = notificationModel;
   }
 

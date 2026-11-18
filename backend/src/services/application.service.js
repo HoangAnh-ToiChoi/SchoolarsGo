@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const ApplicationModel = require('../models/application.model');
 
 class ApplicationService {
   #model;
@@ -15,7 +16,7 @@ class ApplicationService {
 
   static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
 
-  constructor(applicationModel) {
+  constructor(applicationModel = new ApplicationModel()) {
     this.#model = applicationModel;
   }
 

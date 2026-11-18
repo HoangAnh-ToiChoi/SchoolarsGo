@@ -3,13 +3,16 @@ const AppError = require('../utils/AppError');
 const { sendResetEmail } = require('../configs/nodemailer');
 const { toSessionUser } = require('../utils/sessionUser');
 const { authorization } = require('../constants/errors');
+const AuthModel = require('../models/auth.model');
+const HashService = require('./hash.service');
+const SessionService = require('./session.service');
 
 class AuthService {
   #model;
   #hash;
   #sessions;
 
-  constructor(authModel, hashService, sessionService) {
+  constructor(authModel = new AuthModel(), hashService = new HashService(), sessionService = new SessionService()) {
     this.#model = authModel;
     this.#hash = hashService;
     this.#sessions = sessionService;

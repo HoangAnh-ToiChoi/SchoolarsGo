@@ -326,21 +326,18 @@ Routes → Controller → Service → Repository → DB
 | Layer | Trách nhiệm | Quy tắc |
 |-------|-------------|----------|
 | **Controller** | HTTP handling, parse req/res | KHÔNG chứa business logic hay SQL |
-| **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận repo qua constructor |
+| **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận model qua constructor (có giá trị mặc định) |
 | **Repository** | Toàn bộ SQL của module | Kế thừa `BaseRepository`, KHÔNG SQL ở tầng khác |
-| **DB** (`config/database.config.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
+| **DB** (`configs/database.config.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
 
-### Dependency Injection — `container.js`
+### Kết nối các tầng (không còn `container.js`)
 
-- **Singleton file duy nhất** được phép tạo instance của Repository, Service, Controller
-- Wiring theo thứ tự: `db → Repository → Service → Controller`
-- Các module export từ `container.js`, routes import từ đây
+- Mỗi tầng tự tạo tầng dưới bằng tham số mặc định của constructor: `constructor(model = new ProfileModel())`.
+- Route tạo controller một lần ở đầu file và bind method bằng `utils/bindControllerMethods`.
+- Test truyền model giả vào constructor của service.
 
 ```
-db → ScholarshipRepository → ScholarshipService → ScholarshipController
-db → ProfileRepository    → ProfileService    → ProfileController
-db → DocumentRepository   → DocumentService   → DocumentController
-db → ApplicationRepository → ApplicationService
+Supabase client / pg Pool → XModel → XService → XController
 ```
 
 ### Quy tắc viết Class
@@ -401,7 +398,7 @@ db → ApplicationRepository → ApplicationService
 **ProfileController** — `backend/src/controllers/profile.controller.js`
 - Class + async function expressions
 - Inject `profileService` qua constructor
-- Import từ `container.js`
+- Route tạo controller và bind method
 
 ---
 
@@ -437,7 +434,7 @@ await deleteFile(uploadResult.storagePath);
 
 **DocumentController** — `backend/src/controllers/document.controller.js`
 - Class + async function expressions, inject `documentService` qua constructor
-- Import từ `container.js`
+- Route tạo controller và bind method
 
 **Document Routes** — `backend/src/routes/document.routes.js`
 
@@ -455,12 +452,6 @@ await deleteFile(uploadResult.storagePath);
 
 ```
 backend/src/
-├── container.js              ← DI wiring duy nhất
-├── events/
-│   ├── eventBus.js            ← Singleton EventEmitter
-│   └── listeners/
-│       ├── auth.listener.js   ← lắng nghe user.registered, user.login
-│       └── storage.listener.js ← lắng nghe document.uploaded, document.deleted
 ├── controllers/
 │   ├── document.controller.js
 │   ├── profile.controller.js

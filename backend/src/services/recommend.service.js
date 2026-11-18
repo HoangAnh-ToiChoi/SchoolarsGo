@@ -1,5 +1,7 @@
 const AppError = require('../utils/AppError');
 const { extractIeltsScore } = require('../utils/helpers');
+const RecommendModel = require('../models/recommend.model');
+const gemini = require('./gemini.service');
 
 const CORE_PROFILE_FIELDS = ['gpa', 'english_level', 'target_country', 'target_major', 'target_degree'];
 const SUPPORTING_PROFILE_FIELDS = ['bio', 'target_intake', 'document_count'];
@@ -57,7 +59,7 @@ class RecommendService {
   #model;
   #gemini;
 
-  constructor(recommendModel, geminiService) {
+  constructor(recommendModel = new RecommendModel(), geminiService = gemini) {
     this.#model = recommendModel;
     this.#gemini = geminiService;
   }

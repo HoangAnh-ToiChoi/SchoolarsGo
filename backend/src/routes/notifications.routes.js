@@ -2,10 +2,12 @@
  * NotificationRoutes — chuông thông báo trên header
  */
 const { Router } = require('express');
-const { notificationController } = require('../container');
+const NotificationController = require('../controllers/notification.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const notificationController = bindControllerMethods(new NotificationController());
 const { auth } = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
-const { notificationQuerySchema, notificationIdSchema } = require('../utils/validators');
+const { notificationQuerySchema, notificationIdSchema } = require('../validations/notification.validation');
 
 const router = Router();
 

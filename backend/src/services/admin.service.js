@@ -11,11 +11,13 @@
  * [7] Tell, Don't Ask — không lôi data lên check rồi mới lưu. Ra lệnh xử lý.
  */
 const AppError = require('../utils/AppError');
+const AdminModel = require('../models/admin.model');
+const SessionService = require('./session.service');
 class AdminService {
   /**
    * @param {AdminModel} adminModel
    */
-  constructor(adminModel, sessionService) {
+  constructor(adminModel = new AdminModel(), sessionService = new SessionService()) {
     this.#model = adminModel;
     this.#sessions = sessionService;
   }

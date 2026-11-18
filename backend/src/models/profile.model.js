@@ -1,7 +1,8 @@
+const getSupabase = require('../configs/supabase');
 class ProfileModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 

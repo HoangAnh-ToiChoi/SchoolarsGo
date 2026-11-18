@@ -1,4 +1,5 @@
 const { success } = require('../utils/responseHelper');
+const defaultChatService = require('../services/chat.service');
 
 class ChatController {
   #chatService;
@@ -6,7 +7,7 @@ class ChatController {
   /**
    * @param {object} chatService - { chat, saveMessages, getHistory }
    */
-  constructor(chatService) {
+  constructor(chatService = defaultChatService) {
     this.#chatService = chatService;
     this.#validateService();
   }

@@ -6,7 +6,7 @@ const { Router } = require('express');
 const RecommendController = require('../../src/controllers/recommend.controller');
 const { auth } = require('../../src/middlewares/auth');
 const validate = require('../../src/middlewares/validate');
-const { recommendSchema } = require('../../src/utils/validators');
+const { recommendSchema } = require('../../src/validations/recommend.validation');
 const AppError = require('../../src/utils/AppError');
 const { createJsonApp, withServer, requestJson } = require('./helpers/http');
 

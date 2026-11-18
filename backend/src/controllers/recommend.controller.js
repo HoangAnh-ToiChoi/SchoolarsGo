@@ -1,9 +1,10 @@
 const { success } = require('../utils/responseHelper');
+const RecommendService = require('../services/recommend.service');
 
 class RecommendController {
   #service;
 
-  constructor(recommendService) {
+  constructor(recommendService = new RecommendService()) {
     this.#service = recommendService;
     this.#validateService();
   }

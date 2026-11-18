@@ -1,5 +1,6 @@
 const { success } = require('../utils/responseHelper');
 const { getCookieSameSite } = require('../configs/jwt.config');
+const AuthService = require('../services/auth.service');
 
 const cookieOptions = (path, maxAge) => ({
   httpOnly: true,
@@ -12,7 +13,7 @@ const cookieOptions = (path, maxAge) => ({
 class AuthController {
   #service;
 
-  constructor(authService) {
+  constructor(authService = new AuthService()) {
     this.#service = authService;
   }
 

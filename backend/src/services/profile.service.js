@@ -1,9 +1,10 @@
 const AppError = require('../utils/AppError');
+const ProfileModel = require('../models/profile.model');
 
 class ProfileService {
   #model;
 
-  constructor(profileModel) {
+  constructor(profileModel = new ProfileModel()) {
     this.#model = profileModel;
   }
 

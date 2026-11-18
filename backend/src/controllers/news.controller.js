@@ -1,9 +1,10 @@
 const { success } = require('../utils/responseHelper');
+const NewsService = require('../services/news.service');
 
 class NewsController {
   #service;
 
-  constructor(newsService) {
+  constructor(newsService = new NewsService()) {
     this.#service = newsService;
     this.#validateService();
   }
