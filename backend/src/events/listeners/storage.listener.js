@@ -12,7 +12,7 @@ const eventBus = require('../eventBus');
 
 const registerStorageListeners = () => {
   // ── document.uploaded ──────────────────────────────────────
-  eventBus.on('document.uploaded', async payload => {
+  eventBus.on('document.uploaded', async function(payload) {
     try {
       const { userId, docType, fileSize, fileName, documentId } = payload;
       console.log(
@@ -28,7 +28,7 @@ const registerStorageListeners = () => {
   });
 
   // ── document.deleted ───────────────────────────────────────
-  eventBus.on('document.deleted', async payload => {
+  eventBus.on('document.deleted', async function(payload) {
     try {
       const { userId, documentId, fileSize } = payload;
       console.log(

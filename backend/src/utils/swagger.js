@@ -25,7 +25,7 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'JWT token nhận được từ `/api/auth/login`',
+          description: 'Access token (15 phút) nhận được qua cookie hoặc `/api/auth/login`',
         },
       },
       schemas: {
@@ -34,7 +34,7 @@ const options = {
           properties: {
             success: { type: 'boolean', example: false },
             message: { type: 'string', example: 'Mô tả lỗi' },
-            code: { type: 'integer', example: 400 },
+            code: { oneOf: [{ type: 'string' }, { type: 'integer' }], example: 'ACCESS_TOKEN_EXPIRED' },
           },
         },
         PaginationMeta: {
@@ -106,8 +106,7 @@ const options = {
                       data: {
                         type: 'object',
                         properties: {
-                          user: { $ref: '#/components/schemas/User' },
-                          token: { type: 'string' },
+                          user: { $ref: '#/components/schemas/SessionUser' },
                         },
                       },
                     },
@@ -155,8 +154,7 @@ const options = {
                       data: {
                         type: 'object',
                         properties: {
-                          user: { $ref: '#/components/schemas/User' },
-                          token: { type: 'string' },
+                          user: { $ref: '#/components/schemas/SessionUser' },
                         },
                       },
                     },
@@ -183,7 +181,7 @@ const options = {
                     type: 'object',
                     properties: {
                       success: { type: 'boolean' },
-                      data: { $ref: '#/components/schemas/User' },
+                      data: { $ref: '#/components/schemas/SessionUser' },
                     },
                   },
                 },
@@ -191,6 +189,46 @@ const options = {
             },
             401: { description: 'Chưa đăng nhập' },
           },
+        },
+      },
+
+      '/api/auth/refresh': {
+        post: {
+          summary: 'Xoay access và refresh cookie',
+          tags: ['Authentication'],
+          responses: { 200: { description: 'Phiên được làm mới' }, 401: { description: 'Refresh token không hợp lệ hoặc đã hết hạn' } },
+        },
+      },
+      '/api/auth/logout': {
+        post: {
+          summary: 'Thu hồi phiên hiện tại và xóa cookie',
+          tags: ['Authentication'],
+          responses: { 200: { description: 'Đã đăng xuất' } },
+        },
+      },
+      '/api/auth/account': {
+        get: {
+          summary: 'Lấy thông tin tài khoản riêng tư',
+          tags: ['Authentication'],
+          security: [{ BearerAuth: [] }],
+          responses: { 200: { description: 'Email, số điện thoại và ngày sinh' } },
+        },
+      },
+      '/api/auth/sessions': {
+        get: {
+          summary: 'Danh sách tối đa ba thiết bị đăng nhập',
+          tags: ['Authentication'],
+          security: [{ BearerAuth: [] }],
+          responses: { 200: { description: 'Thiết bị và trạng thái hiện tại' } },
+        },
+      },
+      '/api/auth/sessions/{id}': {
+        delete: {
+          summary: 'Thu hồi một thiết bị của người dùng hiện tại',
+          tags: ['Authentication'],
+          security: [{ BearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: { 200: { description: 'Thiết bị đã đăng xuất' }, 404: { description: 'Không tìm thấy thiết bị thuộc tài khoản này' } },
         },
       },
 
@@ -683,6 +721,15 @@ const options = {
     },
 
     schemas: {
+      SessionUser: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          full_name: { type: 'string' },
+          avatar_url: { type: 'string', nullable: true },
+          role: { type: 'string', enum: ['user', 'admin'] },
+        },
+      },
       User: {
         type: 'object',
         properties: {

@@ -1,7 +1,12 @@
 # Kế hoạch: Đăng nhập — access 15 phút, refresh 7 ngày, tối đa 3 thiết bị
 
-> Giao cho: Codex · Nhánh `feat/authSession` tách từ `dev` · Đọc `CLAUDE.md` trước.
+> Giao cho: Codex · Đọc `CLAUDE.md` trước.
 > **Được phép xóa code auth cũ và viết lại** (middleware, token service, controller, interceptor FE, lưu phiên FE). Không sửa giao diện trang đăng nhập/đăng ký.
+
+> ⚠️ **Nhánh làm việc: `feat/authSession`** (đã tạo sẵn từ `dev`, có file kế hoạch này).
+> - `git fetch origin && git checkout feat/authSession`, commit và **push lên đúng nhánh này**.
+> - **Không merge, không tạo PR vào `dev`, không push lên `dev`/`main`, không force push.**
+> - Làm xong → báo lại kèm bảng nghiệm thu mục 8. Nhánh được kiểm tra xong mới merge vào `dev`.
 
 ## 0. Quy tắc viết code cho việc này
 

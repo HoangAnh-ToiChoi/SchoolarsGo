@@ -69,11 +69,12 @@ async function seedTestUser() {
     console.log(`   Full Name: ${user.full_name}`);
     console.log(`   Created  : ${user.created_at}\n`);
 
-    // 4. Gợi ý cấu hình .env nếu chưa có JWT_SECRET
-    if (!process.env.JWT_SECRET) {
-      console.log('⚠️  Lưu ý: Backend hiện không có JWT_SECRET trong .env.');
+    // 4. Gợi ý cấu hình .env nếu chưa có hai secret JWT
+    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      console.log('⚠️  Lưu ý: Backend hiện chưa cấu hình đủ JWT access/refresh secrets.');
       console.log('   Vui lòng thêm vào backend/.env:');
-      console.log('   JWT_SECRET=scholarsgo-jwt-secret-with-at-least-32-characters-long\n');
+      console.log('   JWT_ACCESS_SECRET=<secret ngẫu nhiên riêng, tối thiểu 32 ký tự>');
+      console.log('   JWT_REFRESH_SECRET=<secret ngẫu nhiên khác, tối thiểu 32 ký tự>\n');
     }
   } catch (err) {
     console.error('❌  Lỗi khi tạo user:', err.message);

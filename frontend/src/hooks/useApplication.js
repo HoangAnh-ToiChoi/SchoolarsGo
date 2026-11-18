@@ -49,7 +49,7 @@ export const useUpdateApplication = () => {
 
   return useMutation({
     mutationFn: ({ id, ...data }) => applicationService.update(id, data),
-    onMutate: async ({ id, ...data }) => {
+    onMutate: async function onMutate({ id, ...data }) {
       const key = ['application', id];
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData(key);

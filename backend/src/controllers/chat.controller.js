@@ -15,7 +15,7 @@ class ChatController {
     if (!this.#chatService) throw new Error('ChatService is required');
   }
 
-  sendMessage = async (req, res, next) => {
+  async sendMessage(req, res, next) {
     try {
       const { messages } = req.body;
 
@@ -56,16 +56,16 @@ class ChatController {
     } catch (error) {
       next(error);
     }
-  };
+  }
 
-  getChatHistory = async (req, res, next) => {
+  async getChatHistory(req, res, next) {
     try {
       const history = await this.#chatService.getHistory(req.user.id);
       return success(res, { messages: history });
     } catch (error) {
       next(error);
     }
-  };
+  }
 }
 
 module.exports = ChatController;

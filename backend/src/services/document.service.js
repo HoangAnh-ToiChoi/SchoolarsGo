@@ -50,11 +50,11 @@ class DocumentService {
     }
   }
 
-  getAll = async userId => {
+  async getAll(userId) {
     return this.#repo.findAllByUserId(userId);
-  };
+  }
 
-  upload = async (userId, docType, file) => {
+  async upload(userId, docType, file) {
     this.#validateType(docType);
     this.#ensureFile(file);
 
@@ -87,9 +87,9 @@ class DocumentService {
       await this.#storage.deleteFile(uploadResult.storagePath);
       throw new AppError(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 500, 'DB_INSERT_FAILED');
     }
-  };
+  }
 
-  remove = async (userId, documentId) => {
+  async remove(userId, documentId) {
     const doc = await this.#repo.findByIdAndUserId(documentId, userId);
     this.#guardFound(doc);
 
@@ -109,7 +109,7 @@ class DocumentService {
     } catch (emitErr) {
       console.error('[DocumentService] EventBus emit error (document.deleted):', emitErr.message);
     }
-  };
+  }
 }
 
 module.exports = DocumentService;

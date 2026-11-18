@@ -10,7 +10,7 @@ const eventBus = require('../eventBus');
 
 const registerAuthListeners = () => {
   // ── user.registered ────────────────────────────────────────
-  eventBus.on('user.registered', async payload => {
+  eventBus.on('user.registered', async function(payload) {
     try {
       const { userId, email, fullName, role } = payload;
       console.log(
@@ -25,7 +25,7 @@ const registerAuthListeners = () => {
   });
 
   // ── user.login ─────────────────────────────────────────────
-  eventBus.on('user.login', async payload => {
+  eventBus.on('user.login', async function(payload) {
     try {
       const { userId, email, role } = payload;
       console.log(`[AUTH EVENT] User logged in → ${email} ` + `(role: ${role}, id: ${userId})`);

@@ -26,7 +26,7 @@ const hasFlag = (name) => process.argv.includes(`--${name}`);
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 if (argValue('env')) require('dotenv').config({ path: path.resolve(__dirname, '..', argValue('env')), override: true });
 
-const db = require('../src/utils/db');
+const db = require('../src/config/database.config');
 const { createIngestion, sourceNames } = require('../src/ingestion');
 
 const { RULES: RULE_NAMES } = require('../src/ingestion/filter');

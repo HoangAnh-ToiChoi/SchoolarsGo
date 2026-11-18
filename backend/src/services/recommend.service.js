@@ -282,7 +282,7 @@ class RecommendService {
     };
   }
 
-  recommend = async (userId, topN = 10) => {
+  async recommend(userId, topN = 10) {
     const rawProfile = await this.#repo.findProfileByUserId(userId);
     const profile = rawProfile ? this.#normalizeProfile(rawProfile) : null;
     if (!profile) throw new AppError('Vui lòng cập nhật profile trước khi sử dụng gợi ý', 400, 'PROFILE_REQUIRED');
@@ -302,7 +302,7 @@ class RecommendService {
       .slice(0, topN);
 
     return this.#gemini.enrichRecommendations(profile, top);
-  };
+  }
 }
 
 module.exports = RecommendService;

@@ -12,7 +12,7 @@ class NewsController {
     if (!this.#service) throw new Error('NewsService is required');
   }
 
-  getNews = async (req, res, next) => {
+  async getNews(req, res, next) {
     try {
       const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
       const category = req.query.category || null;
@@ -21,7 +21,7 @@ class NewsController {
     } catch (error) {
       next(error);
     }
-  };
+  }
 }
 
 module.exports = NewsController;

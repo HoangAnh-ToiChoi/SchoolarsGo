@@ -13,7 +13,7 @@ class AuthRepository {
   async findByEmailWithCredentials(email) {
     const { data } = await this.#sb
       .from('users')
-      .select('id, email, password_hash, full_name, avatar_url, phone, date_of_birth, role, created_at')
+      .select('id, email, password_hash, full_name, avatar_url, phone, date_of_birth, role, is_active, created_at')
       .eq('email', email)
       .maybeSingle();
     return data;
@@ -23,6 +23,15 @@ class AuthRepository {
     const { data } = await this.#sb
       .from('users')
       .select('id, email, full_name, avatar_url, phone, date_of_birth, role, created_at')
+      .eq('id', id)
+      .maybeSingle();
+    return data;
+  }
+
+  async findSessionUserById(id) {
+    const { data } = await this.#sb
+      .from('users')
+      .select('id, email, full_name, avatar_url, phone, date_of_birth, role, is_active')
       .eq('id', id)
       .maybeSingle();
     return data;

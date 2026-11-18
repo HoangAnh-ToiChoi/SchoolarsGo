@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Groq = require('groq-sdk');
 const OpenAI = require('openai');
-const getSupabase = require('../utils/supabase');
+const getSupabase = require('../config/supabase');
 const { extractIeltsScore } = require('../utils/helpers');
 const { buildSystemInstruction } = require('./chat.policy');
 
@@ -68,7 +68,7 @@ const mergeProfileFilters = (filters, profile) => {
   return merged;
 };
 
-const getProfileForChat = async (userId) => {
+async function getProfileForChat(userId) {
   if (!userId) return null;
   try {
     const sb = getSupabase();
@@ -81,7 +81,7 @@ const getProfileForChat = async (userId) => {
   } catch {
     return null;
   }
-};
+}
 
 const formatProfileContext = (profile) => {
   if (!profile) return '';
@@ -97,7 +97,7 @@ const formatProfileContext = (profile) => {
   return parts.join('\n');
 };
 
-const queryScholarships = async (filters) => {
+async function queryScholarships(filters) {
   const sb = getSupabase();
   const cols = 'title, provider, country, degree, amount, currency, deadline, min_gpa, min_ielts, field_of_study, coverage, application_url';
 
@@ -111,7 +111,7 @@ const queryScholarships = async (filters) => {
 
   const { data } = await q.order('deadline', { ascending: true }).limit(8);
   return data || [];
-};
+}
 
 const formatScholarships = (scholarships) => {
   if (!scholarships.length) return '\n\n[DB: Không tìm thấy học bổng phù hợp trong hệ thống. Không được bịa hoặc gợi ý học bổng ngoài danh sách này. Hãy thông báo cho user và đề nghị thay đổi tiêu chí tìm kiếm.]';
@@ -150,7 +150,7 @@ const buildOpenAIMessages = (messages, prompt, systemInstruction) => [
   { role: 'user', content: prompt },
 ];
 
-const callGroq = async (messages, prompt, systemInstruction) => {
+async function callGroq(messages, prompt, systemInstruction) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const res = await groq.chat.completions.create({
     model: GROQ_MODEL,
@@ -158,9 +158,9 @@ const callGroq = async (messages, prompt, systemInstruction) => {
     max_tokens: 1024,
   });
   return res.choices[0].message.content;
-};
+}
 
-const callZhipu = async (messages, prompt, systemInstruction) => {
+async function callZhipu(messages, prompt, systemInstruction) {
   const client = new OpenAI({
     apiKey: process.env.ZHIPU_API_KEY,
     baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
@@ -171,9 +171,9 @@ const callZhipu = async (messages, prompt, systemInstruction) => {
     max_tokens: 1024,
   });
   return res.choices[0].message.content;
-};
+}
 
-const chat = async (messages, { userId } = {}) => {
+async function chat(messages, { userId } = {}) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw Object.assign(new Error('Gemini API chưa được cấu hình'), { statusCode: 503, isOperational: true });
 
@@ -244,7 +244,7 @@ const chat = async (messages, { userId } = {}) => {
   err.statusCode = 503;
   err.isOperational = true;
   throw err;
-};
+}
 
 const formatScholarshipsPlain = (scholarships) => scholarships.map((s) => {
   const deadline = s.deadline ? new Date(s.deadline).toLocaleDateString('vi-VN') : 'Chưa rõ';
@@ -258,7 +258,7 @@ const formatScholarshipsPlain = (scholarships) => scholarships.map((s) => {
 
 // ── Chat history persistence ───────────────────────────────────────────────────
 
-const saveMessages = async (userId, userContent, assistantContent) => {
+async function saveMessages(userId, userContent, assistantContent) {
   if (!userId) return;
   try {
     const sb = getSupabase();
@@ -269,9 +269,9 @@ const saveMessages = async (userId, userContent, assistantContent) => {
   } catch {
     // Bỏ qua lỗi persistence (table chưa tồn tại, quota exceeded...)
   }
-};
+}
 
-const getHistory = async (userId, limit = 40) => {
+async function getHistory(userId, limit = 40) {
   if (!userId) return [];
   try {
     const sb = getSupabase();
@@ -287,6 +287,6 @@ const getHistory = async (userId, limit = 40) => {
   } catch {
     return [];
   }
-};
+}
 
 module.exports = { chat, saveMessages, getHistory };

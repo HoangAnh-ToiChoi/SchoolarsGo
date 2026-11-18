@@ -22,7 +22,7 @@ export function useNotifications() {
 
   // Đánh dấu ngay trên giao diện, lỗi thì trả lại như cũ
   const optimistic = (isTarget) => ({
-    onMutate: async (id) => {
+    onMutate: async function onMutate(id) {
       await queryClient.cancelQueries({ queryKey: KEY });
       const previous = queryClient.getQueryData(KEY);
       queryClient.setQueryData(KEY, (old) => {

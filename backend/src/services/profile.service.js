@@ -7,14 +7,14 @@ class ProfileService {
     this.#repo = profileRepository;
   }
 
-  getProfile = async userId => {
+  async getProfile(userId) {
     return this.#repo.findByUserId(userId);
-  };
+  }
 
-  updateProfile = async (userId, updates) => {
+  async updateProfile(userId, updates) {
     this.#validateUpdate(updates);
     return this.#repo.upsertProfile(userId, updates);
-  };
+  }
 
   #validateUpdate(updates) {
     if (updates.gpa !== undefined) {

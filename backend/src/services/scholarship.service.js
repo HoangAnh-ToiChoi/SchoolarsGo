@@ -25,7 +25,7 @@ class ScholarshipService {
     return { isUuid };
   }
 
-  getAll = async (filters = {}, userId = null) => {
+  async getAll(filters = {}, userId = null) {
     const page = Math.max(1, Number(filters.page) || 1);
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
     const offset = (page - 1) * limit;
@@ -37,13 +37,13 @@ class ScholarshipService {
       data,
       meta: { page, limit, total, totalPages },
     };
-  };
+  }
 
-  getFeatured = async () => {
+  async getFeatured() {
     return this.#repo.findFeatured();
-  };
+  }
 
-  getCountries = async () => {
+  async getCountries() {
     const now = Date.now();
     if (this.#countriesCache && now - this.#countriesCachedAt < COUNTRIES_TTL_MS) {
       return this.#countriesCache;
@@ -52,14 +52,14 @@ class ScholarshipService {
     this.#countriesCache = result;
     this.#countriesCachedAt = now;
     return result;
-  };
+  }
 
-  getById = async (idOrSlug, userId = null) => {
+  async getById(idOrSlug, userId = null) {
     const kind = this.#parseIdOrSlug(idOrSlug);
     const scholarship = await this.#repo.findByIdOrSlug(idOrSlug, kind, userId);
     this.#guardFound(scholarship);
     return scholarship;
-  };
+  }
 }
 
 module.exports = ScholarshipService;

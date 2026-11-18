@@ -5,6 +5,8 @@ import LoadingSpinner from '~/components/common/LoadingSpinner';
 import FileUpload from '~/components/legacy/FileUpload';
 import { Button, Input, Select, PageHeader, EmptyState } from '~/components/legacy';
 import { FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
+import { useAccount } from '~/hooks/useAuth';
+import SessionList from '~/pages/profile/components/sessionList';
 
 const PROFILE_SIGNAL_FIELDS = [
   { key: 'gpa', label: 'GPA' },
@@ -18,6 +20,7 @@ const PROFILE_SIGNAL_FIELDS = [
 
 const ProfilePage = ({ embedded = false }) => {
   const { data, isLoading } = useProfile();
+  const account = useAccount();
   const { data: documents, isLoading: docsLoading } = useDocuments();
   const updateProfile = useUpdateProfile();
   const uploadDoc = useUploadDocument();
@@ -54,7 +57,7 @@ const ProfilePage = ({ embedded = false }) => {
     updateProfile.mutate(form);
   };
 
-  const handleUpload = async (file, error) => {
+  async function handleUpload(file, error) {
     if (error || !file) return;
     const fileExt = file.name.split('.').pop().toLowerCase();
     let docType = 'other';
@@ -69,7 +72,7 @@ const ProfilePage = ({ embedded = false }) => {
       docType = 'sop';
     }
     uploadDoc.mutate({ file, type: docType });
-  };
+  }
 
   const handleViewDocument = (document) => {
     if (document.url) window.open(document.url, '_blank');
@@ -102,6 +105,21 @@ const ProfilePage = ({ embedded = false }) => {
   const inner = (
     <div className="containerNarrow py-8">
       {!embedded && <PageHeader title="Hồ sơ cá nhân" />}
+
+      <section className="mb-6 rounded-card border border-ink-800 bg-ink-900 p-6 sm:p-8">
+        <h2 className="mb-4 border-b border-ink-800 pb-3 text-lg font-semibold text-ink-100">Thông tin tài khoản</h2>
+        {account.isLoading ? <p className="text-sm text-ink-400">Đang tải thông tin tài khoản…</p> : account.isError ? (
+          <div className="flex items-center gap-3 text-sm text-danger-400"><span>Không tải được thông tin tài khoản.</span><button onClick={() => account.refetch()} className="underline">Thử lại</button></div>
+        ) : (
+          <dl className="grid gap-4 sm:grid-cols-3">
+            <div><dt className="text-xs text-ink-500">Email</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.email || 'Chưa cập nhật'}</dd></div>
+            <div><dt className="text-xs text-ink-500">Số điện thoại</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.phone || 'Chưa cập nhật'}</dd></div>
+            <div><dt className="text-xs text-ink-500">Ngày sinh</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.date_of_birth || 'Chưa cập nhật'}</dd></div>
+          </dl>
+        )}
+      </section>
+
+      <SessionList />
 
       {/* Profile Form */}
       <form onSubmit={handleSaveProfile} className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8 mb-6 space-y-5">

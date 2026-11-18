@@ -52,5 +52,4 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Placeholder để build không bị lỗi thiếu env var
-          VITE_API_BASE_URL: https://placeholder.railway.app/api
+          VITE_API_BASE_URL: /api

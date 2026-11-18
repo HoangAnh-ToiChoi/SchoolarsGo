@@ -86,6 +86,8 @@ const upload = multer({
  * @param {function} next
  */
 const handleUploadError = (err, req, res, next) => {
+  if (err?.statusCode) return next(err);
+
   if (err) {
     // Drain request body before responding — prevents ERR_CONNECTION_RESET on the client
     // when multer rejects the file before the full body has been received.

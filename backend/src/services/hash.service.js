@@ -16,9 +16,9 @@ class HashService {
    * @param {string} plain
    * @returns {Promise<string>}
    */
-  hash = async (plain) => {
+  async hash(plain) {
     return bcrypt.hash(plain, SALT_ROUNDS);
-  };
+  }
 
   /**
    * So sánh mật khẩu plaintext với hash.
@@ -26,9 +26,9 @@ class HashService {
    * @param {string} hash
    * @returns {Promise<boolean>}
    */
-  compare = async (plain, hash) => {
+  async compare(plain, hash) {
     return bcrypt.compare(plain, hash);
-  };
+  }
 }
 
 module.exports = HashService;

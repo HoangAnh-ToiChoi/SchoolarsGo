@@ -79,7 +79,7 @@ class NewsService {
    * @param {string|null} [category=null]
    * @returns {Promise<Array>}
    */
-  getNews = async (limit = 20, category = null) => {
+  async getNews(limit = 20, category = null) {
     let all;
 
     if (this.#cache.data && Date.now() - this.#cache.ts < CACHE_TTL) {
@@ -96,7 +96,7 @@ class NewsService {
     }
 
     return all.slice(0, limit);
-  };
+  }
 }
 
 module.exports = NewsService;

@@ -3,25 +3,20 @@ import authReducer from '~/store/slices/authSlice';
 import comparisonReducer from '~/store/slices/comparisonSlice';
 import uiReducer from '~/store/slices/uiSlice';
 
-const AUTH_STORAGE_KEY = 'scholarsgo.auth';
+const AUTH_STORAGE_KEY = 'scholarsgo.session';
 
-// Khôi phục phiên đăng nhập sau khi tải lại trang (chỉ thông tin user, không có token)
 function loadAuth() {
   try {
-    const saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
-    if (saved?.user && saved.isAuthenticated) return saved;
+    const user = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
+    if (user?.full_name || user?.avatar_url) return { user, isAuthenticated: false, isLoading: true };
   } catch {
-    // dữ liệu hỏng thì bỏ qua, coi như chưa đăng nhập
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   }
-  return undefined;
+  return { user: null, isAuthenticated: false, isLoading: false };
 }
 
 export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    comparison: comparisonReducer,
-    ui: uiReducer,
-  },
+  reducer: { auth: authReducer, comparison: comparisonReducer, ui: uiReducer },
   preloadedState: { auth: loadAuth() },
 });
 
@@ -31,8 +26,10 @@ store.subscribe(() => {
   if (auth === lastAuth) return;
   lastAuth = auth;
   try {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
+    const summary = auth.user && { full_name: auth.user.full_name, avatar_url: auth.user.avatar_url };
+    if (summary) localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(summary));
+    else localStorage.removeItem(AUTH_STORAGE_KEY);
   } catch {
-    // trình duyệt chặn localStorage thì chỉ giữ phiên trong bộ nhớ
+    // localStorage không khả dụng thì phiên vẫn nằm trong Redux.
   }
 });
