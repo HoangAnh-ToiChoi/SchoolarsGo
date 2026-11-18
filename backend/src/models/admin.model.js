@@ -1,5 +1,6 @@
+const database = require('../configs/database.config');
 /**
- * AdminRepository — TẦNG 3: Database Access (Raw SQL)
+ * AdminModel — TẦNG 3: Database Access (Raw SQL)
  *
  * Mục đích: Tất cả SQL của Admin Module. KHÔNG chứa business logic.
  *
@@ -9,11 +10,11 @@
  * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
  */
 
-class AdminRepository {
+class AdminModel {
   /**
    * @param {object} db - Database driver instance (pg pool hoặc tương đương)
    */
-  constructor(db) {
+  constructor(db = database) {
     this.#db = db;
   }
 
@@ -242,4 +243,4 @@ class AdminRepository {
   #db;
 }
 
-module.exports = AdminRepository;
+module.exports = AdminModel;

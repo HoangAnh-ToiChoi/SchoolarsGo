@@ -1,9 +1,10 @@
 const { success, created } = require('../utils/responseHelper');
+const SavedService = require('../services/saved.service');
 
 class SavedController {
   #service;
 
-  constructor(savedService) {
+  constructor(savedService = new SavedService()) {
     this.#service = savedService;
     this.#validateService();
   }

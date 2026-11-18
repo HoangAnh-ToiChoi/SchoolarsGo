@@ -1,5 +1,7 @@
 const { Router } = require('express');
-const { documentController } = require('../container');
+const DocumentController = require('../controllers/document.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const documentController = bindControllerMethods(new DocumentController());
 const { auth } = require('../middlewares/auth');
 const { upload, handleUploadError } = require('../middlewares/upload');
 const { uploadLimiter } = require('../middlewares/rateLimiter');

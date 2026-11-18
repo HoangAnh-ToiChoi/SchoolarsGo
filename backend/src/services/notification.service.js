@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const NotificationModel = require('../models/notification.model');
 
 // Nhắc trước hạn nộp 14, 7 và 1 ngày. Mỗi mốc là một thông báo riêng.
 const REMIND_DAYS = [1, 7, 14];
@@ -18,10 +19,10 @@ const daysBetween = (todayIso, deadline) =>
 const milestoneFor = daysLeft => (daysLeft < 0 ? null : (REMIND_DAYS.find(d => daysLeft <= d) ?? null));
 
 class NotificationService {
-  #repo;
+  #model;
 
-  constructor(notificationRepository) {
-    this.#repo = notificationRepository;
+  constructor(notificationModel = new NotificationModel()) {
+    this.#model = notificationModel;
   }
 
   /**
@@ -33,8 +34,8 @@ class NotificationService {
     const today = vnToday(now);
     const until = addDays(today, REMIND_DAYS.at(-1) + 1);
     const [saved, drafts] = await Promise.all([
-      this.#repo.findSavedDueBetween(today, until, userId),
-      this.#repo.findDraftApplicationsDueBetween(today, until, userId),
+      this.#model.findSavedDueBetween(today, until, userId),
+      this.#model.findDraftApplicationsDueBetween(today, until, userId),
     ]);
 
     // Học bổng đã có đơn nháp thì nhắc theo đơn (bấm vào mở trang đơn), không nhắc trùng từ mục đã lưu
@@ -53,14 +54,14 @@ class NotificationService {
         milestone,
       });
     }
-    await this.#repo.insertIgnoreDuplicates(rows);
+    await this.#model.insertIgnoreDuplicates(rows);
     return rows.length;
   }
 
   async getAll(userId, { limit = 30 } = {}) {
     await this.generateDeadlineReminders({ userId });
     const today = vnToday();
-    const rows = await this.#repo.findByUser(userId, limit);
+    const rows = await this.#model.findByUser(userId, limit);
 
     // Mỗi học bổng chỉ giữ thông báo mới nhất (mốc 7 thay mốc 14); bỏ nhắc hạn đã quá hạn hoặc của đơn đã nộp
     const seen = new Set();
@@ -96,13 +97,13 @@ class NotificationService {
   }
 
   async markRead(userId, notificationId) {
-    const found = await this.#repo.markRead(userId, notificationId);
+    const found = await this.#model.markRead(userId, notificationId);
     if (!found) throw new AppError('Không tìm thấy thông báo.', 404, 'NOTIFICATION_NOT_FOUND');
     return { id: notificationId };
   }
 
   async markAllRead(userId) {
-    return { updated: await this.#repo.markAllRead(userId) };
+    return { updated: await this.#model.markAllRead(userId) };
   }
 }
 

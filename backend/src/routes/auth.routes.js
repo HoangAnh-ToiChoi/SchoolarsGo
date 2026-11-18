@@ -1,6 +1,8 @@
 const { Router } = require('express');
-const { authController } = require('../container');
-const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../utils/validators');
+const AuthController = require('../controllers/auth.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const authController = bindControllerMethods(new AuthController());
+const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../validations/auth.validation');
 const validate = require('../middlewares/validate');
 const { auth } = require('../middlewares/auth');
 const { authLimiter, refreshLimiter } = require('../middlewares/rateLimiter');

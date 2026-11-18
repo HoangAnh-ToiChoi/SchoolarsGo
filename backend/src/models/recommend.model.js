@@ -1,7 +1,8 @@
-class RecommendRepository {
+const getSupabase = require('../configs/supabase');
+class RecommendModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -35,4 +36,4 @@ class RecommendRepository {
   }
 }
 
-module.exports = RecommendRepository;
+module.exports = RecommendModel;

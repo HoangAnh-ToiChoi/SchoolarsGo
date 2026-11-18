@@ -1,7 +1,8 @@
-class SavedRepository {
+const getSupabase = require('../configs/supabase');
+class SavedModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -66,4 +67,4 @@ class SavedRepository {
   }
 }
 
-module.exports = SavedRepository;
+module.exports = SavedModel;

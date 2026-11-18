@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const SavedRepository = require('../../src/repositories/saved.repository');
+const SavedModel = require('../../src/models/saved.model');
 const SavedService = require('../../src/services/saved.service');
 
 // Giả lập chuỗi truy vấn Supabase: from().select().eq().order() trả về rows cố định
@@ -23,8 +23,8 @@ const ROWS = [
   },
 ];
 
-test('SavedRepository.findAllByUser keeps saved record id separate from scholarship id', async () => {
-  const repo = new SavedRepository(fakeSupabase(ROWS));
+test('SavedModel.findAllByUser keeps saved record id separate from scholarship id', async () => {
+  const repo = new SavedModel(fakeSupabase(ROWS));
   const [row] = await repo.findAllByUser('user-1');
 
   assert.equal(row.id, 'saved-1');
@@ -34,7 +34,7 @@ test('SavedRepository.findAllByUser keeps saved record id separate from scholars
 });
 
 test('SavedService.getAll returns saved id at top level and scholarship id nested', async () => {
-  const service = new SavedService(new SavedRepository(fakeSupabase(ROWS)));
+  const service = new SavedService(new SavedModel(fakeSupabase(ROWS)));
   const [item] = await service.getAll('user-1');
 
   assert.equal(item.id, 'saved-1');

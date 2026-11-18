@@ -1,8 +1,5 @@
 /**
  * admin.routes.js — TẦNG ROUTE: Mount endpoints Admin
- *
- * Tiêu chí OOP:
- * [2] DI — Controller được import từ container (đã được inject).
  */
 const express = require('express');
 const router = express.Router();
@@ -10,17 +7,11 @@ const router = express.Router();
 const { auth } = require('../middlewares/auth');
 const requireRole = require('../middlewares/requireRole');
 const validate = require('../middlewares/validate');
-const {
-  adminCreateScholarshipSchema,
-  adminUpdateScholarshipSchema,
-  adminUpdateUserRoleSchema,
-  adminUpdateUserStatusSchema,
-  adminUpdateScholarshipFeaturedSchema,
-  adminUserQuerySchema,
-} = require('../utils/validators');
+const { adminCreateScholarshipSchema, adminUpdateScholarshipSchema, adminUpdateUserRoleSchema, adminUpdateUserStatusSchema, adminUpdateScholarshipFeaturedSchema, adminUserQuerySchema } = require('../validations/admin.validation');
 
-// Import controller từ container (đã được inject dependencies)
-const { adminController } = require('../container');
+const AdminController = require('../controllers/admin.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const adminController = bindControllerMethods(new AdminController());
 
 // ═══════════════════════════════════════════════════════════
 // MOUNT — auth → requireRole (middleware chạy theo thứ tự)

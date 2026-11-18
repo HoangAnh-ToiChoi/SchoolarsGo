@@ -1,7 +1,8 @@
-class DocumentRepository {
+const getSupabase = require('../configs/supabase');
+class DocumentModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -31,4 +32,4 @@ class DocumentRepository {
   }
 }
 
-module.exports = DocumentRepository;
+module.exports = DocumentModel;

@@ -1,3 +1,4 @@
+const getSupabase = require('../configs/supabase');
 const DEFAULT_CHECKLIST = [
   { item: 'CV', done: false },
   { item: 'SOP', done: false },
@@ -7,10 +8,10 @@ const DEFAULT_CHECKLIST = [
   { item: 'Hộ chiếu', done: false },
 ];
 
-class ApplicationRepository {
+class ApplicationModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -87,4 +88,4 @@ class ApplicationRepository {
   }
 }
 
-module.exports = ApplicationRepository;
+module.exports = ApplicationModel;

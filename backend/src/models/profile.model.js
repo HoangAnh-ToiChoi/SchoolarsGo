@@ -1,7 +1,8 @@
-class ProfileRepository {
+const getSupabase = require('../configs/supabase');
+class ProfileModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -33,4 +34,4 @@ class ProfileRepository {
   }
 }
 
-module.exports = ProfileRepository;
+module.exports = ProfileModel;

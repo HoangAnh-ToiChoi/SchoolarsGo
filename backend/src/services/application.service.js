@@ -1,7 +1,8 @@
 const AppError = require('../utils/AppError');
+const ApplicationModel = require('../models/application.model');
 
 class ApplicationService {
-  #repo;
+  #model;
 
   static #VALID_TRANSITIONS = {
     draft: ['submitted', 'withdrawn'],
@@ -15,8 +16,8 @@ class ApplicationService {
 
   static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
 
-  constructor(applicationRepository) {
-    this.#repo = applicationRepository;
+  constructor(applicationModel = new ApplicationModel()) {
+    this.#model = applicationModel;
   }
 
   #guardFound(entity, message = 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.') {
@@ -64,7 +65,7 @@ class ApplicationService {
     const limit = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 20));
     const status = filters.status || null;
 
-    const { rows, total } = await this.#repo.findAllByUser(userId, { page, limit, status });
+    const { rows, total } = await this.#model.findAllByUser(userId, { page, limit, status });
 
     return {
       data: rows.map(row => this.#formatApplication(row)),
@@ -73,11 +74,11 @@ class ApplicationService {
   }
 
   async create(userId, { scholarshipId, checklist, notes }) {
-    const exists = await this.#repo.scholarshipExists(scholarshipId);
+    const exists = await this.#model.scholarshipExists(scholarshipId);
     if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
 
     try {
-      const app = await this.#repo.create(userId, { scholarshipId, checklist, notes });
+      const app = await this.#model.create(userId, { scholarshipId, checklist, notes });
       return this.#formatApplication(app);
     } catch (err) {
       if (err.message === 'APPLICATION_ALREADY_EXISTS') {
@@ -88,13 +89,13 @@ class ApplicationService {
   }
 
   async getById(userId, applicationId) {
-    const app = await this.#repo.findByIdAndUser(applicationId, userId);
+    const app = await this.#model.findByIdAndUser(applicationId, userId);
     this.#guardFound(app);
     return this.#formatApplication(app);
   }
 
   async update(userId, applicationId, rawUpdates) {
-    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    const existing = await this.#model.findByIdAndUser(applicationId, userId);
     this.#guardFound(existing);
 
     const updates = { ...rawUpdates };
@@ -114,15 +115,15 @@ class ApplicationService {
       }
     }
 
-    const updated = await this.#repo.updateByIdAndUser(applicationId, userId, updates);
+    const updated = await this.#model.updateByIdAndUser(applicationId, userId, updates);
     return this.#formatApplication(updated);
   }
 
   async delete(userId, applicationId) {
-    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    const existing = await this.#model.findByIdAndUser(applicationId, userId);
     this.#guardFound(existing);
     this.#assertDeletable(existing.status);
-    await this.#repo.deleteByIdAndUser(applicationId, userId);
+    await this.#model.deleteByIdAndUser(applicationId, userId);
     return { deleted: true };
   }
 }

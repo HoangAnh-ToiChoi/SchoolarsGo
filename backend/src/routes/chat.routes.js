@@ -1,5 +1,7 @@
 const { Router } = require('express');
-const { chatController } = require('../container');
+const ChatController = require('../controllers/chat.controller');
+const bindControllerMethods = require('../utils/bindControllerMethods');
+const chatController = bindControllerMethods(new ChatController());
 const { auth } = require('../middlewares/auth');
 const rateLimit = require('express-rate-limit');
 

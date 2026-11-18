@@ -1,7 +1,8 @@
-class AuthRepository {
+const getSupabase = require('../configs/supabase');
+class AuthModel {
   #sb;
 
-  constructor(sb) {
+  constructor(sb = getSupabase()) {
     this.#sb = sb;
   }
 
@@ -84,4 +85,4 @@ class AuthRepository {
   }
 }
 
-module.exports = AuthRepository;
+module.exports = AuthModel;

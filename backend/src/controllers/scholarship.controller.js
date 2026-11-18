@@ -1,9 +1,10 @@
 const { success } = require('../utils/responseHelper');
+const ScholarshipService = require('../services/scholarship.service');
 
 class ScholarshipController {
   #service;
 
-  constructor(scholarshipService) {
+  constructor(scholarshipService = new ScholarshipService()) {
     this.#service = scholarshipService;
     this.#validateService();
   }

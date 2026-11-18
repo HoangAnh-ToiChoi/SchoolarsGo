@@ -1,9 +1,10 @@
 const { success } = require('../utils/responseHelper');
+const ProfileService = require('../services/profile.service');
 
 class ProfileController {
   #service;
 
-  constructor(profileService) {
+  constructor(profileService = new ProfileService()) {
     this.#service = profileService;
     this.#validateService();
   }

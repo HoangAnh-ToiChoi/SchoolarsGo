@@ -1,16 +1,17 @@
 const AppError = require('../utils/AppError');
+const ScholarshipModel = require('../models/scholarship.model');
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;
 const COUNTRIES_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 class ScholarshipService {
-  #repo;
+  #model;
   #countriesCache = null;
   #countriesCachedAt = 0;
 
-  constructor(scholarshipRepository) {
-    this.#repo = scholarshipRepository;
+  constructor(scholarshipModel = new ScholarshipModel()) {
+    this.#model = scholarshipModel;
   }
 
   #guardFound(entity, message = 'Không tìm thấy học bổng') {
@@ -30,7 +31,7 @@ class ScholarshipService {
     const limit = Math.min(MAX_LIMIT, Math.max(1, Number(filters.limit) || PAGE_SIZE));
     const offset = (page - 1) * limit;
 
-    const { data, total } = await this.#repo.findAll(filters, limit, offset, userId);
+    const { data, total } = await this.#model.findAll(filters, limit, offset, userId);
     const totalPages = Math.ceil(total / limit);
 
     return {
@@ -40,7 +41,7 @@ class ScholarshipService {
   }
 
   async getFeatured() {
-    return this.#repo.findFeatured();
+    return this.#model.findFeatured();
   }
 
   async getCountries() {
@@ -48,7 +49,7 @@ class ScholarshipService {
     if (this.#countriesCache && now - this.#countriesCachedAt < COUNTRIES_TTL_MS) {
       return this.#countriesCache;
     }
-    const result = await this.#repo.findCountries();
+    const result = await this.#model.findCountries();
     this.#countriesCache = result;
     this.#countriesCachedAt = now;
     return result;
@@ -56,7 +57,7 @@ class ScholarshipService {
 
   async getById(idOrSlug, userId = null) {
     const kind = this.#parseIdOrSlug(idOrSlug);
-    const scholarship = await this.#repo.findByIdOrSlug(idOrSlug, kind, userId);
+    const scholarship = await this.#model.findByIdOrSlug(idOrSlug, kind, userId);
     this.#guardFound(scholarship);
     return scholarship;
   }

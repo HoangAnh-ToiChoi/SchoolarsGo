@@ -3,7 +3,7 @@
 /**
  * KÉO HỌC BỔNG TỪ WEB NGOÀI — đọc file này trước.
  *
- * Ai gọi:  jobs/scholarshipScraper.js (Chủ nhật 2:00, qua container.js)  và  scripts/ingest.js (chạy tay)
+ * Ai gọi:  jobs/scholarshipScraper.js (Chủ nhật 2:00)  và  scripts/ingest.js (chạy tay)
  *
  * Mỗi trang trong sources.js chạy lần lượt; mỗi bài của trang đi qua 7 bước:
  *

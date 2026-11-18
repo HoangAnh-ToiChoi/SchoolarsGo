@@ -1,9 +1,24 @@
 'use strict';
 
 const cron = require('node-cron');
-const { ingestionService, sessionRepository } = require('../container');
+const db = require('../configs/database.config');
+const SessionModel = require('../models/session.model');
+const { createIngestion } = require('../ingestion');
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
+const sessionModel = new SessionModel();
+
+// Không có khóa Gemini hoặc tắt AI thì module kéo học bổng chạy bằng luật thuần
+function createAiModel() {
+  if (process.env.INGESTION_USE_AI === 'false' || !process.env.GEMINI_API_KEY) return null;
+  const { GoogleGenerativeAI } = require('@google/generative-ai');
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
+    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
+    generationConfig: { responseMimeType: 'application/json', temperature: 0 },
+  });
+}
+
+const ingestionService = createIngestion({ db, aiModel: createAiModel() });
 let isRunning = false;
 
 /** Kéo học bổng từ tất cả nguồn (module src/ingestion). Không cho hai lượt chạy chồng nhau. */
@@ -38,7 +53,7 @@ async function deactivateExpiredJob() {
 
 async function deleteOldSessionsJob() {
   try {
-    const count = await sessionRepository.deleteOld();
+    const count = await sessionModel.deleteOld();
     console.log(`[Auth] Đã dọn ${count} phiên đăng nhập cũ`);
   } catch (e) {
     console.error('[Auth] Lỗi khi dọn phiên đăng nhập:', e.message);
