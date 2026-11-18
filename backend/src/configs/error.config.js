@@ -29,7 +29,7 @@ function zodError(err) {
 }
 
 function postgresError(err) {
-  const mapped = typeof err.code === 'string' && POSTGRES_ERRORS[err.code];
+  const mapped = typeof err.code === 'string' && Object.hasOwn(POSTGRES_ERRORS, err.code) && POSTGRES_ERRORS[err.code];
   return mapped ? result(mapped.statusCode, mapped.errorCode, mapped.message) : null;
 }
 
@@ -40,7 +40,7 @@ function jwtError(err) {
 }
 
 function multerError(err) {
-  const mapped = MULTER_ERRORS[err.code];
+  const mapped = typeof err.code === 'string' && Object.hasOwn(MULTER_ERRORS, err.code) && MULTER_ERRORS[err.code];
   return mapped ? result(400, mapped.errorCode, mapped.message) : null;
 }
 

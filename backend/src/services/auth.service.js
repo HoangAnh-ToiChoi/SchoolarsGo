@@ -39,10 +39,21 @@ class AuthService {
     return { email: user.email, phone: user.phone, date_of_birth: user.date_of_birth };
   }
 
-  refresh = rawToken => sessionService.refresh(rawToken);
-  logout = rawToken => sessionService.end(rawToken);
-  listSessions = (userId, currentSessionId) => sessionService.list(userId, currentSessionId);
-  endSession = (userId, sessionId) => sessionService.endOne(userId, sessionId);
+  async refresh(rawToken) {
+    return sessionService.refresh(rawToken);
+  }
+
+  async logout(rawToken) {
+    return sessionService.end(rawToken);
+  }
+
+  async listSessions(userId, currentSessionId) {
+    return sessionService.list(userId, currentSessionId);
+  }
+
+  async endSession(userId, sessionId) {
+    return sessionService.endOne(userId, sessionId);
+  }
 
   async forgotPassword(email) {
     const user = await authModel.findByEmail(email);

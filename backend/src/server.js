@@ -11,8 +11,9 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-import app from './app.js';
-import { startJobs } from './jobs/index.js';
+// Nạp app SAU Sentry.init: import tĩnh của ESM chạy trước code nên Sentry sẽ không kịp theo dõi express, http, pg
+const { default: app } = await import('./app.js');
+const { startJobs } = await import('./jobs/index.js');
 
 const PORT = process.env.PORT || 5000;
 

@@ -8,8 +8,6 @@
  * Các file migration viết dạng idempotent (IF NOT EXISTS) nên chạy lại nhiều lần không sao.
  */
 
-'use strict';
-
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

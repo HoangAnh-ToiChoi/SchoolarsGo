@@ -68,3 +68,31 @@ test('ApiResponse: thành công bỏ trường rỗng, lỗi có code + error + 
   );
   assert.equal('errors' in ApiResponse.error({ message: 'Sai', code: 404, errorCode: 'NOT_FOUND' }), false);
 });
+
+test('resolveError: mã lỗi trùng khóa của Object.prototype không bị coi là lỗi Postgres/multer', () => {
+  for (const code of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    const resolved = resolveError({ code, message: 'x' });
+    assert.equal(resolved.statusCode, 500);
+    assert.equal(resolved.errorCode, 'INTERNAL_SERVER_ERROR');
+  }
+});
+
+test('handleUploadError: MulterError đi qua errorHandler, lỗi fileFilter thành AppError 400', async () => {
+  const { default: multer } = await import('multer');
+  const { handleUploadError } = await import('#middlewares/upload.js');
+  const run = (err) => {
+    const seen = [];
+    const req = { resume: () => seen.push('resume') };
+    handleUploadError(err, req, {}, (e) => seen.push(e));
+    return seen;
+  };
+
+  const tooBig = new multer.MulterError('LIMIT_FILE_SIZE');
+  assert.deepEqual(run(tooBig), ['resume', tooBig]);
+  assert.equal(resolveError(tooBig).errorCode, 'FILE_TOO_LARGE');
+
+  const [, mapped] = run(new Error('Thiếu field "type" trong request'));
+  assert.equal(mapped.statusCode, 400);
+  assert.equal(mapped.code, 'UPLOAD_INVALID');
+  assert.deepEqual(run(undefined), [undefined]);
+});
