@@ -58,7 +58,7 @@ const upload = multer({
 });
 
 /**
- * MulterError (file quá lớn, sai field...) chuyển thẳng cho errorHandler, nơi đã có mã lỗi và thông báo riêng.
+ * MulterError (file quá lớn, sai field...) chuyển thẳng cho errorHandle.controller, nơi đã có mã lỗi và thông báo riêng.
  * Lỗi của fileFilter (Error thường) đổi thành AppError 400; nếu không client chỉ thấy "Failed to fetch".
  * Phải return ngay khi có lỗi, không thì controller chạy tiếp và gửi response lần hai.
  */

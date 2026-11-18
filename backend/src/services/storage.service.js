@@ -1,7 +1,7 @@
 /**
  * Supabase Storage cho file tài liệu (bucket "documents", đường dẫn {user_id}/{type}/{tên-file}).
  * Dùng service_role key để vượt RLS của Storage. Tên file được slugify + gắn UUID để không trùng.
- * Upload lỗi thì ném lỗi isOperational để errorHandler trả về cho client.
+ * Upload lỗi thì ném lỗi isOperational để errorHandle.controller trả về cho client.
  */
 
 import { createClient } from '@supabase/supabase-js';

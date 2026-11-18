@@ -1,4 +1,3 @@
-import { success } from '~/utils/responseHelper.js';
 import * as chatService from '~/services/chat.service.js';
 
 class ChatController {
@@ -38,12 +37,12 @@ class ChatController {
       chatService.saveMessages(req.user?.id, lastUserMsg.content, reply);
     }
 
-    return success(res, { reply });
+    return res.success({ reply });
   }
 
   async getChatHistory(req, res) {
     const history = await chatService.getHistory(req.user.id);
-    return success(res, { messages: history });
+    return res.success({ messages: history });
   }
 }
 

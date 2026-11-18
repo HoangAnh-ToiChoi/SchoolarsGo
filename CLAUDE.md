@@ -82,7 +82,7 @@ routes/        URL + middleware: auth, requireRole, validate(schema)
 
 Vi phạm ranh giới → sửa trước khi merge. (`chat.service` còn gọi thẳng Supabase: cần tách `chat.model`.)
 
-**Mỗi file class xuất sẵn một bản dùng chung, không có container, không `this` cho phụ thuộc.** Cuối file model / service / controller chỉ có `export default new SavedService();` (không `export { Class }`, không constructor nhận phụ thuộc). Nơi dùng `import savedService from '~/services/saved.service.js'` rồi gọi thẳng. Service gọi model đã import (`savedModel.findAllByUser(...)`); model gọi `getSupabase()` trong từng hàm. `this` chỉ còn cho trạng thái riêng của chính class (cache, parser) và hàm private. Bản dùng chung chạy ngay lúc import nên cần `.env` đã nạp (`import 'dotenv/config'` là dòng đầu của `app.js`, `server.js`). Không dùng event bus: việc gì cần làm thì gọi thẳng trong service.
+**Mỗi file class xuất sẵn một bản dùng chung, không có container, không `this` cho phụ thuộc.** Cuối file model / service / controller chỉ có `export default new SavedService();`. **Cấm** `const x = new X(); export default x;` (gán ra biến rồi mới export) và `export { Class }`; cấm constructor nhận phụ thuộc. Class cần gọi hàm khác thì đặt hàm đó ở cấp module, không tham chiếu lại biến bản dùng chung. Nơi dùng `import savedService from '~/services/saved.service.js'` rồi gọi thẳng. Service gọi model đã import (`savedModel.findAllByUser(...)`); model gọi `getSupabase()` trong từng hàm. `this` chỉ còn cho trạng thái riêng của chính class (cache, parser) và hàm private. Bản dùng chung chạy ngay lúc import nên cần `.env` đã nạp (`import 'dotenv/config'` là dòng đầu của `app.js`, `server.js`). Không dùng event bus: việc gì cần làm thì gọi thẳng trong service.
 
 **ESM + Express 5.** `package.json` có `"type": "module"`: dùng `import` / `export` (có đuôi `.js`), không `require` / `module.exports`. Nhiều hàm xuất `export { a, b }`. **Import nội bộ dùng `~/` (= `backend/src/`), không dùng `../`**: `import AppError from '~/utils/AppError.js'`; cùng thư mục thì `./`. Node không hiểu `~/` có sẵn nên `register.js` + `aliasLoader.js` chỉ cho nó cách tra; mọi lệnh chạy code trong `src/` phải có `--import ./register.js` (script `dev`, `start`, `test:*`, `ingest` đã có; `railway.json` cũng vậy). `jsconfig.json` chỉ để VS Code gợi ý và nhảy tới file. `__dirname` lấy bằng `path.dirname(fileURLToPath(import.meta.url))`. `import` chạy trước code của file: đặt biến môi trường rồi mới nạp module cần nó thì dùng `await import()`. Express 5: `req.query` chỉ đọc (`validate` đã xử lý), `req.body` luôn là object (`app.js`).
 
@@ -95,12 +95,12 @@ backend/
     app.js               middleware chung (helmet, cors, cookie, rate limit) + gắn routes
     routes/ controllers/ services/ models/   một file mỗi nhóm: notification.routes.js …
                          routes/index.js tự nạp mọi *.routes.js, tên file thành đường dẫn (saved.routes.js → /saved)
-    middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter, errorHandler
+    middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter
     jobs/                tự nạp, gọi mọi hàm start*: nhắc hạn 7:00, kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn 3:00
     ingestion/           module kéo học bổng — tự chứa, đọc index.js trước
-    configs/             CORS, database, JWT, nodemailer, Supabase client, error.config (đổi lỗi → response)
+    configs/             CORS, database, JWT, nodemailer, Supabase client
     validations/         schema zod theo nghiệp vụ: auth.validation.js …
-    utils/               AppError, responseHelper, helpers
+    utils/               AppError, hash, helpers
   scripts/migrations/    00N_tenMigration.sql — đánh số tăng dần, chạy lại nhiều lần không lỗi
   tests/contracts/       test service · tests/ingestion/ test module kéo học bổng
 ```
@@ -110,16 +110,16 @@ backend/
 - **Đăng nhập:** `auth` (bắt buộc) hoặc `optionalAuth` (có thì đọc) → `req.user = { id, sid, role }`. Token nằm trong cookie httpOnly.
 - **Admin:** `router.use(auth, requireRole('admin'))` ở đầu file route.
 - **Dữ liệu của người dùng** (đơn, đã lưu, thông báo, tài liệu): model **luôn lọc theo `user_id`** (`findByIdAndUser(id, userId)`). Không thấy → **404** (không báo 403, để không lộ là bản ghi tồn tại).
-- Cấu hình môi trường / CORS đặt trong `backend/src/configs/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
+- Cấu hình môi trường / CORS đặt trong `backend/src/configs/`; mã lỗi và thông báo chuẩn đặt trong `backend/src/constants/errors.js` (ví dụ `authorization.ACCESS_TOKEN_EXPIRED`; lỗi chung/Postgres/multer cũng ở đó). Không đặt cấu hình trong `utils/` và không tự gõ lại mã lỗi.
 - Access token sống 15 phút; refresh token 7 ngày, lưu dạng hash trong `user_sessions`. LocalStorage FE chỉ được giữ `{ full_name, avatar_url }`; quyền admin luôn lấy từ `/auth/me`.
 - Hàm bất đồng bộ trong backend và frontend dùng `async function`; method trong class dùng `async methodName(...) {}`. Không dùng async arrow function hoặc gán function vào class field.
 
 ### Lỗi và response
 
-- **Controller không `try/catch/next`.** Express 5 tự chuyển lỗi của handler `async` sang `errorHandler`. Handler chỉ có 2 tham số `(req, res)`.
+- **Controller không `try/catch/next`.** Express 5 tự chuyển lỗi của handler `async` sang `errorHandle.controller`. Handler chỉ có 2 tham số `(req, res)`.
 - **Ném lỗi nghiệp vụ** bằng hàm tạo sẵn của `AppError`: `AppError.badRequest | unauthorized | forbidden | notFound | conflict | internal(message, 'MA_LOI')`. Mã dựng sẵn (đăng nhập, phiên) dùng `new AppError(authorization.X)`. Status không có hàm tạo (vd. 503) dùng `new AppError(message, 503, 'MA_LOI')`.
-- `errorHandler` → `resolveError()` (`configs/error.config.js`) đổi mọi lỗi (zod, Postgres, JWT, multer, JSON hỏng, `AppError`, lỗi lạ) thành `{ statusCode, code, errorCode, message, details }`. Lỗi lạ trả 500 chung chung, không lộ chi tiết. Thêm kiểu lỗi mới = thêm một mapper ở đó.
-- **Dạng response** (`ApiResponse` trong `utils/responseHelper.js`): thành công `{ success, data, message, meta }` qua `success(res, …)` / `created(res, …)`; lỗi `{ success: false, message, code, error, errors? }`. `code` (số HTTP hoặc mã chữ như `SESSION_REVOKED`) và `errors` là thứ FE đang đọc, **không đổi tên / bỏ**. `error` là mã chuẩn UPPER_SNAKE_CASE. Mọi response lỗi (kể cả 404, giới hạn tần suất, upload) tạo bằng `ApiResponse.error`, không tự viết JSON.
+- `controllers/errorHandle.controller.js` (`notFound`, `handle`) → `resolveError()` đổi mọi lỗi (zod, Postgres, JWT, multer, JSON hỏng, `AppError`, lỗi lạ) thành `{ statusCode, code, errorCode, message, details }`. Lỗi lạ trả 500 chung chung, không lộ chi tiết. Thêm kiểu lỗi mới = thêm mã vào `constants/errors.js` + một mapper trong file này.
+- **Dạng response** (`controllers/response.controller.js` là middleware gắn `res.success/created/error` lên mọi request, mount đầu `app.js`; mỗi file một class): thành công `{ success, data, message, meta }` qua `res.success(…)` / `res.created(…)`; lỗi `{ success: false, message, code, error, errors? }`. `code` (số HTTP hoặc mã chữ như `SESSION_REVOKED`) và `errors` là thứ FE đang đọc, **không đổi tên / bỏ**. `error` là mã chuẩn UPPER_SNAKE_CASE. Mọi response lỗi (kể cả 404, giới hạn tần suất, upload) tạo bằng `res.error(…)`, không tự viết JSON.
 - Đầu vào kiểm tra bằng zod trong `validations/<nghiệpVụ>.validation.js`, gắn ở route qua `validate(schema, 'query' | 'body' | 'params')`. Sai → `ZodError` → 400 `VALIDATION_ERROR` kèm `errors` từng trường.
 
 ### Query

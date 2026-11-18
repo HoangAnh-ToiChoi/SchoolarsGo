@@ -1,5 +1,4 @@
 import rateLimit from 'express-rate-limit';
-import { ApiResponse } from '~/utils/responseHelper.js';
 
 const createLimiter = (maxRequests, windowSeconds, message) => {
   return rateLimit({
@@ -7,7 +6,7 @@ const createLimiter = (maxRequests, windowSeconds, message) => {
     max: maxRequests,
     standardHeaders: true,
     legacyHeaders: false,
-    message: ApiResponse.error({ message, code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
+    handler: (req, res) => res.error({ statusCode: 429, message, code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
   });
 };
 

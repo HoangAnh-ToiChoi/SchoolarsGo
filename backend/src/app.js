@@ -14,9 +14,9 @@ import { corsOrigin } from './configs/cors.config.js';
 import { getTrustProxy } from './configs/jwt.config.js';
 import { apiLimiter } from './middlewares/rateLimiter.js';
 import checkOrigin from './middlewares/checkOrigin.js';
-import errorHandler from './middlewares/errorHandler.js';
+import responseController from './controllers/response.controller.js';
+import errorHandleController from './controllers/errorHandle.controller.js';
 import './configs/database.config.js';
-import { ApiResponse } from './utils/responseHelper.js';
 import routes from './routes/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +24,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.set('trust proxy', getTrustProxy());
+app.use(responseController.attach);
 app.use(helmet());
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
@@ -50,15 +51,11 @@ app.use(
   })
 );
 
-app.use(notFound);
-app.use(errorHandler);
+app.use(errorHandleController.notFound);
+app.use(errorHandleController.handle);
 
 function healthCheck(req, res) {
   res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
-}
-
-function notFound(req, res) {
-  res.status(404).json(ApiResponse.error({ message: 'Endpoint not found', code: 404, errorCode: 'ROUTE_NOT_FOUND' }));
 }
 
 export default app;

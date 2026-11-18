@@ -4,7 +4,7 @@ import { sendResetEmail } from '~/configs/nodemailer.js';
 import { toSessionUser } from '~/utils/sessionUser.js';
 import { authorization } from '~/constants/errors.js';
 import authModel from '~/models/auth.model.js';
-import hashService from './hash.service.js';
+import hashService from '~/utils/hash.js';
 import sessionService from './session.service.js';
 
 class AuthService {

@@ -11,7 +11,7 @@ process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
 const sessionModelRef = mockService(srcUrl('models/session.model.js'));
 const authModelRef = mockService(srcUrl('models/auth.model.js'));
 const adminModelRef = mockService(srcUrl('models/admin.model.js'));
-const hashRef = mockService(srcUrl('services/hash.service.js'));
+const hashRef = mockService(srcUrl('utils/hash.js'));
 
 const { default: tokens } = await import('~/services/token.service.js');
 const { default: sessions } = await import('~/services/session.service.js');

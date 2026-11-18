@@ -1,11 +1,13 @@
 import express from 'express';
-import errorHandler from '~/middlewares/errorHandler.js';
+import responseController from '~/controllers/response.controller.js';
+import errorHandleController from '~/controllers/errorHandle.controller.js';
 
 const createJsonApp = (mount) => {
   const app = express();
+  app.use(responseController.attach);
   app.use(express.json());
   mount(app);
-  app.use(errorHandler);
+  app.use(errorHandleController.handle);
   return app;
 };
 
