@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { mockService, srcUrl } from './helpers/mockService.js';
-import { vnToday, daysBetween, milestoneFor } from '#utils/deadline.js';
+import { vnToday, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
 const modelRef = mockService(srcUrl('models/notification.model.js'));
-const { default: notificationService } = await import('#services/notification.service.js');
+const { default: notificationService } = await import('~/services/notification.service.js');
 
 
 // Repository giả: ghi lại các bản ghi được thêm để kiểm tra

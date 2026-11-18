@@ -1,5 +1,5 @@
-import { success, created } from '#utils/responseHelper.js';
-import savedService from '#services/saved.service.js';
+import { success, created } from '~/utils/responseHelper.js';
+import savedService from '~/services/saved.service.js';
 
 class SavedController {
   async getAll(req, res) {

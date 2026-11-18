@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkBasic as checkBeforeExtract, checkDetails as checkAfterExtract } from '#ingestion/filter.js';
+import { checkBasic as checkBeforeExtract, checkDetails as checkAfterExtract } from '~/ingestion/filter.js';
 import { NOW, rawPost } from './helpers.js';
 
 const facts = (overrides = {}) => ({

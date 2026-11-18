@@ -1,6 +1,6 @@
-import { success } from '#utils/responseHelper.js';
-import authService from '#services/auth.service.js';
-import authCookieController from '#controllers/authCookie.controller.js';
+import { success } from '~/utils/responseHelper.js';
+import authService from '~/services/auth.service.js';
+import authCookieController from '~/controllers/authCookie.controller.js';
 
 class AuthController {
   async register(req, res) {

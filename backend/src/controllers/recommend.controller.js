@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import recommendService from '#services/recommend.service.js';
+import { success } from '~/utils/responseHelper.js';
+import recommendService from '~/services/recommend.service.js';
 
 class RecommendController {
   async recommend(req, res) {

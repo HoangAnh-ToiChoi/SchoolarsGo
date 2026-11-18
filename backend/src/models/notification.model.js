@@ -1,4 +1,4 @@
-import getSupabase from '#configs/supabase.js';
+import getSupabase from '~/configs/supabase.js';
 
 const NOTIFICATION_COLUMNS =
   'id, type, milestone, application_id, read_at, created_at, scholarships(id, slug, title, provider, deadline), applications(status)';

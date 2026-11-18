@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
-import { resolveError } from '#configs/error.config.js';
-import { ApiResponse } from '#utils/responseHelper.js';
+import { resolveError } from '~/configs/error.config.js';
+import { ApiResponse } from '~/utils/responseHelper.js';
 
 /** Điểm cuối của mọi lỗi: đổi lỗi thành response chuẩn; mọi lỗi 5xx (kể cả lỗi nghiệp vụ như upload/DB thất bại) đều ghi log + Sentry. */
 const errorHandler = (err, req, res, _next) => {

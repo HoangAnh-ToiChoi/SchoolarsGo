@@ -1,4 +1,4 @@
-import getSupabase from '#configs/supabase.js';
+import getSupabase from '~/configs/supabase.js';
 
 class DocumentModel {
   async findAllByUserId(userId) {

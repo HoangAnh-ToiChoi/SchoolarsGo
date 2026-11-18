@@ -1,5 +1,5 @@
 import express from 'express';
-import errorHandler from '#middlewares/errorHandler.js';
+import errorHandler from '~/middlewares/errorHandler.js';
 
 const createJsonApp = (mount) => {
   const app = express();

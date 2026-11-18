@@ -2,7 +2,7 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import jwt from 'jsonwebtoken';
 import { mockService, srcUrl } from './helpers/mockService.js';
-import { toSessionUser } from '#utils/sessionUser.js';
+import { toSessionUser } from '~/utils/sessionUser.js';
 
 process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
 
@@ -13,13 +13,13 @@ const authModelRef = mockService(srcUrl('models/auth.model.js'));
 const adminModelRef = mockService(srcUrl('models/admin.model.js'));
 const hashRef = mockService(srcUrl('services/hash.service.js'));
 
-const { default: tokens } = await import('#services/token.service.js');
-const { default: sessions } = await import('#services/session.service.js');
-const { default: auth } = await import('#services/auth.service.js');
-const { default: admin } = await import('#services/admin.service.js');
-const { getAuthSecrets } = await import('#configs/jwt.config.js');
+const { default: tokens } = await import('~/services/token.service.js');
+const { default: sessions } = await import('~/services/session.service.js');
+const { default: auth } = await import('~/services/auth.service.js');
+const { default: admin } = await import('~/services/admin.service.js');
+const { getAuthSecrets } = await import('~/configs/jwt.config.js');
 // cors.config đọc env lúc nạp nên phải nạp động sau khi đặt CORS_ORIGINS
-const { isAllowedOrigin } = await import('#configs/cors.config.js');
+const { isAllowedOrigin } = await import('~/configs/cors.config.js');
 
 const { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET } = process.env;
 const activeUser = (role = 'user') => ({ findSessionUserById: async () => ({ id: 'u1', role, is_active: true }) });

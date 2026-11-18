@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import documentController from '#controllers/document.controller.js';
-import { auth } from '#middlewares/auth.js';
-import { upload, handleUploadError } from '#middlewares/upload.js';
-import { uploadLimiter } from '#middlewares/rateLimiter.js';
+import documentController from '~/controllers/document.controller.js';
+import { auth } from '~/middlewares/auth.js';
+import { upload, handleUploadError } from '~/middlewares/upload.js';
+import { uploadLimiter } from '~/middlewares/rateLimiter.js';
 
 const router = Router();
 

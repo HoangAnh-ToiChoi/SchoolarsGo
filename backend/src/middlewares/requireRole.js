@@ -1,6 +1,6 @@
 /** Chặn người dùng không có role được phép (dùng sau middleware auth). */
 
-import AppError from '#utils/AppError.js';
+import AppError from '~/utils/AppError.js';
 
 const requireRole = role => (req, res, next) => {
   if (!req.user) {

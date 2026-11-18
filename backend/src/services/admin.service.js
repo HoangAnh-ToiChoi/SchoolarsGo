@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import adminModel from '#models/admin.model.js';
+import AppError from '~/utils/AppError.js';
+import adminModel from '~/models/admin.model.js';
 import sessionService from './session.service.js';
 
 class AdminService {

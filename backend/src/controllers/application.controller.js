@@ -1,5 +1,5 @@
-import { success, created } from '#utils/responseHelper.js';
-import applicationService from '#services/application.service.js';
+import { success, created } from '~/utils/responseHelper.js';
+import applicationService from '~/services/application.service.js';
 
 class ApplicationController {
   async getAll(req, res) {

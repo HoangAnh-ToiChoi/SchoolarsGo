@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { runIngestion } from '#ingestion/index.js';
-import { createAiFill } from '#ingestion/aiExtract.js';
+import { runIngestion } from '~/ingestion/index.js';
+import { createAiFill } from '~/ingestion/aiExtract.js';
 import { NOW, rawPost } from './helpers.js';
 
 const silent = { info() {}, warn() {}, error() {} };

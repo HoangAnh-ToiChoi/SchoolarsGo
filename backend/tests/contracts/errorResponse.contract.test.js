@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
 
-import AppError from '#utils/AppError.js';
-import { ApiResponse } from '#utils/responseHelper.js';
-import { resolveError } from '#configs/error.config.js';
-import { authorization } from '#constants/errors.js';
+import AppError from '~/utils/AppError.js';
+import { ApiResponse } from '~/utils/responseHelper.js';
+import { resolveError } from '~/configs/error.config.js';
+import { authorization } from '~/constants/errors.js';
 
 test('AppError.notFound: status 404, errorCode mặc định, code chỉ có khi truyền', () => {
   const plain = AppError.notFound('Không thấy');
@@ -79,7 +79,7 @@ test('resolveError: mã lỗi trùng khóa của Object.prototype không bị co
 
 test('handleUploadError: MulterError đi qua errorHandler, lỗi fileFilter thành AppError 400', async () => {
   const { default: multer } = await import('multer');
-  const { handleUploadError } = await import('#middlewares/upload.js');
+  const { handleUploadError } = await import('~/middlewares/upload.js');
   const run = (err) => {
     const seen = [];
     const req = { resume: () => seen.push('resume') };

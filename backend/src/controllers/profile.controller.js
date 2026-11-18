@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import profileService from '#services/profile.service.js';
+import { success } from '~/utils/responseHelper.js';
+import profileService from '~/services/profile.service.js';
 
 class ProfileController {
   async getProfile(req, res) {

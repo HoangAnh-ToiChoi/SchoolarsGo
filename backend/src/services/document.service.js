@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import documentModel from '#models/document.model.js';
+import AppError from '~/utils/AppError.js';
+import documentModel from '~/models/document.model.js';
 import * as storage from './storage.service.js';
 
 class DocumentService {

@@ -2,12 +2,12 @@ import express from 'express';
 
 const router = express.Router();
 
-import { auth } from '#middlewares/auth.js';
-import requireRole from '#middlewares/requireRole.js';
-import validate from '#middlewares/validate.js';
-import { adminCreateScholarshipSchema, adminUpdateScholarshipSchema, adminUpdateUserRoleSchema, adminUpdateUserStatusSchema, adminUpdateScholarshipFeaturedSchema, adminUserQuerySchema } from '#validations/admin.validation.js';
+import { auth } from '~/middlewares/auth.js';
+import requireRole from '~/middlewares/requireRole.js';
+import validate from '~/middlewares/validate.js';
+import { adminCreateScholarshipSchema, adminUpdateScholarshipSchema, adminUpdateUserRoleSchema, adminUpdateUserStatusSchema, adminUpdateScholarshipFeaturedSchema, adminUserQuerySchema } from '~/validations/admin.validation.js';
 
-import adminController from '#controllers/admin.controller.js';
+import adminController from '~/controllers/admin.controller.js';
 
 router.use(auth, requireRole('admin'));
 

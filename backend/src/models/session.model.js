@@ -1,4 +1,4 @@
-import * as database from '#configs/database.config.js';
+import * as database from '~/configs/database.config.js';
 
 class SessionModel {
   async createWithLimit({ sessionId, userId, refreshTokenHash, expiresAt, deviceName }) {

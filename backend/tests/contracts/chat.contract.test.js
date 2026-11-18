@@ -5,13 +5,13 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 
 import { mockServiceFunctions } from './helpers/mockService.js';
-import { auth } from '#middlewares/auth.js';
-import AppError from '#utils/AppError.js';
+import { auth } from '~/middlewares/auth.js';
+import AppError from '~/utils/AppError.js';
 import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
 // Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
 const serviceRef = mockServiceFunctions(new URL('../../src/services/chat.service.js', import.meta.url).href, ['chat', 'saveMessages', 'getHistory']);
-const { default: controller } = await import('#controllers/chat.controller.js');
+const { default: controller } = await import('~/controllers/chat.controller.js');
 
 process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'contract-access-secret-at-least-32-chars';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'contract-refresh-secret-at-least-32-chars';

@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { ApiResponse } from '#utils/responseHelper.js';
+import { ApiResponse } from '~/utils/responseHelper.js';
 
 const createLimiter = (maxRequests, windowSeconds, message) => {
   return rateLimit({

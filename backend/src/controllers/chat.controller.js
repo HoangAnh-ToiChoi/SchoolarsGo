@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import * as chatService from '#services/chat.service.js';
+import { success } from '~/utils/responseHelper.js';
+import * as chatService from '~/services/chat.service.js';
 
 class ChatController {
   async sendMessage(req, res) {

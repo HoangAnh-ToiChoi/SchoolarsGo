@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import notificationService from '#services/notification.service.js';
+import { success } from '~/utils/responseHelper.js';
+import notificationService from '~/services/notification.service.js';
 
 class NotificationController {
   async getAll(req, res) {

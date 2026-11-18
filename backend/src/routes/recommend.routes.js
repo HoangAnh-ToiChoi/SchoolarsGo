@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import recommendController from '#controllers/recommend.controller.js';
-import { auth } from '#middlewares/auth.js';
-import validate from '#middlewares/validate.js';
-import { recommendSchema } from '#validations/recommend.validation.js';
+import recommendController from '~/controllers/recommend.controller.js';
+import { auth } from '~/middlewares/auth.js';
+import validate from '~/middlewares/validate.js';
+import { recommendSchema } from '~/validations/recommend.validation.js';
 
 const router = Router();
 

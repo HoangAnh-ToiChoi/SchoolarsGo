@@ -1,4 +1,4 @@
-import adminService from '#services/admin.service.js';
+import adminService from '~/services/admin.service.js';
 
 class AdminController {
   async getStats(req, res) {

@@ -5,7 +5,7 @@
  */
 
 import multer from 'multer';
-import AppError from '#utils/AppError.js';
+import AppError from '~/utils/AppError.js';
 
 const ALLOWED_EXTS_BY_TYPE = {
   transcript: ['.pdf'],

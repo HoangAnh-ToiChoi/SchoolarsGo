@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import scholarshipModel from '#models/scholarship.model.js';
+import AppError from '~/utils/AppError.js';
+import scholarshipModel from '~/models/scholarship.model.js';
 
 const PAGE_SIZE = 20;
 const MAX_LIMIT = 50;

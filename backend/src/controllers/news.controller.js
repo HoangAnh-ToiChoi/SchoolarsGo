@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import newsService from '#services/news.service.js';
+import { success } from '~/utils/responseHelper.js';
+import newsService from '~/services/news.service.js';
 
 class NewsController {
   async getNews(req, res) {

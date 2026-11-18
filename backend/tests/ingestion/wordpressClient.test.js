@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchPages, toPost as toRawPost, signalsFromCategories } from '#ingestion/wordpress.js';
+import { fetchPages, toPost as toRawPost, signalsFromCategories } from '~/ingestion/wordpress.js';
 
 const jsonResponse = (body, { status = 200, totalPages = 1 } = {}) => ({
   ok: status >= 200 && status < 300,

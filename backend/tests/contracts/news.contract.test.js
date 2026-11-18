@@ -7,7 +7,7 @@ import { mockService } from './helpers/mockService.js';
 
 // Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
 const serviceRef = mockService(new URL('../../src/services/news.service.js', import.meta.url).href);
-const { default: controller } = await import('#controllers/news.controller.js');
+const { default: controller } = await import('~/controllers/news.controller.js');
 
 const buildApp = (service) => {
   serviceRef.current = service;

@@ -1,5 +1,5 @@
-import { success } from '#utils/responseHelper.js';
-import scholarshipService from '#services/scholarship.service.js';
+import { success } from '~/utils/responseHelper.js';
+import scholarshipService from '~/services/scholarship.service.js';
 
 class ScholarshipController {
   async getAll(req, res) {

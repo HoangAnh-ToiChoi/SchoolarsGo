@@ -1,5 +1,5 @@
-import AppError from '#utils/AppError.js';
-import savedModel from '#models/saved.model.js';
+import AppError from '~/utils/AppError.js';
+import savedModel from '~/models/saved.model.js';
 
 class SavedService {
   async getAll(userId) {

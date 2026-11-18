@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupKey, cleanTitle } from '#ingestion/toRow.js';
+import { dedupKey, cleanTitle } from '~/ingestion/toRow.js';
 
 test('cùng học bổng, khác cách viết tiêu đề → cùng khoá', () => {
   const a = dedupKey('Swedish Institute Scholarship 2027 | Fully Funded');

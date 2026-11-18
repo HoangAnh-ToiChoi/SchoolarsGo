@@ -1,5 +1,5 @@
-import { success, created } from '#utils/responseHelper.js';
-import documentService from '#services/document.service.js';
+import { success, created } from '~/utils/responseHelper.js';
+import documentService from '~/services/document.service.js';
 
 class DocumentController {
   async getAll(req, res) {

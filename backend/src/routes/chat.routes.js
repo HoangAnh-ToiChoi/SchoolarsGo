@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import chatController from '#controllers/chat.controller.js';
-import { auth } from '#middlewares/auth.js';
+import chatController from '~/controllers/chat.controller.js';
+import { auth } from '~/middlewares/auth.js';
 import rateLimit from 'express-rate-limit';
-import { ApiResponse } from '#utils/responseHelper.js';
+import { ApiResponse } from '~/utils/responseHelper.js';
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDeadline } from '#ingestion/extract.js';
+import { parseDeadline } from '~/ingestion/extract.js';
 import { NOW } from './helpers.js';
 
 const iso = (d) => (d ? d.toISOString().slice(0, 10) : null);

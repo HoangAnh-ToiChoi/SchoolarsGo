@@ -1,6 +1,6 @@
-import AppError from '#utils/AppError.js';
-import notificationModel from '#models/notification.model.js';
-import { REMIND_DAYS, vnToday, addDays, daysBetween, milestoneFor } from '#utils/deadline.js';
+import AppError from '~/utils/AppError.js';
+import notificationModel from '~/models/notification.model.js';
+import { REMIND_DAYS, vnToday, addDays, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
 class NotificationService {
   /**
