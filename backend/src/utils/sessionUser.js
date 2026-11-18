@@ -5,4 +5,4 @@ const toSessionUser = user => ({
   role: user.role,
 });
 
-module.exports = { toSessionUser };
+export { toSessionUser };

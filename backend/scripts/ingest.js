@@ -17,19 +17,23 @@
 
 'use strict';
 
-const path = require('path');
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const argValue = (name) => (process.argv.find((a) => a.startsWith(`--${name}=`)) || '').split('=').slice(1).join('=');
 const hasFlag = (name) => process.argv.includes(`--${name}`);
 
 // Nạp .env gốc (chứa GEMINI_API_KEY...) rồi để --env (ví dụ .env.cloud) ghi đè các biến PG_*
-require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
-if (argValue('env')) require('dotenv').config({ path: path.resolve(__dirname, '..', argValue('env')), override: true });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+if (argValue('env')) dotenv.config({ path: path.resolve(__dirname, '..', argValue('env')), override: true });
 
-const db = require('../src/configs/database.config');
-const { createIngestion, sourceNames } = require('../src/ingestion');
+import * as db from '../src/configs/database.config.js';
+import { createIngestion, sourceNames } from '../src/ingestion/index.js';
 
-const { RULES: RULE_NAMES } = require('../src/ingestion/filter');
+import { RULES as RULE_NAMES } from '../src/ingestion/filter.js';
 
 async function buildAiModel() {
   if (hasFlag('no-ai') || process.env.INGESTION_USE_AI === 'false') return null;
@@ -38,7 +42,6 @@ async function buildAiModel() {
     return null;
   }
   console.log('🤖 Gemini bật: dùng để điền nước, bậc học, đơn vị cấp, hạn nộp còn thiếu.');
-  const { GoogleGenerativeAI } = require('@google/generative-ai');
   return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest', generationConfig: { responseMimeType: 'application/json', temperature: 0 } });
 }
 

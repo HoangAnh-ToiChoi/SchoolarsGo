@@ -1,9 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-const NotificationService = require('../../src/services/notification.service');
+import { mockService, srcUrl } from './helpers/mockService.js';
 
-const { vnToday, daysBetween, milestoneFor } = NotificationService.helpers;
+const modelRef = mockService(srcUrl('models/notification.model.js'));
+const { default: notificationService, helpers } = await import('#services/notification.service.js');
+
+const { vnToday, daysBetween, milestoneFor } = helpers;
 
 // Repository giả: ghi lại các bản ghi được thêm để kiểm tra
 const fakeRepo = ({ saved = [], drafts = [], rows = [] } = {}) => {
@@ -44,8 +47,8 @@ test('generateDeadlineReminders prefers the draft application over the saved ent
     ],
     drafts: [{ user_id: 'u1', scholarship_id: 's1', application_id: 'a1', deadline: '2026-11-15T00:00:00' }],
   });
-  const service = new NotificationService(repo);
-  await service.generateDeadlineReminders({ now: NOW });
+  modelRef.current = repo;
+  await notificationService.generateDeadlineReminders({ now: NOW });
 
   assert.deepEqual(
     repo.inserted.map((r) => [r.scholarship_id, r.application_id, r.milestone]).sort(),
@@ -65,7 +68,8 @@ test('getAll keeps one notification per scholarship, drops expired deadlines and
       { id: 'n-4', type: 'deadline', milestone: 7, read_at: null, created_at: '0', applications: { status: 'submitted' }, scholarships: { ...scholarship, id: 's8' } },
     ],
   });
-  const { data, unread } = await new NotificationService(repo).getAll('u1');
+  modelRef.current = repo;
+  const { data, unread } = await notificationService.getAll('u1');
 
   assert.deepEqual(data.map((n) => n.id), ['n-2']);
   assert.equal(data[0].days_left, 5);
@@ -74,7 +78,7 @@ test('getAll keeps one notification per scholarship, drops expired deadlines and
 });
 
 test('markRead returns 404 for a notification the user does not own', async () => {
-  const service = new NotificationService(fakeRepo());
-  await assert.doesNotReject(service.markRead('u1', 'n-1'));
-  await assert.rejects(service.markRead('u1', 'other'), (err) => err.statusCode === 404);
+  modelRef.current = fakeRepo();
+  await assert.doesNotReject(notificationService.markRead('u1', 'n-1'));
+  await assert.rejects(notificationService.markRead('u1', 'other'), (err) => err.statusCode === 404);
 });

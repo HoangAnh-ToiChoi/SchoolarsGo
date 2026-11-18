@@ -1,4 +1,5 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
+
 const DEFAULT_CHECKLIST = [
   { item: 'CV', done: false },
   { item: 'SOP', done: false },
@@ -9,15 +10,9 @@ const DEFAULT_CHECKLIST = [
 ];
 
 class ApplicationModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   async findAllByUser(userId, { page = 1, limit = 20, status = null } = {}) {
     const offset = (page - 1) * limit;
-    let q = this.#sb
+    let q = getSupabase()
       .from('applications')
       .select('id, status, applied_at, notes, checklist, documents_used, result, created_at, updated_at, scholarships(id, slug, title, provider, country, deadline, amount, image_url)', { count: 'exact' })
       .eq('user_id', userId)
@@ -42,7 +37,7 @@ class ApplicationModel {
   }
 
   async create(userId, { scholarshipId, checklist, notes }) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('applications')
       .insert({ user_id: userId, scholarship_id: scholarshipId, checklist: checklist || DEFAULT_CHECKLIST, notes: notes || null, status: 'draft' })
       .select('*').single();
@@ -58,7 +53,7 @@ class ApplicationModel {
   }
 
   async findByIdAndUser(applicationId, userId) {
-    const { data } = await this.#sb
+    const { data } = await getSupabase()
       .from('applications')
       .select('*, scholarships(id, slug, title, provider, country, deadline, amount, image_url)')
       .eq('id', applicationId).eq('user_id', userId).maybeSingle();
@@ -71,21 +66,21 @@ class ApplicationModel {
     const payload = Object.fromEntries(allowed.filter(k => updates[k] !== undefined).map(k => [k, updates[k]]));
     if (Object.keys(payload).length === 0) return this.findByIdAndUser(applicationId, userId);
     payload.updated_at = new Date().toISOString();
-    const { data, error } = await this.#sb.from('applications').update(payload).eq('id', applicationId).eq('user_id', userId).select('*').single();
+    const { data, error } = await getSupabase().from('applications').update(payload).eq('id', applicationId).eq('user_id', userId).select('*').single();
     if (error) throw error;
     return data;
   }
 
   async deleteByIdAndUser(applicationId, userId) {
-    const { error, count } = await this.#sb.from('applications').delete({ count: 'exact' }).eq('id', applicationId).eq('user_id', userId);
+    const { error, count } = await getSupabase().from('applications').delete({ count: 'exact' }).eq('id', applicationId).eq('user_id', userId);
     if (error) throw error;
     return count;
   }
 
   async scholarshipExists(scholarshipId) {
-    const { data } = await this.#sb.from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+    const { data } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
     return !!data;
   }
 }
 
-module.exports = ApplicationModel;
+export default new ApplicationModel();

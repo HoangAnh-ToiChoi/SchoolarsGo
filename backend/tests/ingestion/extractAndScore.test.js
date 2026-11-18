@@ -1,10 +1,8 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { extractInfo: extractFacts } = require('../../src/ingestion/extract');
-const { scorePost: score } = require('../../src/ingestion/score');
-const { NOW, rawPost } = require('./helpers');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { extractInfo as extractFacts } from '#ingestion/extract.js';
+import { scorePost as score } from '#ingestion/score.js';
+import { NOW, rawPost } from './helpers.js';
 
 test('trích xuất: hạn, nước, bậc học, đơn vị cấp, GPA, IELTS', () => {
   const raw = rawPost({

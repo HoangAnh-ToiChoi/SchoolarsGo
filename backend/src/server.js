@@ -1,6 +1,6 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-const Sentry = require('@sentry/node');
+import * as Sentry from '@sentry/node';
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -11,8 +11,9 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-const app = require('./app');
-const { startJobs } = require('./jobs');
+import app from './app.js';
+import { startJobs } from './jobs/index.js';
+
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, function onServerStarted() {

@@ -1,5 +1,6 @@
-const AppError = require('../utils/AppError');
-const { authorization } = require('../constants/errors');
+import AppError from '#utils/AppError.js';
+import tokenService from '#services/token.service.js';
+import { authorization } from '#constants/errors.js';
 
 const extractToken = req => {
   const authorization = req.headers.authorization || '';
@@ -7,17 +8,11 @@ const extractToken = req => {
   return req.cookies?.accessToken || null;
 };
 
-let tokenService;
-const getTokenService = () => {
-  if (!tokenService) tokenService = new (require('../services/token.service'))();
-  return tokenService;
-};
-
 const auth = (req, res, next) => {
   try {
     const token = extractToken(req);
     if (!token) throw new AppError(authorization.ACCESS_TOKEN_MISSING);
-    const { sub, sid, role } = getTokenService().verifyAccess(token);
+    const { sub, sid, role } = tokenService.verifyAccess(token);
     req.user = { id: sub, sid, role };
     return next();
   } catch (error) {
@@ -29,7 +24,7 @@ const optionalAuth = (req, res, next) => {
   try {
     const token = extractToken(req);
     if (token) {
-      const { sub, sid, role } = getTokenService().verifyAccess(token);
+      const { sub, sid, role } = tokenService.verifyAccess(token);
       req.user = { id: sub, sid, role };
     }
   } catch (_error) {
@@ -38,4 +33,4 @@ const optionalAuth = (req, res, next) => {
   return next();
 };
 
-module.exports = { auth, optionalAuth, extractToken };
+export { auth, optionalAuth, extractToken };

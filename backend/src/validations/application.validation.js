@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const APPLICATION_STATUSES = [
   'draft',
@@ -52,8 +52,4 @@ const applicationQuerySchema = z.object({
     .optional(),
 });
 
-module.exports = {
-  applicationCreateSchema,
-  applicationUpdateSchema,
-  applicationQuerySchema,
-};
+export { applicationCreateSchema, applicationUpdateSchema, applicationQuerySchema };

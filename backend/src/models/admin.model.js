@@ -1,28 +1,6 @@
-const database = require('../configs/database.config');
-/**
- * AdminModel — TẦNG 3: Database Access (Raw SQL)
- *
- * Mục đích: Tất cả SQL của Admin Module. KHÔNG chứa business logic.
- *
- * Tiêu chí OOP:
- * [1] Phân tách tầng — chỉ chứa SQL, không logic.
- * [5] An toàn SQL — 100% parameterized queries ($1, $2...). KHÔNG string interpolation.
- * [6] Abstraction — bên trong Repository dùng gì, Service không cần biết.
- */
+import * as database from '#configs/database.config.js';
 
 class AdminModel {
-  /**
-   * @param {object} db - Database driver instance (pg pool hoặc tương đương)
-   */
-  constructor(db = database) {
-    this.#db = db;
-  }
-
-
-  // ═══════════════════════════════════════════════════════════
-  // DASHBOARD STATS
-  // ═══════════════════════════════════════════════════════════
-
   async countTotalUsers() {
     const sql = 'SELECT COUNT(*) AS total FROM users';
     const result = await this.#queryOne(sql);
@@ -89,10 +67,6 @@ class AdminModel {
     return (await this.#query(sql)).rows;
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // USER MANAGEMENT
-  // ═══════════════════════════════════════════════════════════
-
   async findUsers(filters) {
     const { page = 1, limit = 20, role, search, status } = filters;
     const params = [];
@@ -104,7 +78,6 @@ class AdminModel {
       conditions.push(`is_active = $${idx++}`);
       params.push(status === 'active');
     }
-    // No else — show all users by default
 
     if (role) {
       conditions.push(`role = $${idx++}`);
@@ -168,10 +141,6 @@ class AdminModel {
     return this.#queryOne(sql, [isActive, id]);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // SCHOLARSHIP MANAGEMENT
-  // ═══════════════════════════════════════════════════════════
-
   async createScholarship(data) {
     const keys = Object.keys(data);
     const values = Object.values(data);
@@ -219,28 +188,13 @@ class AdminModel {
     return this.#queryOne(sql, [id]);
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // PRIVATE — Encapsulation (Tiêu chí 3)
-  // ═══════════════════════════════════════════════════════════
-
-  /**
-   * @param {string} sql
-   * @param {unknown[]} [params]
-   */
   async #query(sql, params = []) {
-    return this.#db.query(sql, params);
+    return database.query(sql, params);
   }
 
-  /**
-   * @param {string} sql
-   * @param {unknown[]} [params]
-   */
   async #queryOne(sql, params = []) {
-    return this.#db.queryOne(sql, params);
+    return database.queryOne(sql, params);
   }
-
-  /** @type {object} */
-  #db;
 }
 
-module.exports = AdminModel;
+export default new AdminModel();

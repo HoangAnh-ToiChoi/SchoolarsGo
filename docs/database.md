@@ -265,51 +265,14 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 | 2/5/2026 | v0.4 | Thêm 2 cột vào bảng `users`: `role` (varchar, DEFAULT 'user') và `last_login_at` (timestamptz). Refactor Auth module hoàn tất OOP 4 tầng với EventBus. Hợp nhất Auth V1+V2 tại `/api/auth/*`. |
 | 13/11/2026 | v0.5 | Thêm `user_sessions` để xoay refresh token, giới hạn 3 thiết bị và thu hồi phiên. |
 
-## Local Docker Setup
+## Supabase Cloud Setup
 
-Chạy Supabase local trong Docker để development:
+Dự án dùng Supabase Cloud (không còn dùng Docker):
 
-```bash
-# 1. Khởi động toàn bộ stack
-docker-compose up -d
-
-# 2. Kiểm tra container đã healthy chưa
-docker ps
-
-# 3. Xem database (pgAdmin4 — giao diện web)
-# → http://localhost:5050
-#    Email:    admin@scholarsgo.com
-#    Password:  scholarsgo_admin
-
-# 4. Xem database (Supabase Studio)
-# → http://localhost:3000
-
-# 5. Xem database (terminal psql)
-docker exec -it scholarsgo_postgres psql -U postgres
-```
-
-### Ports
-
-| Port | Service |
-|------|---------|
-| 5432 | PostgreSQL |
-| 3000 | Supabase Studio |
-| 5050 | pgAdmin4 |
-| 8000 | Kong API Gateway |
-| 8080 | PostgreSQL Meta |
-| 9999 | GoTrue Auth |
-| 5000 | Storage API |
-
-### Credentials
-
-| Key | Value |
-|-----|-------|
-| DB Host | localhost:5432 |
-| DB User | postgres |
-| DB Password | scholarsgo_password |
-| DB Name | postgres |
-| pgAdmin Email | admin@scholarsgo.com |
-| pgAdmin Password | scholarsgo_admin |
+1. Tạo project ở supabase.com.
+2. Vào **SQL Editor**, chạy `database.sql` rồi `databaseChatMessages.sql` để tạo bảng.
+3. Điền `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` và các biến `PG_*` vào `backend/.env` (xem `backend/.env.example`).
+4. Xem dữ liệu bằng Supabase Dashboard → Table Editor.
 
 ---
 

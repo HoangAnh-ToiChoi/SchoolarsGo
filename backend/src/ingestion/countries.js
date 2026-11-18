@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Tên nước chuẩn (khớp với COUNTRY_LABELS ở frontend) và các cách viết khác của nó.
  * Giữ ngắn gọn: chỉ các nước hay xuất hiện trong học bổng du học.
@@ -82,4 +80,4 @@ function countryFromSlug(slug = '') {
   return null;
 }
 
-module.exports = { findCountry, countryFromSlug };
+export { findCountry, countryFromSlug };

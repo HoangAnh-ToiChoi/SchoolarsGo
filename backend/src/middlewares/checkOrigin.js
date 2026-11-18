@@ -1,6 +1,6 @@
-const AppError = require('../utils/AppError');
-const { isAllowedOrigin } = require('../configs/cors.config');
-const { authorization } = require('../constants/errors');
+import AppError from '#utils/AppError.js';
+import { isAllowedOrigin } from '#configs/cors.config.js';
+import { authorization } from '#constants/errors.js';
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
@@ -11,4 +11,4 @@ const checkOrigin = (req, res, next) => {
   return next(new AppError(authorization.ORIGIN_NOT_ALLOWED));
 };
 
-module.exports = checkOrigin;
+export default checkOrigin;

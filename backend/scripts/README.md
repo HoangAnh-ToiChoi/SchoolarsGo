@@ -31,25 +31,21 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 node scripts/cleanDb.js --env=.env.cloud --allow-remote                           # đếm
 node scripts/cleanDb.js --env=.env.cloud --allow-remote --confirm=<PG_HOST> --yes # xoá thật
 
-# Local (Docker), chỉ khi có dùng lại
-node scripts/cleanDb.js
-node scripts/cleanDb.js --yes
 ```
 
 Backup trước khi dọn: Supabase Dashboard → Database → Backups.
 File đã upload trong bucket `documents` của Storage **không** bị xoá bởi SQL, cần xoá tay trong Dashboard.
 
-## Chuyển hướng giữa Supabase Cloud và Docker
+## Cấu hình
 
-Mặc định dự án chạy theo **Supabase Cloud**. Phần Docker vẫn được giữ làm đường lui, chưa xoá:
+Dự án chạy theo **Supabase Cloud** (không dùng Docker nữa):
 
 | Thứ | Vai trò |
 |---|---|
-| `docker-compose.yml` (ở gốc repo) | Dựng lại Postgres + Supabase local khi cần |
-| `backend/.env` | Cấu hình local (`localhost`) |
-| `backend/.env.cloud` | Cấu hình cloud (tự tạo từ `.env.cloud.example`, không commit) |
+| `backend/.env` | Cấu hình chính (Supabase URL, key, `PG_*`) |
+| `backend/.env.cloud` | Cấu hình riêng cho script chạy tay (tự tạo từ `.env.cloud.example`, không commit) |
 
-Quay lại Docker: `docker compose up -d`, rồi chạy `database.sql` và `databaseChatMessages.sql`, sau đó `node scripts/seedAdmin.js`.
+Tạo bảng: chạy `database.sql` và `databaseChatMessages.sql` trong Supabase SQL Editor, sau đó `node scripts/seedAdmin.js`.
 
 ## Kéo học bổng từ nguồn bên ngoài
 

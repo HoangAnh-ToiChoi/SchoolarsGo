@@ -1,13 +1,8 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
+
 class SavedModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   async findAllByUser(userId) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('saved_scholarships')
       .select('id, note, created_at, scholarships(id, slug, title, provider, country, degree, amount, currency, deadline, image_url, is_featured)')
       .eq('user_id', userId)
@@ -22,14 +17,14 @@ class SavedModel {
   }
 
   async findByUserAndScholarship(userId, scholarshipId) {
-    const { data } = await this.#sb
+    const { data } = await getSupabase()
       .from('saved_scholarships').select('*')
       .eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
     return data;
   }
 
   async create({ userId, scholarshipId, note }) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('saved_scholarships')
       .insert({ user_id: userId, scholarship_id: scholarshipId, note: note || null })
       .select('*').single();
@@ -45,7 +40,7 @@ class SavedModel {
   }
 
   async deleteByUserAndScholarship(userId, scholarshipId) {
-    const { error, count } = await this.#sb
+    const { error, count } = await getSupabase()
       .from('saved_scholarships')
       .delete({ count: 'exact' })
       .eq('user_id', userId).eq('scholarship_id', scholarshipId);
@@ -54,12 +49,12 @@ class SavedModel {
   }
 
   async scholarshipExists(scholarshipId) {
-    const { data } = await this.#sb.from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+    const { data } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
     return !!data;
   }
 
   async getScholarshipDetails(scholarshipId) {
-    const { data } = await this.#sb
+    const { data } = await getSupabase()
       .from('scholarships')
       .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('id', scholarshipId).maybeSingle();
@@ -67,4 +62,4 @@ class SavedModel {
   }
 }
 
-module.exports = SavedModel;
+export default new SavedModel();

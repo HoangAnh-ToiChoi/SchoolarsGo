@@ -1,6 +1,4 @@
-'use strict';
-
-const { findCountry } = require('./countries');
+import { findCountry } from './countries.js';
 
 /**
  * BƯỚC 3 — Đọc nội dung bài, tìm thông tin học bổng bằng luật chữ (regex). Miễn phí, không gọi AI.
@@ -157,4 +155,4 @@ function parseDeadline(text, { now }) {
   return candidates.sort((a, b) => b - a)[0];
 }
 
-module.exports = { extractInfo, parseDeadline };
+export { extractInfo, parseDeadline };

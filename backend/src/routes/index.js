@@ -1,14 +1,21 @@
-const fs = require('fs');
-const path = require('path');
-const { Router } = require('express');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { Router } from 'express';
 
-const router = fs.readdirSync(__dirname)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const router = Router();
+
+// Tự nạp mọi file *.routes.js: tên file quyết định đường dẫn (auth.routes.js -> /auth)
+const routeFiles = fs.readdirSync(__dirname)
   .filter((fileName) => fileName.endsWith('.routes.js'))
-  .sort()
-  .reduce((routes, fileName) => {
-    const routeName = fileName.replace(/\.routes\.js$/, '');
-    routes.use(`/${routeName}`, require(path.join(__dirname, fileName)));
-    return routes;
-  }, Router());
+  .sort();
 
-module.exports = router;
+for (const fileName of routeFiles) {
+  const routeName = fileName.replace(/\.routes\.js$/, '');
+  const { default: route } = await import(pathToFileURL(path.join(__dirname, fileName)).href);
+  router.use(`/${routeName}`, route);
+}
+
+export default router;

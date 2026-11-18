@@ -1,10 +1,8 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { runIngestion } = require('../../src/ingestion');
-const { createAiFill } = require('../../src/ingestion/aiExtract');
-const { NOW, rawPost } = require('./helpers');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { runIngestion } from '#ingestion/index.js';
+import { createAiFill } from '#ingestion/aiExtract.js';
+import { NOW, rawPost } from './helpers.js';
 
 const silent = { info() {}, warn() {}, error() {} };
 

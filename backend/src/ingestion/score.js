@@ -1,6 +1,4 @@
-'use strict';
-
-const { VIETNAM } = require('./filter');
+import { VIETNAM } from './filter.js';
 
 /**
  * BƯỚC 5 — Chấm độ phù hợp với sinh viên Việt Nam (0–100).
@@ -67,4 +65,4 @@ function scorePost(post, info, { now }) {
   return { score: Math.max(0, Math.min(100, total)), reasons };
 }
 
-module.exports = { scorePost };
+export { scorePost };

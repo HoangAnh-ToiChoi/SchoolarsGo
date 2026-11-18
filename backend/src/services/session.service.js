@@ -1,72 +1,62 @@
-const crypto = require('crypto');
-const AppError = require('../utils/AppError');
-const { toSessionUser } = require('../utils/sessionUser');
-const { authorization } = require('../constants/errors');
-const SessionModel = require('../models/session.model');
-const AuthModel = require('../models/auth.model');
-const TokenService = require('./token.service');
+import crypto from 'node:crypto';
+import AppError from '#utils/AppError.js';
+import { toSessionUser } from '#utils/sessionUser.js';
+import { authorization } from '#constants/errors.js';
+import sessionModel from '#models/session.model.js';
+import authModel from '#models/auth.model.js';
+import tokenService from './token.service.js';
 
 class SessionService {
-  #model;
-  #users;
-  #token;
-
-  constructor(sessionModel = new SessionModel(), authModel = new AuthModel(), tokenService = new TokenService()) {
-    this.#model = sessionModel;
-    this.#users = authModel;
-    this.#token = tokenService;
-  }
-
   async start(user, userAgent) {
     const sessionId = crypto.randomUUID();
-    const refreshToken = this.#token.signRefresh({ userId: user.id, sessionId });
-    await this.#model.createWithLimit({
-      sessionId, userId: user.id, refreshTokenHash: this.#token.hashToken(refreshToken),
+    const refreshToken = tokenService.signRefresh({ userId: user.id, sessionId });
+    await sessionModel.createWithLimit({
+      sessionId, userId: user.id, refreshTokenHash: tokenService.hashToken(refreshToken),
       expiresAt: new Date(Date.now() + 7 * 86400000), deviceName: this.#deviceName(userAgent),
     });
-    return { accessToken: this.#token.signAccess({ userId: user.id, sessionId, role: user.role }), refreshToken, user: toSessionUser(user) };
+    return { accessToken: tokenService.signAccess({ userId: user.id, sessionId, role: user.role }), refreshToken, user: toSessionUser(user) };
   }
 
   async refresh(rawToken) {
     if (!rawToken) throw new AppError(authorization.REFRESH_TOKEN_MISSING);
-    const claims = this.#token.verifyRefresh(rawToken);
-    const session = await this.#model.findById(claims.sid);
+    const claims = tokenService.verifyRefresh(rawToken);
+    const session = await sessionModel.findById(claims.sid);
     if (!session || session.revoked_at) throw new AppError(authorization.SESSION_REVOKED);
-    const hash = this.#token.hashToken(rawToken);
+    const hash = tokenService.hashToken(rawToken);
     if (hash !== session.refresh_token_hash) return this.#handleReused(session, hash);
-    const user = await this.#users.findSessionUserById(claims.sub);
+    const user = await authModel.findSessionUserById(claims.sub);
     if (!user || !user.is_active) {
-      await this.#model.revoke(session.id, 'locked');
+      await sessionModel.revoke(session.id, 'locked');
       throw new AppError(authorization.SESSION_REVOKED);
     }
-    const refreshToken = this.#token.signRefresh({ userId: user.id, sessionId: session.id });
-    const updated = await this.#model.rotate(session.id, {
-      refreshTokenHash: this.#token.hashToken(refreshToken), previousTokenHash: hash,
+    const refreshToken = tokenService.signRefresh({ userId: user.id, sessionId: session.id });
+    const updated = await sessionModel.rotate(session.id, {
+      refreshTokenHash: tokenService.hashToken(refreshToken), previousTokenHash: hash,
       expiresAt: new Date(Date.now() + 7 * 86400000), currentTokenHash: hash,
     });
     if (!updated) {
-      const latest = await this.#model.findById(session.id);
+      const latest = await sessionModel.findById(session.id);
       if (latest?.previous_token_hash === hash && Date.now() - new Date(latest.rotated_at).getTime() < 30000) {
         throw new AppError(authorization.REFRESH_RACE);
       }
       throw new AppError(authorization.SESSION_REVOKED);
     }
-    return { accessToken: this.#token.signAccess({ userId: user.id, sessionId: session.id, role: user.role }), refreshToken, user: toSessionUser(user) };
+    return { accessToken: tokenService.signAccess({ userId: user.id, sessionId: session.id, role: user.role }), refreshToken, user: toSessionUser(user) };
   }
 
   async #handleReused(session, hash) {
     if (hash === session.previous_token_hash && Date.now() - new Date(session.rotated_at).getTime() < 30000) {
       throw new AppError(authorization.REFRESH_RACE);
     }
-    await this.#model.revoke(session.id, 'reused');
+    await sessionModel.revoke(session.id, 'reused');
     throw new AppError(authorization.REFRESH_TOKEN_REUSED);
   }
 
   async end(rawToken) {
     if (!rawToken) return;
     try {
-      const claims = this.#token.verifyRefresh(rawToken);
-      await this.#model.revoke(claims.sid, 'logout');
+      const claims = tokenService.verifyRefresh(rawToken);
+      await sessionModel.revoke(claims.sid, 'logout');
     } catch (error) {
       if (error.code) return;
       throw error;
@@ -74,16 +64,16 @@ class SessionService {
   }
 
   endAllForUser(userId, reason) {
-    return this.#model.revokeAllForUser(userId, reason);
+    return sessionModel.revokeAllForUser(userId, reason);
   }
 
   async list(userId, currentSessionId) {
-    const sessions = await this.#model.listActive(userId);
+    const sessions = await sessionModel.listActive(userId);
     return sessions.map(session => ({ ...session, is_current: session.id === currentSessionId }));
   }
 
   async endOne(userId, sessionId) {
-    const session = await this.#model.revokeForUser(sessionId, userId, 'logout');
+    const session = await sessionModel.revokeForUser(sessionId, userId, 'logout');
     if (!session) throw new AppError(authorization.SESSION_NOT_FOUND);
   }
 
@@ -94,4 +84,4 @@ class SessionService {
   }
 }
 
-module.exports = SessionService;
+export default new SessionService();

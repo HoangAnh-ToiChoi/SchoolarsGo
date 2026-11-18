@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 let genAI = null;
 
@@ -9,12 +9,7 @@ const getClient = () => {
   return genAI;
 };
 
-/**
- * Generate AI reasons for recommended scholarships.
- * @param {object} profile - user profile { gpa, english_level, target_country, target_degree, target_major }
- * @param {Array} recommendations - array of { scholarship, match_score, reasons }
- * @returns {Array} same array but each item has ai_reason string added
- */
+/** Nhờ Gemini viết lý do gợi ý (ai_reason) cho từng học bổng. Lỗi hoặc không có khoá thì trả danh sách gốc. */
 async function enrichRecommendations(profile, recommendations) {
   const client = getClient();
   if (!client || recommendations.length === 0) return recommendations;
@@ -58,7 +53,7 @@ Yêu cầu:
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
 
-    // Parse JSON từ response
+    // Gemini có thể kèm chữ thừa quanh JSON: lấy từ "[" đầu đến "]" cuối
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) return recommendations;
 
@@ -73,10 +68,10 @@ Yêu cầu:
       ai_reason: reasonMap[i + 1] || null,
     }));
   } catch (err) {
-    // Fallback gracefully — trả về recommendations gốc không có ai_reason
+    // Lỗi AI không được làm hỏng gợi ý: trả danh sách gốc, không có ai_reason
     console.error('[Gemini] enrichRecommendations error:', err.message);
     return recommendations;
   }
 }
 
-module.exports = { enrichRecommendations };
+export { enrichRecommendations };

@@ -1,35 +1,16 @@
-const { success } = require('../utils/responseHelper');
-const ProfileService = require('../services/profile.service');
+import { success } from '#utils/responseHelper.js';
+import profileService from '#services/profile.service.js';
 
 class ProfileController {
-  #service;
-
-  constructor(profileService = new ProfileService()) {
-    this.#service = profileService;
-    this.#validateService();
+  async getProfile(req, res) {
+    const data = await profileService.getProfile(req.user.id);
+    return success(res, data);
   }
 
-  #validateService() {
-    if (!this.#service) throw new Error('ProfileService is required');
-  }
-
-  async getProfile(req, res, next) {
-    try {
-      const data = await this.#service.getProfile(req.user.id);
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async updateProfile(req, res, next) {
-    try {
-      const data = await this.#service.updateProfile(req.user.id, req.body);
-      return success(res, data, 'Profile updated');
-    } catch (error) {
-      next(error);
-    }
+  async updateProfile(req, res) {
+    const data = await profileService.updateProfile(req.user.id, req.body);
+    return success(res, data, 'Profile updated');
   }
 }
 
-module.exports = ProfileController;
+export default new ProfileController();

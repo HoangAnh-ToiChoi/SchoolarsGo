@@ -1,28 +1,13 @@
-const { success } = require('../utils/responseHelper');
-const NewsService = require('../services/news.service');
+import { success } from '#utils/responseHelper.js';
+import newsService from '#services/news.service.js';
 
 class NewsController {
-  #service;
-
-  constructor(newsService = new NewsService()) {
-    this.#service = newsService;
-    this.#validateService();
-  }
-
-  #validateService() {
-    if (!this.#service) throw new Error('NewsService is required');
-  }
-
-  async getNews(req, res, next) {
-    try {
-      const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
-      const category = req.query.category || null;
-      const news = await this.#service.getNews(limit, category);
-      return success(res, news);
-    } catch (error) {
-      next(error);
-    }
+  async getNews(req, res) {
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 20));
+    const category = req.query.category || null;
+    const news = await newsService.getNews(limit, category);
+    return success(res, news);
   }
 }
 
-module.exports = NewsController;
+export default new NewsController();

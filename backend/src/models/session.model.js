@@ -1,13 +1,8 @@
-const database = require('../configs/database.config');
+import * as database from '#configs/database.config.js';
+
 class SessionModel {
-  #db;
-
-  constructor(db = database) {
-    this.#db = db;
-  }
-
   async createWithLimit({ sessionId, userId, refreshTokenHash, expiresAt, deviceName }) {
-    const client = await this.#db.pool.connect();
+    const client = await database.pool.connect();
     try {
       await client.query('BEGIN');
       await client.query('SELECT id FROM users WHERE id = $1 FOR UPDATE', [userId]);
@@ -33,11 +28,11 @@ class SessionModel {
   }
 
   findById(id) {
-    return this.#db.queryOne('SELECT * FROM user_sessions WHERE id = $1', [id]);
+    return database.queryOne('SELECT * FROM user_sessions WHERE id = $1', [id]);
   }
 
   async rotate(id, { refreshTokenHash, previousTokenHash, expiresAt, currentTokenHash }) {
-    return this.#db.queryOne(
+    return database.queryOne(
       `UPDATE user_sessions SET refresh_token_hash = $2, previous_token_hash = $3,
        rotated_at = now(), expires_at = $4, last_used_at = now()
        WHERE id = $1 AND revoked_at IS NULL AND refresh_token_hash = $5 RETURNING *`,
@@ -46,7 +41,7 @@ class SessionModel {
   }
 
   revoke(id, reason) {
-    return this.#db.queryOne(
+    return database.queryOne(
       `UPDATE user_sessions SET revoked_at = now(), revoked_reason = $2
        WHERE id = $1 AND revoked_at IS NULL RETURNING id`,
       [id, reason]
@@ -54,7 +49,7 @@ class SessionModel {
   }
 
   revokeForUser(id, userId, reason) {
-    return this.#db.queryOne(
+    return database.queryOne(
       `UPDATE user_sessions SET revoked_at = now(), revoked_reason = $3
        WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL RETURNING id`,
       [id, userId, reason]
@@ -62,7 +57,7 @@ class SessionModel {
   }
 
   async revokeAllForUser(userId, reason) {
-    const result = await this.#db.query(
+    const result = await database.query(
       `UPDATE user_sessions SET revoked_at = now(), revoked_reason = $2
        WHERE user_id = $1 AND revoked_at IS NULL`,
       [userId, reason]
@@ -71,7 +66,7 @@ class SessionModel {
   }
 
   listActive(userId) {
-    return this.#db.query(
+    return database.query(
       `SELECT id, device_name, last_used_at, created_at FROM user_sessions
        WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now()
        ORDER BY last_used_at DESC LIMIT 3`,
@@ -80,11 +75,11 @@ class SessionModel {
   }
 
   async deleteOld() {
-    const result = await this.#db.query(
+    const result = await database.query(
       `DELETE FROM user_sessions WHERE expires_at < now() OR revoked_at < now() - interval '7 days'`
     );
     return result.rowCount;
   }
 }
 
-module.exports = SessionModel;
+export default new SessionModel();

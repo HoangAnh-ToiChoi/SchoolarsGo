@@ -1,20 +1,15 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
+
 class ProfileModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   async findByUserId(userId) {
-    let { data: profile } = await this.#sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    let { data: profile } = await getSupabase().from('profiles').select('*').eq('user_id', userId).maybeSingle();
 
     if (!profile) {
-      const { data } = await this.#sb.from('profiles').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('*').single();
+      const { data } = await getSupabase().from('profiles').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('*').single();
       profile = data;
     }
 
-    const { data: docs } = await this.#sb.from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    const { data: docs } = await getSupabase().from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     return { ...profile, documents: docs || [] };
   }
 
@@ -23,15 +18,15 @@ class ProfileModel {
     const filtered = Object.fromEntries(allowedFields.filter(k => updates[k] !== undefined).map(k => [k, updates[k]]));
 
     const payload = { user_id: userId, ...filtered, updated_at: new Date().toISOString() };
-    const { data, error } = await this.#sb.from('profiles').upsert(payload, { onConflict: 'user_id' }).select('*').single();
+    const { data, error } = await getSupabase().from('profiles').upsert(payload, { onConflict: 'user_id' }).select('*').single();
     if (error) throw error;
 
     if (updates.full_name) {
-      await this.#sb.from('users').update({ full_name: updates.full_name, updated_at: new Date().toISOString() }).eq('id', userId);
+      await getSupabase().from('users').update({ full_name: updates.full_name, updated_at: new Date().toISOString() }).eq('id', userId);
     }
 
     return data;
   }
 }
 
-module.exports = ProfileModel;
+export default new ProfileModel();

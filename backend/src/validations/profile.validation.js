@@ -1,5 +1,5 @@
-const { z } = require('zod');
-const { DEGREES } = require('./scholarship.validation');
+import { z } from 'zod';
+import { DEGREES } from './scholarship.validation.js';
 
 const profileUpdateSchema = z.object({
   bio: z.string().max(2000).optional(),
@@ -18,6 +18,4 @@ const profileUpdateSchema = z.object({
   full_name: z.string().min(2).max(255).optional(),
 });
 
-module.exports = {
-  profileUpdateSchema,
-};
+export { profileUpdateSchema };

@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const createTransport = () => {
   if (!process.env.SMTP_HOST) return null;
@@ -35,4 +35,4 @@ async function sendResetEmail(email, resetLink) {
   });
 }
 
-module.exports = { sendResetEmail };
+export { sendResetEmail };

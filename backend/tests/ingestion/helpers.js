@@ -1,5 +1,3 @@
-'use strict';
-
 const NOW = new Date('2026-11-08T00:00:00Z');
 
 /** Tạo RawPost mẫu, ghi đè các trường cần thử. */
@@ -19,4 +17,4 @@ function rawPost(overrides = {}) {
   };
 }
 
-module.exports = { NOW, rawPost };
+export { NOW, rawPost };

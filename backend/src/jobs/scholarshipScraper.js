@@ -1,17 +1,14 @@
-'use strict';
-
-const cron = require('node-cron');
-const db = require('../configs/database.config');
-const SessionModel = require('../models/session.model');
-const { createIngestion } = require('../ingestion');
+import cron from 'node-cron';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as db from '#configs/database.config.js';
+import sessionModel from '#models/session.model.js';
+import { createIngestion } from '#ingestion/index.js';
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
-const sessionModel = new SessionModel();
 
 // Không có khóa Gemini hoặc tắt AI thì module kéo học bổng chạy bằng luật thuần
 function createAiModel() {
   if (process.env.INGESTION_USE_AI === 'false' || !process.env.GEMINI_API_KEY) return null;
-  const { GoogleGenerativeAI } = require('@google/generative-ai');
   return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
     model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
     generationConfig: { responseMimeType: 'application/json', temperature: 0 },
@@ -74,4 +71,4 @@ function startScrapeJob() {
   console.log('[Ingestion] Cron đã đăng ký: kéo học bổng Chủ nhật 2:00, tắt học bổng quá hạn mỗi đêm 3:00 (GMT+7)');
 }
 
-module.exports = { startScrapeJob, runJob, deactivateExpiredJob, deleteOldSessionsJob };
+export { startScrapeJob, runJob, deactivateExpiredJob, deleteOldSessionsJob };

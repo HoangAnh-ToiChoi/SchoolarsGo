@@ -15,10 +15,4 @@ const jwtConfig = {
   algorithm: 'HS256',
 };
 
-module.exports = {
-  getAuthSecrets,
-  getCookieSameSite,
-  getTrustProxy,
-  jwtConfig,
-};
-
+export { getAuthSecrets, getCookieSameSite, getTrustProxy, jwtConfig };
