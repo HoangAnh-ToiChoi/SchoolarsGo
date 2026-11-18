@@ -1,26 +1,11 @@
-const { success } = require('../utils/responseHelper');
-const RecommendService = require('../services/recommend.service');
+import { success } from '#utils/responseHelper.js';
+import recommendService from '#services/recommend.service.js';
 
 class RecommendController {
-  #service;
-
-  constructor(recommendService = new RecommendService()) {
-    this.#service = recommendService;
-    this.#validateService();
-  }
-
-  #validateService() {
-    if (!this.#service) throw new Error('RecommendService is required');
-  }
-
-  async recommend(req, res, next) {
-    try {
-      const data = await this.#service.recommend(req.user.id, req.body.top_n);
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
+  async recommend(req, res) {
+    const data = await recommendService.recommend(req.user.id, req.body.top_n);
+    return success(res, data);
   }
 }
 
-module.exports = RecommendController;
+export default new RecommendController();

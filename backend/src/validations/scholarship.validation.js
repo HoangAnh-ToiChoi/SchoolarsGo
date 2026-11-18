@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const DEGREES = ['Bachelor', 'Master', 'PhD', 'Any'];
 
@@ -47,7 +47,4 @@ const scholarshipQuerySchema = z.object({
   search: z.string().max(255).optional(),
 });
 
-module.exports = {
-  scholarshipQuerySchema,
-  DEGREES,
-};
+export { scholarshipQuerySchema, DEGREES };

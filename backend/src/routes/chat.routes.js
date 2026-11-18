@@ -1,14 +1,13 @@
-const { Router } = require('express');
-const ChatController = require('../controllers/chat.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const chatController = bindControllerMethods(new ChatController());
-const { auth } = require('../middlewares/auth');
-const rateLimit = require('express-rate-limit');
+import { Router } from 'express';
+import chatController from '#controllers/chat.controller.js';
+import { auth } from '#middlewares/auth.js';
+import rateLimit from 'express-rate-limit';
+import { ApiResponse } from '#utils/responseHelper.js';
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
-  message: { success: false, message: 'Quá nhiều tin nhắn, vui lòng thử lại sau 1 phút' },
+  message: ApiResponse.error({ message: 'Quá nhiều tin nhắn, vui lòng thử lại sau 1 phút', code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
 });
 
 const router = Router();
@@ -16,4 +15,4 @@ const router = Router();
 router.get('/history', auth, chatController.getChatHistory);
 router.post('/', auth, chatLimiter, chatController.sendMessage);
 
-module.exports = router;
+export default router;

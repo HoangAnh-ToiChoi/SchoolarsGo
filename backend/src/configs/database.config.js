@@ -1,13 +1,8 @@
-/**
- * ScholarsGo — Direct PostgreSQL Client (singleton)
- * Dùng cho tất cả query trong backend (seed script + API).
- * Kết nối trực tiếp PostgreSQL — hỗ trợ cả Supabase Cloud Connection Pooling
- * (port 6543) lẫn Supabase local Docker (port 5432).
- *
- * Connection pool: reuse connection, tự động handle disconnect/reconnect.
- */
+/** Kết nối PostgreSQL trực tiếp (pool) qua Supabase Cloud pooler, port 6543. */
 
-const { Pool } = require('pg');
+import pg from 'pg';
+
+const { Pool } = pg;
 
 const pool = new Pool({
   host: process.env.PG_HOST || 'localhost',
@@ -27,28 +22,17 @@ pool.on('error', err => {
   console.error('Unexpected pg pool error:', err.message);
 });
 
-/**
- * Execute a parameterized query.
- * @param {string} text - SQL query
- * @param {any[]} params - Query parameters
- * @returns {Promise<{rows: any[], rowCount: number}>}
- */
 async function query(text, params) {
   const result = await pool.query(text, params);
   return { rows: result.rows, rowCount: result.rowCount };
 }
 
-/**
- * Execute a query and return the first row or null.
- */
 async function queryOne(text, params) {
   const result = await pool.query(text, params);
   return result.rows[0] || null;
 }
 
-/**
- * Execute a transaction (array of {text, params}).
- */
+/** Chạy nhiều câu trong một transaction ([{ text, params }]); lỗi thì ROLLBACK. */
 async function transaction(queries) {
   const client = await pool.connect();
   try {
@@ -68,4 +52,4 @@ async function transaction(queries) {
   }
 }
 
-module.exports = { pool, query, queryOne, transaction };
+export { pool, query, queryOne, transaction };

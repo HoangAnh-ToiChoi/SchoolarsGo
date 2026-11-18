@@ -19,4 +19,4 @@ const authorization = Object.freeze({
   ORIGIN_NOT_ALLOWED: { statusCode: 403, code: 'ORIGIN_NOT_ALLOWED', message: 'Nguồn gửi yêu cầu không được phép.' },
 });
 
-module.exports = { authorization };
+export { authorization };

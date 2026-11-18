@@ -1,6 +1,4 @@
-'use strict';
-
-const { countryFromSlug } = require('./countries');
+import { countryFromSlug } from './countries.js';
 
 /**
  * BƯỚC 1 — Lấy bài từ một trang WordPress và đổi về dạng `post` chung.
@@ -218,4 +216,4 @@ function stripHtml(html = '') {
     .trim();
 }
 
-module.exports = { fetchPosts, fetchPages, toPost, signalsFromCategories };
+export { fetchPosts, fetchPages, toPost, signalsFromCategories };

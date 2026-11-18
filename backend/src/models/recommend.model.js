@@ -1,16 +1,11 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
+
 class RecommendModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   async findProfileByUserId(userId) {
-    const { data: profile } = await this.#sb.from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    const { data: profile } = await getSupabase().from('profiles').select('*').eq('user_id', userId).maybeSingle();
     if (!profile) return null;
 
-    const { data: documents } = await this.#sb
+    const { data: documents } = await getSupabase()
       .from('documents')
       .select('id, type')
       .eq('user_id', userId);
@@ -23,7 +18,7 @@ class RecommendModel {
   }
 
   async findActiveScholarships(limit = 200) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('scholarships')
       .select('*')
       .eq('is_active', true)
@@ -36,4 +31,4 @@ class RecommendModel {
   }
 }
 
-module.exports = RecommendModel;
+export default new RecommendModel();

@@ -1,16 +1,10 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
 // Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
 const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
 
 class ScholarshipModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   async findAll(filters = {}, limit, offset, userId = null) {
-    let q = this.#sb.from('scholarships').select(
+    let q = getSupabase().from('scholarships').select(
       'id, slug, title, provider, country, degree, amount, currency, coverage, deadline, language, min_gpa, image_url, is_featured',
       { count: 'exact' }
     ).eq('is_active', true).or(this.#notExpired());
@@ -29,7 +23,7 @@ class ScholarshipModel {
   }
 
   async findFeatured() {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('scholarships')
       .select('id, slug, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('is_active', true)
@@ -43,7 +37,7 @@ class ScholarshipModel {
   }
 
   async findCountries() {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('scholarships')
       .select('country')
       .eq('is_active', true)
@@ -56,7 +50,7 @@ class ScholarshipModel {
 
   /** Tìm theo id (UUID) hoặc slug — URL trang chi tiết dùng slug, link cũ vẫn dùng id. */
   async findByIdOrSlug(idOrSlug, { isUuid }, userId = null) {
-    const { data: scholarship, error } = await this.#sb
+    const { data: scholarship, error } = await getSupabase()
       .from('scholarships')
       .select('*')
       .eq(isUuid ? 'id' : 'slug', idOrSlug)
@@ -98,7 +92,7 @@ class ScholarshipModel {
   async #attachSavedStatus(rows, userId) {
     if (!userId || rows.length === 0) return rows.map(r => ({ ...r, is_saved: false }));
     const ids = rows.map(r => r.id);
-    const { data } = await this.#sb
+    const { data } = await getSupabase()
       .from('saved_scholarships')
       .select('scholarship_id')
       .eq('user_id', userId)
@@ -109,7 +103,7 @@ class ScholarshipModel {
 
   async #checkSavedStatus(userId, scholarshipId) {
     if (!userId) return false;
-    const { data } = await this.#sb
+    const { data } = await getSupabase()
       .from('saved_scholarships')
       .select('id')
       .eq('user_id', userId)
@@ -119,4 +113,4 @@ class ScholarshipModel {
   }
 }
 
-module.exports = ScholarshipModel;
+export default new ScholarshipModel();

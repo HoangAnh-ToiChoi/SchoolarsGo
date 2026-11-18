@@ -1,20 +1,15 @@
-const getSupabase = require('../configs/supabase');
+import getSupabase from '#configs/supabase.js';
+
 const NOTIFICATION_COLUMNS =
   'id, type, milestone, application_id, read_at, created_at, scholarships(id, slug, title, provider, deadline), applications(status)';
 
 class NotificationModel {
-  #sb;
-
-  constructor(sb = getSupabase()) {
-    this.#sb = sb;
-  }
-
   /**
    * Học bổng đã lưu có hạn nộp trong [fromDate, toDate).
    * userId = null: lấy cho mọi người dùng (job chạy hằng ngày).
    */
   async findSavedDueBetween(fromDate, toDate, userId = null) {
-    let q = this.#sb
+    let q = getSupabase()
       .from('saved_scholarships')
       .select('user_id, scholarship_id, scholarships!inner(deadline)')
       .gte('scholarships.deadline', fromDate)
@@ -32,7 +27,7 @@ class NotificationModel {
 
   /** Đơn còn nháp (chưa nộp) có hạn nộp trong [fromDate, toDate). */
   async findDraftApplicationsDueBetween(fromDate, toDate, userId = null) {
-    let q = this.#sb
+    let q = getSupabase()
       .from('applications')
       .select('id, user_id, scholarship_id, scholarships!inner(deadline)')
       .eq('status', 'draft')
@@ -52,14 +47,14 @@ class NotificationModel {
   /** Thêm thông báo; bản ghi đã có (cùng người, loại, học bổng, mốc) thì bỏ qua. */
   async insertIgnoreDuplicates(rows) {
     if (rows.length === 0) return;
-    const { error } = await this.#sb
+    const { error } = await getSupabase()
       .from('notifications')
       .upsert(rows, { onConflict: 'user_id,type,scholarship_id,milestone', ignoreDuplicates: true });
     if (error) throw error;
   }
 
   async findByUser(userId, limit) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('notifications')
       .select(NOTIFICATION_COLUMNS)
       .eq('user_id', userId)
@@ -71,7 +66,7 @@ class NotificationModel {
 
   /** Đánh dấu đã đọc một thông báo của chính người dùng. Trả về false nếu không có thông báo đó. */
   async markRead(userId, notificationId) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .eq('id', notificationId)
@@ -83,7 +78,7 @@ class NotificationModel {
 
   /** Đánh dấu tất cả thông báo chưa đọc. Trả về số thông báo vừa đánh dấu. */
   async markAllRead(userId) {
-    const { data, error } = await this.#sb
+    const { data, error } = await getSupabase()
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
       .eq('user_id', userId)
@@ -94,4 +89,4 @@ class NotificationModel {
   }
 }
 
-module.exports = NotificationModel;
+export default new NotificationModel();

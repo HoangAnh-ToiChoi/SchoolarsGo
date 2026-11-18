@@ -1,53 +1,26 @@
-const { success } = require('../utils/responseHelper');
-const ScholarshipService = require('../services/scholarship.service');
+import { success } from '#utils/responseHelper.js';
+import scholarshipService from '#services/scholarship.service.js';
 
 class ScholarshipController {
-  #service;
-
-  constructor(scholarshipService = new ScholarshipService()) {
-    this.#service = scholarshipService;
-    this.#validateService();
+  async getAll(req, res) {
+    const { data, meta } = await scholarshipService.getAll(req.query, req.user?.id);
+    return success(res, data, 'Scholarships retrieved', meta);
   }
 
-  #validateService() {
-    if (!this.#service) throw new Error('ScholarshipService is required');
+  async getFeatured(req, res) {
+    const data = await scholarshipService.getFeatured();
+    return success(res, data);
   }
 
-  async getAll(req, res, next) {
-    try {
-      const { data, meta } = await this.#service.getAll(req.query, req.user?.id);
-      return success(res, data, 'Scholarships retrieved', meta);
-    } catch (error) {
-      next(error);
-    }
+  async getCountries(req, res) {
+    const data = await scholarshipService.getCountries();
+    return success(res, data);
   }
 
-  async getFeatured(req, res, next) {
-    try {
-      const data = await this.#service.getFeatured();
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getCountries(req, res, next) {
-    try {
-      const data = await this.#service.getCountries();
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getById(req, res, next) {
-    try {
-      const data = await this.#service.getById(req.params.id, req.user?.id);
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
+  async getById(req, res) {
+    const data = await scholarshipService.getById(req.params.id, req.user?.id);
+    return success(res, data);
   }
 }
 
-module.exports = ScholarshipController;
+export default new ScholarshipController();

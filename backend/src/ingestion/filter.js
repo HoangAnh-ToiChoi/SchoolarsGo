@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * BƯỚC 2 và 4 — Loại bài không đạt. Mỗi bài bị loại ghi lại "luật nào" để thống kê.
  *
@@ -108,4 +106,4 @@ function checkDetails(post, info, { now }) {
   return pass;
 }
 
-module.exports = { RULES, VIETNAM, checkBasic, checkDetails };
+export { RULES, VIETNAM, checkBasic, checkDetails };

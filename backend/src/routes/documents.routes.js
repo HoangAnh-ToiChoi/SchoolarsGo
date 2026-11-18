@@ -1,32 +1,14 @@
-const { Router } = require('express');
-const DocumentController = require('../controllers/document.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const documentController = bindControllerMethods(new DocumentController());
-const { auth } = require('../middlewares/auth');
-const { upload, handleUploadError } = require('../middlewares/upload');
-const { uploadLimiter } = require('../middlewares/rateLimiter');
+import { Router } from 'express';
+import documentController from '#controllers/document.controller.js';
+import { auth } from '#middlewares/auth.js';
+import { upload, handleUploadError } from '#middlewares/upload.js';
+import { uploadLimiter } from '#middlewares/rateLimiter.js';
 
 const router = Router();
 
-/**
- * GET /api/documents
- * @desc List user's documents
- */
 router.get('/', auth, documentController.getAll);
 
-/**
- * POST /api/documents/upload
- * @desc Upload a document
- *
- * Luồng xử lý lỗi:
- *  1. upload.single('file')  → parse multipart, chạy fileFilter
- *  2. handleUploadError()    → bắt lỗi từ fileFilter, trả JSON 400 thay vì crash
- *  3. auth                  → kiểm tra JWT token
- *  4. documentController   → xử lý business logic
- *
- * Nếu không có handleUploadError: lỗi từ fileFilter (MulterError hoặc Error thường)
- * sẽ không được format JSON, client nhận "Failed to fetch" thay vì message rõ ràng.
- */
+// Thứ tự quan trọng: auth → upload (đọc multipart) → handleUploadError (đổi lỗi multer thành JSON 400, thiếu thì client chỉ thấy "Failed to fetch") → controller
 router.post(
   '/upload',
   uploadLimiter,
@@ -36,10 +18,6 @@ router.post(
   documentController.upload
 );
 
-/**
- * DELETE /api/documents/:id
- * @desc Delete a document
- */
 router.delete('/:id', auth, documentController.remove);
 
-module.exports = router;
+export default router;

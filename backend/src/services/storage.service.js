@@ -1,19 +1,11 @@
 /**
- * Storage Service —封装 Supabase Storage 操作
- *
- * Chỉ dùng @supabase/supabase-js CHO RIÊNG phần Storage (không dùng cho DB).
- * DB vẫn dùng pg pool thuần (bỏ qua RLS ở DB level).
- *
- * Supabase Storage có RLS riêng → cần dùng service_role key để bypass.
- * File được đặt trong bucket "documents" với path: /{user_id}/{type}/{filename}
- *
- * Các lỗi cần xử lý:
- * - Upload thất bại → throw có isOperational = true để Global Error Handler chụp
- * - Trùng tên file → sinh UUID nối vào tên file sau khi slugify
+ * Supabase Storage cho file tài liệu (bucket "documents", đường dẫn {user_id}/{type}/{tên-file}).
+ * Dùng service_role key để vượt RLS của Storage. Tên file được slugify + gắn UUID để không trùng.
+ * Upload lỗi thì ném lỗi isOperational để errorHandler trả về cho client.
  */
 
-const { createClient } = require('@supabase/supabase-js');
-const crypto = require('crypto');
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 
 let supabaseStorage = null;
 
@@ -44,65 +36,35 @@ const getSupabaseStorage = () => {
 const BUCKET_NAME = 'documents';
 
 /**
- * Slugify tên file — chuẩn hóa tên file trước khi upload lên Supabase Storage
- *
- * Luồng xử lý:
- *  1. Tách extension ra trước (tránh mất dấu . trong body tiếng Việt)
- *  2. Loại bỏ dấu tiếng Việt bằng NFD normalization + strip combining marks
- *  3. Chuyển khoảng trắng thành dấu gạch ngang (-)
- *  4. Xóa ký tự đặc biệt []() và ký tự không an toàn cho filesystem
- *  5. Collapse nhiều gạch ngang liên tiếp
- *  6. Giới hạn độ dài body (200 ký tự)
- *
- * Ví dụ:
- *   "[CMP376] Giáo trình HP Thực hành Lập trình web (1).pdf"
- *     → "cmp376-giao-trinh-hp-thuc-hanh-lap-trinh-web-1.pdf"
- *
- * @param {string} fileName - Tên file gốc từ client
- * @returns {string} Tên file đã sanitize, an toàn cho Supabase Storage
+ * Chuẩn hóa tên file trước khi lên Storage: bỏ dấu tiếng Việt, chỉ giữ chữ Latin/số/gạch ngang, tối đa 200 ký tự.
+ * "[CMP376] Giáo trình HP (1).pdf" → "cmp376-giao-trinh-hp-1.pdf"
  */
 const slugifyFileName = fileName => {
   if (!fileName || typeof fileName !== 'string') {
     return `file_${Date.now()}`;
   }
 
-  // Tách extension để giữ nguyên đuôi file
+  // Tách đuôi file trước để không mất dấu "." trong tên có tiếng Việt
   const lastDot = fileName.lastIndexOf('.');
   const hasExtension = lastDot > 0 && lastDot < fileName.length - 1;
   const rawExt = hasExtension ? fileName.slice(lastDot + 1).toLowerCase() : '';
   const body = hasExtension ? fileName.slice(0, lastDot) : fileName;
 
-  // Loại bỏ dấu tiếng Việt: "Giáo" → "Giao", "trình" → "trinh"
+  // NFD tách dấu khỏi chữ: "Giáo" → "Giao"
   const normalized = body.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  // Chuyển khoảng trắng thành dấu gạch ngang
   const withDashes = normalized.replace(/\s+/g, '-');
-
-  // Xóa ký tự đặc biệt — chỉ giữ chữ cái Latin, số, dấu gạch ngang
   const sanitized = withDashes.replace(/[^a-zA-Z0-9-]/g, '');
-
-  // Collapse nhiều dấu gạch ngang liên tiếp thành 1, bỏ gạch đầu/cuối
   const collapsed = sanitized.replace(/-+/g, '-').replace(/^-+|-+$/g, '');
 
-  // Giới hạn độ dài body (an toàn với Supabase path limit 1024 bytes)
+  // Cắt ngắn để đường dẫn không vượt giới hạn 1024 byte của Supabase
   const truncated = collapsed.length > 200 ? collapsed.slice(0, 200) : collapsed;
 
   const safeFileName = rawExt ? `${truncated}.${rawExt}` : truncated;
   return safeFileName || `file_${Date.now()}`;
 };
 
-/**
- * Upload file lên Supabase Storage
- *
- * @param {string}   userId       - ID của user
- * @param {string}   docType      - Loại document: cv, sop, transcript, recommendation_letter, other
- * @param {Buffer}   fileBuffer   - Nội dung file (từ multer.memoryStorage())
- * @param {string}   originalName - Tên gốc của file (sẽ được slugify)
- * @param {string}   mimeType     - MIME type của file
- * @returns {Promise<{publicUrl: string, storagePath: string}>}
- */
 async function uploadFile(userId, docType, fileBuffer, originalName, mimeType) {
-  // Slugify tên file để tránh lỗi path từ ký tự đặc biệt / tiếng Việt
   const slugifiedName = slugifyFileName(originalName);
   const randomSuffix = crypto.randomUUID().slice(0, 8);
   const ext = slugifiedName.includes('.') ? slugifiedName.split('.').pop() : '';
@@ -129,8 +91,7 @@ async function uploadFile(userId, docType, fileBuffer, originalName, mimeType) {
 
     uploadData = result.data;
   } catch (err) {
-    // Giữ nguyên error có isOperational từ khối trên;
-    // wrap thêm cho các lỗi async/network không có isOperational
+    // Lỗi đã isOperational thì giữ nguyên; lỗi mạng/async khác thì bọc lại thành lỗi 500 trả được cho client
     if (!err.isOperational) {
       console.error('[Supabase Upload Error]:', err);
       const wrapped = new Error(`Upload file thất bại: ${err.message}`);
@@ -141,8 +102,7 @@ async function uploadFile(userId, docType, fileBuffer, originalName, mimeType) {
     throw err;
   }
 
-  // getPublicUrl() là hàm đồng bộ — chỉ build string từ config
-  // KHÔNG cần try/catch vì không có network call
+  // getPublicUrl() chỉ ghép chuỗi từ cấu hình (không gọi mạng) nên không cần try/catch
   const { data: urlData } = getSupabaseStorage()
     .storage.from(BUCKET_NAME)
     .getPublicUrl(uploadData ? uploadData.path : storagePath);
@@ -153,13 +113,7 @@ async function uploadFile(userId, docType, fileBuffer, originalName, mimeType) {
   };
 }
 
-/**
- * Xóa file khỏi Supabase Storage
- * (Dùng trong rollback khi DB insert thất bại, hoặc khi xóa document)
- *
- * @param {string} storagePath - Đường dẫn file trong bucket (VD: userId/docType/filename)
- * @returns {Promise<void>}
- */
+/** Xóa file khỏi Storage (rollback khi lưu DB thất bại, hoặc khi xóa tài liệu). */
 async function deleteFile(storagePath) {
   const { error } = await getSupabaseStorage().storage.from(BUCKET_NAME).remove([storagePath]);
 
@@ -169,4 +123,4 @@ async function deleteFile(storagePath) {
   }
 }
 
-module.exports = { uploadFile, deleteFile, slugifyFileName };
+export { uploadFile, deleteFile, slugifyFileName };

@@ -1,15 +1,28 @@
-const { test, beforeEach } = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const TokenService = require('../../src/services/token.service');
-const SessionService = require('../../src/services/session.service');
-const AuthService = require('../../src/services/auth.service');
-const AdminService = require('../../src/services/admin.service');
-const { toSessionUser } = require('../../src/utils/sessionUser');
-process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
-const { isAllowedOrigin } = require('../../src/configs/cors.config');
+import { test, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import { mockService, srcUrl } from './helpers/mockService.js';
+import { toSessionUser } from '#utils/sessionUser.js';
 
-const env = { JWT_ACCESS_SECRET: 'access-secret-that-is-at-least-32-chars', JWT_REFRESH_SECRET: 'refresh-secret-that-is-also-32-chars' };
+process.env.CORS_ORIGINS = 'https://good.example,https://other.example';
+
+// Service dùng model đã import sẵn nên giả lập các module model/hash trước khi nạp service.
+// Mỗi test gán `.current` = bản giả riêng. Token service chạy thật với khóa từ tests/setupEnv.js.
+const sessionModelRef = mockService(srcUrl('models/session.model.js'));
+const authModelRef = mockService(srcUrl('models/auth.model.js'));
+const adminModelRef = mockService(srcUrl('models/admin.model.js'));
+const hashRef = mockService(srcUrl('services/hash.service.js'));
+
+const { default: tokens } = await import('#services/token.service.js');
+const { default: sessions } = await import('#services/session.service.js');
+const { default: auth } = await import('#services/auth.service.js');
+const { default: admin } = await import('#services/admin.service.js');
+const { getAuthSecrets } = await import('#configs/jwt.config.js');
+// cors.config đọc env lúc nạp nên phải nạp động sau khi đặt CORS_ORIGINS
+const { isAllowedOrigin } = await import('#configs/cors.config.js');
+
+const { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET } = process.env;
+const activeUser = (role = 'user') => ({ findSessionUserById: async () => ({ id: 'u1', role, is_active: true }) });
 
 class MemorySessions {
   rows = new Map();
@@ -37,9 +50,9 @@ beforeEach(() => {
 });
 
 test('T1: access and refresh lifetimes are 15 minutes and 7 days; only a hash is persisted', async () => {
-  const tokens = new TokenService(env);
   const repo = new MemorySessions();
-  const sessions = new SessionService(repo, { findSessionUserById: async () => ({ id: 'u1', role: 'user', is_active: true }) }, tokens);
+  sessionModelRef.current = repo;
+  authModelRef.current = activeUser();
   const result = await sessions.start({ id: 'u1', role: 'user', full_name: 'A' }, 'Chrome/Windows');
   const access = jwt.decode(result.accessToken);
   const refresh = jwt.decode(result.refreshToken);
@@ -50,21 +63,20 @@ test('T1: access and refresh lifetimes are 15 minutes and 7 days; only a hash is
 });
 
 test('T3/T4: verify access expiration and reject wrong algorithms or secrets', () => {
-  const tokens = new TokenService(env);
   const valid = tokens.signAccess({ userId: 'u1', sessionId: 's1', role: 'user' });
   assert.equal(tokens.verifyAccess(valid).sub, 'u1');
   assert.throws(() => tokens.verifyAccess(jwt.sign({ sub: 'u1' }, 'wrong-secret-that-is-long-enough-to-work')),
     error => error.code === 'ACCESS_TOKEN_INVALID');
-  assert.throws(() => tokens.verifyAccess(jwt.sign({ sub: 'u1' }, env.JWT_ACCESS_SECRET, { algorithm: 'none' })),
+  assert.throws(() => tokens.verifyAccess(jwt.sign({ sub: 'u1' }, JWT_ACCESS_SECRET, { algorithm: 'none' })),
     error => error.code === 'ACCESS_TOKEN_INVALID');
-  const expired = jwt.sign({ sub: 'u1', exp: Math.floor(Date.now() / 1000) - 1 }, env.JWT_ACCESS_SECRET, { algorithm: 'HS256' });
+  const expired = jwt.sign({ sub: 'u1', exp: Math.floor(Date.now() / 1000) - 1 }, JWT_ACCESS_SECRET, { algorithm: 'HS256' });
   assert.throws(() => tokens.verifyAccess(expired), error => error.code === 'ACCESS_TOKEN_EXPIRED');
 });
 
 test('T5/T8: rotation stores previous hash, slides expiry, and recognizes a recent replay as a race', async () => {
-  const tokens = new TokenService(env);
   const repo = new MemorySessions();
-  const sessions = new SessionService(repo, { findSessionUserById: async () => ({ id: 'u1', role: 'admin', is_active: true }) }, tokens);
+  sessionModelRef.current = repo;
+  authModelRef.current = activeUser('admin');
   const start = await sessions.start({ id: 'u1', role: 'user' }, 'Firefox');
   const rotated = await sessions.refresh(start.refreshToken);
   const row = [...repo.rows.values()][0];
@@ -76,9 +88,9 @@ test('T5/T8: rotation stores previous hash, slides expiry, and recognizes a rece
 });
 
 test('T7/T12: an old token after the race window revokes the session and logout prevents refresh', async () => {
-  const tokens = new TokenService(env);
   const repo = new MemorySessions();
-  const sessions = new SessionService(repo, { findSessionUserById: async () => ({ id: 'u1', role: 'user', is_active: true }) }, tokens);
+  sessionModelRef.current = repo;
+  authModelRef.current = activeUser();
   const start = await sessions.start({ id: 'u1', role: 'user' });
   const current = await sessions.refresh(start.refreshToken);
   const row = [...repo.rows.values()][0];
@@ -89,59 +101,56 @@ test('T7/T12: an old token after the race window revokes the session and logout 
   await assert.rejects(sessions.refresh(current.refreshToken), error => error.code === 'SESSION_REVOKED');
 });
 
-test('T16: missing or short secrets fail at service construction', () => {
-  assert.throws(() => new TokenService({}), /JWT_ACCESS_SECRET/);
-  assert.throws(() => new TokenService({ JWT_ACCESS_SECRET: 'short', JWT_REFRESH_SECRET: 'also-short' }), /at least 32/);
+test('T16: missing or short secrets are rejected', () => {
+  assert.throws(() => getAuthSecrets({}), /JWT_ACCESS_SECRET/);
+  assert.throws(() => getAuthSecrets({ JWT_ACCESS_SECRET: 'short', JWT_REFRESH_SECRET: 'also-short' }), /at least 32/);
 });
 
 test('T2: locked accounts cannot log in or create sessions', async () => {
   let started = false;
-  const service = new AuthService({ findByEmailWithCredentials: async () => ({ id: 'u1', is_active: false, password_hash: 'hash' }) },
-    { compare: async () => true }, { start: async () => { started = true; } });
-  await assert.rejects(service.login('a@b.com', 'pass'), error => error.code === 'ACCOUNT_LOCKED' && error.statusCode === 403);
+  authModelRef.current = { findByEmailWithCredentials: async () => ({ id: 'u1', is_active: false, password_hash: 'hash' }) };
+  hashRef.current = { compare: async () => true };
+  sessionModelRef.current = { createWithLimit: async () => { started = true; } };
+  await assert.rejects(auth.login('a@b.com', 'pass'), error => error.code === 'ACCOUNT_LOCKED' && error.statusCode === 403);
   assert.equal(started, false);
 });
 
 test('T6: refresh tokens expire after seven days', () => {
-  const tokens = new TokenService(env);
-  const expired = jwt.sign({ sub: 'u1', sid: 's1', exp: Math.floor(Date.now() / 1000) - 1 }, env.JWT_REFRESH_SECRET, { algorithm: 'HS256' });
+  const expired = jwt.sign({ sub: 'u1', sid: 's1', exp: Math.floor(Date.now() / 1000) - 1 }, JWT_REFRESH_SECRET, { algorithm: 'HS256' });
   assert.throws(() => tokens.verifyRefresh(expired), error => error.code === 'REFRESH_TOKEN_EXPIRED');
 });
 
 test('T9: the fourth device revokes the least recently used session', async () => {
-  const tokens = new TokenService(env);
   const repo = new MemorySessions();
-  const service = new SessionService(repo, {}, tokens);
-  const sessions = await Promise.all([1, 2, 3, 4].map(() => service.start({ id: 'u1', role: 'user' })));
+  sessionModelRef.current = repo;
+  authModelRef.current = {};
+  const started = await Promise.all([1, 2, 3, 4].map(() => sessions.start({ id: 'u1', role: 'user' })));
   const rows = [...repo.rows.values()];
   assert.equal(rows.filter(row => !row.revoked_at).length, 3);
   assert.equal(rows[0].revoked_at instanceof Date, true);
-  await assert.rejects(service.refresh(sessions[0].refreshToken), error => error.code === 'SESSION_REVOKED');
+  await assert.rejects(sessions.refresh(started[0].refreshToken), error => error.code === 'SESSION_REVOKED');
 });
 
 test('T10/T11: role, lock and password reset revoke only the affected user sessions', async () => {
   const revoked = [];
-  const sessionService = { endAllForUser: async (id, reason) => revoked.push({ id, reason }) };
-  const admin = new AdminService({
-    updateUserRole: async id => ({ id }), updateUserStatus: async id => ({ id }),
-  }, sessionService);
+  sessionModelRef.current = { revokeAllForUser: async (id, reason) => { revoked.push({ id, reason }); } };
+  adminModelRef.current = { updateUserRole: async id => ({ id }), updateUserStatus: async id => ({ id }) };
   await admin.changeUserRole('u1', 'admin', 'admin-1');
   await admin.changeUserStatus('u2', false, 'admin-1');
   assert.deepEqual(revoked, [{ id: 'u1', reason: 'role_changed' }, { id: 'u2', reason: 'locked' }]);
 
-  const resetModel = {
+  authModelRef.current = {
     findByResetToken: async () => ({ id: 'u3', reset_token_expires: new Date(Date.now() + 60000) }),
     clearResetToken: async () => {},
   };
-  const auth = new AuthService(resetModel, { hash: async () => 'new-hash' }, sessionService);
+  hashRef.current = { hash: async () => 'new-hash' };
   await auth.resetPassword('raw', 'new-password');
   assert.deepEqual(revoked[2], { id: 'u3', reason: 'password_reset' });
 });
 
 test('T13/T14: session ownership errors and public user fields are constrained', async () => {
-  const repo = { revokeForUser: async () => null };
-  const service = new SessionService(repo, {}, {});
-  await assert.rejects(service.endOne('u1', 'other-session'), error => error.statusCode === 404);
+  sessionModelRef.current = { revokeForUser: async () => null };
+  await assert.rejects(sessions.endOne('u1', 'other-session'), error => error.statusCode === 404);
   assert.deepEqual(toSessionUser({ id: 'u1', full_name: 'A', avatar_url: null, role: 'user', email: 'private@example.com', phone: '1' }),
     { id: 'u1', full_name: 'A', avatar_url: null, role: 'user' });
 });

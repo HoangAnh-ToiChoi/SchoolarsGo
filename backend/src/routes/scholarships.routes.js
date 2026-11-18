@@ -1,17 +1,11 @@
-const { Router } = require('express');
-const ScholarshipController = require('../controllers/scholarship.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const scholarshipController = bindControllerMethods(new ScholarshipController());
-const { optionalAuth } = require('../middlewares/auth');
-const validate = require('../middlewares/validate');
-const { scholarshipQuerySchema } = require('../validations/scholarship.validation');
+import { Router } from 'express';
+import scholarshipController from '#controllers/scholarship.controller.js';
+import { optionalAuth } from '#middlewares/auth.js';
+import validate from '#middlewares/validate.js';
+import { scholarshipQuerySchema } from '#validations/scholarship.validation.js';
 
 const router = Router();
 
-/**
- * GET /api/scholarships
- * @desc List scholarships with filters (public)
- */
 router.get(
   '/',
   optionalAuth,
@@ -19,22 +13,11 @@ router.get(
   scholarshipController.getAll
 );
 
-/**
- * GET /api/scholarships/featured
- * @desc Get featured scholarships (public)
- */
 router.get('/featured', scholarshipController.getFeatured);
 
-/**
- * GET /api/scholarships/countries
- * @desc Get list of available countries (public)
- */
 router.get('/countries', scholarshipController.getCountries);
 
-/**
- * GET /api/scholarships/:id
- * @desc Get scholarship detail (public). :id là UUID hoặc slug
- */
+// :id là UUID hoặc slug
 router.get('/:id', optionalAuth, scholarshipController.getById);
 
-module.exports = router;
+export default router;

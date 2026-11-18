@@ -1,5 +1,4 @@
-'use strict';
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 let client;
 
@@ -11,4 +10,4 @@ function getSupabase() {
   return client;
 }
 
-module.exports = getSupabase;
+export default getSupabase;

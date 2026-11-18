@@ -1,40 +1,21 @@
-const { success } = require('../utils/responseHelper');
-const NotificationService = require('../services/notification.service');
+import { success } from '#utils/responseHelper.js';
+import notificationService from '#services/notification.service.js';
 
 class NotificationController {
-  #service;
-
-  constructor(notificationService = new NotificationService()) {
-    this.#service = notificationService;
-    if (!this.#service) throw new Error('NotificationService is required');
+  async getAll(req, res) {
+    const { data, unread } = await notificationService.getAll(req.user.id, { limit: req.query.limit });
+    return success(res, data, 'OK', { unread });
   }
 
-  async getAll(req, res, next) {
-    try {
-      const { data, unread } = await this.#service.getAll(req.user.id, { limit: req.query.limit });
-      return success(res, data, 'OK', { unread });
-    } catch (err) {
-      next(err);
-    }
+  async markRead(req, res) {
+    const data = await notificationService.markRead(req.user.id, req.params.id);
+    return success(res, data, 'Đã đánh dấu đã đọc.');
   }
 
-  async markRead(req, res, next) {
-    try {
-      const data = await this.#service.markRead(req.user.id, req.params.id);
-      return success(res, data, 'Đã đánh dấu đã đọc.');
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  async markAllRead(req, res, next) {
-    try {
-      const data = await this.#service.markAllRead(req.user.id);
-      return success(res, data, 'Đã đánh dấu tất cả đã đọc.');
-    } catch (err) {
-      next(err);
-    }
+  async markAllRead(req, res) {
+    const data = await notificationService.markAllRead(req.user.id);
+    return success(res, data, 'Đã đánh dấu tất cả đã đọc.');
   }
 }
 
-module.exports = NotificationController;
+export default new NotificationController();

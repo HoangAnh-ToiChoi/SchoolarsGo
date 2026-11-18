@@ -1,13 +1,17 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const { Router } = require('express');
-const rateLimit = require('express-rate-limit');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 
-const ChatController = require('../../src/controllers/chat.controller');
-const { auth } = require('../../src/middlewares/auth');
-const AppError = require('../../src/utils/AppError');
-const { createJsonApp, withServer, requestJson } = require('./helpers/http');
+import { mockServiceFunctions } from './helpers/mockService.js';
+import { auth } from '#middlewares/auth.js';
+import AppError from '#utils/AppError.js';
+import { createJsonApp, withServer, requestJson } from './helpers/http.js';
+
+// Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
+const serviceRef = mockServiceFunctions(new URL('../../src/services/chat.service.js', import.meta.url).href, ['chat', 'saveMessages', 'getHistory']);
+const { default: controller } = await import('#controllers/chat.controller.js');
 
 process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'contract-access-secret-at-least-32-chars';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'contract-refresh-secret-at-least-32-chars';
@@ -16,7 +20,7 @@ const buildToken = () =>
   jwt.sign({ sub: 'chat-user-1', sid: 'chat-session-1', role: 'user' }, process.env.JWT_ACCESS_SECRET, { algorithm: 'HS256' });
 
 const buildApp = (service) => {
-  const controller = new ChatController(service);
+  serviceRef.current = service;
   const chatLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 20,
@@ -24,8 +28,8 @@ const buildApp = (service) => {
   });
 
   const router = Router();
-  router.get('/history', auth, controller.getChatHistory.bind(controller));
-  router.post('/', auth, chatLimiter, controller.sendMessage.bind(controller));
+  router.get('/history', auth, controller.getChatHistory);
+  router.post('/', auth, chatLimiter, controller.sendMessage);
 
   return createJsonApp((app) => {
     app.use('/api/chat', router);

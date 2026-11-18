@@ -1,31 +1,17 @@
-/**
- * NotificationRoutes — chuông thông báo trên header
- */
-const { Router } = require('express');
-const NotificationController = require('../controllers/notification.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const notificationController = bindControllerMethods(new NotificationController());
-const { auth } = require('../middlewares/auth');
-const validate = require('../middlewares/validate');
-const { notificationQuerySchema, notificationIdSchema } = require('../validations/notification.validation');
+/** NotificationRoutes — chuông thông báo trên header */
+import { Router } from 'express';
+import notificationController from '#controllers/notification.controller.js';
+import { auth } from '#middlewares/auth.js';
+import validate from '#middlewares/validate.js';
+import { notificationQuerySchema, notificationIdSchema } from '#validations/notification.validation.js';
 
 const router = Router();
 
-/**
- * GET /api/notifications?limit=30
- * Danh sách thông báo (mới nhất trước) + meta.unread = số chưa đọc
- */
 router.get('/', auth, validate(notificationQuerySchema, 'query'), notificationController.getAll);
 
-/**
- * PATCH /api/notifications/readAll
- * Đánh dấu tất cả đã đọc (đặt trước /:id để không bị hiểu "readAll" là id)
- */
+// Đặt trước /:id để "readAll" không bị hiểu là id
 router.patch('/readAll', auth, notificationController.markAllRead);
 
-/**
- * PATCH /api/notifications/:id/read
- */
 router.patch('/:id/read', auth, validate(notificationIdSchema, 'params'), notificationController.markRead);
 
-module.exports = router;
+export default router;

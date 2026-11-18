@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * BƯỚC 6 — Gom post + info + điểm thành một dòng đúng cột của bảng `scholarships`.
  * Giá trị sai thì đổi về giá trị an toàn ('Unknown', 'International', 'Any'), không để lỗi cả lô.
@@ -73,4 +71,4 @@ function truncate(value, max) {
   return text.length > max ? text.slice(0, max) : text;
 }
 
-module.exports = { toRow, cleanTitle, dedupKey };
+export { toRow, cleanTitle, dedupKey };

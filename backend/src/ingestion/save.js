@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * BƯỚC 7 — Ghi vào bảng `scholarships`.
  *
@@ -120,4 +118,4 @@ function createStore(db) {
   };
 }
 
-module.exports = { saveRows, createStore };
+export { saveRows, createStore };

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * KÉO HỌC BỔNG TỪ WEB NGOÀI — đọc file này trước.
  *
@@ -20,14 +18,14 @@
  * Một trang lỗi (sập, bị chặn) thì ghi lỗi rồi chạy trang tiếp theo.
  */
 
-const { pickSources, sourceNames } = require('./sources');
-const { fetchPosts } = require('./wordpress');
-const { checkBasic, checkDetails } = require('./filter');
-const { extractInfo } = require('./extract');
-const { createAiFill } = require('./aiExtract');
-const { scorePost } = require('./score');
-const { toRow } = require('./toRow');
-const { saveRows, createStore } = require('./save');
+import { pickSources, sourceNames } from './sources.js';
+import { fetchPosts } from './wordpress.js';
+import { checkBasic, checkDetails } from './filter.js';
+import { extractInfo } from './extract.js';
+import { createAiFill } from './aiExtract.js';
+import { scorePost } from './score.js';
+import { toRow } from './toRow.js';
+import { saveRows, createStore } from './save.js';
 
 const SAMPLE_SIZE = 5; // giữ vài bài mẫu (được nhận / bị loại) để scripts/ingest.js --verbose in ra
 
@@ -144,4 +142,4 @@ function recordRun(store, stats, logger) {
     .catch((error) => logger.warn(`[${stats.source}] không ghi được nhật ký: ${error.message}`));
 }
 
-module.exports = { createIngestion, runIngestion, sourceNames };
+export { createIngestion, runIngestion, sourceNames };

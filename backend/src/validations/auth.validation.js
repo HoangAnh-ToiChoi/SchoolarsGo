@@ -1,4 +1,4 @@
-const { z } = require('zod');
+import { z } from 'zod';
 
 const registerSchema = z.object({
   email: z.string().email('Email không hợp lệ').max(255),
@@ -20,9 +20,4 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').max(128),
 });
 
-module.exports = {
-  registerSchema,
-  loginSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-};
+export { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema };

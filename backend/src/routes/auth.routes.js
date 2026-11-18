@@ -1,11 +1,9 @@
-const { Router } = require('express');
-const AuthController = require('../controllers/auth.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const authController = bindControllerMethods(new AuthController());
-const { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } = require('../validations/auth.validation');
-const validate = require('../middlewares/validate');
-const { auth } = require('../middlewares/auth');
-const { authLimiter, refreshLimiter } = require('../middlewares/rateLimiter');
+import { Router } from 'express';
+import authController from '#controllers/auth.controller.js';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '#validations/auth.validation.js';
+import validate from '#middlewares/validate.js';
+import { auth } from '#middlewares/auth.js';
+import { authLimiter, refreshLimiter } from '#middlewares/rateLimiter.js';
 
 const router = Router();
 
@@ -20,4 +18,4 @@ router.delete('/sessions/:id', auth, authController.endSession);
 router.post('/forgotPassword', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/resetPassword', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
-module.exports = router;
+export default router;

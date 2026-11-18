@@ -1,21 +1,25 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const morgan = require('morgan');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import swaggerUi from 'swagger-ui-express';
 
-const { swaggerSpec } = require('./utils/swagger');
-const { corsOrigin } = require('./configs/cors.config');
-const { getTrustProxy } = require('./configs/jwt.config');
-const { apiLimiter } = require('./middlewares/rateLimiter');
-const checkOrigin = require('./middlewares/checkOrigin');
-const errorHandler = require('./middlewares/errorHandler');
-require('./configs/database.config');
-const routes = require('./routes');
+import { swaggerSpec } from './utils/swagger.js';
+import { corsOrigin } from './configs/cors.config.js';
+import { getTrustProxy } from './configs/jwt.config.js';
+import { apiLimiter } from './middlewares/rateLimiter.js';
+import checkOrigin from './middlewares/checkOrigin.js';
+import errorHandler from './middlewares/errorHandler.js';
+import './configs/database.config.js';
+import { ApiResponse } from './utils/responseHelper.js';
+import routes from './routes/index.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
@@ -24,6 +28,11 @@ app.use(helmet());
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  // Express 5: req.body là undefined khi request không có body
+  req.body ??= {};
+  next();
+});
 app.use(cookieParser());
 app.use(checkOrigin);
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -44,12 +53,12 @@ app.use(
 app.use(notFound);
 app.use(errorHandler);
 
-module.exports = app;
-
 function healthCheck(req, res) {
   res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
 }
 
 function notFound(req, res) {
-  res.status(404).json({ success: false, message: 'Endpoint not found', code: 404 });
+  res.status(404).json(ApiResponse.error({ message: 'Endpoint not found', code: 404, errorCode: 'ROUTE_NOT_FOUND' }));
 }
+
+export default app;

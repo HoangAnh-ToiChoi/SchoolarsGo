@@ -1,12 +1,12 @@
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const AppError = require('../utils/AppError');
-const { getAuthSecrets, jwtConfig } = require('../configs/jwt.config');
-const { authorization } = require('../constants/errors');
+import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import AppError from '#utils/AppError.js';
+import { getAuthSecrets, jwtConfig } from '#configs/jwt.config.js';
+import { authorization } from '#constants/errors.js';
 
 class TokenService {
-  constructor(env = process.env) {
-    ({ accessSecret: this.accessSecret, refreshSecret: this.refreshSecret } = getAuthSecrets(env));
+  constructor() {
+    ({ accessSecret: this.accessSecret, refreshSecret: this.refreshSecret } = getAuthSecrets());
   }
 
   signAccess({ userId, sessionId, role }) {
@@ -38,4 +38,4 @@ class TokenService {
   }
 }
 
-module.exports = TokenService;
+export default new TokenService();

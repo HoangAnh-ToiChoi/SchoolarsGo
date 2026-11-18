@@ -1,8 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { dedupKey } = require('../../src/ingestion/toRow');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { dedupKey, cleanTitle } from '#ingestion/toRow.js';
 
 test('cùng học bổng, khác cách viết tiêu đề → cùng khoá', () => {
   const a = dedupKey('Swedish Institute Scholarship 2027 | Fully Funded');
@@ -27,7 +25,6 @@ test('khoá không dài quá 200 ký tự', () => {
 });
 
 test('cleanTitle: bỏ đuôi quảng cáo sau dấu |', () => {
-  const { cleanTitle } = require('../../src/ingestion/toRow');
   assert.equal(cleanTitle('MTCP Scholarship in Malaysia 2026 | Fully Funded | Study in Malaysia'), 'MTCP Scholarship in Malaysia 2026');
   assert.equal(cleanTitle('University of Southampton Scholarships 2027 | UK'), 'University of Southampton Scholarships 2027 | UK');
   assert.equal(cleanTitle('Plain Title Scholarship'), 'Plain Title Scholarship');

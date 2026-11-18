@@ -1,10 +1,7 @@
-'use strict';
-
-const cron = require('node-cron');
-const NotificationService = require('../services/notification.service');
+import cron from 'node-cron';
+import notificationService from '#services/notification.service.js';
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
-const notificationService = new NotificationService();
 
 /** Tạo thông báo nhắc hạn cho mọi người dùng. Chạy lại cùng ngày không tạo trùng. */
 async function runDeadlineReminders() {
@@ -22,4 +19,4 @@ function startNotificationJob() {
   console.log('[Notification] Cron đã đăng ký: nhắc hạn nộp mỗi ngày 7:00 (GMT+7)');
 }
 
-module.exports = { startNotificationJob, runDeadlineReminders };
+export { startNotificationJob, runDeadlineReminders };

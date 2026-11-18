@@ -1,7 +1,5 @@
-'use strict';
-
-const { parseDeadline } = require('./extract');
-const { findCountry } = require('./countries');
+import { parseDeadline } from './extract.js';
+import { findCountry } from './countries.js';
 
 /**
  * BƯỚC 3 (tuỳ chọn) — Nhờ Gemini điền những chỗ luật chữ (extract.js) không tìm được:
@@ -160,4 +158,4 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-module.exports = { createAiFill };
+export { createAiFill };

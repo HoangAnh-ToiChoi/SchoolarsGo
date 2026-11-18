@@ -1,5 +1,5 @@
-const { z } = require('zod');
-const { DEGREES } = require('./scholarship.validation');
+import { z } from 'zod';
+import { DEGREES } from './scholarship.validation.js';
 
 const adminCreateScholarshipSchema = z.object({
   title: z.string().min(1, 'Tiêu đề không được để trống').max(500),
@@ -41,11 +41,4 @@ const adminUserQuerySchema = z.object({
   search: z.string().max(255).optional(),
 });
 
-module.exports = {
-  adminCreateScholarshipSchema,
-  adminUpdateScholarshipSchema,
-  adminUpdateUserRoleSchema,
-  adminUpdateUserStatusSchema,
-  adminUpdateScholarshipFeaturedSchema,
-  adminUserQuerySchema,
-};
+export { adminCreateScholarshipSchema, adminUpdateScholarshipSchema, adminUpdateUserRoleSchema, adminUpdateUserStatusSchema, adminUpdateScholarshipFeaturedSchema, adminUserQuerySchema };

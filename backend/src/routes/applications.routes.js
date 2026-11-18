@@ -1,34 +1,15 @@
-/**
- * ApplicationRoutes — VÙNG 2 (Controller → Service → Repository → DB)
- *
- * Quy tắc:
- * - Tạo controller một lần ở đầu file, bind method trước khi gắn vào route
- * - Dùng middleware auth để lấy req.user.id
- * - Validate request body/query bằng Zod schemas
- * - Controller nhận req → gọi service → trả res JSON
- */
-const { Router } = require('express');
-const ApplicationController = require('../controllers/application.controller');
-const bindControllerMethods = require('../utils/bindControllerMethods');
-const applicationController = bindControllerMethods(new ApplicationController());
-const { auth } = require('../middlewares/auth');
-const validate = require('../middlewares/validate');
-const { applicationCreateSchema, applicationUpdateSchema, applicationQuerySchema } = require('../validations/application.validation');
+import { Router } from 'express';
+import applicationController from '#controllers/application.controller.js';
+import { auth } from '#middlewares/auth.js';
+import validate from '#middlewares/validate.js';
+import { applicationCreateSchema, applicationUpdateSchema, applicationQuerySchema } from '#validations/application.validation.js';
 
 const router = Router();
 
-/**
- * GET /api/applications
- * Lấy danh sách đơn của user đang đăng nhập (kèm phân trang).
- * Query params: page, limit, status
- */
+// Query: page, limit, status
 router.get('/', auth, validate(applicationQuerySchema, 'query'), applicationController.getAll);
 
-/**
- * POST /api/applications
- * Tạo đơn ứng tuyển mới (mặc định status = 'draft').
- * Chấp nhận cả scholarship_id (V1) và scholarshipId (V2) để tương thích FE.
- */
+// Mặc định status = 'draft'. Nhận cả scholarship_id (V1) và scholarshipId (V2) để FE cũ vẫn chạy
 router.post(
   '/',
   auth,
@@ -43,22 +24,10 @@ router.post(
   applicationController.create
 );
 
-/**
- * GET /api/applications/:id
- * Lấy chi tiết 1 đơn.
- */
 router.get('/:id', auth, applicationController.getById);
 
-/**
- * PATCH /api/applications/:id
- * Cập nhật đơn (status, checklist, notes...).
- */
 router.patch('/:id', auth, validate(applicationUpdateSchema), applicationController.update);
 
-/**
- * DELETE /api/applications/:id
- * Xóa đơn ứng tuyển (chỉ khi thuộc user đang đăng nhập).
- */
 router.delete('/:id', auth, applicationController.remove);
 
-module.exports = router;
+export default router;

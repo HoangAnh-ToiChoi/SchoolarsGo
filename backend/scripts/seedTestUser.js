@@ -10,12 +10,15 @@
  *   Password: 123456
  */
 
-'use strict';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
+import pg from 'pg';
 
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
-
-const bcrypt = require('bcryptjs');
-const { Pool } = require('pg');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const { Pool } = pg;
 
 const SALT_ROUNDS = 12;
 const TEST_EMAIL = 'baocao147281@example.com';

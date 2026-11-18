@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * 5 trang web lấy học bổng. Cả 5 đều chạy WordPress nên dùng chung một cách lấy (wordpress.js).
  *
@@ -72,4 +70,4 @@ function pickSources(only = []) {
   return SOURCES.filter((s) => only.length === 0 || only.includes(s.name)).sort((a, b) => a.priority - b.priority);
 }
 
-module.exports = { SOURCES, sourceNames, pickSources };
+export { SOURCES, sourceNames, pickSources };

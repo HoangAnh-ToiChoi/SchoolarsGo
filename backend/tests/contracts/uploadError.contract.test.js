@@ -1,14 +1,14 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const { Router } = require('express');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import { Router } from 'express';
 
 process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'upload-access-secret-at-least-32-characters';
 process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'upload-refresh-secret-at-least-32-characters';
 
-const { auth } = require('../../src/middlewares/auth');
-const { upload, handleUploadError } = require('../../src/middlewares/upload');
-const { createJsonApp, withServer, requestJson } = require('./helpers/http');
+import { auth } from '#middlewares/auth.js';
+import { upload, handleUploadError } from '#middlewares/upload.js';
+import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
 function buildApp() {
   const router = Router();
