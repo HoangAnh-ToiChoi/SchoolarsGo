@@ -38,3 +38,7 @@ coverage/
 newFeature.md
 
 .newFeature.md/.env.cloud
+
+# Agents Pod
+AGENTS.md
+.agents/
