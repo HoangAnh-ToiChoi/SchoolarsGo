@@ -1,153 +1,79 @@
-const crypto = require('crypto');
-const AppError = require('../utils/AppError');
-const { sendResetEmail } = require('../utils/mailer');
+import crypto from 'node:crypto';
+import AppError from '~/utils/AppError.js';
+import { sendResetEmail } from '~/configs/nodemailer.js';
+import { toSessionUser } from '~/utils/sessionUser.js';
+import { authorization } from '~/constants/errors.js';
+import authModel from '~/models/auth.model.js';
+import hashService from '~/utils/hash.js';
+import sessionService from './session.service.js';
 
 class AuthService {
-  #repo;
-  #eventBus;
-  #hash;
-  #token;
-
-  /**
-   * @param {object} authRepository
-   * @param {object} eventBus
-   * @param {object} hashService  - { hash(plain), compare(plain, hash) }
-   * @param {object} tokenService - { sign(payload) }
-   */
-  constructor(authRepository, eventBus, hashService, tokenService) {
-    this.#repo = authRepository;
-    this.#eventBus = eventBus;
-    this.#hash = hashService;
-    this.#token = tokenService;
+  async register(email, password, fullName, userAgent) {
+    if (await authModel.findByEmail(email)) throw new AppError(authorization.USER_EXISTS);
+    const user = await authModel.createUser({ email, passwordHash: await hashService.hash(password), fullName });
+    if (!user) throw new AppError(authorization.CREATE_USER_FAILED);
+    const session = await sessionService.start(user, userAgent);
+    return session;
   }
 
-  #guardFound(entity, message = 'Không tìm thấy') {
-    if (!entity) throw new AppError(message, 404);
+  async login(email, password, userAgent) {
+    const user = await authModel.findByEmailWithCredentials(email);
+    if (!user || !(await hashService.compare(password, user.password_hash))) {
+      throw new AppError(authorization.INVALID_CREDENTIALS);
+    }
+    if (user.is_active === false) throw new AppError(authorization.ACCOUNT_LOCKED);
+    await authModel.updateLastLogin(user.id);
+    const session = await sessionService.start(user, userAgent);
+    return session;
   }
 
-  #buildUserPublic(user) {
-    return {
-      id: user.id,
-      email: user.email,
-      full_name: user.full_name,
-      role: user.role,
-      avatar_url: user.avatar_url,
-      phone: user.phone,
-      date_of_birth: user.date_of_birth,
-    };
+  async getMe(userId) {
+    const user = await authModel.findById(userId);
+    if (!user) throw new AppError(authorization.USER_NOT_FOUND);
+    return toSessionUser(user);
   }
 
-  register = async (email, password, fullName) => {
-    const existing = await this.#repo.findByEmail(email);
-    if (existing) {
-      throw new AppError('Email đã được sử dụng', 409, 'USER_EXISTS');
-    }
+  async getAccount(userId) {
+    const user = await authModel.findById(userId);
+    if (!user) throw new AppError(authorization.USER_NOT_FOUND);
+    return { email: user.email, phone: user.phone, date_of_birth: user.date_of_birth };
+  }
 
-    const passwordHash = await this.#hash.hash(password);
+  async refresh(rawToken) {
+    return sessionService.refresh(rawToken);
+  }
 
-    const user = await this.#repo.createUser({ email, passwordHash, fullName });
-    if (!user) {
-      throw new AppError('Không thể tạo user', 500, 'CREATE_USER_FAILED');
-    }
+  async logout(rawToken) {
+    return sessionService.end(rawToken);
+  }
 
-    const token = this.#token.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
+  async listSessions(userId, currentSessionId) {
+    return sessionService.list(userId, currentSessionId);
+  }
 
-    this.#eventBus.emit('user.registered', {
-      userId: user.id,
-      email: user.email,
-      fullName: user.full_name,
-      role: user.role,
-    });
+  async endSession(userId, sessionId) {
+    return sessionService.endOne(userId, sessionId);
+  }
 
-    return {
-      user: this.#buildUserPublic(user),
-      token,
-    };
-  };
-
-  login = async (email, password) => {
-    const user = await this.#repo.findByEmailWithCredentials(email);
-    if (!user) {
-      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
-    }
-
-    const valid = await this.#hash.compare(password, user.password_hash);
-    if (!valid) {
-      throw new AppError('Email hoặc mật khẩu không đúng', 401, 'INVALID_CREDENTIALS');
-    }
-
-    const updatedUser = await this.#repo.updateLastLogin(user.id);
-    if (!updatedUser) {
-      throw new AppError('Không thể cập nhật phiên đăng nhập', 500, 'UPDATE_LOGIN_FAILED');
-    }
-
-    const token = this.#token.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
-
-    this.#eventBus.emit('user.login', {
-      userId: updatedUser.id,
-      email: updatedUser.email,
-      role: updatedUser.role,
-    });
-
-    return {
-      user: this.#buildUserPublic(updatedUser),
-      token,
-    };
-  };
-
-  getMe = async userId => {
-    const user = await this.#repo.findById(userId);
-    this.#guardFound(user, 'Không tìm thấy user');
-    return user;
-  };
-
-  refreshToken = async userId => {
-    const user = await this.#repo.findById(userId);
-    this.#guardFound(user, 'Không tìm thấy user');
-
-    return this.#token.sign({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    });
-  };
-
-  forgotPassword = async (email) => {
-    const user = await this.#repo.findByEmail(email);
-    // Always succeed to prevent email enumeration
+  async forgotPassword(email) {
+    const user = await authModel.findByEmail(email);
     if (!user) return;
-
     const rawToken = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
-
-    await this.#repo.saveResetToken(user.id, tokenHash, expiresAt);
-
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    await authModel.saveResetToken(user.id, tokenHash, expiresAt);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const resetLink = `${frontendUrl}/resetPassword?token=${rawToken}`;
-    await sendResetEmail(email, resetLink);
-  };
+    await sendResetEmail(email, `${frontendUrl}/resetPassword?token=${rawToken}`);
+  }
 
-  resetPassword = async (rawToken, newPassword) => {
+  async resetPassword(rawToken, newPassword) {
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const user = await this.#repo.findByResetToken(tokenHash);
-
-    if (!user) throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400, 'INVALID_RESET_TOKEN');
-    if (new Date(user.reset_token_expires) < new Date()) {
-      throw new AppError('Link đã hết hạn. Vui lòng yêu cầu lại.', 400, 'EXPIRED_RESET_TOKEN');
-    }
-
-    const passwordHash = await this.#hash.hash(newPassword);
-    await this.#repo.clearResetToken(user.id, passwordHash);
-  };
+    const user = await authModel.findByResetToken(tokenHash);
+    if (!user) throw new AppError(authorization.INVALID_RESET_TOKEN);
+    if (new Date(user.reset_token_expires) < new Date()) throw new AppError(authorization.EXPIRED_RESET_TOKEN);
+    await authModel.clearResetToken(user.id, await hashService.hash(newPassword));
+    await sessionService.endAllForUser(user.id, 'password_reset');
+  }
 }
 
-module.exports = AuthService;
+export default new AuthService();

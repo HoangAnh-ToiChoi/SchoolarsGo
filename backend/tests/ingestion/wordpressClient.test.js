@@ -1,9 +1,6 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { WordPressClient } = require('../../src/ingestion/shared/wordpressClient');
-const { toRawPost, signalsFromCategories } = require('../../src/ingestion/shared/wordpressMapper');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { fetchPages, toPost as toRawPost, signalsFromCategories } from '~/ingestion/wordpress.js';
 
 const jsonResponse = (body, { status = 200, totalPages = 1 } = {}) => ({
   ok: status >= 200 && status < 300,
@@ -19,7 +16,7 @@ const collect = async (iterable) => {
 };
 
 const noSleep = async () => {};
-const makeClient = (fetchImpl) => new WordPressClient({ baseUrl: 'https://x.test', fetchImpl, sleepImpl: noSleep });
+const makeClient = (fetchImpl) => ({ posts: (query = {}) => fetchPages({ baseUrl: 'https://x.test', fetchImpl, sleep: noSleep, ...query }) });
 
 test('đi hết các trang và dừng đúng chỗ', async () => {
   const calls = [];

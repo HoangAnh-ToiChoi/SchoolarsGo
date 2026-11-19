@@ -1,17 +1,13 @@
-const { Router } = require('express');
-const { recommendController } = require('../container');
-const { auth } = require('../middlewares/auth');
-const validate = require('../middlewares/validate');
-const { recommendSchema } = require('../utils/validators');
+import { Router } from 'express';
+import recommendController from '~/controllers/recommend.controller.js';
+import { auth } from '~/middlewares/auth.js';
+import validate from '~/middlewares/validate.js';
+import { recommendSchema } from '~/validations/recommend.validation.js';
 
 const router = Router();
 
-/**
- * POST /api/recommend
- * @desc Get scholarship recommendations based on user profile (AI or rule-based)
- */
 router.post('/', auth, validate(recommendSchema), (req, res, next) =>
   recommendController.recommend(req, res, next)
 );
 
-module.exports = router;
+export default router;

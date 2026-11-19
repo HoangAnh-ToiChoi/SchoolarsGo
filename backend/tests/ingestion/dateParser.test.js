@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { parseDeadline } = require('../../src/ingestion/shared/extract');
-const { NOW } = require('./helpers');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parseDeadline } from '~/ingestion/extract.js';
+import { NOW } from './helpers.js';
 
 const iso = (d) => (d ? d.toISOString().slice(0, 10) : null);
 const parse = (text) => iso(parseDeadline(text, { now: NOW }));

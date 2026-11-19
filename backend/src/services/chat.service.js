@@ -1,11 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Groq = require('groq-sdk');
-const OpenAI = require('openai');
-const getSupabase = require('../utils/supabase');
-const { extractIeltsScore } = require('../utils/helpers');
-const { buildSystemInstruction } = require('./chat.policy');
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
+import OpenAI from 'openai';
+import getSupabase from '~/configs/supabase.js';
+import { extractIeltsScore } from '~/utils/helpers.js';
+import { buildSystemInstruction } from './chat.policy.js';
 
-// Regex-based filter extraction — không tốn Gemini quota
+// Rút bộ lọc từ lời người dùng bằng regex (không tốn quota AI)
 const COUNTRY_MAP = [
   { patterns: [/\b(úc|australia|australian)\b/i],      value: 'Australia' },
   { patterns: [/\b(anh|uk|united kingdom|britain)\b/i], value: 'UK' },
@@ -25,12 +25,10 @@ const extractFilters = (messages) => {
   const text = messages.slice(-8).map((m) => m.content).join(' ');
   const filters = {};
 
-  // Country
   for (const { patterns, value } of COUNTRY_MAP) {
     if (patterns.some((p) => p.test(text))) { filters.country = value; break; }
   }
 
-  // Degree
   if (/\b(tiến sĩ|phd|doctorate)\b/i.test(text))        filters.degree = 'PhD';
   else if (/\b(thạc sĩ|master|masters|sau đại học)\b/i.test(text)) filters.degree = 'Master';
   else if (/\b(đại học|cử nhân|bachelor|undergraduate)\b/i.test(text)) filters.degree = 'Bachelor';
@@ -68,7 +66,7 @@ const mergeProfileFilters = (filters, profile) => {
   return merged;
 };
 
-const getProfileForChat = async (userId) => {
+async function getProfileForChat(userId) {
   if (!userId) return null;
   try {
     const sb = getSupabase();
@@ -81,7 +79,7 @@ const getProfileForChat = async (userId) => {
   } catch {
     return null;
   }
-};
+}
 
 const formatProfileContext = (profile) => {
   if (!profile) return '';
@@ -97,7 +95,7 @@ const formatProfileContext = (profile) => {
   return parts.join('\n');
 };
 
-const queryScholarships = async (filters) => {
+async function queryScholarships(filters) {
   const sb = getSupabase();
   const cols = 'title, provider, country, degree, amount, currency, deadline, min_gpa, min_ielts, field_of_study, coverage, application_url';
 
@@ -111,7 +109,7 @@ const queryScholarships = async (filters) => {
 
   const { data } = await q.order('deadline', { ascending: true }).limit(8);
   return data || [];
-};
+}
 
 const formatScholarships = (scholarships) => {
   if (!scholarships.length) return '\n\n[DB: Không tìm thấy học bổng phù hợp trong hệ thống. Không được bịa hoặc gợi ý học bổng ngoài danh sách này. Hãy thông báo cho user và đề nghị thay đổi tiêu chí tìm kiếm.]';
@@ -134,7 +132,7 @@ const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const is429 = (e) => e.status === 429 || (e.message && e.message.includes('429'));
 
 const buildGeminiSession = (genAI, modelName, history, systemInstruction) => {
-  // Gemini requires history to start with 'user' role
+  // Gemini bắt buộc lịch sử mở đầu bằng lượt của user
   const firstUserIdx = history.findIndex((m) => m.role === 'user');
   const safeHistory = firstUserIdx > 0 ? history.slice(firstUserIdx) : history;
   const model = genAI.getGenerativeModel({ model: modelName, systemInstruction });
@@ -150,7 +148,7 @@ const buildOpenAIMessages = (messages, prompt, systemInstruction) => [
   { role: 'user', content: prompt },
 ];
 
-const callGroq = async (messages, prompt, systemInstruction) => {
+async function callGroq(messages, prompt, systemInstruction) {
   const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   const res = await groq.chat.completions.create({
     model: GROQ_MODEL,
@@ -158,9 +156,9 @@ const callGroq = async (messages, prompt, systemInstruction) => {
     max_tokens: 1024,
   });
   return res.choices[0].message.content;
-};
+}
 
-const callZhipu = async (messages, prompt, systemInstruction) => {
+async function callZhipu(messages, prompt, systemInstruction) {
   const client = new OpenAI({
     apiKey: process.env.ZHIPU_API_KEY,
     baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
@@ -171,9 +169,9 @@ const callZhipu = async (messages, prompt, systemInstruction) => {
     max_tokens: 1024,
   });
   return res.choices[0].message.content;
-};
+}
 
-const chat = async (messages, { userId } = {}) => {
+async function chat(messages, { userId } = {}) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw Object.assign(new Error('Gemini API chưa được cấu hình'), { statusCode: 503, isOperational: true });
 
@@ -182,7 +180,7 @@ const chat = async (messages, { userId } = {}) => {
   const profileContext = formatProfileContext(profile);
   const systemInstruction = buildSystemInstruction({ profileContext });
 
-  // Inject scholarship context nếu cần (regex-based, no Gemini quota)
+  // Chỉ truy vấn học bổng khi câu hỏi liên quan (nhận biết bằng regex)
   let scholarshipContext = '';
   let scholarships = [];
   if (isScholarshipQuery(messages)) {
@@ -191,7 +189,7 @@ const chat = async (messages, { userId } = {}) => {
     scholarshipContext = formatScholarships(scholarships);
   }
 
-  // Convert sang Gemini format — giới hạn 20 turns để tránh vượt token limit
+  // Chỉ lấy 20 lượt gần nhất để không vượt giới hạn token
   const history = messages.slice(-20, -1).map((m) => ({
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content }],
@@ -202,7 +200,7 @@ const chat = async (messages, { userId } = {}) => {
     ? `${lastMsg.content}${scholarshipContext}`
     : lastMsg.content;
 
-  // 1. Try Gemini models in order
+  // Chuỗi dự phòng khi hết quota (429): Gemini (lần lượt 2 model) → Groq → Zhipu → trả thẳng học bổng từ DB
   for (const modelName of GEMINI_MODELS) {
     try {
       const session = buildGeminiSession(genAI, modelName, history, systemInstruction);
@@ -214,7 +212,6 @@ const chat = async (messages, { userId } = {}) => {
     }
   }
 
-  // 2. Fallback to Groq
   if (process.env.GROQ_API_KEY) {
     try {
       console.info('[Chat] All Gemini models quota exceeded, falling back to Groq...');
@@ -225,7 +222,6 @@ const chat = async (messages, { userId } = {}) => {
     }
   }
 
-  // 3. Fallback to Zhipu GLM-4-Flash
   if (process.env.ZHIPU_API_KEY) {
     try {
       console.info('[Chat] Falling back to Zhipu GLM-4-Flash...');
@@ -236,7 +232,6 @@ const chat = async (messages, { userId } = {}) => {
     }
   }
 
-  // 4. Last resort — return raw DB results
   if (scholarships.length > 0) {
     return `Mình đang quá tải, nhưng đây là học bổng phù hợp tìm thấy trong hệ thống:\n\n${formatScholarshipsPlain(scholarships)}\n\nBạn hãy truy cập website chính thức để biết thêm chi tiết nhé!`;
   }
@@ -244,7 +239,7 @@ const chat = async (messages, { userId } = {}) => {
   err.statusCode = 503;
   err.isOperational = true;
   throw err;
-};
+}
 
 const formatScholarshipsPlain = (scholarships) => scholarships.map((s) => {
   const deadline = s.deadline ? new Date(s.deadline).toLocaleDateString('vi-VN') : 'Chưa rõ';
@@ -256,9 +251,7 @@ const formatScholarshipsPlain = (scholarships) => scholarships.map((s) => {
   return parts.join('\n');
 }).join('\n\n');
 
-// ── Chat history persistence ───────────────────────────────────────────────────
-
-const saveMessages = async (userId, userContent, assistantContent) => {
+async function saveMessages(userId, userContent, assistantContent) {
   if (!userId) return;
   try {
     const sb = getSupabase();
@@ -269,9 +262,9 @@ const saveMessages = async (userId, userContent, assistantContent) => {
   } catch {
     // Bỏ qua lỗi persistence (table chưa tồn tại, quota exceeded...)
   }
-};
+}
 
-const getHistory = async (userId, limit = 40) => {
+async function getHistory(userId, limit = 40) {
   if (!userId) return [];
   try {
     const sb = getSupabase();
@@ -282,11 +275,11 @@ const getHistory = async (userId, limit = 40) => {
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) return [];
-    // Trả về theo thứ tự chronological (cũ → mới)
+    // Trả về cũ → mới
     return (data || []).reverse().map(({ role, content }) => ({ role, content }));
   } catch {
     return [];
   }
-};
+}
 
-module.exports = { chat, saveMessages, getHistory };
+export { chat, saveMessages, getHistory };

@@ -42,7 +42,4 @@ const buildSystemInstruction = ({ profileContext } = {}) => {
   return sections.join('\n\n');
 };
 
-module.exports = {
-  CHAT_POLICY_VERSION,
-  buildSystemInstruction,
-};
+export { CHAT_POLICY_VERSION, buildSystemInstruction };

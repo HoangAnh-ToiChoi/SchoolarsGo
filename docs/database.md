@@ -11,7 +11,7 @@
 
 | Database | Provider | Connection |
 |----------|----------|------------|
-| PostgreSQL | Supabase | Raw pg Pool (`src/utils/db.js`) | Raw SQL — không Supabase SDK cho API |
+| PostgreSQL | Supabase | Raw pg Pool (`src/config/database.config.js`) | Raw SQL — không Supabase SDK cho API |
 
 ---
 
@@ -163,6 +163,47 @@
 
 ---
 
+### 7. notifications
+
+Migration `005_notifications.sql`. Thông báo trên chuông header.
+
+| Column | Type | Constraints | Mô tả |
+|--------|------|-------------|-------|
+| id | uuid | PK | Primary key |
+| user_id | uuid | FK → users.id, NOT NULL, ON DELETE CASCADE | Người nhận |
+| type | varchar(20) | CHECK in ('deadline', 'new_match') | Nhắc hạn / học bổng mới phù hợp (giai đoạn 3) |
+| scholarship_id | uuid | FK → scholarships.id, NOT NULL | Học bổng liên quan |
+| application_id | uuid | FK → applications.id, NULLABLE | Có khi nhắc theo đơn nháp |
+| milestone | smallint | DEFAULT 0 | Mốc nhắc 14 / 7 / 1 ngày |
+| read_at | timestamptz | NULLABLE | Thời điểm đọc; NULL = chưa đọc |
+| created_at | timestamptz | DEFAULT now() | |
+
+**Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
+**Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
+
+### 8. user_sessions
+
+Migration `006_userSessions.sql`. Mỗi dòng là một thiết bị đăng nhập; database chỉ giữ SHA-256 của refresh token hiện tại và token liền trước để xoay vòng an toàn.
+
+| Column | Type | Constraints | Mô tả |
+|--------|------|-------------|-------|
+| id | uuid | PK, default gen_random_uuid() | Session ID (`sid` trong access token) |
+| user_id | uuid | FK → users.id, ON DELETE CASCADE | Chủ phiên |
+| refresh_token_hash | text | NOT NULL | SHA-256 refresh token hiện tại |
+| previous_token_hash | text | NULLABLE | Hash token trước lần xoay gần nhất |
+| rotated_at | timestamptz | NULLABLE | Lần xoay gần nhất |
+| device_name | text | NULLABLE | Tên suy từ User-Agent |
+| last_used_at | timestamptz | NOT NULL, DEFAULT now() | Lần refresh gần nhất |
+| expires_at | timestamptz | NOT NULL | Hạn refresh token |
+| revoked_at | timestamptz | NULLABLE | Thời điểm thu hồi |
+| revoked_reason | text | NULLABLE | Lý do thu hồi |
+| created_at | timestamptz | NOT NULL, DEFAULT now() | Thời điểm tạo |
+
+**Indexes:** partial `(user_id, last_used_at DESC) WHERE revoked_at IS NULL`; `(expires_at)`.
+Giới hạn ba thiết bị được áp dụng trong một transaction khóa dòng user; job dọn xóa phiên hết hạn và phiên bị thu hồi quá bảy ngày.
+
+---
+
 ## RLS (Row Level Security)
 
 Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cập dữ liệu của mình.
@@ -171,6 +212,7 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 - `documents` — chỉ user tự đọc/update
 - `applications` — chỉ user tự đọc/update
 - `saved_scholarships` — chỉ user tự đọc/update
+- `notifications` — chỉ user tự đọc/update
 - `scholarships` — public read (anonymous)
 
 ---
@@ -221,52 +263,16 @@ Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cậ
 | 27/3/2026 | v0.2 | Deploy lên Supabase local Docker. Thêm: RLS policies đầy đủ, auto-update `updated_at` trigger, indexes mở rộng. 6 tables + 16 indexes + 20 policies. |
 | 20/4/2026 | v0.3 | Refactor toàn bộ backend sang OOP 4-layer architecture (Scholarship, Profile, Document modules). Thêm DocumentRepository, container.js wiring đầy đủ. |
 | 2/5/2026 | v0.4 | Thêm 2 cột vào bảng `users`: `role` (varchar, DEFAULT 'user') và `last_login_at` (timestamptz). Refactor Auth module hoàn tất OOP 4 tầng với EventBus. Hợp nhất Auth V1+V2 tại `/api/auth/*`. |
+| 13/11/2026 | v0.5 | Thêm `user_sessions` để xoay refresh token, giới hạn 3 thiết bị và thu hồi phiên. |
 
-## Local Docker Setup
+## Supabase Cloud Setup
 
-Chạy Supabase local trong Docker để development:
+Dự án dùng Supabase Cloud (không còn dùng Docker):
 
-```bash
-# 1. Khởi động toàn bộ stack
-docker-compose up -d
-
-# 2. Kiểm tra container đã healthy chưa
-docker ps
-
-# 3. Xem database (pgAdmin4 — giao diện web)
-# → http://localhost:5050
-#    Email:    admin@scholarsgo.com
-#    Password:  scholarsgo_admin
-
-# 4. Xem database (Supabase Studio)
-# → http://localhost:3000
-
-# 5. Xem database (terminal psql)
-docker exec -it scholarsgo_postgres psql -U postgres
-```
-
-### Ports
-
-| Port | Service |
-|------|---------|
-| 5432 | PostgreSQL |
-| 3000 | Supabase Studio |
-| 5050 | pgAdmin4 |
-| 8000 | Kong API Gateway |
-| 8080 | PostgreSQL Meta |
-| 9999 | GoTrue Auth |
-| 5000 | Storage API |
-
-### Credentials
-
-| Key | Value |
-|-----|-------|
-| DB Host | localhost:5432 |
-| DB User | postgres |
-| DB Password | scholarsgo_password |
-| DB Name | postgres |
-| pgAdmin Email | admin@scholarsgo.com |
-| pgAdmin Password | scholarsgo_admin |
+1. Tạo project ở supabase.com.
+2. Vào **SQL Editor**, chạy `database.sql` rồi `databaseChatMessages.sql` để tạo bảng.
+3. Điền `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` và các biến `PG_*` vào `backend/.env` (xem `backend/.env.example`).
+4. Xem dữ liệu bằng Supabase Dashboard → Table Editor.
 
 ---
 
@@ -283,27 +289,24 @@ Routes → Controller → Service → Repository → DB
 | Layer | Trách nhiệm | Quy tắc |
 |-------|-------------|----------|
 | **Controller** | HTTP handling, parse req/res | KHÔNG chứa business logic hay SQL |
-| **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận repo qua constructor |
+| **Service** | Business logic, validation, rollback | KHÔNG chứa SQL, nhận model qua constructor (có giá trị mặc định) |
 | **Repository** | Toàn bộ SQL của module | Kế thừa `BaseRepository`, KHÔNG SQL ở tầng khác |
-| **DB** (`utils/db.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
+| **DB** (`configs/database.config.js`) | Raw pg Pool, `query()` + `queryOne()` | Singleton, inject vào Repository |
 
-### Dependency Injection — `container.js`
+### Kết nối các tầng (không còn `container.js`)
 
-- **Singleton file duy nhất** được phép tạo instance của Repository, Service, Controller
-- Wiring theo thứ tự: `db → Repository → Service → Controller`
-- Các module export từ `container.js`, routes import từ đây
+- Mỗi tầng tự tạo tầng dưới bằng tham số mặc định của constructor: `constructor(model = new ProfileModel())`.
+- Route tạo controller một lần ở đầu file và bind method bằng `utils/bindControllerMethods`.
+- Test truyền model giả vào constructor của service.
 
 ```
-db → ScholarshipRepository → ScholarshipService → ScholarshipController
-db → ProfileRepository    → ProfileService    → ProfileController
-db → DocumentRepository   → DocumentService   → DocumentController
-db → ApplicationRepository → ApplicationService
+Supabase client / pg Pool → XModel → XService → XController
 ```
 
 ### Quy tắc viết Class
 
 - **Constructor:** nhận dependency qua tham số (không import trực tiếp bên trong class)
-- **Public methods:** arrow functions (`methodName = async (params) => {}`)
+- **Public async methods:** `async function` expressions (`methodName = async function methodName(params) {}`). Bind controller handlers before passing them to Express.
 - **Private methods/helpers:** dùng `#methodName` (JS private field syntax)
 - **Error helper:** `#throwError(message, statusCode)` — throw Error có `.statusCode` và `.isOperational = true`
 - **Guard helper:** `#ensureFound(item, message)` — throw 404 nếu item null
@@ -356,9 +359,9 @@ db → ApplicationRepository → ApplicationService
 - Nhận `profileRepository` qua constructor
 
 **ProfileController** — `backend/src/controllers/profile.controller.js`
-- Class + arrow functions
+- Class + async function expressions
 - Inject `profileService` qua constructor
-- Import từ `container.js`
+- Route tạo controller và bind method
 
 ---
 
@@ -393,8 +396,8 @@ await deleteFile(uploadResult.storagePath);
 ```
 
 **DocumentController** — `backend/src/controllers/document.controller.js`
-- Class + arrow functions, inject `documentService` qua constructor
-- Import từ `container.js`
+- Class + async function expressions, inject `documentService` qua constructor
+- Route tạo controller và bind method
 
 **Document Routes** — `backend/src/routes/document.routes.js`
 
@@ -412,12 +415,6 @@ await deleteFile(uploadResult.storagePath);
 
 ```
 backend/src/
-├── container.js              ← DI wiring duy nhất
-├── events/
-│   ├── eventBus.js            ← Singleton EventEmitter
-│   └── listeners/
-│       ├── auth.listener.js   ← lắng nghe user.registered, user.login
-│       └── storage.listener.js ← lắng nghe document.uploaded, document.deleted
 ├── controllers/
 │   ├── document.controller.js
 │   ├── profile.controller.js

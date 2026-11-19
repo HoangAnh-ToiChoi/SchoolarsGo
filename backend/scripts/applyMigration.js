@@ -8,15 +8,17 @@
  * Các file migration viết dạng idempotent (IF NOT EXISTS) nên chạy lại nhiều lần không sao.
  */
 
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 
 const argValue = (name) => (process.argv.find((a) => a.startsWith(`--${name}=`)) || '').split('=')[1];
-require('dotenv').config({ path: path.resolve(__dirname, '..', argValue('env') || '.env') });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '..', argValue('env') || '.env') });
 
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 async function main() {
   const file = argValue('file');

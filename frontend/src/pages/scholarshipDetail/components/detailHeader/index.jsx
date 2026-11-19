@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
+import BackLink from '~/components/common/backLink';
 import { Badge } from '~/components/ui/badge';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
@@ -8,7 +7,7 @@ import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineInfo, getScope, labelOf, SCOP
 
 const TONE_TEXT = { urgent: 'text-urgent-fg', soon: 'text-soon-fg', open: 'text-open-fg', neutral: 'text-heading' };
 
-// Dải đầu trang chi tiết: đường dẫn → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
+// Dải đầu trang chi tiết: nút quay lại → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
 // Nền tím rất nhạt (không gradient), tràn hết bề ngang vùng nội dung.
 export default function DetailHeader({ scholarship }) {
   const { title, provider, country, city, language, degree, intake, field_of_study: field, coverage, amount, currency, deadline } = scholarship;
@@ -29,19 +28,7 @@ export default function DetailHeader({ scholarship }) {
 
   return (
     <section className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
-      <nav aria-label="Đường dẫn" className="flex min-w-0 items-center gap-2 text-[13px] text-fg-muted">
-        <Link
-          to="/"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-control font-semibold text-fg-secondary outline-none transition-colors duration-150 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-brand-600/40"
-        >
-          <ArrowLeftIcon className="size-[15px]" aria-hidden="true" />
-          Trang chủ
-        </Link>
-        <ChevronRightIcon className="size-4 shrink-0" aria-hidden="true" />
-        <span aria-current="page" className="truncate text-fg">
-          {title}
-        </span>
-      </nav>
+      <BackLink to="/">Trang chủ</BackLink>
 
       <div className="mt-[18px] flex flex-wrap gap-1.5">
         <DeadlineBadge deadline={deadline} />

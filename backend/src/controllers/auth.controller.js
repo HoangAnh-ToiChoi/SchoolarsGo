@@ -1,100 +1,58 @@
-const { success } = require('../utils/responseHelper');
-
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/',
-};
+import authService from '~/services/auth.service.js';
+import authCookieController from '~/controllers/authCookie.controller.js';
 
 class AuthController {
-  #service;
-
-  constructor(authService) {
-    this.#service = authService;
-    this.#validateService();
+  async register(req, res) {
+    const result = await authService.register(req.body.email, req.body.password, req.body.full_name, req.get('user-agent'));
+    authCookieController.set(res, result);
+    return res.success({ user: result.user }, 'Đăng ký thành công');
   }
 
-  #validateService() {
-    if (!this.#service) throw new Error('AuthService is required');
+  async login(req, res) {
+    const result = await authService.login(req.body.email, req.body.password, req.get('user-agent'));
+    authCookieController.set(res, result);
+    return res.success({ user: result.user }, 'Đăng nhập thành công');
   }
 
-  #setAuthCookie(res, token) {
-    res.cookie('token', token, COOKIE_OPTIONS);
+  async me(req, res) {
+    return res.success(await authService.getMe(req.user.id));
   }
 
-  #clearAuthCookie(res) {
-    res.clearCookie('token', { path: '/' });
+  async account(req, res) {
+    return res.success(await authService.getAccount(req.user.id));
   }
 
-  register = async (req, res, next) => {
-    try {
-      const { email, password, full_name } = req.body;
-      const { user, token } = await this.#service.register(email, password, full_name);
-      this.#setAuthCookie(res, token);
-      return success(res, { user }, 'Đăng ký thành công');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async sessions(req, res) {
+    return res.success(await authService.listSessions(req.user.id, req.user.sid));
+  }
 
-  login = async (req, res, next) => {
-    try {
-      const { email, password } = req.body;
-      const { user, token } = await this.#service.login(email, password);
-      this.#setAuthCookie(res, token);
-      return success(res, { user }, 'Đăng nhập thành công');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async endSession(req, res) {
+    await authService.endSession(req.user.id, req.params.id);
+    return res.success(null, 'Đã đăng xuất thiết bị');
+  }
 
-  me = async (req, res, next) => {
-    try {
-      const user = await this.#service.getMe(req.user.id);
-      return success(res, user);
-    } catch (error) {
-      next(error);
-    }
-  };
+  async logout(req, res) {
+    await authService.logout(req.cookies?.refreshToken);
+    authCookieController.clear(res);
+    return res.success(null, 'Đăng xuất thành công');
+  }
 
-  logout = async (req, res, next) => {
-    try {
-      this.#clearAuthCookie(res);
-      return success(res, null, 'Đăng xuất thành công');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async refresh(req, res) {
+    const result = await authService.refresh(req.cookies?.refreshToken);
+    authCookieController.set(res, result);
+    return res.success({ user: result.user }, 'Phiên đăng nhập đã được làm mới');
+  }
 
-  refresh = async (req, res, next) => {
-    try {
-      const token = await this.#service.refreshToken(req.user.id);
-      this.#setAuthCookie(res, token);
-      return success(res, null, 'Token refreshed');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async forgotPassword(req, res) {
+    await authService.forgotPassword(req.body.email);
+    return res.success(null, 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.');
+  }
 
-  forgotPassword = async (req, res, next) => {
-    try {
-      await this.#service.forgotPassword(req.body.email);
-      return success(res, null, 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.');
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  resetPassword = async (req, res, next) => {
-    try {
-      await this.#service.resetPassword(req.body.token, req.body.password);
-      return success(res, null, 'Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async resetPassword(req, res) {
+    await authService.resetPassword(req.body.token, req.body.password);
+    authCookieController.clear(res);
+    return res.success(null, 'Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.');
+  }
 }
 
-module.exports = AuthController;
+export default new AuthController();

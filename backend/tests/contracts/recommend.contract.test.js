@@ -1,22 +1,27 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const jwt = require('jsonwebtoken');
-const { Router } = require('express');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import jwt from 'jsonwebtoken';
+import { Router } from 'express';
 
-const RecommendController = require('../../src/controllers/recommend.controller');
-const { auth } = require('../../src/middlewares/auth');
-const validate = require('../../src/middlewares/validate');
-const { recommendSchema } = require('../../src/utils/validators');
-const AppError = require('../../src/utils/AppError');
-const { createJsonApp, withServer, requestJson } = require('./helpers/http');
+import { mockService } from './helpers/mockService.js';
+import { auth } from '~/middlewares/auth.js';
+import validate from '~/middlewares/validate.js';
+import { recommendSchema } from '~/validations/recommend.validation.js';
+import AppError from '~/utils/AppError.js';
+import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'contracts-secret';
+// Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
+const serviceRef = mockService(new URL('../../src/services/recommend.service.js', import.meta.url).href);
+const { default: controller } = await import('~/controllers/recommend.controller.js');
+
+process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'contract-access-secret-at-least-32-chars';
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'contract-refresh-secret-at-least-32-chars';
 
 const buildToken = () =>
-  jwt.sign({ id: 'user-123', email: 'contract@test.dev' }, process.env.JWT_SECRET);
+  jwt.sign({ sub: 'user-123', sid: 'contract-session-1', role: 'user' }, process.env.JWT_ACCESS_SECRET, { algorithm: 'HS256' });
 
 const buildApp = (service) => {
-  const controller = new RecommendController(service);
+  serviceRef.current = service;
   const router = Router();
   router.post('/', auth, validate(recommendSchema), controller.recommend);
 

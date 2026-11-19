@@ -1,11 +1,13 @@
-const express = require('express');
-const errorHandler = require('../../../src/middlewares/errorHandler');
+import express from 'express';
+import responseController from '~/controllers/response.controller.js';
+import errorHandleController from '~/controllers/errorHandle.controller.js';
 
 const createJsonApp = (mount) => {
   const app = express();
+  app.use(responseController.attach);
   app.use(express.json());
   mount(app);
-  app.use(errorHandler);
+  app.use(errorHandleController.handle);
   return app;
 };
 
@@ -41,8 +43,4 @@ const requestJson = async (baseUrl, path, { method = 'GET', token, body } = {}) 
   };
 };
 
-module.exports = {
-  createJsonApp,
-  withServer,
-  requestJson,
-};
+export { createJsonApp, withServer, requestJson };

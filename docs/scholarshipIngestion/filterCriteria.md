@@ -12,7 +12,7 @@ Chạy theo hai giai đoạn, chỉ dùng luật chữ (không gọi AI) để t
 - **Giai đoạn 1** (chỉ cần tiêu đề, link, chuyên mục): R5, R6, R1. Chạy trước khi trích xuất thông tin.
 - **Giai đoạn 2** (cần hạn nộp và nội dung đã trích xuất): R2, R3, R4.
 
-Mã nguồn: `backend/src/ingestion/shared/filters/hardRules.js`, từ khoá ở `keywords.js`.
+Mã nguồn: `backend/src/ingestion/filter.js` (luật và từ khoá nằm cùng file).
 
 | Mã | Điều kiện loại | Cách kiểm tra |
 |---|---|---|
@@ -39,7 +39,7 @@ Danh sách từ khoá của R1, R4, R6 để thành hằng số trong một file
 | Chuyên mục chỉ gồm vùng khác (không có Việt Nam, ĐNÁ, châu Á) | −20 |
 
 Tối đa lý thuyết 90 nên điểm không chạm trần. Bài nhắc đích danh Việt Nam + Đông Nam Á + còn hạn + đủ thông tin ≈ 85;
-bài chung chung cho sinh viên quốc tế ≈ 15–30. Trọng số nằm ở `SCORE` trong `shared/filters/keywords.js`.
+bài chung chung cho sinh viên quốc tế ≈ 15–30. Trọng số nằm ở `POINTS` trong `backend/src/ingestion/score.js`.
 
 Học bổng "mở cho mọi quốc tịch" được giữ lại nhưng điểm thấp (quyết định ngày 2026-11-08).
 

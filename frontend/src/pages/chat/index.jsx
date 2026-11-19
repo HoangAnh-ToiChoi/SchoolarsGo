@@ -263,7 +263,7 @@ const ChatPage = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const sendMessage = async (text) => {
+  async function sendMessage(text) {
     const content = text.trim();
     if (!content || isLoading) return;
     if (content.length > 1000) {
@@ -295,7 +295,7 @@ const ChatPage = () => {
       setIsLoading(false);
       inputRef.current?.focus();
     }
-  };
+  }
 
   const handleSubmit = (e) => { e.preventDefault(); sendMessage(input); };
   const handleKeyDown = (e) => {

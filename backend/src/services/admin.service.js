@@ -1,29 +1,9 @@
-/**
- * AdminService — TẦNG 2: Business Logic
- *
- * Mục đích: Xử lý nghiệp vụ, KHÔNG chứa SQL, KHÔNG chứa HTTP.
- *
- * Tiêu chí OOP:
- * [1] Phân tách tầng — toàn bộ DB access qua Repository.
- * [3] Encapsulation — logic nội bộ dùng prefix # (private methods).
- * [4] Xử lý lỗi — dùng AppError, không try/catch trong service.
- * [6] Abstraction — service gọi repo không biết bên dưới dùng SQL hay thư viện gì.
- * [7] Tell, Don't Ask — không lôi data lên check rồi mới lưu. Ra lệnh xử lý.
- */
-const AppError = require('../utils/AppError');
+import AppError from '~/utils/AppError.js';
+import adminModel from '~/models/admin.model.js';
+import sessionService from './session.service.js';
+
 class AdminService {
-  /**
-   * @param {AdminRepository} adminRepository
-   */
-  constructor(adminRepository) {
-    this.#repo = adminRepository;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // DASHBOARD STATS — Commands
-  // ═══════════════════════════════════════════════════════════
-
-  fetchDashboardStats = async () => {
+  async fetchDashboardStats() {
     const [
       totalUsers,
       newUsersThisWeek,
@@ -32,12 +12,12 @@ class AdminService {
       totalApplications,
       applicationsByStatusRows,
     ] = await Promise.all([
-      this.#repo.countTotalUsers(),
-      this.#repo.countNewUsersThisWeek(),
-      this.#repo.countTotalScholarships(),
-      this.#repo.countActiveScholarships(),
-      this.#repo.countTotalApplications(),
-      this.#repo.countApplicationsByStatus(),
+      adminModel.countTotalUsers(),
+      adminModel.countNewUsersThisWeek(),
+      adminModel.countTotalScholarships(),
+      adminModel.countActiveScholarships(),
+      adminModel.countTotalApplications(),
+      adminModel.countApplicationsByStatus(),
     ]);
 
     return {
@@ -48,23 +28,19 @@ class AdminService {
       totalApplications,
       applicationsByStatus: this.#normalizeStatusCounts(applicationsByStatusRows),
     };
-  };
+  }
 
-  fetchDashboardChart = async () => {
+  async fetchDashboardChart() {
     const [userRegistrationsByWeek, applicationsByStatus] = await Promise.all([
-      this.#repo.getUserRegistrationsByWeek(),
-      this.#repo.getApplicationsByStatusChart(),
+      adminModel.getUserRegistrationsByWeek(),
+      adminModel.getApplicationsByStatusChart(),
     ]);
 
     return { userRegistrationsByWeek, applicationsByStatus };
-  };
+  }
 
-  // ═══════════════════════════════════════════════════════════
-  // USER MANAGEMENT — Commands
-  // ═══════════════════════════════════════════════════════════
-
-  paginateUsers = async filters => {
-    const { users, total } = await this.#repo.findUsers(filters);
+  async paginateUsers(filters) {
+    const { users, total } = await adminModel.findUsers(filters);
     const { page = 1, limit = 20 } = filters;
     return {
       data: users,
@@ -75,60 +51,50 @@ class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
-  };
+  }
 
-  getUserById = async userId => {
-    const user = await this.#repo.findUserById(userId);
+  async getUserById(userId) {
+    const user = await adminModel.findUserById(userId);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
     return user;
-  };
+  }
 
-  /**
-   * Thay đổi role của user.
-   * Tiêu chí 7: Ra lệnh xử lý, KHÔNG query lên check trước.
-   *
-   * @param {string} targetUserId - UUID string
-   * @param {string} newRole
-   * @param {string} adminId - UUID string
-   */
-  changeUserRole = async (targetUserId, newRole, adminId) => {
+  async changeUserRole(targetUserId, newRole, adminId) {
     this.#guardSelfModification(targetUserId, adminId);
     this.#validateRole(newRole);
 
-    const user = await this.#repo.updateUserRole(targetUserId, newRole);
+    const user = await adminModel.updateUserRole(targetUserId, newRole);
     this.#guardFound(
       user,
       'Không tìm thấy user hoặc user đã bị vô hiệu hóa',
       404,
       'USER_NOT_FOUND'
     );
+    await sessionService?.endAllForUser(targetUserId, 'role_changed');
     return user;
-  };
+  }
 
-  changeUserStatus = async (targetUserId, isActive, adminId) => {
+  async changeUserStatus(targetUserId, isActive, adminId) {
     this.#guardSelfModification(targetUserId, adminId);
 
-    const user = await this.#repo.updateUserStatus(targetUserId, isActive);
+    const user = await adminModel.updateUserStatus(targetUserId, isActive);
     this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    if (!isActive) await sessionService?.endAllForUser(targetUserId, 'locked');
     return user;
-  };
+  }
 
-  // ═══════════════════════════════════════════════════════════
-  // SCHOLARSHIP MANAGEMENT — Commands
-  // ═══════════════════════════════════════════════════════════
-
-  addScholarship = async data => {
+  async addScholarship(data) {
     const scholarshipData = {
       ...data,
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
-    const scholarship = await this.#repo.createScholarship(scholarshipData);
+    const scholarship = await adminModel.createScholarship(scholarshipData);
     this.#guardFound(scholarship, 'Không thể tạo học bổng', 500, 'CREATE_SCHOLARSHIP_FAILED');
     return scholarship;
-  };
+  }
 
-  modifyScholarship = async (id, data) => {
-    const scholarship = await this.#repo.updateScholarship(id, data);
+  async modifyScholarship(id, data) {
+    const scholarship = await adminModel.updateScholarship(id, data);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -136,10 +102,10 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return scholarship;
-  };
+  }
 
-  toggleScholarshipFeatured = async (id, isFeatured) => {
-    const scholarship = await this.#repo.updateScholarshipFeatured(id, isFeatured);
+  async toggleScholarshipFeatured(id, isFeatured) {
+    const scholarship = await adminModel.updateScholarshipFeatured(id, isFeatured);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -147,10 +113,10 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return scholarship;
-  };
+  }
 
-  removeScholarship = async id => {
-    const scholarship = await this.#repo.softDeleteScholarship(id);
+  async removeScholarship(id) {
+    const scholarship = await adminModel.softDeleteScholarship(id);
     this.#guardFound(
       scholarship,
       'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
@@ -158,17 +124,8 @@ class AdminService {
       'SCHOLARSHIP_NOT_FOUND'
     );
     return { id: scholarship.id, title: scholarship.title };
-  };
+  }
 
-  // ═══════════════════════════════════════════════════════════
-  // PRIVATE — Encapsulation (Tiêu chí 3)
-  // ═══════════════════════════════════════════════════════════
-
-  /**
-   * Chuẩn hóa mảng status count thành object.
-   * @param {Array<{status: string, count: string}>} rows
-   * @returns {object}
-   */
   #normalizeStatusCounts(rows) {
     const map = { saved: 0, in_progress: 0, submitted: 0, accepted: 0, rejected: 0 };
     rows.forEach(row => {
@@ -177,55 +134,31 @@ class AdminService {
     return map;
   }
 
-  /**
-   * Tiêu chí 7: Ra lệnh — không query lên kiểm tra trước.
-   * Chỉ so sánh 2 UUID string từ payload, throw ngay nếu trùng.
-   *
-   * @param {string} targetUserId
-   * @param {string} adminId
-   */
+  /** Admin không được tự đổi quyền hoặc khóa chính mình. */
   #guardSelfModification(targetUserId, adminId) {
     if (targetUserId === adminId) {
-      throw new AppError(
+      throw AppError.badRequest(
         'Không thể tự thay đổi quyền hoặc vô hiệu hóa chính mình',
-        400,
         'SELF_MODIFICATION_FORBIDDEN'
       );
     }
   }
 
-  /**
-   * Kiểm tra role có hợp lệ không.
-   * @param {string} role
-   */
   #validateRole(role) {
     const validRoles = ['user', 'admin'];
     if (!validRoles.includes(role)) {
-      throw new AppError(
+      throw AppError.badRequest(
         'Role không hợp lệ. Chỉ chấp nhận "user" hoặc "admin"',
-        400,
         'INVALID_ROLE'
       );
     }
   }
 
-  /**
-   * Wrapper check null/undefined — throw AppError nếu không tìm thấy.
-   * Tiêu chí 4: Lỗi nghiệp vụ dùng AppError.
-   *
-   * @param {unknown} entity
-   * @param {string} message
-   * @param {number} statusCode
-   * @param {string} code
-   */
   #guardFound(entity, message, statusCode, code) {
     if (!entity) {
       throw new AppError(message, statusCode, code);
     }
   }
-
-  /** @type {AdminRepository} */
-  #repo;
 }
 
-module.exports = AdminService;
+export default new AdminService();

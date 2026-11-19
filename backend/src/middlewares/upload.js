@@ -1,19 +1,12 @@
 /**
- * Upload Middleware — dùng multer với memoryStorage
- *
- * Thay đổi so với bản cũ:
- * - Dùng memoryStorage thay vì diskStorage (tối ưu tốc độ, không ghi ra ổ cứng)
- * - Validation theo từng document type:
- *   * transcript / recommendation_letter: chỉ nhận .pdf
- *   * cv / sop: nhận .pdf, .doc, .docx
- *   * other: nhận .pdf, .doc, .docx, .png, .jpg
- * - Giới hạn kích thước: 10MB
- * - Multer chỉ đọc file vào RAM, không lưu đĩa
+ * Upload bằng multer (memoryStorage, tối đa 10MB, file chỉ nằm trong RAM rồi đẩy lên Storage).
+ * Định dạng cho phép theo loại tài liệu:
+ *   transcript, recommendation_letter → .pdf  |  cv, sop → .pdf .doc .docx  |  other → thêm .png .jpg
  */
 
-const multer = require('multer');
+import multer from 'multer';
+import AppError from '~/utils/AppError.js';
 
-// Mỗi document type có danh sách extension cho phép riêng
 const ALLOWED_EXTS_BY_TYPE = {
   transcript: ['.pdf'],
   recommendation_letter: ['.pdf'],
@@ -22,18 +15,12 @@ const ALLOWED_EXTS_BY_TYPE = {
   other: ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg'],
 };
 
-
-// Cấu hình storage dùng bộ nhớ RAM (không ghi ra đĩa)
 const storage = multer.memoryStorage();
 
 /**
- * File filter — kiểm tra type field và extension theo từng loại document
- * Lỗi từ đây được bắt bởi wrapper middleware bên dưới, trả về JSON chuẩn cho client.
- *
- * Lưu ý: req.body.type có thể undefined nếu field "type" nằm sau field "file" trong
- * form-data stream (busboy không đảm bảo thứ tự parse). Multer v1.x parse fields và
- * files song song nên fileFilter có thể chạy trước khi body hoàn tất. Trong trường hợp
- * này fileFilter sẽ throw và wrapper sẽ trả về 400 JSON thay vì crash server.
+ * Kiểm tra field "type" và đuôi file theo loại tài liệu. Lỗi ném ra được handleUploadError đổi thành JSON 400.
+ * Lưu ý: nếu field "type" nằm sau "file" trong form-data thì req.body.type chưa có khi filter chạy
+ * (multer đọc field và file song song) → bị từ chối với 400, không làm sập server.
  */
 const fileFilter = (req, file, cb) => {
   const docType = req.body && req.body.type;
@@ -71,33 +58,18 @@ const upload = multer({
 });
 
 /**
- * Custom middleware wrapper cho upload.single('file')
- *
- * Mục đích: Multer fileFilter throw Error nguyên gốc (không phải MulterError).
- * Nếu không bắt, error sẽ rơi vào Express và trả response không đúng format JSON
- * (dẫn đến "Failed to fetch" trên client thay vì message lỗi rõ ràng).
- *
- * LƯU Ý: Khi có lỗi, PHẢI return ngay để không chạy tiếp xuống controller.
- * Nếu không có return, controller sẽ tiếp tục chạy và cố gắng gửi thêm response,
- * gây ra lỗi "Cannot set headers after they are sent to the client".
- *
- * @param {object} req
- * @param {object} res
- * @param {function} next
+ * MulterError (file quá lớn, sai field...) chuyển thẳng cho errorHandle.controller, nơi đã có mã lỗi và thông báo riêng.
+ * Lỗi của fileFilter (Error thường) đổi thành AppError 400; nếu không client chỉ thấy "Failed to fetch".
+ * Phải return ngay khi có lỗi, không thì controller chạy tiếp và gửi response lần hai.
  */
 const handleUploadError = (err, req, res, next) => {
-  if (err) {
-    // Drain request body before responding — prevents ERR_CONNECTION_RESET on the client
-    // when multer rejects the file before the full body has been received.
-    req.resume();
-    return res.status(400).json({
-      success: false,
-      message: err.message || 'Upload file không hợp lệ',
-      code: 400,
-    });
-  }
-  // Không có lỗi → chuyển tiếp cho controller xử lý
-  return next();
+  if (!err) return next();
+  if (err.statusCode) return next(err);
+
+  // Đọc hết body trước khi trả lời, nếu không client bị ERR_CONNECTION_RESET khi multer từ chối sớm
+  req.resume();
+  if (err instanceof multer.MulterError) return next(err);
+  return next(AppError.badRequest(err.message || 'Upload file không hợp lệ', 'UPLOAD_INVALID'));
 };
 
-module.exports = { upload, handleUploadError };
+export { upload, handleUploadError };

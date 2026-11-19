@@ -1,56 +1,65 @@
-import { Heart } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useSavedScholarships } from '~/hooks/useScholarship';
-import ScholarshipCard from '~/components/legacy/ScholarshipCard';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { Link } from 'react-router-dom';
+import { BookmarkIcon } from '@heroicons/react/24/solid';
+import PageHeader from '~/components/common/pageHeader';
+import Reveal from '~/components/common/reveal';
+import SlowLoading from '~/components/common/slowLoading';
+import ScholarshipCard from '~/components/scholarship/scholarshipCard';
+import ScholarshipCardSkeleton from '~/components/scholarship/scholarshipCardSkeleton';
+import ScholarshipGrid from '~/components/scholarship/scholarshipGrid';
+import { Button } from '~/components/ui/button';
+import { Card } from '~/components/ui/card';
+import { useSavedScholarships } from '~/hooks/useScholarship';
+import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { sortByDeadline } from '~/utils/scholarship';
 
-const SavedPage = () => {
-  const { data, isLoading } = useSavedScholarships();
+// Học bổng đã lưu: dùng chung thẻ và lưới với trang chủ để hai nơi nhìn giống hệt nhau.
+// Bỏ lưu bằng nút lưu ở góc thẻ — thẻ tự biến mất khỏi danh sách.
+export default function SavedPage() {
+  const { data, isLoading, isError, refetch } = useSavedScholarships();
+  const isSlow = useSlowLoading(isLoading);
 
-  const saved = data?.data || [];
+  // Gần hết hạn lên đầu để sinh viên thấy việc cần làm trước
+  const scholarships = sortByDeadline((data?.data ?? []).map((item) => item.scholarship).filter(Boolean));
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="min-h-screen bg-ink-950 pb-24">
-      <div className="containerPage pt-10 mb-12">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-ink-800 bg-ink-900 px-4 py-1.5 text-sm text-ink-300 mb-5">
-            <Heart className="w-4 h-4 text-primary-400" />
-            <span>Danh sách theo dõi</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-ink-100 mb-4">
-            Học Bổng Đã Lưu
-          </h1>
-          <p className="text-ink-400 max-w-2xl mx-auto">
-            Các cơ hội học bổng bạn đã bookmark để tiện theo dõi và lên kế hoạch ứng tuyển.
+    <section className="flex min-w-0 flex-col gap-5" aria-labelledby="saved-title">
+      <PageHeader
+        title={<span id="saved-title">Học bổng đã lưu</span>}
+        description={isLoading ? 'Đang cập nhật…' : `${scholarships.length} học bổng · gần hết hạn xếp trước`}
+      />
+      {isSlow && <SlowLoading />}
+
+      {isError ? (
+        <Card className="p-8 text-center">
+          <p className="font-semibold">Không tải được danh sách đã lưu</p>
+          <Button variant="link" onClick={() => refetch()} className="mt-1">
+            Thử lại
+          </Button>
+        </Card>
+      ) : !isLoading && scholarships.length === 0 ? (
+        <Card className="flex flex-col items-center border-dashed px-6 py-12 text-center">
+          <span className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+            <BookmarkIcon className="size-6" aria-hidden="true" />
+          </span>
+          <p className="mt-4 text-block-title text-heading">Chưa lưu học bổng nào</p>
+          <p className="mt-1 max-w-sm text-sm text-fg-muted">
+            Bấm biểu tượng lưu ở góc thẻ học bổng để đưa vào đây và nhận nhắc hạn nộp.
           </p>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center"><LoadingSpinner /></div>
-        ) : saved.length === 0 ? (
-          <div className="max-w-2xl mx-auto bg-ink-900 border border-ink-800 rounded-card p-12 text-center">
-            <div className="w-20 h-20 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Heart className="w-10 h-10 text-ink-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-ink-100 mb-4">Chưa có học bổng nào</h2>
-            <p className="text-ink-400 text-lg mb-8">
-              Khám phá danh sách hàng ngàn học bổng toàn cầu và thả tim để lưu vào danh sách của bạn.
-            </p>
-            <Link to="/" className="inline-flex items-center justify-center bg-primary-400 text-ink-950 px-8 py-3 rounded-full font-semibold hover:bg-primary-300 transition-colors">
-              Tìm học bổng ngay
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {saved.map((item) => (
-              <ScholarshipCard key={item.id} scholarship={item.scholarship} />
-            ))}
-          </div>
-        )}
-      </div>
-    </motion.div>
+          <Button asChild className="mt-5">
+            <Link to="/">Tìm học bổng</Link>
+          </Button>
+        </Card>
+      ) : (
+        <ScholarshipGrid>
+          {isLoading
+            ? Array.from({ length: 3 }, (_, i) => <ScholarshipCardSkeleton key={i} />)
+            : scholarships.map((s, i) => (
+                <Reveal key={s.id} index={i} className="flex">
+                  <ScholarshipCard scholarship={s} />
+                </Reveal>
+              ))}
+        </ScholarshipGrid>
+      )}
+    </section>
   );
-};
-
-export default SavedPage;
+}

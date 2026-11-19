@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLogin } from '~/hooks/useAuth';
@@ -9,6 +9,8 @@ import { cn } from '~/utils/cn';
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const { mutate, isPending } = useLogin();
+  const location = useLocation();
+  const sessionRevoked = new URLSearchParams(location.search).get('reason') === 'SESSION_REVOKED';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,6 +26,7 @@ const LoginPage = () => {
         </div>
 
         <div className="bg-ink-900 border border-ink-800 rounded-card p-8">
+          {sessionRevoked && <p role="status" className="mb-5 rounded-lg border border-warning-700 bg-warning-900/30 p-3 text-sm text-warning-200">Tài khoản của bạn đã đăng nhập trên thiết bị khác. Vui lòng đăng nhập lại.</p>}
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Email"

@@ -1,12 +1,16 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { Router } = require('express');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { Router } from 'express';
 
-const NewsController = require('../../src/controllers/news.controller');
-const { createJsonApp, withServer, requestJson } = require('./helpers/http');
+import { createJsonApp, withServer, requestJson } from './helpers/http.js';
+import { mockService } from './helpers/mockService.js';
+
+// Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
+const serviceRef = mockService(new URL('../../src/services/news.service.js', import.meta.url).href);
+const { default: controller } = await import('~/controllers/news.controller.js');
 
 const buildApp = (service) => {
-  const controller = new NewsController(service);
+  serviceRef.current = service;
   const router = Router();
   router.get('/', controller.getNews);
 

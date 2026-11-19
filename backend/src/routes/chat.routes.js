@@ -1,12 +1,12 @@
-const { Router } = require('express');
-const { chatController } = require('../container');
-const { auth } = require('../middlewares/auth');
-const rateLimit = require('express-rate-limit');
+import { Router } from 'express';
+import chatController from '~/controllers/chat.controller.js';
+import { auth } from '~/middlewares/auth.js';
+import rateLimit from 'express-rate-limit';
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
-  message: { success: false, message: 'Quá nhiều tin nhắn, vui lòng thử lại sau 1 phút' },
+  handler: (req, res) => res.error({ statusCode: 429, message: 'Quá nhiều tin nhắn, vui lòng thử lại sau 1 phút', code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
 });
 
 const router = Router();
@@ -14,4 +14,4 @@ const router = Router();
 router.get('/history', auth, chatController.getChatHistory);
 router.post('/', auth, chatLimiter, chatController.sendMessage);
 
-module.exports = router;
+export default router;

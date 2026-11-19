@@ -1,27 +1,41 @@
-/**
- * TokenService — Dịch vụ quản lý JWT
- *
- * Tách riêng khỏi AuthService (SRP): nếu đổi cơ chế xác thực
- * (JWT → session/cookie, hoặc đổi thư viện), chỉ cần sửa file này.
- *
- * Được inject vào AuthService qua constructor (DIP).
- */
-const jwt = require('jsonwebtoken');
-const AppError = require('../utils/AppError');
+import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
+import AppError from '~/utils/AppError.js';
+import { getAuthSecrets, jwtConfig } from '~/configs/jwt.config.js';
+import { authorization } from '~/constants/errors.js';
 
 class TokenService {
-  /**
-   * Tạo JWT token.
-   * @param {{ id: string, email: string, role: string }} payload
-   * @returns {string}
-   */
-  sign(payload) {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) throw new AppError('JWT_SECRET env var is required', 500);
-    return jwt.sign(payload, secret, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    });
+  constructor() {
+    ({ accessSecret: this.accessSecret, refreshSecret: this.refreshSecret } = getAuthSecrets());
+  }
+
+  signAccess({ userId, sessionId, role }) {
+    return jwt.sign({ sub: userId, sid: sessionId, role }, this.accessSecret, { algorithm: jwtConfig.algorithm, expiresIn: jwtConfig.accessExpiresIn });
+  }
+
+  verifyAccess(token) {
+    try {
+      return jwt.verify(token, this.accessSecret, { algorithms: [jwtConfig.algorithm] });
+    } catch (error) {
+      throw new AppError(error.name === 'TokenExpiredError' ? authorization.ACCESS_TOKEN_EXPIRED : authorization.ACCESS_TOKEN_INVALID);
+    }
+  }
+
+  signRefresh({ userId, sessionId }) {
+    return jwt.sign({ sub: userId, sid: sessionId, jti: crypto.randomUUID() }, this.refreshSecret, { algorithm: jwtConfig.algorithm, expiresIn: jwtConfig.refreshExpiresIn });
+  }
+
+  verifyRefresh(token) {
+    try {
+      return jwt.verify(token, this.refreshSecret, { algorithms: [jwtConfig.algorithm] });
+    } catch (error) {
+      throw new AppError(error.name === 'TokenExpiredError' ? authorization.REFRESH_TOKEN_EXPIRED : authorization.REFRESH_TOKEN_INVALID);
+    }
+  }
+
+  hashToken(token) {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 }
 
-module.exports = TokenService;
+export default new TokenService();

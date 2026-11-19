@@ -13,18 +13,20 @@
  * tên host ở --confirm để không dọn nhầm. Nhớ backup trước (xem scripts/README.md).
  */
 
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 
 const argValue = (name) => (process.argv.find((a) => a.startsWith(`--${name}=`)) || '').split('=')[1];
 
 // --env=.env.cloud để trỏ vào cloud; mặc định dùng .env (local)
 const envFile = argValue('env') || '.env';
-require('dotenv').config({ path: path.resolve(__dirname, '..', envFile) });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '..', envFile) });
 
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 const host = process.env.PG_HOST || 'localhost';
 const pool = new Pool({

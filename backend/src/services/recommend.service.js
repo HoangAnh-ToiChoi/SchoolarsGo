@@ -1,5 +1,7 @@
-const AppError = require('../utils/AppError');
-const { extractIeltsScore } = require('../utils/helpers');
+import AppError from '~/utils/AppError.js';
+import { extractIeltsScore } from '~/utils/helpers.js';
+import recommendModel from '~/models/recommend.model.js';
+import * as gemini from './gemini.service.js';
 
 const CORE_PROFILE_FIELDS = ['gpa', 'english_level', 'target_country', 'target_major', 'target_degree'];
 const SUPPORTING_PROFILE_FIELDS = ['bio', 'target_intake', 'document_count'];
@@ -54,14 +56,6 @@ const scoreTextSimilarity = (left, right) => {
 };
 
 class RecommendService {
-  #repo;
-  #gemini;
-
-  constructor(recommendRepo, geminiService) {
-    this.#repo = recommendRepo;
-    this.#gemini = geminiService;
-  }
-
   #normalizeProfile(profile) {
     return {
       ...profile,
@@ -282,17 +276,17 @@ class RecommendService {
     };
   }
 
-  recommend = async (userId, topN = 10) => {
-    const rawProfile = await this.#repo.findProfileByUserId(userId);
+  async recommend(userId, topN = 10) {
+    const rawProfile = await recommendModel.findProfileByUserId(userId);
     const profile = rawProfile ? this.#normalizeProfile(rawProfile) : null;
-    if (!profile) throw new AppError('Vui lòng cập nhật profile trước khi sử dụng gợi ý', 400, 'PROFILE_REQUIRED');
+    if (!profile) throw AppError.badRequest('Vui lòng cập nhật profile trước khi sử dụng gợi ý', 'PROFILE_REQUIRED');
 
     const readiness = this.#getProfileReadiness(profile);
     if (readiness.completeness < 0.3) {
-      throw new AppError('Vui lòng bổ sung thêm GPA, tiếng Anh, ngành học hoặc quốc gia mục tiêu để nhận gợi ý chính xác hơn', 400, 'PROFILE_INCOMPLETE');
+      throw AppError.badRequest('Vui lòng bổ sung thêm GPA, tiếng Anh, ngành học hoặc quốc gia mục tiêu để nhận gợi ý chính xác hơn', 'PROFILE_INCOMPLETE');
     }
 
-    const scholarships = await this.#repo.findActiveScholarships(200);
+    const scholarships = await recommendModel.findActiveScholarships(200);
 
     const top = scholarships
       .map(scholarship => this.#buildRecommendation(profile, readiness, scholarship))
@@ -301,8 +295,8 @@ class RecommendService {
       .sort((a, b) => b.match_score - a.match_score)
       .slice(0, topN);
 
-    return this.#gemini.enrichRecommendations(profile, top);
-  };
+    return gemini.enrichRecommendations(profile, top);
+  }
 }
 
-module.exports = RecommendService;
+export default new RecommendService();

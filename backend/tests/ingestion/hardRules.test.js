@@ -1,9 +1,7 @@
-'use strict';
-
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { checkBeforeExtract, checkAfterExtract } = require('../../src/ingestion/shared/filters');
-const { NOW, rawPost } = require('./helpers');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { checkBasic as checkBeforeExtract, checkDetails as checkAfterExtract } from '~/ingestion/filter.js';
+import { NOW, rawPost } from './helpers.js';
 
 const facts = (overrides = {}) => ({
   deadline: new Date('2027-01-15T23:59:59Z'),

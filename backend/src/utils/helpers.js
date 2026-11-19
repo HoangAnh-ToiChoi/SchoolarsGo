@@ -1,19 +1,16 @@
-// Extract IELTS score từ string như "IELTS 7.5" hoặc "TOEFL 100"
+/** Lấy điểm IELTS từ chuỗi như "IELTS 7.5". TOEFL iBT thì quy đổi gần đúng sang thang IELTS (94 ≈ 7.5). Không nhận ra → null. */
 const extractIeltsScore = englishLevel => {
   if (!englishLevel) return null;
 
-  // IELTS pattern: IELTS X.Y or IELTS X
   const ieltsMatch = englishLevel.match(/IELTS\s*(\d+\.?\d*)/i);
   if (ieltsMatch) {
     const score = parseFloat(ieltsMatch[1]);
     return score >= 0 && score <= 9 ? score : null;
   }
 
-  // TOEFL pattern: TOEFL XXX (paper) or TOEFL iBT XXX
   const toeflMatch = englishLevel.match(/TOEFL\s*i?BT?\s*(\d+)/i);
   if (toeflMatch) {
     const score = parseInt(toeflMatch[1]);
-    // Convert TOEFL to IELTS scale (approximate)
     if (score >= 118) return 9;
     if (score >= 113) return 8.5;
     if (score >= 102) return 8;
@@ -56,4 +53,4 @@ const isUuid = str => {
   return uuidRegex.test(str);
 };
 
-module.exports = { extractIeltsScore, formatCurrency, formatDeadline, isUuid };
+export { extractIeltsScore, formatCurrency, formatDeadline, isUuid };

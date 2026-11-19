@@ -1,52 +1,25 @@
-const { success } = require('../utils/responseHelper');
+import scholarshipService from '~/services/scholarship.service.js';
 
 class ScholarshipController {
-  #service;
-
-  constructor(scholarshipService) {
-    this.#service = scholarshipService;
-    this.#validateService();
+  async getAll(req, res) {
+    const { data, meta } = await scholarshipService.getAll(req.query, req.user?.id);
+    return res.success(data, 'Scholarships retrieved', meta);
   }
 
-  #validateService() {
-    if (!this.#service) throw new Error('ScholarshipService is required');
+  async getFeatured(req, res) {
+    const data = await scholarshipService.getFeatured();
+    return res.success(data);
   }
 
-  getAll = async (req, res, next) => {
-    try {
-      const { data, meta } = await this.#service.getAll(req.query, req.user?.id);
-      return success(res, data, 'Scholarships retrieved', meta);
-    } catch (error) {
-      next(error);
-    }
-  };
+  async getCountries(req, res) {
+    const data = await scholarshipService.getCountries();
+    return res.success(data);
+  }
 
-  getFeatured = async (req, res, next) => {
-    try {
-      const data = await this.#service.getFeatured();
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getCountries = async (req, res, next) => {
-    try {
-      const data = await this.#service.getCountries();
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  getById = async (req, res, next) => {
-    try {
-      const data = await this.#service.getById(req.params.id, req.user?.id);
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  };
+  async getById(req, res) {
+    const data = await scholarshipService.getById(req.params.id, req.user?.id);
+    return res.success(data);
+  }
 }
 
-module.exports = ScholarshipController;
+export default new ScholarshipController();

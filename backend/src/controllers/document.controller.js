@@ -1,43 +1,20 @@
-const { success, created } = require('../utils/responseHelper');
+import documentService from '~/services/document.service.js';
 
 class DocumentController {
-  #service;
-
-  constructor(documentService) {
-    this.#service = documentService;
-    this.#validateService();
+  async getAll(req, res) {
+    const data = await documentService.getAll(req.user.id);
+    return res.success(data);
   }
 
-  #validateService() {
-    if (!this.#service) throw new Error('DocumentService is required');
+  async upload(req, res) {
+    const data = await documentService.upload(req.user.id, req.body.type, req.file);
+    return res.created(data, 'Document uploaded');
   }
 
-  getAll = async (req, res, next) => {
-    try {
-      const data = await this.#service.getAll(req.user.id);
-      return success(res, data);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  upload = async (req, res, next) => {
-    try {
-      const data = await this.#service.upload(req.user.id, req.body.type, req.file);
-      return created(res, data, 'Document uploaded');
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  remove = async (req, res, next) => {
-    try {
-      await this.#service.remove(req.user.id, req.params.id);
-      return success(res, null, 'Document deleted');
-    } catch (error) {
-      next(error);
-    }
-  };
+  async remove(req, res) {
+    await documentService.remove(req.user.id, req.params.id);
+    return res.success(null, 'Document deleted');
+  }
 }
 
-module.exports = DocumentController;
+export default new DocumentController();

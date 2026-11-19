@@ -1,7 +1,7 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-// ── Sentry (init trước khi load bất kỳ module nào khác) ───────────────────────
-const Sentry = require('@sentry/node');
+import * as Sentry from '@sentry/node';
+
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -11,30 +11,31 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-const app = require('./app');
-const { startScrapeJob } = require('./jobs/scholarshipScraper');
+// Nạp app SAU Sentry.init: import tĩnh của ESM chạy trước code nên Sentry sẽ không kịp theo dõi express, http, pg
+const { default: app } = await import('./app.js');
+const { startJobs } = await import('./jobs/index.js');
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, function onServerStarted() {
   console.log(`🚀 ScholarsGo API running on http://localhost:${PORT}`);
   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`   Health check: http://localhost:${PORT}/api/health`);
-  startScrapeJob();
+  startJobs();
 });
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
+process.on('SIGTERM', function handleSigterm() {
+  shutdownServer('SIGTERM');
+});
+
+process.on('SIGINT', function handleSigint() {
+  shutdownServer('SIGINT');
+});
+
+function shutdownServer(signal) {
+  console.log(`${signal} received, shutting down gracefully`);
+  server.close(function onServerClosed() {
     console.log('Server closed');
     process.exit(0);
   });
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+}

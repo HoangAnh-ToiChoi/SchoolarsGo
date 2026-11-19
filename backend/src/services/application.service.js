@@ -1,8 +1,7 @@
-const AppError = require('../utils/AppError');
+import AppError from '~/utils/AppError.js';
+import applicationModel from '~/models/application.model.js';
 
 class ApplicationService {
-  #repo;
-
   static #VALID_TRANSITIONS = {
     draft: ['submitted', 'withdrawn'],
     submitted: ['under_review', 'rejected', 'withdrawn'],
@@ -15,24 +14,20 @@ class ApplicationService {
 
   static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
 
-  constructor(applicationRepository) {
-    this.#repo = applicationRepository;
-  }
-
   #guardFound(entity, message = 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.') {
-    if (!entity) throw new AppError(message, 404, 'APPLICATION_NOT_FOUND');
+    if (!entity) throw AppError.notFound(message, 'APPLICATION_NOT_FOUND');
   }
 
   #assertValidTransition(from, to) {
     const allowed = ApplicationService.#VALID_TRANSITIONS[from] || [];
     if (!allowed.includes(to)) {
-      throw new AppError('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 400, 'INVALID_STATUS_TRANSITION');
+      throw AppError.badRequest('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 'INVALID_STATUS_TRANSITION');
     }
   }
 
   #assertDeletable(status) {
     if (ApplicationService.#UNDELETABLE.includes(status)) {
-      throw new AppError('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 400, 'CANNOT_DELETE');
+      throw AppError.badRequest('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 'CANNOT_DELETE');
     }
   }
 
@@ -64,7 +59,7 @@ class ApplicationService {
     const limit = Math.min(50, Math.max(1, parseInt(filters.limit, 10) || 20));
     const status = filters.status || null;
 
-    const { rows, total } = await this.#repo.findAllByUser(userId, { page, limit, status });
+    const { rows, total } = await applicationModel.findAllByUser(userId, { page, limit, status });
 
     return {
       data: rows.map(row => this.#formatApplication(row)),
@@ -73,37 +68,36 @@ class ApplicationService {
   }
 
   async create(userId, { scholarshipId, checklist, notes }) {
-    const exists = await this.#repo.scholarshipExists(scholarshipId);
-    if (!exists) throw new AppError('Học bổng không tồn tại.', 404, 'SCHOLARSHIP_NOT_FOUND');
+    const exists = await applicationModel.scholarshipExists(scholarshipId);
+    if (!exists) throw AppError.notFound('Học bổng không tồn tại.', 'SCHOLARSHIP_NOT_FOUND');
 
     try {
-      const app = await this.#repo.create(userId, { scholarshipId, checklist, notes });
+      const app = await applicationModel.create(userId, { scholarshipId, checklist, notes });
       return this.#formatApplication(app);
     } catch (err) {
       if (err.message === 'APPLICATION_ALREADY_EXISTS') {
-        throw new AppError('Bạn đã ứng tuyển học bổng này rồi.', 409, 'APPLICATION_ALREADY_EXISTS');
+        throw AppError.conflict('Bạn đã ứng tuyển học bổng này rồi.', 'APPLICATION_ALREADY_EXISTS');
       }
       throw err;
     }
   }
 
   async getById(userId, applicationId) {
-    const app = await this.#repo.findByIdAndUser(applicationId, userId);
+    const app = await applicationModel.findByIdAndUser(applicationId, userId);
     this.#guardFound(app);
     return this.#formatApplication(app);
   }
 
   async update(userId, applicationId, rawUpdates) {
-    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    const existing = await applicationModel.findByIdAndUser(applicationId, userId);
     this.#guardFound(existing);
 
     const updates = { ...rawUpdates };
 
     if (updates.status !== undefined) {
       if (!(updates.status in ApplicationService.#VALID_TRANSITIONS)) {
-        throw new AppError(
+        throw AppError.badRequest(
           'Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.',
-          400,
           'INVALID_STATUS'
         );
       }
@@ -114,17 +108,17 @@ class ApplicationService {
       }
     }
 
-    const updated = await this.#repo.updateByIdAndUser(applicationId, userId, updates);
+    const updated = await applicationModel.updateByIdAndUser(applicationId, userId, updates);
     return this.#formatApplication(updated);
   }
 
   async delete(userId, applicationId) {
-    const existing = await this.#repo.findByIdAndUser(applicationId, userId);
+    const existing = await applicationModel.findByIdAndUser(applicationId, userId);
     this.#guardFound(existing);
     this.#assertDeletable(existing.status);
-    await this.#repo.deleteByIdAndUser(applicationId, userId);
+    await applicationModel.deleteByIdAndUser(applicationId, userId);
     return { deleted: true };
   }
 }
 
-module.exports = ApplicationService;
+export default new ApplicationService();

@@ -1,5 +1,4 @@
-'use strict';
-const Parser = require('rss-parser');
+import Parser from 'rss-parser';
 
 const FEEDS = [
   {
@@ -71,15 +70,7 @@ class NewsService {
     }
   }
 
-  /**
-   * Lấy danh sách tin tức, có hỗ trợ lọc theo category.
-   * Logic lọc category được chuyển từ Controller vào đây (SRP).
-   *
-   * @param {number} [limit=20]
-   * @param {string|null} [category=null]
-   * @returns {Promise<Array>}
-   */
-  getNews = async (limit = 20, category = null) => {
+  async getNews(limit = 20, category = null) {
     let all;
 
     if (this.#cache.data && Date.now() - this.#cache.ts < CACHE_TTL) {
@@ -96,7 +87,7 @@ class NewsService {
     }
 
     return all.slice(0, limit);
-  };
+  }
 }
 
-module.exports = NewsService;
+export default new NewsService();
