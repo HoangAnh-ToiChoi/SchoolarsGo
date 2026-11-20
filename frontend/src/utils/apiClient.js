@@ -21,6 +21,9 @@ const refreshOnce = () => {
   return refreshPromise;
 };
 
+// Cookie accessToken sống 15 phút rồi trình duyệt tự xóa: lúc đó server báo MISSING chứ không phải EXPIRED, vẫn phải thử làm mới bằng refreshToken.
+const REFRESHABLE_CODES = ['ACCESS_TOKEN_EXPIRED', 'ACCESS_TOKEN_MISSING'];
+
 const canRefresh = url => !NO_REFRESH.some(path => url?.includes(path));
 
 const sessionEnded = code => {
@@ -36,7 +39,7 @@ api.interceptors.response.use(response => response, async function(error) {
   if (!response) return Promise.reject(new Error('Không thể kết nối máy chủ, vui lòng kiểm tra kết nối internet'));
   const { status, data } = response;
 
-  if (status === 401 && data?.code === 'ACCESS_TOKEN_EXPIRED' && config && !config._authRetried && canRefresh(config.url)) {
+  if (status === 401 && REFRESHABLE_CODES.includes(data?.code) && config && !config._authRetried && canRefresh(config.url)) {
     config._authRetried = true;
     try {
       await refreshOnce();
