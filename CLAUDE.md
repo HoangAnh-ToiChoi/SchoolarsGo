@@ -4,7 +4,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 
 **Stack:** React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query (FE) · Node.js (ESM) + Express 5, Supabase PostgreSQL (BE) · GitHub Pages (demo FE)
 
-**Tài liệu:** `docs/roadmap.md` (việc của từng vai trò FE/BE/AI) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` (module kéo học bổng). Tài liệu lệch code thì **code là đúng**.
+**Tài liệu:** `docs/frontendRules/frontendRules.md` (**quy tắc FE bắt buộc R1–R11; sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc của từng vai trò FE/BE/AI) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` (module kéo học bổng). Tài liệu lệch code thì **code là đúng**.
 
 ---
 
@@ -20,6 +20,8 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 
 ```
 □ Số dòng: file vừa sửa/tạo có vượt ngưỡng (bảng dưới)? → tách trước
+□ FE: đã đối chiếu `docs/frontendRules/frontendRules.md` (R1–R11) và ghi lỗi vừa sửa vào "Nhật ký quy tắc" của file đó?
+□ FE trang/layout: không còn helper.js / constants.js / useXxx.js lẻ ở gốc? đã chia hooks/ helpers/ constants/ có index.js, tên file đúng chức năng?
 □ BE route mới: có auth / requireRole? dữ liệu của người dùng có lọc theo user_id?
 □ BE query: không SELECT * · không await trong vòng lặp (N+1) · đọc song song dùng Promise.all
 □ BE service mới: có test trong backend/tests/
@@ -147,7 +149,8 @@ Mỗi hàm service mới có test: trường hợp đúng, đầu vào sai, khô
 frontend/src/
   App.jsx, main.jsx      router (trang tải lười) · Provider Redux + React Query + Router
   pageLoaders.js         hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
-  pages/<trang>/index.jsx       chỉ ghép component, không gọi API · components/ riêng của trang · helper.js
+  pages/<trang>/index.jsx       chỉ ghép component, không gọi API
+               components/ · hooks/ · helpers/ · constants/   (mỗi thư mục có index.js, xem "Tách file phụ của trang")
   layouts/               userLayout, adminLayout: index.jsx để dùng, components/ là phần triển khai
   components/  ui/ (shadcn) · common/ (pageHeader, backLink, pagination, reveal, slowLoading)
                application/ · scholarship/ · scholarshipFilter/ · legacy/ (UI cũ, code mới không dùng)
@@ -156,7 +159,35 @@ frontend/src/
 ```
 
 - Mỗi trang / component / layout là **một thư mục có `index.jsx`**. Import bằng `~/`, không `../`.
-- Một trang dùng → `pages/<trang>/components/`. Hai trang trở lên → `components/`. Tính toán một trang dùng → `helper.js` cạnh trang; nơi thứ hai cần → `utils/`.
+- Một trang dùng → `pages/<trang>/components/`. Hai trang trở lên → `components/`. Tính toán / hằng số / hook **chỉ một trang dùng** → thư mục riêng của trang (bên dưới); chỉ khi **từ 2 trang trở lên** dùng mới chuyển sang `utils/` hoặc `hooks/` gốc (bảng bên dưới).
+
+**Tách file phụ của trang (và layout) — bắt buộc, không để file lẻ ở gốc trang.**
+
+```
+pages/deadlines/
+  index.jsx
+  components/
+  hooks/       index.js + useDeadlineEvents.js          mỗi hook một file, tên useXxx
+  helpers/     index.js + buildDeadlineEvents.js …      mỗi hàm thuần một file, tên file = tên hàm
+  constants/   index.js + toneDot.js, legend.js …       mỗi nhóm hằng số một file, tên nói nội dung
+```
+
+- **Cấm** `helper.js`, `helpers.js`, `constants.js`, `useXxx.js`, `navConfig.js` nằm lẻ cạnh `index.jsx`. Có hàm → `helpers/`, có hằng số / cấu hình → `constants/`, có hook → `hooks/`. Chỉ tạo thư mục khi có thứ để bỏ vào.
+- **Tên file nói đúng việc nó làm** (`getMonthDays.js`, `validateGPA.js`, `stages.js`), không đặt tên chung chung. Một file một việc; hàm `export function` / hằng số `export const` cùng tên file (hoặc cùng chủ đề với hằng số).
+- **Mỗi thư mục có `index.js` chỉ re-export** (`export { getMonthDays } from './getMonthDays';`), nơi dùng import qua thư mục: `import { getMonthDays } from '~/pages/deadlines/helpers';`. Không import sâu vào từng file từ ngoài thư mục. Đây là ngoại lệ có chủ đích của luật "không `index.js` re-export" ở trên: chỉ áp dụng cho `hooks/ helpers/ constants/` của trang / layout.
+- Bên trong cùng thư mục thì import `./tenFile`; chéo thư mục thì `~/pages/<trang>/constants` (không `../`). `helpers/` có thể import `constants/` của cùng trang, ngược lại không.
+- **Mặc định mọi thứ ở lại trang. Chỉ chuyển ra thư mục chung khi thật sự dùng chung:**
+
+  | Thứ cần chuyển | Điều kiện | Chuyển tới |
+  |---|---|---|
+  | Hàm thuần (tính toán, định dạng, kiểm tra) | đang dùng ở **≥ 2 trang** (hoặc 1 trang + 1 component chung) | `src/utils/<chủĐề>.js` |
+  | Hằng số / cấu hình | đang dùng ở **≥ 2 trang** | `src/utils/constants.js` (hoặc `utils/<chủĐề>.js` nếu cùng chủ đề với hàm) |
+  | Hook | đang dùng ở **≥ 2 trang** | `src/hooks/useXxx.js` |
+  | Hook / hàm / hằng số chỉ **một trang** dùng | — | **giữ** ở `pages/<trang>/hooks/ helpers/ constants/`, dù có vẻ "dùng lại được" |
+
+  - Chưa có nơi thứ hai dùng thì **không** chuyển trước "phòng khi cần". Chuyển khi nơi thứ hai xuất hiện, và sửa luôn import ở cả hai nơi.
+  - Hai hàm trùng tên nhưng **khác hành vi** ở hai trang (ví dụ `formatFileSize` của `applicationDetail` và `profile`) không phải "dùng chung": giữ riêng, hoặc thống nhất hành vi rồi mới gộp lên `utils/`. Không copy y nguyên sang trang khác.
+- Thêm trang mới: dùng khung này ngay từ đầu, đừng tạo `helper.js` "tạm" rồi tách sau.
 - Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/utils`, `~/store`, `~/services`.
 - Component: `export default function Ten()`; riêng `components/ui/` giữ named export kiểu shadcn.
 
