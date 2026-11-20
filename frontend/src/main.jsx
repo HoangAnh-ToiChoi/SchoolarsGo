@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -40,39 +39,37 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
-            vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
-        <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
-          <App />
-          <Toaster
-            position="bottom-center"
-            containerStyle={{ bottom: 32 }}
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: color('neutral', { alpha: 0.95 }),
-                color: '#FFFFFF',
-                borderRadius: '9999px',
-                padding: '10px 20px',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-                backdropFilter: 'blur(8px)',
-                maxWidth: '360px',
-              },
-              success: {
-                iconTheme: { primary: color('success', { mix: 75 }), secondary: '#FFFFFF' },
-              },
-              error: {
-                iconTheme: { primary: color('danger', { mix: 75 }), secondary: '#FFFFFF' },
-              },
-            }}
-          />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <QueryClientProvider client={queryClient}>
+      {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
+          vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
+      <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
+        <App />
+        <Toaster
+          position="bottom-center"
+          containerStyle={{ bottom: 32 }}
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: color('neutral', { alpha: 0.95 }),
+              color: '#FFFFFF',
+              borderRadius: '9999px',
+              padding: '10px 20px',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+              backdropFilter: 'blur(8px)',
+              maxWidth: '360px',
+            },
+            success: {
+              iconTheme: { primary: color('success', { mix: 75 }), secondary: '#FFFFFF' },
+            },
+            error: {
+              iconTheme: { primary: color('danger', { mix: 75 }), secondary: '#FFFFFF' },
+            },
+          }}
+        />
+      </BrowserRouter>
+    </QueryClientProvider>
+  </Provider>
 );

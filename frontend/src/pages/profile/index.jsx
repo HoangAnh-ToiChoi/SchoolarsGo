@@ -1,285 +1,72 @@
-import { useState } from 'react';
-import { useProfile, useUpdateProfile, useDocuments, useUploadDocument, useDeleteDocument } from '~/hooks/useProfile';
-import { DEGREES, DOCUMENT_TYPES, COMMON_MAJORS } from '~/utils/constants';
-import LoadingSpinner from '~/components/common/LoadingSpinner';
-import FileUpload from '~/components/legacy/FileUpload';
-import { Button, Input, Select, PageHeader, EmptyState } from '~/components/legacy';
-import { FileText, Trash2, Plus, Eye, Download } from 'lucide-react';
-import { useAccount } from '~/hooks/useAuth';
-import SessionList from '~/pages/profile/components/sessionList';
+import { useProfile } from '~/hooks/useProfile';
+import PageHeader from '~/components/common/pageHeader';
+import { Card } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { AlertCircle, UserX } from 'lucide-react';
+import ProfileSkeleton from './components/profileSkeleton';
+import AccountCard from './components/accountCard';
+import SessionList from './components/sessionList';
+import ProfileForm from './components/profileForm';
+import DocumentSection from './components/documentSection';
 
-const PROFILE_SIGNAL_FIELDS = [
-  { key: 'gpa', label: 'GPA' },
-  { key: 'english_level', label: 'Tiếng Anh' },
-  { key: 'target_country', label: 'Quốc gia' },
-  { key: 'target_major', label: 'Ngành học' },
-  { key: 'target_degree', label: 'Bậc học' },
-  { key: 'target_intake', label: 'Kỳ nhập học' },
-  { key: 'bio', label: 'Mục tiêu cá nhân' },
-];
+export default function ProfilePage({ embedded = false }) {
+  const { data, isLoading, isError, refetch } = useProfile();
 
-const ProfilePage = ({ embedded = false }) => {
-  const { data, isLoading } = useProfile();
-  const account = useAccount();
-  const { data: documents, isLoading: docsLoading } = useDocuments();
-  const updateProfile = useUpdateProfile();
-  const uploadDoc = useUploadDocument();
-  const deleteDoc = useDeleteDocument();
-  const [form, setForm] = useState({});
-  const [errors, setErrors] = useState({});
+  // 1. Loading State Guard
+  if (isLoading) {
+    return <ProfileSkeleton embedded={embedded} />;
+  }
 
-  if (isLoading) return <LoadingSpinner />;
+  // 2. Error State Guard
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-3xl py-12">
+        <Card className="flex flex-col items-center p-8 text-center">
+          <AlertCircle className="size-10 text-urgent-fg" aria-hidden="true" />
+          <h2 className="mt-3 text-lg font-semibold text-heading">Không tải được thông tin hồ sơ</h2>
+          <p className="mt-1 text-sm text-fg-muted">Đã xảy ra lỗi trong quá trình kết nối máy chủ.</p>
+          <Button variant="outline" onClick={() => refetch()} className="mt-4">
+            Thử lại
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   const profile = data?.data;
 
-  const validateGPA = (value) => {
-    if (!value) return '';
-    const num = parseFloat(value);
-    if (isNaN(num)) return 'GPA phải là số';
-    if (num < 0 || num > 4) return 'GPA phải từ 0 đến 4.0';
-    return '';
-  };
-
-  const handleFieldChange = (fieldName, value) => {
-    setForm({ ...form, [fieldName]: value });
-    if (errors[fieldName]) setErrors({ ...errors, [fieldName]: '' });
-  };
-
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
-    const newErrors = {};
-    if (form.gpa !== undefined && form.gpa !== '') {
-      const gpaError = validateGPA(form.gpa);
-      if (gpaError) newErrors.gpa = gpaError;
-    }
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    setErrors({});
-    updateProfile.mutate(form);
-  };
-
-  async function handleUpload(file, error) {
-    if (error || !file) return;
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    let docType = 'other';
-    if (['pdf'].includes(fileExt)) {
-      const fileName = file.name.toLowerCase();
-      if (fileName.includes('cv') || fileName.includes('resume')) docType = 'cv';
-      else if (fileName.includes('sop') || fileName.includes('statement')) docType = 'sop';
-      else docType = 'cv';
-    } else if (['doc', 'docx'].includes(fileExt)) {
-      docType = 'cv';
-    } else if (['txt'].includes(fileExt)) {
-      docType = 'sop';
-    }
-    uploadDoc.mutate({ file, type: docType });
+  // 3. Empty / Unauthenticated State Guard
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-3xl py-12">
+        <Card className="flex flex-col items-center p-8 text-center">
+          <UserX className="size-10 text-fg-muted" aria-hidden="true" />
+          <h2 className="mt-3 text-lg font-semibold text-heading">Vui lòng đăng nhập</h2>
+          <p className="mt-1 text-sm text-fg-muted">Bạn cần đăng nhập vào tài khoản để xem và quản lý hồ sơ cá nhân.</p>
+        </Card>
+      </div>
+    );
   }
 
-  const handleViewDocument = (document) => {
-    if (document.url) window.open(document.url, '_blank');
-  };
-
-  const handleDownloadDocument = (document) => {
-    if (document.url) {
-      const link = document.createElement('a');
-      link.href = document.url;
-      link.download = document.file_name;
-      link.click();
-    }
-  };
-
-  if (!profile) return (
-    <div className="min-h-screen bg-ink-950 flex items-center justify-center">
-      <p className="text-ink-400">Vui lòng đăng nhập để xem profile</p>
-    </div>
-  );
-
-  const currentProfile = { ...profile, ...form };
-  const missingSignals = PROFILE_SIGNAL_FIELDS.filter(({ key }) => !currentProfile[key]);
-  const documentCount = documents?.data?.length || 0;
-  const completionScore = PROFILE_SIGNAL_FIELDS.reduce(
-    (total, field) => total + (currentProfile[field.key] ? 1 : 0),
-    0
-  ) + (documentCount > 0 ? 1 : 0);
-  const completionPct = Math.round((completionScore / (PROFILE_SIGNAL_FIELDS.length + 1)) * 100);
-
-  const inner = (
-    <div className="containerNarrow py-8">
-      {!embedded && <PageHeader title="Hồ sơ cá nhân" />}
-
-      <section className="mb-6 rounded-card border border-ink-800 bg-ink-900 p-6 sm:p-8">
-        <h2 className="mb-4 border-b border-ink-800 pb-3 text-lg font-semibold text-ink-100">Thông tin tài khoản</h2>
-        {account.isLoading ? <p className="text-sm text-ink-400">Đang tải thông tin tài khoản…</p> : account.isError ? (
-          <div className="flex items-center gap-3 text-sm text-danger-400"><span>Không tải được thông tin tài khoản.</span><button onClick={() => account.refetch()} className="underline">Thử lại</button></div>
-        ) : (
-          <dl className="grid gap-4 sm:grid-cols-3">
-            <div><dt className="text-xs text-ink-500">Email</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.email || 'Chưa cập nhật'}</dd></div>
-            <div><dt className="text-xs text-ink-500">Số điện thoại</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.phone || 'Chưa cập nhật'}</dd></div>
-            <div><dt className="text-xs text-ink-500">Ngày sinh</dt><dd className="mt-1 text-sm text-ink-100">{account.data?.date_of_birth || 'Chưa cập nhật'}</dd></div>
-          </dl>
-        )}
-      </section>
-
+  // 4. Data State
+  const content = (
+    <div className="mx-auto max-w-3xl space-y-6 py-6">
+      {!embedded && (
+        <PageHeader
+          title="Hồ sơ cá nhân"
+          description="Quản lý thông tin học thuật và hồ sơ du học"
+        />
+      )}
+      <AccountCard />
       <SessionList />
-
-      {/* Profile Form */}
-      <form onSubmit={handleSaveProfile} className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8 mb-6 space-y-5">
-        <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3">Thông tin cá nhân</h2>
-        <div className="rounded-xl border border-ink-800 bg-ink-950 p-4">
-          <div className="mb-2 flex items-center justify-between gap-4">
-            <p className="text-sm font-medium text-ink-200">Độ hoàn thiện cho AI Recommend</p>
-            <span className="text-sm font-bold text-primary-300">{completionPct}%</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-ink-800">
-            <div className="h-full rounded-full bg-primary-400 transition-all duration-300" style={{ width: `${completionPct}%` }} />
-          </div>
-          {missingSignals.length > 0 && (
-            <p className="mt-2 text-xs text-ink-500">
-              Còn thiếu: {[...missingSignals.map(({ label }) => label), ...(documentCount > 0 ? [] : ['tài liệu hồ sơ'])].join(', ')}
-            </p>
-          )}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-          <Input
-            label="GPA (thang 4.0)"
-            type="number" step="0.01" min="0" max="4"
-            value={form.gpa ?? profile.gpa ?? ''}
-            onChange={(e) => handleFieldChange('gpa', e.target.value)}
-            placeholder="3.5"
-            error={errors.gpa}
-          />
-          <Input
-            label="Trình độ tiếng Anh"
-            type="text"
-            value={form.english_level ?? profile.english_level ?? ''}
-            onChange={(e) => handleFieldChange('english_level', e.target.value)}
-            placeholder="IELTS 7.0"
-          />
-          <Input
-            label="Quốc gia muốn đến"
-            type="text"
-            value={form.target_country ?? profile.target_country ?? ''}
-            onChange={(e) => handleFieldChange('target_country', e.target.value)}
-            placeholder="UK, USA, Australia..."
-          />
-          <Select
-            label="Bậc học mong muốn"
-            options={DEGREES}
-            placeholder="Chọn bậc học"
-            value={form.target_degree ?? profile.target_degree ?? ''}
-            onChange={(value) => handleFieldChange('target_degree', value)}
-          />
-          <Input
-            label="Kỳ nhập học dự kiến"
-            type="text"
-            value={form.target_intake ?? profile.target_intake ?? ''}
-            onChange={(e) => handleFieldChange('target_intake', e.target.value)}
-            placeholder="Fall 2027, Spring 2028..."
-          />
-          <div className="md:col-span-2">
-            <Input
-              label="Ngành học mong muốn"
-              type="text"
-              value={form.target_major ?? profile.target_major ?? ''}
-              onChange={(e) => handleFieldChange('target_major', e.target.value)}
-              placeholder="Computer Science"
-              list="majors"
-            />
-            <datalist id="majors">{COMMON_MAJORS.map((m) => <option key={m} value={m} />)}</datalist>
-          </div>
-          <div className="md:col-span-2">
-            <label className="inputLabel">Giới thiệu bản thân</label>
-            <textarea
-              rows={4}
-              value={form.bio ?? profile.bio ?? ''}
-              onChange={(e) => handleFieldChange('bio', e.target.value)}
-              className="input resize-none bg-ink-950 text-ink-100 border-ink-700"
-              placeholder="Viết vài dòng về bản thân, mục tiêu du học, thế mạnh học tập..."
-            />
-          </div>
-        </div>
-        <Button type="submit" isLoading={updateProfile.isPending}>Lưu thay đổi</Button>
-      </form>
-
-      {/* Documents */}
-      <div className="bg-ink-900 border border-ink-800 rounded-card p-6 sm:p-8">
-        <h2 className="text-lg font-semibold text-ink-100 border-b border-ink-800 pb-3 mb-6">Tài liệu của tôi</h2>
-
-        <div className="mb-6">
-          <FileUpload
-            label="Upload tài liệu mới"
-            description="Kéo thả file hoặc click để chọn"
-            accept=".pdf,.doc,.docx,.txt"
-            maxSize={5 * 1024 * 1024}
-            onFileSelect={(file, error) => handleUpload(file, error)}
-            disabled={uploadDoc.isPending}
-          />
-        </div>
-
-        {docsLoading ? (
-          <LoadingSpinner />
-        ) : !documents?.data || documents.data.length === 0 ? (
-          <EmptyState
-            icon={Plus}
-            title="Chưa tải lên tài liệu nào"
-            description="Tải lên CV, SOP, thư giới thiệu để chuẩn bị hồ sơ ứng tuyển của bạn."
-          />
-        ) : (
-          <div className="space-y-4">
-            {DOCUMENT_TYPES.map((docType) => {
-              const docs = documents?.data?.filter((d) => d.type === docType.value) || [];
-              return (
-                <div key={docType.value} className="border border-ink-800 rounded-card p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-ink-100">{docType.label}</h3>
-                    <span className="text-xs text-ink-500">{docs.length} file</span>
-                  </div>
-
-                  {docs.length > 0 ? (
-                    <div className="space-y-2">
-                      {docs.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-ink-950 rounded-lg border border-ink-800">
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-primary-400" />
-                            <div>
-                              <p className="text-sm font-medium text-ink-100">{doc.file_name}</p>
-                              <p className="text-xs text-ink-500">
-                                {new Date(doc.created_at).toLocaleDateString('vi-VN')}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => handleViewDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Xem tài liệu">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDownloadDocument(doc)} className="text-ink-500 hover:text-primary-400 p-1.5 rounded transition-colors" title="Tải xuống">
-                              <Download className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => deleteDoc.mutate(doc.id)} className="text-ink-500 hover:text-danger-400 p-1.5 rounded transition-colors" title="Xóa tài liệu">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-ink-500 italic">Chưa có tài liệu nào</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <ProfileForm profile={profile} />
+      <DocumentSection />
     </div>
   );
 
-  if (embedded) return inner;
+  if (embedded) {
+    return content;
+  }
 
-  return (
-    <div className="min-h-screen bg-ink-950 pb-16">
-      {inner}
-    </div>
-  );
-};
-
-export default ProfilePage;
+  return <div className="min-h-screen bg-canvas pb-16">{content}</div>;
+}
