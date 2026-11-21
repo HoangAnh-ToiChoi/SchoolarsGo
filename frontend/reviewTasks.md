@@ -95,7 +95,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `grep -rnE "daysLeft === (null|0)" src` chỉ còn trong `utils/scholarship.js`. Viết test cho `getDeadlineLabel` (3 nhánh: `null`, `0`, `n`) theo R9.
 
-### ☐ T3. Tách logic khỏi `DetailHeader` (R1, R3)
+### ☑ T3. Tách logic khỏi `DetailHeader` (R1, R3)
 **Vi phạm:** `pages/scholarshipDetail/components/detailHeader/index.jsx` dựng mảng `tiles` ngay trong component, có ternary lồng và `.filter(Boolean).join`. Nhãn "Quốc gia / Bậc học / Tài trợ / Hạn nộp" và "Chưa rõ" viết cứng; `scope === 'domestic' ? 'domestic' : 'abroad'` là phép đổi tên nằm trong JSX.
 
 **Cách làm:**

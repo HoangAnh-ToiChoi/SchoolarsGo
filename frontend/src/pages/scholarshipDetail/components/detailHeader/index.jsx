@@ -2,50 +2,44 @@ import BackLink from '~/components/common/backLink';
 import { Badge } from '~/components/ui/badge';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
-import { formatCurrency } from '~/utils/format';
-import { TONE_CLASS } from '~/utils/palette';
 import { ROUTES } from '~/utils/routes';
-import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineLabel, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
+import { getScope, SCOPE_LABELS } from '~/utils/scholarship';
+import { SCOPE_VARIANT } from '~/pages/scholarshipDetail/constants';
+import { buildHeaderTiles } from '~/pages/scholarshipDetail/helpers';
 
 // Dải đầu trang chi tiết: nút quay lại → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
 // Nền tím rất nhạt (không gradient), tràn hết bề ngang vùng nội dung.
 export default function DetailHeader({ scholarship }) {
-  const { title, provider, country, city, language, degree, intake, field_of_study: field, coverage, amount, currency, deadline } = scholarship;
-  const scope = getScope(scholarship);
-  const deadlineLabel = getDeadlineLabel(deadline);
-
-  const tiles = [
-    { label: 'Quốc gia', value: labelOf(COUNTRY_LABELS, country), note: [city, language && `Ngôn ngữ: ${language}`].filter(Boolean).join(' · ') },
-    { label: 'Bậc học', value: labelOf(DEGREE_LABELS, degree), note: intake ? `Nhập học ${intake}` : field },
-    { label: 'Tài trợ', value: coverage || 'Chưa rõ', note: amount ? formatCurrency(amount, currency) : null },
-    {
-      label: 'Hạn nộp',
-      value: deadlineLabel.short,
-      note: deadlineLabel.note,
-      valueClass: TONE_CLASS[deadlineLabel.tone]?.text,
-    },
-  ];
+  const { title, provider, deadline } = scholarship || {};
+  const scope = getScope(scholarship || {});
+  const tiles = buildHeaderTiles(scholarship);
 
   return (
     <section className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
       <BackLink to={ROUTES.home}>Trang chủ</BackLink>
 
-      <div className="mt-[18px] flex flex-wrap gap-1.5">
+      <div className="mt-4 flex flex-wrap gap-2">
         <DeadlineBadge deadline={deadline} />
-        <Badge variant={scope === 'domestic' ? 'domestic' : 'abroad'}>{SCOPE_LABELS[scope]}</Badge>
-        {coverage && <Badge variant="neutral">{coverage}</Badge>}
+        <Badge variant={SCOPE_VARIANT[scope] || 'abroad'}>{SCOPE_LABELS[scope]}</Badge>
       </div>
+
       <h1 id="scholarship-title" className="mt-3 break-words text-page-title text-heading sm:text-[30px] sm:leading-[38px]">
         {title}
       </h1>
-      {provider && <p className="mt-2 text-[15px] text-fg-secondary">{provider}</p>}
+      {provider && <p className="mt-1.5 text-sm text-fg-secondary">{provider}</p>}
 
-      <dl className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(160px,100%),1fr))] gap-3">
+      <dl className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(160px,100%),1fr))] gap-2.5 sm:gap-3">
         {tiles.map((tile) => (
-          <div key={tile.label} className="min-w-0 rounded-inner border border-line bg-surface px-[18px] py-4">
-            <dt className="text-xs text-fg-muted">{tile.label}</dt>
-            <dd className={cn('mt-1 truncate text-lg font-bold leading-6 text-heading', tile.valueClass)}>{tile.value}</dd>
-            {tile.note && <dd className="mt-0.5 truncate text-[12.5px] text-fg-muted">{tile.note}</dd>}
+          <div key={tile.label} className="min-w-0 rounded-inner border border-line bg-surface px-4 py-3 sm:px-4 sm:py-3.5">
+            <dt className="text-xs font-medium text-fg-muted">{tile.label}</dt>
+            <dd className={cn('mt-1 truncate text-base font-semibold leading-5 text-heading', tile.valueClass)} title={tile.value}>
+              {tile.value}
+            </dd>
+            {tile.note && (
+              <dd className="mt-0.5 truncate text-xs text-fg-muted" title={tile.note}>
+                {tile.note}
+              </dd>
+            )}
           </div>
         ))}
       </dl>
