@@ -3,9 +3,8 @@ import { Badge } from '~/components/ui/badge';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
 import { formatCurrency, formatDate } from '~/utils/format';
+import { TONE_CLASS } from '~/utils/palette';
 import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineInfo, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
-
-const TONE_TEXT = { urgent: 'text-urgent-fg', soon: 'text-soon-fg', open: 'text-open-fg', neutral: 'text-heading' };
 
 // Dải đầu trang chi tiết: nút quay lại → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
 // Nền tím rất nhạt (không gradient), tràn hết bề ngang vùng nội dung.
@@ -22,7 +21,7 @@ export default function DetailHeader({ scholarship }) {
       label: 'Hạn nộp',
       value: daysLeft === null ? 'Chưa công bố' : daysLeft === 0 ? 'Hết hạn hôm nay' : `còn ${daysLeft} ngày`,
       note: daysLeft === null ? 'Theo dõi bài đăng gốc' : formatDate(deadline),
-      valueClass: TONE_TEXT[tone],
+      valueClass: TONE_CLASS[tone]?.text,
     },
   ];
 

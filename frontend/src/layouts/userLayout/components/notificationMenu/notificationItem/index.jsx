@@ -3,15 +3,8 @@ import { ClockIcon } from '@heroicons/react/20/solid';
 import { DropdownMenuItem } from '~/components/ui/dropdownMenu';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
+import { TONE_CLASS } from '~/utils/palette';
 import { getDeadlineInfo, scholarshipPath } from '~/utils/scholarship';
-
-// Màu icon theo độ gấp, cùng thang với nhãn hạn nộp trên thẻ
-const TONE_CLASS = {
-  urgent: 'bg-urgent-bg text-urgent-fg',
-  soon: 'bg-soon-bg text-soon-fg',
-  open: 'bg-open-bg text-open-fg',
-  neutral: 'bg-hover text-fg-muted',
-};
 
 const describe = (daysLeft) => (daysLeft === 0 ? 'hết hạn hôm nay' : `còn ${daysLeft} ngày là hết hạn`);
 
@@ -25,7 +18,7 @@ export default function NotificationItem({ item, onRead }) {
   return (
     <DropdownMenuItem asChild onSelect={onRead} className="items-start gap-3 rounded-control px-2.5 py-2.5 focus:bg-hover">
       <Link to={to}>
-        <span className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full', TONE_CLASS[tone])}>
+        <span className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full', TONE_CLASS[tone]?.box)}>
           <ClockIcon className="size-4" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">

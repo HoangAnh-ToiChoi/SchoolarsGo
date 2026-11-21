@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { addMonths, format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
-import { TONE_DOT } from '~/pages/deadlines/constants';
 import { getMonthDays } from '~/pages/deadlines/helpers';
 import { cn } from '~/utils/cn';
+import { TONE_CLASS } from '~/utils/palette';
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const MAX_DOTS = 3;
@@ -64,7 +64,7 @@ export default function MonthCalendar({ month, onMonthChange, selected, onSelect
               {dayEvents.length > 0 && (
                 <span className="flex items-center gap-1" aria-hidden="true">
                   {dayEvents.slice(0, MAX_DOTS).map((e) => (
-                    <span key={e.id} className={cn('size-1.5 rounded-full', TONE_DOT[e.tone])} />
+                    <span key={e.id} className={cn('size-1.5 rounded-full', TONE_CLASS[e.tone]?.dot)} />
                   ))}
                   {dayEvents.length > MAX_DOTS && <span className="text-[10px] leading-none text-fg-muted">+</span>}
                 </span>

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { Badge } from '~/components/ui/badge';
-import { TONE_DOT } from '~/pages/deadlines/constants';
 import { getStatusLabel } from '~/pages/deadlines/helpers';
 import { cn } from '~/utils/cn';
+import { TONE_CLASS } from '~/utils/palette';
 import { scholarshipPath } from '~/utils/scholarship';
 
 function describe(event) {
@@ -28,7 +28,7 @@ export default function EventList({ events, emptyText }) {
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold text-fg">{e.title}</div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-fg-muted">
-                <span className={cn('size-2 rounded-full', TONE_DOT[e.tone])} aria-hidden="true" />
+                <span className={cn('size-2 rounded-full', TONE_CLASS[e.tone]?.dot)} aria-hidden="true" />
                 {describe(e)}
               </div>
             </div>

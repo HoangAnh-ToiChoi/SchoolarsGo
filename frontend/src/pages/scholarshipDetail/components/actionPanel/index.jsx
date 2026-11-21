@@ -9,15 +9,10 @@ import { Card } from '~/components/ui/card';
 import { useCreateApplication } from '~/hooks/useApplication';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
+import { TONE_CLASS } from '~/utils/palette';
 import { getDeadlineInfo } from '~/utils/scholarship';
 import { safeUrl } from '~/utils/security';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
-
-const TONE_BOX = {
-  urgent: 'bg-urgent-bg text-urgent-fg',
-  soon: 'bg-soon-bg text-soon-fg',
-  open: 'bg-open-bg text-open-fg',
-};
 
 // Nút chính: ưu tiên link nộp đơn chính thức; chưa có thì mở bài đăng gốc (nơi cào dữ liệu về).
 // URL đến từ web ngoài nên luôn qua safeUrl(); không hợp lệ thì coi như không có.
@@ -68,7 +63,7 @@ export default function ActionPanel({ scholarship }) {
           </div>
         ) : (
           <div className="flex items-center gap-3.5">
-            <span className={cn('flex size-14 shrink-0 flex-col items-center justify-center rounded-tile', TONE_BOX[tone])}>
+            <span className={cn('flex size-14 shrink-0 flex-col items-center justify-center rounded-tile', TONE_CLASS[tone]?.box)}>
               <span className="text-[22px] font-bold leading-none">{daysLeft}</span>
               <span className="text-[11px] font-semibold">ngày</span>
             </span>

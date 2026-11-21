@@ -44,7 +44,7 @@ Mỗi trang/layout phải theo khung `components/ hooks/ helpers/ constants/` (m
 - **Chỉ tách trong phạm vi trang (R11):** hàm / hằng số / hook chỉ một trang dùng thì ở lại `pages/<trang>/…`. **Không** đưa sang `utils/` hay `hooks/` gốc nếu chưa có ≥ 2 trang dùng. `formatFileSize` của `applicationDetail` và của `profile` là hai hàm **khác nhau** (khác kết quả), không phải dùng chung: để riêng.
 - **Xong khi:** lệnh `find` trên rỗng; `npm run lint` + `npm run build` qua; mở thử các trang `deadlines`, `applications`, `applications/:id`, `profile`, `scholarships/:slug` thấy giao diện y như cũ.
 
-### ☐ T1. Gom bản đồ màu theo mức gấp (R2)
+### ☑ T1. Gom bản đồ màu theo mức gấp (R2)
 **Vi phạm:** cùng một bản đồ `tone → class` bị chép ở 4 nơi:
 
 | File | Bản đồ |
