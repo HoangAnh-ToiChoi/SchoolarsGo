@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useApplications } from '~/hooks/useApplication';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { MAX_LIMIT } from '~/utils/constants';
+import { ROUTES } from '~/utils/routes';
 import { sortByDeadline } from '~/utils/scholarship';
 import ApplicationRow from '~/pages/applications/components/applicationRow';
 import ApplicationRowSkeleton from '~/pages/applications/components/applicationRowSkeleton';
@@ -73,7 +74,7 @@ export default function ApplicationsPage() {
           </p>
           {all.length === 0 && (
             <Button asChild className="mt-5">
-              <Link to="/">Tìm học bổng</Link>
+              <Link to={ROUTES.home}>Tìm học bổng</Link>
             </Button>
           )}
         </Card>

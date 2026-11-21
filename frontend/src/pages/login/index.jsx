@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useLogin } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
 import { cn } from '~/utils/cn';
+import { ROUTES } from '~/utils/routes';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -48,7 +49,7 @@ const LoginPage = () => {
                 required
               />
               <div className="mt-1.5 text-right">
-                <Link to="/forgotPassword" className="text-xs text-ink-500 hover:text-primary-400 transition-colors">
+                <Link to={ROUTES.forgotPassword} className="text-xs text-ink-500 hover:text-primary-400 transition-colors">
                   Quên mật khẩu?
                 </Link>
               </div>
@@ -74,7 +75,7 @@ const LoginPage = () => {
 
           <p className="text-center text-ink-400 text-sm mt-6">
             Chưa có tài khoản?{' '}
-            <Link to="/register" className="text-primary-400 hover:text-primary-400 font-semibold transition-colors">
+            <Link to={ROUTES.register} className="text-primary-400 hover:text-primary-400 font-semibold transition-colors">
               Đăng ký ngay
             </Link>
           </p>

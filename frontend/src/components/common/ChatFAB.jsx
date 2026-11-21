@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Sparkles } from 'lucide-react';
+import { ROUTES } from '~/utils/routes';
 
 const ChatFAB = () => {
   const [hovered, setHovered] = useState(false);
@@ -9,7 +10,7 @@ const ChatFAB = () => {
   const { pathname } = useLocation();
 
   // Ẩn khi đang ở trang chat
-  if (pathname === '/chat') return null;
+  if (pathname === ROUTES.chat) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
@@ -31,7 +32,7 @@ const ChatFAB = () => {
 
       {/* FAB button */}
       <motion.button
-        onClick={() => navigate('/chat')}
+        onClick={() => navigate(ROUTES.chat)}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
         initial={{ scale: 0, opacity: 0 }}

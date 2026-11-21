@@ -4,6 +4,7 @@ import MobileNav from '~/layouts/userLayout/components/mobileNav';
 import NotificationMenu from '~/layouts/userLayout/components/notificationMenu';
 import UserMenu from '~/layouts/userLayout/components/userMenu';
 import ScholarshipFilter from '~/components/scholarshipFilter';
+import { ROUTES } from '~/utils/routes';
 
 // Header cao 64px, chia 3 cột: logo | ô tìm kiếm | thông báo + tài khoản.
 // Từ lg: hai cột bên rộng bằng nhau (1fr) nên ô tìm kiếm luôn nằm chính giữa màn hình.
@@ -13,7 +14,7 @@ export default function UserHeader() {
     <header className="sticky top-0 z-30 grid h-header grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-line bg-surface px-3 sm:gap-4 sm:px-4 lg:grid-cols-[1fr_minmax(0,560px)_1fr] lg:gap-6 lg:px-6">
       <div className="flex items-center gap-1 justify-self-start">
         <MobileNav />
-        <Link to="/" aria-label="ScholarsGo — Trang chủ" className="flex items-center gap-2.5 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+        <Link to={ROUTES.home} aria-label="ScholarsGo — Trang chủ" className="flex items-center gap-2.5 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-brand-600">
             <AcademicCapIcon className="size-[18px] text-white" aria-hidden="true" />
           </span>

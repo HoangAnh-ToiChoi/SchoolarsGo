@@ -4,6 +4,7 @@ import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
 import { formatCurrency } from '~/utils/format';
 import { TONE_CLASS } from '~/utils/palette';
+import { ROUTES } from '~/utils/routes';
 import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineLabel, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
 
 // Dải đầu trang chi tiết: nút quay lại → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
@@ -27,7 +28,7 @@ export default function DetailHeader({ scholarship }) {
 
   return (
     <section className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
-      <BackLink to="/">Trang chủ</BackLink>
+      <BackLink to={ROUTES.home}>Trang chủ</BackLink>
 
       <div className="mt-[18px] flex flex-wrap gap-1.5">
         <DeadlineBadge deadline={deadline} />

@@ -4,6 +4,7 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { useProfile } from '~/hooks/useProfile';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
+import { ROUTES } from '~/utils/routes';
 
 // Các trường hồ sơ mà thuật toán gợi ý cần
 const REQUIRED_FIELDS = [
@@ -52,7 +53,7 @@ export default function ProfileProgressCard() {
       )}
 
       <Button asChild variant="outline" className="h-9 shrink-0">
-        <Link to={isAuthenticated ? '/dashboard' : '/login'}>{isAuthenticated ? 'Cập nhật hồ sơ' : 'Đăng nhập'}</Link>
+        <Link to={isAuthenticated ? ROUTES.dashboard : ROUTES.login}>{isAuthenticated ? 'Cập nhật hồ sơ' : 'Đăng nhập'}</Link>
       </Button>
     </Card>
   );

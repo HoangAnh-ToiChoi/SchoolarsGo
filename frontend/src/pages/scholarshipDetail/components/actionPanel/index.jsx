@@ -12,6 +12,7 @@ import { TONE_CLASS } from '~/utils/palette';
 import { getDeadlineLabel } from '~/utils/scholarship';
 import { safeUrl } from '~/utils/security';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
+import { ROUTES } from '~/utils/routes';
 
 // Nút chính: ưu tiên link nộp đơn chính thức; chưa có thì mở bài đăng gốc (nơi cào dữ liệu về).
 // URL đến từ web ngoài nên luôn qua safeUrl(); không hợp lệ thì coi như không có.
@@ -41,7 +42,7 @@ export default function ActionPanel({ scholarship }) {
     }
     try {
       await createApplication.mutateAsync({ scholarship_id: scholarship.id });
-      navigate('/applications');
+      navigate(ROUTES.applications);
     } catch {
       // Thông báo lỗi đã hiện trong useCreateApplication
     }

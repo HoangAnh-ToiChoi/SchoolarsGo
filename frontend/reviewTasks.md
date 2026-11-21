@@ -117,7 +117,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `ActionPanel` không còn `catch`; `grep -n "safeUrl" actionPanel/index.jsx` không còn gọi hai lần; lint + build qua.
 
-### ☐ T5. Đường dẫn qua `ROUTES` (R6)
+### ☑ T5. Đường dẫn qua `ROUTES` (R6)
 **Vi phạm:** đường dẫn gõ tay ở **30 chỗ trong 21 file**:
 
 `applicationDetail/index.jsx`, `applicationDetail/components/detailHeader`, `applications/index.jsx`, `compare/index.jsx`, `dashboard/index.jsx`, `deadlines/index.jsx`, `forgotPassword/index.jsx`, `login/index.jsx`, `notFound/index.jsx`, `register/index.jsx`, `resetPassword/index.jsx`, `saved/index.jsx`, `scholarshipDetail/components/actionPanel`, `scholarshipDetail/components/detailHeader`, `scholarshipDetail/components/detailMessage`, `layouts/adminLayout/components/{adminMobileNav,adminSidebar}`, `layouts/userLayout/components/{notificationMenu,userHeader,userMenu}`, `components/common/ChatFAB.jsx`.

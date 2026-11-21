@@ -13,6 +13,7 @@ import {
 } from '~/components/ui/dropdownMenu';
 import { DELETABLE_STATUSES } from '~/utils/application';
 import { formatDate } from '~/utils/format';
+import { ROUTES } from '~/utils/routes';
 import { COUNTRY_LABELS, labelOf, scholarshipPath } from '~/utils/scholarship';
 import { CAN_WITHDRAW, NEXT_ACTIONS } from '~/pages/applicationDetail/constants';
 
@@ -28,7 +29,7 @@ export default function DetailHeader({ application, busy, onStatusChange, onDele
 
   return (
     <header className="flex flex-col gap-4">
-      <BackLink to="/applications">Đơn ứng tuyển</BackLink>
+      <BackLink to={ROUTES.applications}>Đơn ứng tuyển</BackLink>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">

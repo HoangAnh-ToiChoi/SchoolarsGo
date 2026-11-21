@@ -9,6 +9,7 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { ROUTES } from '~/utils/routes';
 import ColorLegend from '~/pages/deadlines/components/colorLegend';
 import EventList from '~/pages/deadlines/components/eventList';
 import MonthCalendar from '~/pages/deadlines/components/monthCalendar';
@@ -63,7 +64,7 @@ export default function DeadlinesPage() {
               Bấm nút lưu trên thẻ học bổng hoặc tạo đơn ứng tuyển, hạn nộp sẽ tự hiện ở đây.
             </p>
             <Button asChild className="mt-5">
-              <Link to="/">Tìm học bổng</Link>
+              <Link to={ROUTES.home}>Tìm học bổng</Link>
             </Button>
           </Card>
         </Reveal>

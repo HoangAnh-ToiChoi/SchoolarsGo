@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { X, GitCompare } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { compareCleared, compareRemoved, selectCompareItems } from '~/store/slices/comparisonSlice';
+import { ROUTES } from '~/utils/routes';
 
 const ComparisonBar = () => {
   const items = useSelector(selectCompareItems);
@@ -33,7 +34,7 @@ const ComparisonBar = () => {
         <div className="flex items-center gap-3 shrink-0">
           {items.length >= 2 && (
             <Link
-              to={`/compare?ids=${items.map((s) => s.id).join(',')}`}
+              to={`${ROUTES.compare}?ids=${items.map((s) => s.id).join(',')}`}
               className="btnPrimary btnSm"
             >
               So sánh ({items.length})

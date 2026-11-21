@@ -13,6 +13,7 @@ import {
 import { useLogout } from '~/hooks/useAuth';
 import { getInitials } from '~/layouts/userLayout/helpers';
 import { selectUser } from '~/store/slices/authSlice';
+import { ROUTES } from '~/utils/routes';
 
 const ROLE_LABELS = { admin: 'Quản trị viên', user: 'Sinh viên' };
 
@@ -24,7 +25,7 @@ export default function UserMenu() {
   if (!user) {
     return (
       <Button asChild className="h-control rounded-inner px-3 sm:px-4">
-        <Link to="/login">Đăng nhập</Link>
+        <Link to={ROUTES.login}>Đăng nhập</Link>
       </Button>
     );
   }
@@ -49,9 +50,9 @@ export default function UserMenu() {
           </div>
         </div>
         <DropdownMenuSeparator className="-mx-1.5 bg-line-soft" />
-        <MenuLink to="/dashboard" icon={UserIcon}>Hồ sơ cá nhân</MenuLink>
-        <MenuLink to="/settings" icon={Cog6ToothIcon}>Cài đặt</MenuLink>
-        <MenuLink to="/settings/notifications" icon={BellIcon}>Cài đặt thông báo</MenuLink>
+        <MenuLink to={ROUTES.dashboard} icon={UserIcon}>Hồ sơ cá nhân</MenuLink>
+        <MenuLink icon={Cog6ToothIcon} disabled>Cài đặt</MenuLink>
+        <MenuLink icon={BellIcon} disabled>Cài đặt thông báo</MenuLink>
         <DropdownMenuSeparator className="-mx-1.5 bg-line-soft" />
         <DropdownMenuItem
           onSelect={() => logout.mutate()}
@@ -65,7 +66,15 @@ export default function UserMenu() {
   );
 }
 
-function MenuLink({ to, icon: Icon, children }) {
+function MenuLink({ to, icon: Icon, children, disabled }) {
+  if (disabled) {
+    return (
+      <DropdownMenuItem disabled className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-fg-muted">
+        <Icon className="size-4 text-fg-muted" aria-hidden="true" />
+        {children}
+      </DropdownMenuItem>
+    );
+  }
   return (
     <DropdownMenuItem asChild className="h-9 gap-2.5 rounded-control px-2.5 text-sm text-fg focus:bg-hover">
       <Link to={to}>

@@ -12,6 +12,7 @@ import {
 import NotificationItem from '~/layouts/userLayout/components/notificationMenu/notificationItem';
 import { useNotifications } from '~/hooks/useNotifications';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
+import { ROUTES } from '~/utils/routes';
 
 // Chuông trên header: bấm là sổ danh sách thông báo ngay tại chỗ, không có trang thông báo riêng.
 export default function NotificationMenu() {
@@ -65,7 +66,7 @@ export default function NotificationMenu() {
         {!isAuthenticated ? (
           <EmptyState text="Đăng nhập để nhận nhắc hạn nộp của học bổng đã lưu.">
             <DropdownMenuItem asChild className="mt-3 h-8 justify-center rounded-control px-3 text-[13px] font-semibold text-brand-600 focus:bg-brand-50">
-              <Link to="/login">Đăng nhập</Link>
+              <Link to={ROUTES.login}>Đăng nhập</Link>
             </DropdownMenuItem>
           </EmptyState>
         ) : isLoading ? (

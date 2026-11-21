@@ -5,6 +5,7 @@ import BackLink from '~/components/common/backLink';
 import { motion } from 'framer-motion';
 import { useResetPassword } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
+import { ROUTES } from '~/utils/routes';
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -24,7 +25,7 @@ const ResetPasswordPage = () => {
         <div className="text-center">
           <h2 className="text-xl font-semibold text-ink-100 mb-2">Link không hợp lệ</h2>
           <p className="text-ink-400 mb-4">Token đặt lại mật khẩu không tìm thấy trong URL.</p>
-          <Link to="/forgotPassword" className="text-primary-400 hover:text-primary-400 font-medium">
+          <Link to={ROUTES.forgotPassword} className="text-primary-400 hover:text-primary-400 font-medium">
             Yêu cầu link mới
           </Link>
         </div>
@@ -35,7 +36,7 @@ const ResetPasswordPage = () => {
   return (
     <motion.div className="min-h-screen bg-ink-950 flex items-center justify-center px-4 py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="w-full max-w-md">
-        <BackLink to="/login" className="mb-8">Đăng nhập</BackLink>
+        <BackLink to={ROUTES.login} className="mb-8">Đăng nhập</BackLink>
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-ink-100 mb-2">Đặt mật khẩu mới</h1>
