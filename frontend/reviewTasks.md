@@ -105,7 +105,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `DetailHeader` không còn toán tử `? :` lồng nhau; `buildHeaderTiles` có test (đủ các trường hợp thiếu `city`, `language`, `intake`, `amount`, `deadline = null`).
 
-### ☐ T4. Tách logic khỏi `ActionPanel` (R1, R3, R7, R8)
+### ☑ T4. Tách logic khỏi `ActionPanel` (R1, R3, R7, R8)
 **Vi phạm:** `pages/scholarshipDetail/components/actionPanel/index.jsx` có ≥ 9 điều kiện trong JSX; hai nhánh đếm ngược gần giống nhau; `safeUrl(source_url)` gọi hai lần; `try/catch` rỗng ở `handleCreateApplication`; `navigate('/applications')` gõ tay; chuỗi "Xem bài đăng gốc" và "(mở trong tab mới)" lặp hai lần.
 
 **Cách làm:**
