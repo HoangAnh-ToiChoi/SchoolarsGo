@@ -2,16 +2,16 @@ import BackLink from '~/components/common/backLink';
 import { Badge } from '~/components/ui/badge';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
-import { formatCurrency, formatDate } from '~/utils/format';
+import { formatCurrency } from '~/utils/format';
 import { TONE_CLASS } from '~/utils/palette';
-import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineInfo, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
+import { COUNTRY_LABELS, DEGREE_LABELS, getDeadlineLabel, getScope, labelOf, SCOPE_LABELS } from '~/utils/scholarship';
 
 // Dải đầu trang chi tiết: nút quay lại → nhãn → tên + nhà tài trợ → 4 ô thông tin chính.
 // Nền tím rất nhạt (không gradient), tràn hết bề ngang vùng nội dung.
 export default function DetailHeader({ scholarship }) {
   const { title, provider, country, city, language, degree, intake, field_of_study: field, coverage, amount, currency, deadline } = scholarship;
   const scope = getScope(scholarship);
-  const { daysLeft, tone } = getDeadlineInfo(deadline);
+  const deadlineLabel = getDeadlineLabel(deadline);
 
   const tiles = [
     { label: 'Quốc gia', value: labelOf(COUNTRY_LABELS, country), note: [city, language && `Ngôn ngữ: ${language}`].filter(Boolean).join(' · ') },
@@ -19,9 +19,9 @@ export default function DetailHeader({ scholarship }) {
     { label: 'Tài trợ', value: coverage || 'Chưa rõ', note: amount ? formatCurrency(amount, currency) : null },
     {
       label: 'Hạn nộp',
-      value: daysLeft === null ? 'Chưa công bố' : daysLeft === 0 ? 'Hết hạn hôm nay' : `còn ${daysLeft} ngày`,
-      note: daysLeft === null ? 'Theo dõi bài đăng gốc' : formatDate(deadline),
-      valueClass: TONE_CLASS[tone]?.text,
+      value: deadlineLabel.short,
+      note: deadlineLabel.note,
+      valueClass: TONE_CLASS[deadlineLabel.tone]?.text,
     },
   ];
 

@@ -4,14 +4,12 @@ import { DropdownMenuItem } from '~/components/ui/dropdownMenu';
 import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
 import { TONE_CLASS } from '~/utils/palette';
-import { getDeadlineInfo, scholarshipPath } from '~/utils/scholarship';
-
-const describe = (daysLeft) => (daysLeft === 0 ? 'hết hạn hôm nay' : `còn ${daysLeft} ngày là hết hạn`);
+import { getDeadlineLabel, scholarshipPath } from '~/utils/scholarship';
 
 export default function NotificationItem({ item, onRead }) {
   const { scholarship, application_id: applicationId, read_at: readAt } = item;
   const unread = !readAt;
-  const { daysLeft, tone } = getDeadlineInfo(scholarship.deadline);
+  const { tone, notificationDesc } = getDeadlineLabel(item.days_left ?? scholarship.deadline);
   // Nhắc theo đơn nháp thì mở trang đơn; nhắc học bổng đã lưu thì mở trang học bổng
   const to = applicationId ? `/applications/${applicationId}` : scholarshipPath(scholarship);
 
@@ -23,7 +21,7 @@ export default function NotificationItem({ item, onRead }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className={cn('block text-[13.5px] leading-snug text-fg', unread && 'font-medium')}>
-            <span className="font-semibold">{scholarship.title}</span> {describe(item.days_left ?? daysLeft)}
+            <span className="font-semibold">{scholarship.title}</span> {notificationDesc}
           </span>
           <span className="mt-0.5 block text-xs text-fg-muted">
             {applicationId ? 'Đơn đang chuẩn bị' : 'Học bổng đã lưu'} · hạn {formatDate(scholarship.deadline)}

@@ -8,9 +8,8 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { useCreateApplication } from '~/hooks/useApplication';
 import { cn } from '~/utils/cn';
-import { formatDate } from '~/utils/format';
 import { TONE_CLASS } from '~/utils/palette';
-import { getDeadlineInfo } from '~/utils/scholarship';
+import { getDeadlineLabel } from '~/utils/scholarship';
 import { safeUrl } from '~/utils/security';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
 
@@ -29,7 +28,7 @@ export default function ActionPanel({ scholarship }) {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const createApplication = useCreateApplication();
-  const { daysLeft, tone } = getDeadlineInfo(scholarship.deadline);
+  const deadlineLabel = getDeadlineLabel(scholarship.deadline);
   const primary = getPrimaryLink(scholarship);
   // Bài đăng gốc chỉ hiện thành liên kết phụ khi nút chính đang dùng link nộp đơn
   const sourceUrl = safeUrl(scholarship.source_url);
@@ -51,27 +50,25 @@ export default function ActionPanel({ scholarship }) {
   return (
     <div className="flex flex-col gap-3.5">
       <Card role="region" aria-label="Nộp hồ sơ" className="p-5">
-        {daysLeft === null ? (
+        {!deadlineLabel.hasDeadline ? (
           <div className="flex items-center gap-3.5">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-tile bg-hover text-fg-muted">
               <CalendarDaysIcon className="size-6" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-block-title text-heading">Chưa công bố hạn nộp</p>
-              <p className="mt-0.5 text-[12.5px] text-fg-muted">Nhà tài trợ chưa đăng mốc thời gian chính thức.</p>
+              <p className="text-block-title text-heading">{deadlineLabel.actionTitle}</p>
+              <p className="mt-0.5 text-[12.5px] text-fg-muted">{deadlineLabel.actionDesc}</p>
             </div>
           </div>
         ) : (
           <div className="flex items-center gap-3.5">
-            <span className={cn('flex size-14 shrink-0 flex-col items-center justify-center rounded-tile', TONE_CLASS[tone]?.box)}>
-              <span className="text-[22px] font-bold leading-none">{daysLeft}</span>
+            <span className={cn('flex size-14 shrink-0 flex-col items-center justify-center rounded-tile', TONE_CLASS[deadlineLabel.tone]?.box)}>
+              <span className="text-[22px] font-bold leading-none">{deadlineLabel.daysLeft}</span>
               <span className="text-[11px] font-semibold">ngày</span>
             </span>
             <div>
-              <p className="text-block-title text-heading">Hạn nộp {formatDate(scholarship.deadline)}</p>
-              <p className="mt-0.5 text-[12.5px] text-fg-muted">
-                {daysLeft === 0 ? 'Hôm nay là ngày cuối cùng' : `Còn ${daysLeft} ngày để chuẩn bị hồ sơ`}
-              </p>
+              <p className="text-block-title text-heading">{deadlineLabel.actionTitle}</p>
+              <p className="mt-0.5 text-[12.5px] text-fg-muted">{deadlineLabel.actionDesc}</p>
             </div>
           </div>
         )}

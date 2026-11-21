@@ -69,7 +69,7 @@ export const TONE_CLASS = {
 
 **Xong khi:** `grep -rnE "TONE_(TEXT|BOX|DOT)" src` ra **0**; `grep -rn "bg-urgent-bg text-urgent-fg" src` chỉ còn trong `utils/palette.js` (và `components/ui/`).
 
-### ☐ T2. Một hàm duy nhất cho chữ hạn nộp (R2)
+### ☑ T2. Một hàm duy nhất cho chữ hạn nộp (R2)
 **Vi phạm:** nhánh `daysLeft === null / 0 / n` lặp ở 4 file, 3 cách nói cho cùng trạng thái "chưa có hạn":
 
 | File | Dòng (tham khảo) | Chữ hiện tại |
