@@ -1,4 +1,5 @@
 import BackLink from '~/components/common/backLink';
+import PageBand from '~/components/common/pageBand';
 import { Badge } from '~/components/ui/badge';
 import DeadlineBadge from '~/components/scholarship/deadlineBadge';
 import { cn } from '~/utils/cn';
@@ -15,7 +16,7 @@ export default function DetailHeader({ scholarship }) {
   const tiles = buildHeaderTiles(scholarship);
 
   return (
-    <section className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
+    <PageBand as="section" className="border-b border-line bg-brand-50 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
       <BackLink to={ROUTES.home}>Trang chủ</BackLink>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -43,6 +44,6 @@ export default function DetailHeader({ scholarship }) {
           </div>
         ))}
       </dl>
-    </section>
+    </PageBand>
   );
 }

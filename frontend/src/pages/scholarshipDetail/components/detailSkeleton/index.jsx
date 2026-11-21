@@ -1,3 +1,4 @@
+import PageBand from '~/components/common/pageBand';
 import { Skeleton } from '~/components/ui/skeleton';
 
 // Khung chờ cùng bố cục với trang thật (dải đầu + 4 ô + 2 cột) để trang không nhảy khi tải xong.
@@ -5,7 +6,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 export default function DetailSkeleton({ notice }) {
   return (
     <div>
-      <div aria-hidden="true" className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]">
+      <PageBand aria-hidden="true" className="border-b border-line bg-brand-50 pb-[26px] pt-[22px]">
         <Skeleton className="h-4 w-56" />
         <div className="mt-[18px] flex gap-1.5">
           <Skeleton className="h-6 w-40" />
@@ -18,7 +19,7 @@ export default function DetailSkeleton({ notice }) {
             <Skeleton key={i} className="h-[86px] rounded-inner bg-surface" />
           ))}
         </div>
-      </div>
+      </PageBand>
       {notice && <div className="mt-6">{notice}</div>}
       <div aria-hidden="true" className="mt-6 grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-4">

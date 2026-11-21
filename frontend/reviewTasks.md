@@ -127,7 +127,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `grep -rnE "navigate\('|to=\"/" src/pages src/layouts src/components` ra **0** (trừ khai báo `<Route path>` trong `App.jsx` và các trang legacy).
 
-### ☐ T6. Dải đầu trang không biết padding layout (R5)
+### ☑ T6. Dải đầu trang không biết padding layout (R5)
 **Vi phạm:** lề âm `-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8` bù padding `p-4 sm:p-6 lg:p-8` của layout, lặp ở:
 - `pages/scholarshipDetail/components/detailHeader/index.jsx`
 - `pages/scholarshipDetail/components/detailSkeleton/index.jsx`
