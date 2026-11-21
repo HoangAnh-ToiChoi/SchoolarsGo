@@ -34,7 +34,7 @@ export default function DetailHeader({ application, busy, onStatusChange, onDele
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h1 className="break-words text-page-title text-fg">{scholarship.title}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-fg-muted">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-ui text-fg-muted">
             <StatusBadge status={status} />
             {/* Đơn nháp cần biết còn bao lâu; đơn đã nộp thì ngày nộp có ích hơn */}
             {status === 'draft' ? (
@@ -69,7 +69,7 @@ export default function DetailHeader({ application, busy, onStatusChange, onDele
                 <EllipsisHorizontalIcon className="size-5" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[180px]">
+            <DropdownMenuContent align="end" className="min-w-44">
               <DropdownMenuItem asChild className="sm:hidden">
                 <Link to={scholarshipPath(scholarship)}>Xem học bổng</Link>
               </DropdownMenuItem>

@@ -23,7 +23,7 @@ export default function MonthCalendar({ month, onMonthChange, selected, onSelect
           <button
             type="button"
             onClick={() => onMonthChange(new Date())}
-            className="h-8 rounded-control px-2.5 text-[13px] font-semibold text-fg-secondary transition-colors hover:bg-hover hover:text-fg"
+            className="h-8 rounded-control px-2.5 text-ui font-semibold text-fg-secondary transition-colors hover:bg-hover hover:text-fg"
           >
             Hôm nay
           </button>
@@ -38,7 +38,7 @@ export default function MonthCalendar({ month, onMonthChange, selected, onSelect
 
       <div className="grid grid-cols-7 gap-1" role="grid" aria-label="Lịch tháng">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="pb-1 text-center text-[11.5px] font-semibold text-fg-muted" role="columnheader">
+          <div key={w} className="pb-1 text-center text-label font-semibold text-fg-muted" role="columnheader">
             {w}
           </div>
         ))}
@@ -66,7 +66,7 @@ export default function MonthCalendar({ month, onMonthChange, selected, onSelect
                   {dayEvents.slice(0, MAX_DOTS).map((e) => (
                     <span key={e.id} className={cn('size-1.5 rounded-full', TONE_CLASS[e.tone]?.dot)} />
                   ))}
-                  {dayEvents.length > MAX_DOTS && <span className="text-[10px] leading-none text-fg-muted">+</span>}
+                  {dayEvents.length > MAX_DOTS && <span className="text-micro leading-none text-fg-muted">+</span>}
                 </span>
               )}
             </button>

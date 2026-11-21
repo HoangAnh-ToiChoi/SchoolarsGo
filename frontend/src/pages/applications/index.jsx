@@ -83,8 +83,8 @@ export default function ApplicationsPage() {
           {/* Tiêu đề cột chỉ hiện khi đủ rộng để các dòng xếp thành 3 cột */}
           <div className="hidden items-center gap-6 border-b border-line bg-canvas px-5 py-2.5 text-xs font-medium text-fg-muted md:flex">
             <span className="flex-1">Học bổng</span>
-            <span className="flex w-[340px] shrink-0 justify-between">
-              <span className="w-[160px]">Giấy tờ</span>
+            <span className="flex w-menu shrink-0 justify-between">
+              <span className="w-40">Giấy tờ</span>
               <span className="pr-7">Trạng thái</span>
             </span>
           </div>

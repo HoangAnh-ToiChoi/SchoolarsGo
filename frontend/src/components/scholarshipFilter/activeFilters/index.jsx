@@ -13,7 +13,7 @@ export default function ActiveFilters() {
       {entries.map(([key, value]) => (
         <span
           key={key}
-          className="inline-flex h-8 items-center gap-1.5 rounded-control border border-brand-200 bg-brand-50 pl-3 pr-1.5 text-[13px] font-semibold text-brand-700"
+          className="inline-flex h-8 items-center gap-1.5 rounded-control border border-brand-200 bg-brand-50 pl-3 pr-1.5 text-ui font-semibold text-brand-700"
         >
           {getFilterLabel(key, value)}
           <button
@@ -29,7 +29,7 @@ export default function ActiveFilters() {
       <button
         type="button"
         onClick={clearAll}
-        className="h-8 px-1.5 text-[13px] font-semibold text-fg-muted underline underline-offset-[3px] transition-colors hover:text-fg"
+        className="h-8 px-1.5 text-ui font-semibold text-fg-muted underline underline-offset-4 transition-colors hover:text-fg"
       >
         Xóa tất cả
       </button>

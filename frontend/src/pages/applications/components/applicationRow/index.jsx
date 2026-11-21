@@ -21,10 +21,10 @@ export default function ApplicationRow({ application }) {
         className="group flex flex-col gap-3 px-4 py-4 outline-none transition-colors duration-200 hover:bg-hover focus-visible:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40 sm:px-5 md:flex-row md:items-center md:gap-6"
       >
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14.5px] font-semibold text-heading transition-colors duration-200 group-hover:text-brand-600">
+          <p className="truncate text-ui-lg font-semibold text-heading transition-colors duration-200 group-hover:text-brand-600">
             {scholarship.title}
           </p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-fg-muted">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-ui text-fg-muted">
             <span className="min-w-0 truncate">
               {[scholarship.provider, labelOf(COUNTRY_LABELS, scholarship.country)].filter(Boolean).join(' · ')}
             </span>
@@ -37,8 +37,8 @@ export default function ApplicationRow({ application }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 md:w-[340px] md:shrink-0">
-          <div className="w-[160px]">
+        <div className="flex items-center justify-between gap-4 md:w-menu md:shrink-0">
+          <div className="w-40">
             {/* Từ md đã có tiêu đề cột "Giấy tờ" nên ẩn nhãn lặp lại ở từng dòng */}
             <div className="flex justify-between text-xs">
               <span className="text-fg-muted md:hidden">Giấy tờ</span>

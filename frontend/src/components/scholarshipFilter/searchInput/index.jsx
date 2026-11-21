@@ -8,7 +8,7 @@ const SearchInput = forwardRef(({ value, onChange, onFocus, isOpen, controlsId }
   <label
     className={cn(
       'flex h-control items-center gap-2.5 rounded-full border bg-surface pl-4 pr-1.5 text-fg-muted shadow-search transition-[border-color,box-shadow] duration-200',
-      isOpen ? 'border-brand-600 ring-[3px] ring-brand-600/15' : 'border-line hover:border-line-strong'
+      isOpen ? 'border-brand-600 ring ring-brand-600/15' : 'border-line hover:border-line-strong'
     )}
   >
     <MagnifyingGlassIcon className="size-4 shrink-0" aria-hidden="true" />

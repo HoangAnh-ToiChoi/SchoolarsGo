@@ -23,14 +23,14 @@ export default function DeadlineCountdown({ deadline }) {
             TONE_CLASS[deadlineLabel.tone]?.box
           )}
         >
-          <span className="text-[22px] font-bold leading-none">{deadlineLabel.daysLeft}</span>
-          <span className="text-[11px] font-semibold">ngày</span>
+          <span className="text-stat font-bold leading-none">{deadlineLabel.daysLeft}</span>
+          <span className="text-label-sm font-semibold">ngày</span>
         </span>
       )}
 
       <div>
         <p className="text-block-title text-heading">{deadlineLabel.actionTitle}</p>
-        <p className="mt-0.5 text-[12.5px] text-fg-muted">{deadlineLabel.actionDesc}</p>
+        <p className="mt-0.5 text-label text-fg-muted">{deadlineLabel.actionDesc}</p>
       </div>
     </div>
   );

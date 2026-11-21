@@ -135,7 +135,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 **Cách làm:** tạo `src/components/common/pageBand/index.jsx` (nhận `className`, `children`, tự giữ cặp lề âm + padding); hai file trên bọc bằng `<PageBand>`. Layout đổi padding thì chỉ sửa trong `PageBand`.
 **Xong khi:** `grep -rnE -- "-m[xt]-[0-9]" src/pages` không còn dòng nào bù padding layout (dòng `deadlines/components/eventList` là khớp nhầm trong chuỗi, bỏ qua; lề âm khác có lý do riêng thì ghi chú).
 
-### ☐ T7. Bỏ `[Npx]` trong className (R4)  ⚠️ cần duyệt trước khi sửa
+### ☑ T7. Bỏ `[Npx]` trong className (R4)
 **Vi phạm:** `[Npx]` ở **41 file**. Nhiều nhất: `applicationDetail/components/checklistRow` (8), `components/scholarship/scholarshipCard` (7), `scholarshipDetail/components/detailHeader` (6), `scholarshipDetail/components/actionPanel` (6), `layouts/userLayout/components/notificationMenu` (5), `scholarshipDetail/components/detailSkeleton` (4), `applications/components/applicationRow` (4). Lấy danh sách đầy đủ bằng:
 `grep -rcE "\[[0-9.]+px\]" src/pages src/layouts src/components | grep -v ":0$"` (bỏ `components/ui/`, `legacy/`).
 

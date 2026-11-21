@@ -50,8 +50,8 @@ export default function DeadlinesPage() {
 
       {isLoading && (
         <div className="flex flex-wrap items-start gap-6" aria-hidden="true">
-          <Skeleton className="h-[460px] min-w-0 flex-[999_1_560px] rounded-tile" />
-          <Skeleton className="h-[460px] flex-[1_1_300px] rounded-tile" />
+          <Skeleton className="h-calendar min-w-0 flex-[999_1_560px] rounded-tile" />
+          <Skeleton className="h-calendar flex-[1_1_300px] rounded-tile" />
         </div>
       )}
 

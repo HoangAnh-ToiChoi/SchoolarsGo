@@ -13,7 +13,7 @@ export default function ChecklistCard({ checklist, documentsById, uploadingIndex
       <div className="border-b border-line px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-block-title text-heading">Giấy tờ cần chuẩn bị</h2>
-          <span className="text-[13px] font-semibold text-fg">
+          <span className="text-ui font-semibold text-fg">
             {done}/{checklist.length} đã xong
           </span>
         </div>
@@ -55,7 +55,7 @@ export default function ChecklistCard({ checklist, documentsById, uploadingIndex
         </ul>
       )}
       {!readOnly && (
-        <p className="border-t border-line bg-canvas px-4 py-2.5 text-[12px] text-fg-muted sm:px-5">
+        <p className="border-t border-line bg-canvas px-4 py-2.5 text-label text-fg-muted sm:px-5">
           Tệp {formats} · tối đa {MAX_FILE_MB}MB · tệp tải lên cũng được lưu vào hồ sơ của bạn
         </p>
       )}

@@ -7,7 +7,7 @@ import { PROFILE_SIGNAL_FIELDS, FUTURE_SIGNAL_FIELDS, FAST_FILL_SLOT } from '~/p
 import { validateGPA, calculateCompletionScore } from '~/pages/profile/helpers';
 
 const controlClass =
-  'h-[38px] w-full rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none ' +
+  'h-nav w-full rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none ' +
   'transition-[border-color,box-shadow] duration-150 placeholder:text-fg-muted ' +
   'focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 disabled:bg-hover disabled:cursor-not-allowed';
 
@@ -60,7 +60,7 @@ export default function ProfileForm({ profile = {} }) {
         >
           <Sparkles className="size-3.5 text-brand-600" aria-hidden="true" />
           <span>{FAST_FILL_SLOT.label}</span>
-          <span className="rounded bg-canvas px-1.5 py-0.5 text-[10px] text-fg-muted">
+          <span className="rounded bg-canvas px-1.5 py-0.5 text-micro text-fg-muted">
             {FAST_FILL_SLOT.badge}
           </span>
         </Button>
@@ -154,7 +154,7 @@ export default function ProfileForm({ profile = {} }) {
               <label htmlFor={`slot-${slot.key}`} className="text-xs font-semibold text-fg-soft">
                 {slot.label}
               </label>
-              <span className="text-[10px] text-fg-muted">Sắp ra mắt</span>
+              <span className="text-micro text-fg-muted">Sắp ra mắt</span>
             </div>
             <input
               id={`slot-${slot.key}`}

@@ -27,7 +27,7 @@ export default function ProfileProgressCard() {
     <Card className="flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3.5">
       <div className="min-w-0 flex-[1_1_240px]">
         <h2 className="text-block-title">{isAuthenticated ? 'Hoàn thiện hồ sơ' : 'Nhận gợi ý học bổng'}</h2>
-        <p className="mt-0.5 truncate text-[13px] text-fg-muted">
+        <p className="mt-0.5 truncate text-ui text-fg-muted">
           {!isAuthenticated
             ? 'Đăng nhập và điền hồ sơ để hệ thống gợi ý học bổng hợp với bạn.'
             : missing.length > 0
@@ -48,7 +48,7 @@ export default function ProfileProgressCard() {
           >
             <div className="h-full rounded-full bg-brand-600 transition-[width] duration-500" style={{ width: `${percent}%` }} />
           </div>
-          <span className="text-[13px] font-bold text-brand-700">{percent}%</span>
+          <span className="text-ui font-bold text-brand-700">{percent}%</span>
         </div>
       )}
 

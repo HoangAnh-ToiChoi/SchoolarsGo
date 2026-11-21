@@ -23,7 +23,7 @@ export default function NotesCard({ notes, saving, onSave }) {
         className="mt-3 w-full resize-y rounded-inner border border-line bg-surface px-3 py-2.5 text-sm text-fg placeholder:text-fg-muted focus-visible:border-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
       />
       <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-[12px] text-fg-muted" aria-live="polite">
+        <span className="text-label text-fg-muted" aria-live="polite">
           {dirty ? 'Chưa lưu' : ''}
         </span>
         <Button

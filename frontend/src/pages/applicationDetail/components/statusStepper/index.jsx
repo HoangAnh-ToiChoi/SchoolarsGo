@@ -41,7 +41,7 @@ export default function StatusStepper({ status }) {
               )}
               <span
                 className={cn(
-                  'relative flex size-6 items-center justify-center rounded-full border-2 text-[11px] font-bold',
+                  'relative flex size-6 items-center justify-center rounded-full border-2 text-label-sm font-bold',
                   failed
                     ? 'border-urgent-fg bg-urgent-fg text-white'
                     : won
@@ -57,7 +57,7 @@ export default function StatusStepper({ status }) {
               </span>
               <span
                 className={cn(
-                  'mt-2 text-[12px] leading-tight',
+                  'mt-2 text-label leading-tight',
                   failed
                     ? 'font-semibold text-urgent-fg'
                     : won

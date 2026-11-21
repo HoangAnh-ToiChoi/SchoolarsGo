@@ -14,7 +14,7 @@ export default function FilterPanel({ id, isOpen, draft, countryOptions, onField
     // Từ lg: căn giữa theo ô tìm kiếm như thiết kế.
     <div
       className={cn(
-        'fixed inset-x-3 top-[72px] z-40 max-h-[calc(100dvh-84px)] overflow-y-auto rounded-tile',
+        'fixed inset-x-3 top-filter z-40 max-h-[calc(100dvh-84px)] overflow-y-auto rounded-tile',
         'lg:absolute lg:inset-x-auto lg:left-1/2 lg:top-[calc(100%+10px)] lg:max-h-none lg:w-[min(760px,calc(100vw-48px))] lg:-translate-x-1/2 lg:overflow-visible',
         !isOpen && 'hidden'
       )}

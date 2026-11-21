@@ -123,7 +123,7 @@ export default function ApplicationDetailPage() {
           onUpload={handleUpload}
           onDetach={handleDetach}
         />
-        <div className="lg:sticky lg:top-[88px]">
+        <div className="lg:sticky lg:top-sticky">
           <NotesCard
             key={app.id}
             notes={app.notes}

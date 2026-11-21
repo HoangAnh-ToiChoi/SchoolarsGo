@@ -20,7 +20,7 @@ export default function NotificationItem({ item, onRead }) {
           <ClockIcon className="size-4" aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className={cn('block text-[13.5px] leading-snug text-fg', unread && 'font-medium')}>
+          <span className={cn('block text-ui-lg leading-snug text-fg', unread && 'font-medium')}>
             <span className="font-semibold">{scholarship.title}</span> {notificationDesc}
           </span>
           <span className="mt-0.5 block text-xs text-fg-muted">

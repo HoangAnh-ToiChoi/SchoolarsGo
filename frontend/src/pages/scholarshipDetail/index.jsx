@@ -62,7 +62,7 @@ export default function ScholarshipDetailPage() {
           <DetailTabs sections={sections} />
         </div>
         {/* Màn hình hẹp: khung hành động lên trước nội dung để nút nộp đơn luôn trong tầm mắt */}
-        <aside aria-label="Hành động" className="order-first mt-6 lg:sticky lg:top-[88px] lg:order-none">
+        <aside aria-label="Hành động" className="order-first mt-6 lg:sticky lg:top-sticky lg:order-none">
           <ActionPanel scholarship={scholarship} />
         </aside>
       </Reveal>

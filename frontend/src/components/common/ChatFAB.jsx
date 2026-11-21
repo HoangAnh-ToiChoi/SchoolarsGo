@@ -53,7 +53,7 @@ const ChatFAB = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 22, delay: 1 }}
-          className="absolute -top-1.5 -right-1.5 bg-ink-950 border border-primary-400/50 text-primary-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none z-10"
+          className="absolute -top-1.5 -right-1.5 bg-ink-950 border border-primary-400/50 text-primary-400 text-micro font-bold px-1.5 py-0.5 rounded-full leading-none z-10"
         >
           AI
         </motion.span>

@@ -19,7 +19,7 @@ const ComparisonBar = () => {
         <div className="flex flex-1 items-center gap-3 overflow-x-auto">
           {items.map((s) => (
             <div key={s.id} className="flex items-center gap-2 bg-ink-900 border border-ink-800 rounded-lg px-3 py-1.5 shrink-0">
-              <span className="text-body-sm font-medium text-ink-200 max-w-[160px] truncate">{s.title}</span>
+              <span className="text-body-sm font-medium text-ink-200 max-w-40 truncate">{s.title}</span>
               <button onClick={() => remove(s.id)} className="text-ink-500 hover:text-ink-100 transition-colors">
                 <X className="w-3.5 h-3.5" />
               </button>

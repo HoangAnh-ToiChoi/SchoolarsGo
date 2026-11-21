@@ -24,11 +24,11 @@ export default function ChecklistRow({ item, document, uploading, readOnly, onTo
 
   const fileUrl = safeUrl(document?.file_url);
   const mark = item.done ? (
-    <CheckCircleIcon className="size-[22px] shrink-0 text-open-fg" aria-hidden="true" />
+    <CheckCircleIcon className="size-5 shrink-0 text-open-fg" aria-hidden="true" />
   ) : (
     <span
       aria-hidden="true"
-      className="size-[22px] shrink-0 rounded-full border-2 border-line transition-colors duration-150 group-hover:border-brand-600"
+      className="size-5 shrink-0 rounded-full border-2 border-line transition-colors duration-150 group-hover:border-brand-600"
     />
   );
   const name = (
@@ -41,7 +41,7 @@ export default function ChecklistRow({ item, document, uploading, readOnly, onTo
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5">
       {readOnly ? (
-        <div className="flex min-w-[140px] flex-1 items-center gap-3">
+        <div className="flex min-w-36 flex-1 items-center gap-3">
           {mark}
           {name}
         </div>
@@ -51,7 +51,7 @@ export default function ChecklistRow({ item, document, uploading, readOnly, onTo
           role="checkbox"
           aria-checked={item.done}
           onClick={onToggle}
-          className="group flex min-w-[140px] flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="group flex min-w-36 flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           {mark}
           {name}
@@ -59,22 +59,22 @@ export default function ChecklistRow({ item, document, uploading, readOnly, onTo
       )}
 
       {document ? (
-        <div className="ml-[34px] flex min-w-0 max-w-[calc(100%-34px)] items-center gap-1 rounded-inner border border-line bg-canvas py-1 pl-2.5 pr-1 sm:ml-0 sm:max-w-[260px]">
+        <div className="ml-8 flex min-w-0 max-w-[calc(100%-2rem)] items-center gap-1 rounded-inner border border-line bg-canvas py-1 pl-2.5 pr-1 sm:ml-0 sm:max-w-64">
           <DocumentTextIcon className="size-4 shrink-0 text-brand-600" aria-hidden="true" />
           {fileUrl ? (
             <a
               href={fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-w-0 truncate text-[13px] font-medium text-fg hover:text-brand-600 hover:underline"
+              className="min-w-0 truncate text-ui font-medium text-fg hover:text-brand-600 hover:underline"
             >
               {document.file_name}
             </a>
           ) : (
-            <span className="min-w-0 truncate text-[13px] font-medium text-fg">{document.file_name}</span>
+            <span className="min-w-0 truncate text-ui font-medium text-fg">{document.file_name}</span>
           )}
           {document.file_size > 0 && (
-            <span className="shrink-0 text-[11.5px] text-fg-muted">{formatFileSize(document.file_size)}</span>
+            <span className="shrink-0 text-label text-fg-muted">{formatFileSize(document.file_size)}</span>
           )}
           {!readOnly && (
             <button

@@ -36,13 +36,13 @@ export default function UserMenu() {
       <DropdownMenuTrigger aria-label="Tài khoản" className="flex h-control items-center gap-2.5 rounded-inner pl-1 pr-1 md:pr-2 outline-none transition-colors duration-200 hover:bg-hover focus-visible:ring-2 focus-visible:ring-brand-600/30 data-[state=open]:bg-hover">
         <Initials value={initials} />
         <span className="hidden flex-col items-start leading-tight md:flex">
-          <span className="text-[13.5px] font-semibold">{user.full_name}</span>
+          <span className="text-ui-lg font-semibold">{user.full_name}</span>
           <span className="text-xs text-fg-muted">{ROLE_LABELS[user.role] ?? ROLE_LABELS.user}</span>
         </span>
         <ChevronDownIcon className="hidden size-4 text-fg-muted md:block" aria-hidden="true" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" sideOffset={8} className="w-[248px] rounded-xl border-line p-1.5 shadow-menu">
+      <DropdownMenuContent align="end" sideOffset={8} className="w-user-menu rounded-xl border-line p-1.5 shadow-menu">
         <div className="flex items-center gap-2.5 px-2 pb-2.5 pt-2">
           <Initials value={initials} className="size-9" />
           <div className="min-w-0">

@@ -16,7 +16,7 @@ export default function DetailHeader({ scholarship }) {
   const tiles = buildHeaderTiles(scholarship);
 
   return (
-    <PageBand as="section" className="border-b border-line bg-brand-50 pb-[26px] pt-[22px]" aria-labelledby="scholarship-title">
+    <PageBand as="section" className="border-b border-line bg-brand-50 py-6" aria-labelledby="scholarship-title">
       <BackLink to={ROUTES.home}>Trang chủ</BackLink>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -24,7 +24,7 @@ export default function DetailHeader({ scholarship }) {
         <Badge variant={SCOPE_VARIANT[scope] || 'abroad'}>{SCOPE_LABELS[scope]}</Badge>
       </div>
 
-      <h1 id="scholarship-title" className="mt-3 break-words text-page-title text-heading sm:text-[30px] sm:leading-[38px]">
+      <h1 id="scholarship-title" className="mt-3 break-words text-page-title text-heading sm:text-hero-title">
         {title}
       </h1>
       {provider && <p className="mt-1.5 text-sm text-fg-secondary">{provider}</p>}

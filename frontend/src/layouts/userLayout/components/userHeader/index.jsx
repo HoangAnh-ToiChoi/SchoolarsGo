@@ -15,10 +15,10 @@ export default function UserHeader() {
       <div className="flex items-center gap-1 justify-self-start">
         <MobileNav />
         <Link to={ROUTES.home} aria-label="ScholarsGo — Trang chủ" className="flex items-center gap-2.5 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-brand-600">
-            <AcademicCapIcon className="size-[18px] text-white" aria-hidden="true" />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-inner bg-brand-600">
+            <AcademicCapIcon className="size-4.5 text-white" aria-hidden="true" />
           </span>
-          <span className="hidden text-[17px] font-bold tracking-[-0.02em] text-fg sm:inline">ScholarsGo</span>
+          <span className="hidden text-card-title text-fg sm:inline">ScholarsGo</span>
         </Link>
       </div>
 
