@@ -3,13 +3,8 @@ import { useUpdateProfile, useDocuments } from '~/hooks/useProfile';
 import { Button } from '~/components/ui/button';
 import { Sparkles } from 'lucide-react';
 import { cn } from '~/utils/cn';
-import {
-  PROFILE_SIGNAL_FIELDS,
-  FUTURE_SIGNAL_FIELDS,
-  FAST_FILL_SLOT,
-  validateGPA,
-  calculateCompletionScore,
-} from '../../helper';
+import { PROFILE_SIGNAL_FIELDS, FUTURE_SIGNAL_FIELDS, FAST_FILL_SLOT } from '~/pages/profile/constants';
+import { validateGPA, calculateCompletionScore } from '~/pages/profile/helpers';
 
 const controlClass =
   'h-[38px] w-full rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none ' +

@@ -4,7 +4,8 @@ import { ArrowUpTrayIcon, CheckCircleIcon, DocumentTextIcon, XMarkIcon } from '@
 import { Button } from '~/components/ui/button';
 import { cn } from '~/utils/cn';
 import { safeUrl } from '~/utils/security';
-import { ACCEPTED_FILES, formatFileSize, validateFile } from '~/pages/applicationDetail/helper';
+import { ACCEPTED_FILES } from '~/pages/applicationDetail/constants';
+import { formatFileSize, validateFile } from '~/pages/applicationDetail/helpers';
 
 // Một giấy tờ: tick đã xong | tên | tệp đính kèm hoặc nút tải lên — tất cả trên một dòng,
 // thay cho khối tải lên riêng phải chọn loại tài liệu như trước.

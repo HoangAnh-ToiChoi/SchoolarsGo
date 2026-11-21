@@ -3,7 +3,7 @@ import { addMonths, format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import { TONE_DOT } from '~/pages/deadlines/constants';
-import { getMonthDays } from '~/pages/deadlines/helper';
+import { getMonthDays } from '~/pages/deadlines/helpers';
 import { cn } from '~/utils/cn';
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];

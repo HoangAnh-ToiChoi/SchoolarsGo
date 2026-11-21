@@ -14,7 +14,7 @@ import {
 import { DELETABLE_STATUSES } from '~/utils/application';
 import { formatDate } from '~/utils/format';
 import { COUNTRY_LABELS, labelOf, scholarshipPath } from '~/utils/scholarship';
-import { CAN_WITHDRAW, NEXT_ACTIONS } from '~/pages/applicationDetail/helper';
+import { CAN_WITHDRAW, NEXT_ACTIONS } from '~/pages/applicationDetail/constants';
 
 // Đầu trang: tên học bổng + trạng thái + hạn nộp bên trái, việc cần làm tiếp bên phải.
 // Mọi thông tin chính nằm trên một dải để không phải lia mắt xuống cột bên.

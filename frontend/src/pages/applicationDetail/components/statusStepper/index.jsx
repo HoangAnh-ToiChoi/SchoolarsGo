@@ -1,7 +1,8 @@
 import { CheckIcon } from '@heroicons/react/16/solid';
 import { Card } from '~/components/ui/card';
 import { cn } from '~/utils/cn';
-import { getStepIndex, STEPS } from '~/pages/applicationDetail/helper';
+import { STEPS } from '~/pages/applicationDetail/constants';
+import { getStepIndex } from '~/pages/applicationDetail/helpers';
 
 // Thanh tiến trình đơn: nhìn một lần là biết đơn đang ở chặng nào.
 // Chặng cuối đổi chữ/màu theo kết quả (được nhận = xanh, từ chối = đỏ).

@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { Badge } from '~/components/ui/badge';
-import { statusLabel, TONE_DOT } from '~/pages/deadlines/constants';
+import { TONE_DOT } from '~/pages/deadlines/constants';
+import { getStatusLabel } from '~/pages/deadlines/helpers';
 import { cn } from '~/utils/cn';
 import { scholarshipPath } from '~/utils/scholarship';
 
@@ -32,7 +33,7 @@ export default function EventList({ events, emptyText }) {
               </div>
             </div>
             <Badge variant={e.status ? 'brand' : 'neutral'} className="shrink-0">
-              {e.status ? statusLabel(e.status) : 'Đã lưu'}
+              {e.status ? getStatusLabel(e.status) : 'Đã lưu'}
             </Badge>
           </Link>
         </li>

@@ -1,0 +1,1 @@
+export { BULLET } from './bulletPattern';

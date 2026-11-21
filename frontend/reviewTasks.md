@@ -24,7 +24,7 @@ Nguồn: rà soát 2026-11-20 bằng `grep` trên `pages/ layouts/ components/` 
 
 ## Danh sách việc
 
-### ☐ T0. Tách file lẻ theo khung thư mục trang (R10)  ← làm đầu tiên
+### ☑ T0. Tách file lẻ theo khung thư mục trang (R10)  ← làm đầu tiên
 Mỗi trang/layout phải theo khung `components/ hooks/ helpers/ constants/` (mỗi thư mục có `index.js`), không còn file lẻ cạnh `index.jsx`. Các việc T1–T6 phía dưới đều đặt file mới vào khung này, nên T0 phải xong trước.
 
 - **Kiểm tra:** `find src/pages src/layouts -maxdepth 3 \( -name "helper*.js" -o -name "constants.js" -o -name "navConfig.js" -o -name "use*.js" \) -not -path "*/hooks/*"` phải ra **rỗng**. Hiện đang ra các file sau, cần tách:

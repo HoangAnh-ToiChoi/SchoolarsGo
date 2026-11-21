@@ -1,6 +1,6 @@
 import { Card } from '~/components/ui/card';
 import ChecklistRow from '~/pages/applicationDetail/components/checklistRow';
-import { ACCEPTED_FILES, MAX_FILE_MB } from '~/pages/applicationDetail/helper';
+import { ACCEPTED_FILES, MAX_FILE_MB } from '~/pages/applicationDetail/constants';
 
 // Giấy tờ cần chuẩn bị: tiến độ ở đầu thẻ, mỗi giấy tờ một dòng kèm tệp của nó.
 export default function ChecklistCard({ checklist, documentsById, uploadingIndex, readOnly, onToggle, onUpload, onDetach }) {

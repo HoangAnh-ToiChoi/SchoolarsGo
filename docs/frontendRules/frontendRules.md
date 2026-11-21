@@ -115,4 +115,5 @@ Thêm dòng mới **lên đầu bảng**. Cột "Đã sửa ở" ghi trang/file 
 
 | Ngày | Lỗi / điểm yếu đã gặp | Quy tắc rút ra | Đã sửa ở |
 |---|---|---|---|
+| 2026-11-21 | File phụ (`helper*.js`, `constants.js`, `navConfig.js`, `use*.js`) đặt lẻ cạnh `index.jsx`; hàm và hằng số bị gộp lẫn lộn (`statusLabel` trong `constants.js`, `FOLLOW_UP_DAYS` trong `helper.js`); tồn tại code thừa (`formatFileSize` trong profile) | Bắt buộc cấu trúc thư mục trang/layout theo `components/ hooks/ helpers/ constants/` (mỗi thư mục có `index.js` re-export). Mỗi file một hàm/hằng số duy nhất <= 200 dòng. Không để file lẻ ở cấp gốc trang (R10, R11) | `pages/{applications, applicationDetail, scholarshipDetail, profile, deadlines}`, `layouts/{userLayout, adminLayout}` |
 | 2026-11-20 | Cookie `accessToken` hết hạn (server báo `ACCESS_TOKEN_MISSING`) nhưng FE chỉ refresh khi `EXPIRED` → bị đăng xuất | Interceptor refresh với **cả hai** mã `ACCESS_TOKEN_EXPIRED` và `ACCESS_TOKEN_MISSING` (`REFRESHABLE_CODES`) | `utils/apiClient.js` |

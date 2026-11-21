@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { NAV_SECTIONS } from '~/layouts/userLayout/components/sidebarNav/navConfig';
+import { NAV_SECTIONS } from '~/layouts/userLayout/constants';
 import { cn } from '~/utils/cn';
 
 // Danh sách mục điều hướng, dùng chung cho sidebar (máy tính) và menu trượt (điện thoại).

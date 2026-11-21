@@ -13,7 +13,7 @@ import DetailHeader from '~/pages/applicationDetail/components/detailHeader';
 import DetailSkeleton from '~/pages/applicationDetail/components/detailSkeleton';
 import NotesCard from '~/pages/applicationDetail/components/notesCard';
 import StatusStepper from '~/pages/applicationDetail/components/statusStepper';
-import { guessDocType, parseChecklist } from '~/pages/applicationDetail/helper';
+import { guessDocType, parseChecklist } from '~/pages/applicationDetail/helpers';
 
 // Trạng thái không quay lại được nên hỏi lại trước khi đổi
 const FINAL_STATUSES = ['withdrawn', 'rejected', 'accepted'];

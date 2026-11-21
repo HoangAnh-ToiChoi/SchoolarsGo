@@ -11,7 +11,7 @@ import DetailMessage from '~/pages/scholarshipDetail/components/detailMessage';
 import DetailTabs from '~/pages/scholarshipDetail/components/detailTabs';
 import DetailSkeleton from '~/pages/scholarshipDetail/components/detailSkeleton';
 import SimilarScholarships from '~/pages/scholarshipDetail/components/similarScholarships';
-import { buildSections } from '~/pages/scholarshipDetail/helper';
+import { buildSections } from '~/pages/scholarshipDetail/helpers';
 
 // Trang chi tiết học bổng (/scholarships/:slug). :slug là slug của học bổng; link cũ dùng UUID vẫn mở được
 // (backend nhận cả hai). Trang chỉ ghép component, không gọi API trực tiếp.

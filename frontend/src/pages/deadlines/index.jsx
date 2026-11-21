@@ -12,7 +12,7 @@ import { useSlowLoading } from '~/hooks/useSlowLoading';
 import ColorLegend from '~/pages/deadlines/components/colorLegend';
 import EventList from '~/pages/deadlines/components/eventList';
 import MonthCalendar from '~/pages/deadlines/components/monthCalendar';
-import { useDeadlineEvents } from '~/pages/deadlines/useDeadlineEvents';
+import { useDeadlineEvents } from '~/pages/deadlines/hooks';
 
 const UPCOMING_LIMIT = 6;
 const cardClass = 'p-5';

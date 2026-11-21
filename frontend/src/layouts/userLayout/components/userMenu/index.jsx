@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdownMenu';
 import { useLogout } from '~/hooks/useAuth';
-import { getInitials } from '~/layouts/userLayout/helper';
+import { getInitials } from '~/layouts/userLayout/helpers';
 import { selectUser } from '~/store/slices/authSlice';
 
 const ROLE_LABELS = { admin: 'Quản trị viên', user: 'Sinh viên' };

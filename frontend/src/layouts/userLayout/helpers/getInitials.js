@@ -1,5 +1,3 @@
-// Tính toán chỉ dùng trong layout người dùng
-
 // "Trần Hoàng Anh" → "TA" để hiện trong avatar
 export function getInitials(name = '') {
   const parts = name.trim().split(/\s+/).filter(Boolean);

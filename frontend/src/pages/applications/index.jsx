@@ -12,7 +12,8 @@ import { MAX_LIMIT } from '~/utils/constants';
 import { sortByDeadline } from '~/utils/scholarship';
 import ApplicationRow from '~/pages/applications/components/applicationRow';
 import ApplicationRowSkeleton from '~/pages/applications/components/applicationRowSkeleton';
-import { inStage, STAGES } from '~/pages/applications/helper';
+import { STAGES } from '~/pages/applications/constants';
+import { inStage } from '~/pages/applications/helpers';
 
 // Đơn ứng tuyển: dạng danh sách (khác lưới thẻ của trang chủ/đã lưu) vì việc chính ở đây là
 // theo dõi tiến độ từng đơn. Lọc theo chặng ở máy khách để số đếm trên tab luôn đúng.
