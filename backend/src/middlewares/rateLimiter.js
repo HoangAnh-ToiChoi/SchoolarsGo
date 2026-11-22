@@ -26,4 +26,15 @@ const apiLimiter = isProd
 const uploadLimiter = createLimiter(20, 60, 'Quá nhiều yêu cầu tải lên, vui lòng thử lại sau.');
 const refreshLimiter = createLimiter(30, 15 * 60, 'Quá nhiều yêu cầu làm mới phiên, vui lòng thử lại sau.');
 
-export { authLimiter, apiLimiter, uploadLimiter, refreshLimiter, createLimiter };
+// Đọc CV tốn lượt Gemini: production 5 lần / ngày / người (dev nới lỏng để thử). Cần chạy sau auth để có req.user.
+const CV_LIMIT = isProd ? 5 : 100;
+const cvLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: CV_LIMIT,
+  keyGenerator: req => req.user.id,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => res.error({ statusCode: 429, message: 'Bạn đã dùng hết lượt đọc CV hôm nay.', code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
+});
+
+export { authLimiter, apiLimiter, uploadLimiter, refreshLimiter, cvLimiter, createLimiter };
