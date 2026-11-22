@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FileQuestion } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ROUTES } from '~/utils/routes';
 
 const NotFoundPage = () => {
   return (
@@ -10,7 +11,7 @@ const NotFoundPage = () => {
       <p className="text-lg text-ink-400 mb-8 max-w-md">
         Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
       </p>
-      <Link to="/" className="btnPrimary btnLg">Về Trang Chủ</Link>
+      <Link to={ROUTES.home} className="btnPrimary btnLg">Về Trang Chủ</Link>
     </motion.div>
   );
 };

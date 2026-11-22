@@ -9,7 +9,7 @@ export default function CheckList({ items, tone = 'brand' }) {
     <ul className="flex flex-col gap-2.5">
       {items.map((item, i) => (
         <li key={`${i}-${item}`} className="flex gap-2.5 text-sm leading-[1.55] text-fg">
-          <CheckCircleIcon className={cn('mt-px size-[18px] shrink-0', TONE_CLASS[tone])} aria-hidden="true" />
+          <CheckCircleIcon className={cn('mt-px size-4.5 shrink-0', TONE_CLASS[tone])} aria-hidden="true" />
           <span>{item}</span>
         </li>
       ))}

@@ -25,13 +25,13 @@ export default function FilterBar() {
             type="button"
             variant="outline"
             onClick={() => apply({ ...filters, degree: d.value })}
-            className="h-filter border-dashed border-line-strong px-3 text-[13px] font-medium text-fg"
+            className="h-filter border-dashed border-line-strong px-3 text-ui font-medium text-fg"
           >
             <PlusIcon className="text-fg-muted" aria-hidden="true" />
             {d.label}
           </Button>
         ))}
-      <span className="ml-auto text-[13px] text-fg-muted">
+      <span className="ml-auto text-ui text-fg-muted">
         Sắp xếp: <strong className="font-semibold text-fg">Hạn nộp gần nhất</strong>
       </span>
     </div>

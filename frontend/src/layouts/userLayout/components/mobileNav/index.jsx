@@ -15,8 +15,8 @@ export default function MobileNav() {
           <Bars3Icon className="size-5" aria-hidden="true" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] px-3 py-5">
-        <SheetTitle className="px-3 pb-4 text-[17px] font-bold text-fg">ScholarsGo</SheetTitle>
+      <SheetContent side="left" className="w-action-panel px-3 py-5">
+        <SheetTitle className="px-3 pb-4 text-card-title text-fg">ScholarsGo</SheetTitle>
         <SheetDescription className="sr-only">Điều hướng chính</SheetDescription>
         <nav aria-label="Điều hướng chính">
           <SidebarNav onNavigate={() => setIsOpen(false)} />

@@ -5,10 +5,11 @@ import { useDispatch } from 'react-redux';
 import { loggedIn, loggedOut, sessionLoading } from '~/store/slices/authSlice';
 import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ROUTES } from '~/utils/routes';
 
 const getRedirect = search => {
   const requested = new URLSearchParams(search).get('redirect');
-  return requested?.startsWith('/') && !requested.startsWith('//') ? requested : '/';
+  return requested?.startsWith('/') && !requested.startsWith('//') ? requested : ROUTES.home;
 };
 
 export const useSessionBootstrap = () => {
@@ -51,7 +52,7 @@ export const useRegister = () => {
       const { user } = response.data.data;
       dispatch(loggedIn(user));
       toast.success('Đăng ký thành công! Chào mừng bạn đến với ScholarsGo');
-      navigate('/');
+      navigate(ROUTES.home);
     },
     onError: error => toast.error(error.message || 'Đăng ký thất bại'),
   });
@@ -62,7 +63,7 @@ export const useLogout = () => {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: () => authService.logout(),
-    onSettled: () => { dispatch(loggedOut()); navigate('/'); },
+    onSettled: () => { dispatch(loggedOut()); navigate(ROUTES.home); },
   });
 };
 
@@ -83,7 +84,7 @@ export const useResetPassword = () => {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: ({ token, password }) => authService.resetPassword(token, password),
-    onSuccess: () => { toast.success('Đặt lại mật khẩu thành công! Vui lòng đăng nhập.'); navigate('/login'); },
+    onSuccess: () => { toast.success('Đặt lại mật khẩu thành công! Vui lòng đăng nhập.'); navigate(ROUTES.login); },
     onError: error => toast.error(error.message || 'Token không hợp lệ hoặc đã hết hạn'),
   });
 };

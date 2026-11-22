@@ -59,12 +59,12 @@ export default function HomePage() {
               type="button"
               variant="outline"
               onClick={() => dispatch(filterOpened())}
-              className="h-control rounded-inner px-3 text-[13px]"
+              className="h-control rounded-inner px-3 text-ui"
             >
               <AdjustmentsHorizontalIcon aria-hidden="true" />
               Bộ lọc
               {activeCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[11px] text-white">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-label-sm text-white">
                   {activeCount}
                 </span>
               )}

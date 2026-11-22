@@ -24,7 +24,7 @@ Nguồn: rà soát 2026-11-20 bằng `grep` trên `pages/ layouts/ components/` 
 
 ## Danh sách việc
 
-### ☐ T0. Tách file lẻ theo khung thư mục trang (R10)  ← làm đầu tiên
+### ☑ T0. Tách file lẻ theo khung thư mục trang (R10)  ← làm đầu tiên
 Mỗi trang/layout phải theo khung `components/ hooks/ helpers/ constants/` (mỗi thư mục có `index.js`), không còn file lẻ cạnh `index.jsx`. Các việc T1–T6 phía dưới đều đặt file mới vào khung này, nên T0 phải xong trước.
 
 - **Kiểm tra:** `find src/pages src/layouts -maxdepth 3 \( -name "helper*.js" -o -name "constants.js" -o -name "navConfig.js" -o -name "use*.js" \) -not -path "*/hooks/*"` phải ra **rỗng**. Hiện đang ra các file sau, cần tách:
@@ -44,7 +44,7 @@ Mỗi trang/layout phải theo khung `components/ hooks/ helpers/ constants/` (m
 - **Chỉ tách trong phạm vi trang (R11):** hàm / hằng số / hook chỉ một trang dùng thì ở lại `pages/<trang>/…`. **Không** đưa sang `utils/` hay `hooks/` gốc nếu chưa có ≥ 2 trang dùng. `formatFileSize` của `applicationDetail` và của `profile` là hai hàm **khác nhau** (khác kết quả), không phải dùng chung: để riêng.
 - **Xong khi:** lệnh `find` trên rỗng; `npm run lint` + `npm run build` qua; mở thử các trang `deadlines`, `applications`, `applications/:id`, `profile`, `scholarships/:slug` thấy giao diện y như cũ.
 
-### ☐ T1. Gom bản đồ màu theo mức gấp (R2)
+### ☑ T1. Gom bản đồ màu theo mức gấp (R2)
 **Vi phạm:** cùng một bản đồ `tone → class` bị chép ở 4 nơi:
 
 | File | Bản đồ |
@@ -69,7 +69,7 @@ export const TONE_CLASS = {
 
 **Xong khi:** `grep -rnE "TONE_(TEXT|BOX|DOT)" src` ra **0**; `grep -rn "bg-urgent-bg text-urgent-fg" src` chỉ còn trong `utils/palette.js` (và `components/ui/`).
 
-### ☐ T2. Một hàm duy nhất cho chữ hạn nộp (R2)
+### ☑ T2. Một hàm duy nhất cho chữ hạn nộp (R2)
 **Vi phạm:** nhánh `daysLeft === null / 0 / n` lặp ở 4 file, 3 cách nói cho cùng trạng thái "chưa có hạn":
 
 | File | Dòng (tham khảo) | Chữ hiện tại |
@@ -95,7 +95,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `grep -rnE "daysLeft === (null|0)" src` chỉ còn trong `utils/scholarship.js`. Viết test cho `getDeadlineLabel` (3 nhánh: `null`, `0`, `n`) theo R9.
 
-### ☐ T3. Tách logic khỏi `DetailHeader` (R1, R3)
+### ☑ T3. Tách logic khỏi `DetailHeader` (R1, R3)
 **Vi phạm:** `pages/scholarshipDetail/components/detailHeader/index.jsx` dựng mảng `tiles` ngay trong component, có ternary lồng và `.filter(Boolean).join`. Nhãn "Quốc gia / Bậc học / Tài trợ / Hạn nộp" và "Chưa rõ" viết cứng; `scope === 'domestic' ? 'domestic' : 'abroad'` là phép đổi tên nằm trong JSX.
 
 **Cách làm:**
@@ -105,7 +105,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `DetailHeader` không còn toán tử `? :` lồng nhau; `buildHeaderTiles` có test (đủ các trường hợp thiếu `city`, `language`, `intake`, `amount`, `deadline = null`).
 
-### ☐ T4. Tách logic khỏi `ActionPanel` (R1, R3, R7, R8)
+### ☑ T4. Tách logic khỏi `ActionPanel` (R1, R3, R7, R8)
 **Vi phạm:** `pages/scholarshipDetail/components/actionPanel/index.jsx` có ≥ 9 điều kiện trong JSX; hai nhánh đếm ngược gần giống nhau; `safeUrl(source_url)` gọi hai lần; `try/catch` rỗng ở `handleCreateApplication`; `navigate('/applications')` gõ tay; chuỗi "Xem bài đăng gốc" và "(mở trong tab mới)" lặp hai lần.
 
 **Cách làm:**
@@ -117,7 +117,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `ActionPanel` không còn `catch`; `grep -n "safeUrl" actionPanel/index.jsx` không còn gọi hai lần; lint + build qua.
 
-### ☐ T5. Đường dẫn qua `ROUTES` (R6)
+### ☑ T5. Đường dẫn qua `ROUTES` (R6)
 **Vi phạm:** đường dẫn gõ tay ở **30 chỗ trong 21 file**:
 
 `applicationDetail/index.jsx`, `applicationDetail/components/detailHeader`, `applications/index.jsx`, `compare/index.jsx`, `dashboard/index.jsx`, `deadlines/index.jsx`, `forgotPassword/index.jsx`, `login/index.jsx`, `notFound/index.jsx`, `register/index.jsx`, `resetPassword/index.jsx`, `saved/index.jsx`, `scholarshipDetail/components/actionPanel`, `scholarshipDetail/components/detailHeader`, `scholarshipDetail/components/detailMessage`, `layouts/adminLayout/components/{adminMobileNav,adminSidebar}`, `layouts/userLayout/components/{notificationMenu,userHeader,userMenu}`, `components/common/ChatFAB.jsx`.
@@ -127,7 +127,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 
 **Xong khi:** `grep -rnE "navigate\('|to=\"/" src/pages src/layouts src/components` ra **0** (trừ khai báo `<Route path>` trong `App.jsx` và các trang legacy).
 
-### ☐ T6. Dải đầu trang không biết padding layout (R5)
+### ☑ T6. Dải đầu trang không biết padding layout (R5)
 **Vi phạm:** lề âm `-mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8` bù padding `p-4 sm:p-6 lg:p-8` của layout, lặp ở:
 - `pages/scholarshipDetail/components/detailHeader/index.jsx`
 - `pages/scholarshipDetail/components/detailSkeleton/index.jsx`
@@ -135,7 +135,7 @@ Bốn nơi trên gọi hàm này, không tự rẽ nhánh `daysLeft` nữa. Nế
 **Cách làm:** tạo `src/components/common/pageBand/index.jsx` (nhận `className`, `children`, tự giữ cặp lề âm + padding); hai file trên bọc bằng `<PageBand>`. Layout đổi padding thì chỉ sửa trong `PageBand`.
 **Xong khi:** `grep -rnE -- "-m[xt]-[0-9]" src/pages` không còn dòng nào bù padding layout (dòng `deadlines/components/eventList` là khớp nhầm trong chuỗi, bỏ qua; lề âm khác có lý do riêng thì ghi chú).
 
-### ☐ T7. Bỏ `[Npx]` trong className (R4)  ⚠️ cần duyệt trước khi sửa
+### ☑ T7. Bỏ `[Npx]` trong className (R4)
 **Vi phạm:** `[Npx]` ở **41 file**. Nhiều nhất: `applicationDetail/components/checklistRow` (8), `components/scholarship/scholarshipCard` (7), `scholarshipDetail/components/detailHeader` (6), `scholarshipDetail/components/actionPanel` (6), `layouts/userLayout/components/notificationMenu` (5), `scholarshipDetail/components/detailSkeleton` (4), `applications/components/applicationRow` (4). Lấy danh sách đầy đủ bằng:
 `grep -rcE "\[[0-9.]+px\]" src/pages src/layouts src/components | grep -v ":0$"` (bỏ `components/ui/`, `legacy/`).
 

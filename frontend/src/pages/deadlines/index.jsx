@@ -9,10 +9,11 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { ROUTES } from '~/utils/routes';
 import ColorLegend from '~/pages/deadlines/components/colorLegend';
 import EventList from '~/pages/deadlines/components/eventList';
 import MonthCalendar from '~/pages/deadlines/components/monthCalendar';
-import { useDeadlineEvents } from '~/pages/deadlines/useDeadlineEvents';
+import { useDeadlineEvents } from '~/pages/deadlines/hooks';
 
 const UPCOMING_LIMIT = 6;
 const cardClass = 'p-5';
@@ -49,8 +50,8 @@ export default function DeadlinesPage() {
 
       {isLoading && (
         <div className="flex flex-wrap items-start gap-6" aria-hidden="true">
-          <Skeleton className="h-[460px] min-w-0 flex-[999_1_560px] rounded-tile" />
-          <Skeleton className="h-[460px] flex-[1_1_300px] rounded-tile" />
+          <Skeleton className="h-calendar min-w-0 flex-[999_1_560px] rounded-tile" />
+          <Skeleton className="h-calendar flex-[1_1_300px] rounded-tile" />
         </div>
       )}
 
@@ -63,7 +64,7 @@ export default function DeadlinesPage() {
               Bấm nút lưu trên thẻ học bổng hoặc tạo đơn ứng tuyển, hạn nộp sẽ tự hiện ở đây.
             </p>
             <Button asChild className="mt-5">
-              <Link to="/">Tìm học bổng</Link>
+              <Link to={ROUTES.home}>Tìm học bổng</Link>
             </Button>
           </Card>
         </Reveal>

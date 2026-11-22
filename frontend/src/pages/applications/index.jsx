@@ -9,10 +9,12 @@ import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useApplications } from '~/hooks/useApplication';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { MAX_LIMIT } from '~/utils/constants';
+import { ROUTES } from '~/utils/routes';
 import { sortByDeadline } from '~/utils/scholarship';
 import ApplicationRow from '~/pages/applications/components/applicationRow';
 import ApplicationRowSkeleton from '~/pages/applications/components/applicationRowSkeleton';
-import { inStage, STAGES } from '~/pages/applications/helper';
+import { STAGES } from '~/pages/applications/constants';
+import { inStage } from '~/pages/applications/helpers';
 
 // Đơn ứng tuyển: dạng danh sách (khác lưới thẻ của trang chủ/đã lưu) vì việc chính ở đây là
 // theo dõi tiến độ từng đơn. Lọc theo chặng ở máy khách để số đếm trên tab luôn đúng.
@@ -72,7 +74,7 @@ export default function ApplicationsPage() {
           </p>
           {all.length === 0 && (
             <Button asChild className="mt-5">
-              <Link to="/">Tìm học bổng</Link>
+              <Link to={ROUTES.home}>Tìm học bổng</Link>
             </Button>
           )}
         </Card>
@@ -81,8 +83,8 @@ export default function ApplicationsPage() {
           {/* Tiêu đề cột chỉ hiện khi đủ rộng để các dòng xếp thành 3 cột */}
           <div className="hidden items-center gap-6 border-b border-line bg-canvas px-5 py-2.5 text-xs font-medium text-fg-muted md:flex">
             <span className="flex-1">Học bổng</span>
-            <span className="flex w-[340px] shrink-0 justify-between">
-              <span className="w-[160px]">Giấy tờ</span>
+            <span className="flex w-menu shrink-0 justify-between">
+              <span className="w-40">Giấy tờ</span>
               <span className="pr-7">Trạng thái</span>
             </span>
           </div>

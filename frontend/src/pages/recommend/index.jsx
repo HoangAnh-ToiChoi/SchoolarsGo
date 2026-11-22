@@ -6,6 +6,7 @@ import { selectUser } from '~/store/slices/authSlice';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { EmptyState } from '~/components/legacy';
 import { scholarshipPath } from '~/utils/scholarship';
+import { ROUTES } from '~/utils/routes';
 
 const MatchBar = ({ score }) => {
   const pct = Math.round(score * 100);
@@ -70,13 +71,13 @@ const RecommendPage = () => {
 
       <div className="containerPage py-10">
         {!user ? (
-          <EmptyState icon={AlertCircle} title="Vui lòng đăng nhập" description="Bạn cần đăng nhập để nhận gợi ý học bổng cá nhân hóa" actionLabel="Đăng nhập" actionTo="/login" />
+          <EmptyState icon={AlertCircle} title="Vui lòng đăng nhập" description="Bạn cần đăng nhập để nhận gợi ý học bổng cá nhân hóa" actionLabel="Đăng nhập" actionTo={ROUTES.login} />
         ) : isLoading ? (
           <LoadingSpinner />
         ) : error ? (
-          <EmptyState icon={AlertCircle} title="Cần cập nhật profile" description={error.message || 'Hãy điền GPA, IELTS và ngành học trong profile để nhận gợi ý'} actionLabel="Cập nhật Profile" actionTo="/dashboard" />
+          <EmptyState icon={AlertCircle} title="Cần cập nhật profile" description={error.message || 'Hãy điền GPA, IELTS và ngành học trong profile để nhận gợi ý'} actionLabel="Cập nhật Profile" actionTo={ROUTES.dashboard} />
         ) : recommendations.length === 0 ? (
-          <EmptyState icon={Brain} title="Chưa tìm được học bổng phù hợp" description="Hãy cập nhật đầy đủ GPA, IELTS, ngành học và quốc gia mục tiêu trong profile của bạn" actionLabel="Cập nhật Profile" actionTo="/dashboard" />
+          <EmptyState icon={Brain} title="Chưa tìm được học bổng phù hợp" description="Hãy cập nhật đầy đủ GPA, IELTS, ngành học và quốc gia mục tiêu trong profile của bạn" actionLabel="Cập nhật Profile" actionTo={ROUTES.dashboard} />
         ) : (
           <>
             <p className="text-body text-ink-400 mb-6">Tìm thấy <strong className="text-ink-100">{recommendations.length}</strong> học bổng phù hợp với profile của bạn</p>

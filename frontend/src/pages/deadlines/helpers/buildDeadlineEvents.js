@@ -1,12 +1,6 @@
-import { addDays, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import { getDeadlineInfo } from '~/utils/scholarship';
-
-// Tính toán chỉ dùng trong trang Lịch deadline
-
-// Sau khi nộp đơn bao nhiêu ngày thì nhắc hỏi lại kết quả
-export const FOLLOW_UP_DAYS = 14;
-// Đơn còn ở các trạng thái này thì hạn nộp vẫn còn ý nghĩa
-const ACTIVE_STATUSES = ['draft', 'submitted', 'under_review'];
+import { FOLLOW_UP_DAYS, ACTIVE_STATUSES } from '../constants';
 
 // Gom các mốc thời gian CỦA RIÊNG người dùng: học bổng đã lưu + đơn ứng tuyển.
 // Mỗi mốc: { id, date, kind: 'deadline' | 'followUp', title, scholarshipId, scholarshipSlug, status?, tone }
@@ -39,12 +33,4 @@ export function buildDeadlineEvents(saved = [], applications = [], today = new D
       tone: e.kind === 'followUp' ? 'brand' : e.date < start ? 'neutral' : getDeadlineInfo(e.date, today).tone,
     }))
     .sort((a, b) => a.date - b.date);
-}
-
-// Các ngày hiển thị trên lưới lịch tháng (bắt đầu từ thứ Hai, gồm cả ngày tràn của tháng trước/sau)
-export function getMonthDays(month) {
-  const days = [];
-  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
-  for (let d = startOfWeek(startOfMonth(month), { weekStartsOn: 1 }); d <= end; d = addDays(d, 1)) days.push(d);
-  return days;
 }

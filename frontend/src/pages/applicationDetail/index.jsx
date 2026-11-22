@@ -8,12 +8,13 @@ import { useApplication, useDeleteApplication, useUpdateApplication } from '~/ho
 import { useDocuments, useUploadDocument } from '~/hooks/useProfile';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
 import { STATUS_META } from '~/utils/application';
+import { ROUTES } from '~/utils/routes';
 import ChecklistCard from '~/pages/applicationDetail/components/checklistCard';
 import DetailHeader from '~/pages/applicationDetail/components/detailHeader';
 import DetailSkeleton from '~/pages/applicationDetail/components/detailSkeleton';
 import NotesCard from '~/pages/applicationDetail/components/notesCard';
 import StatusStepper from '~/pages/applicationDetail/components/statusStepper';
-import { guessDocType, parseChecklist } from '~/pages/applicationDetail/helper';
+import { guessDocType, parseChecklist } from '~/pages/applicationDetail/helpers';
 
 // Trạng thái không quay lại được nên hỏi lại trước khi đổi
 const FINAL_STATUSES = ['withdrawn', 'rejected', 'accepted'];
@@ -50,7 +51,7 @@ export default function ApplicationDetailPage() {
         <p className="mt-1 text-sm text-fg-muted">Đơn có thể đã bị xóa hoặc mạng đang chập chờn.</p>
         <div className="mt-4 flex justify-center gap-2">
           <Button variant="outline" asChild>
-            <Link to="/applications">Về danh sách đơn</Link>
+            <Link to={ROUTES.applications}>Về danh sách đơn</Link>
           </Button>
           <Button onClick={() => refetch()}>Thử lại</Button>
         </div>
@@ -100,7 +101,7 @@ export default function ApplicationDetailPage() {
 
   const handleDelete = () => {
     if (!window.confirm('Xóa đơn ứng tuyển này?')) return;
-    deleteApp.mutate(id, { onSuccess: () => navigate('/applications') });
+    deleteApp.mutate(id, { onSuccess: () => navigate(ROUTES.applications) });
   };
 
   return (
@@ -122,7 +123,7 @@ export default function ApplicationDetailPage() {
           onUpload={handleUpload}
           onDetach={handleDetach}
         />
-        <div className="lg:sticky lg:top-[88px]">
+        <div className="lg:sticky lg:top-sticky">
           <NotesCard
             key={app.id}
             notes={app.notes}

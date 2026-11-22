@@ -1,3 +1,4 @@
+import PageBand from '~/components/common/pageBand';
 import { Skeleton } from '~/components/ui/skeleton';
 
 // Khung chờ cùng bố cục với trang thật (dải đầu + 4 ô + 2 cột) để trang không nhảy khi tải xong.
@@ -5,9 +6,9 @@ import { Skeleton } from '~/components/ui/skeleton';
 export default function DetailSkeleton({ notice }) {
   return (
     <div>
-      <div aria-hidden="true" className="-mx-4 -mt-4 border-b border-line bg-brand-50 px-4 sm:-mx-6 sm:-mt-6 sm:px-6 lg:-mx-8 lg:-mt-8 lg:px-8 pb-[26px] pt-[22px]">
+      <PageBand aria-hidden="true" className="border-b border-line bg-brand-50 py-6">
         <Skeleton className="h-4 w-56" />
-        <div className="mt-[18px] flex gap-1.5">
+        <div className="mt-4.5 flex gap-1.5">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-6 w-16" />
         </div>
@@ -15,10 +16,10 @@ export default function DetailSkeleton({ notice }) {
         <Skeleton className="mt-2 h-5 w-1/3" />
         <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(min(160px,100%),1fr))] gap-3">
           {Array.from({ length: 4 }, (_, i) => (
-            <Skeleton key={i} className="h-[86px] rounded-inner bg-surface" />
+            <Skeleton key={i} className="h-21 rounded-inner bg-surface" />
           ))}
         </div>
-      </div>
+      </PageBand>
       {notice && <div className="mt-6">{notice}</div>}
       <div aria-hidden="true" className="mt-6 grid grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-4">
@@ -28,7 +29,7 @@ export default function DetailSkeleton({ notice }) {
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-24 w-full" />
         </div>
-        <Skeleton className="order-first h-[190px] rounded-tile lg:order-none" />
+        <Skeleton className="order-first h-48 rounded-tile lg:order-none" />
       </div>
     </div>
   );

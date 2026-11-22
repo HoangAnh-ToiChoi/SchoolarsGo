@@ -10,7 +10,7 @@ export default function BackLink({ to, children, className }) {
     <Link
       to={to}
       className={cn(
-        'group inline-flex w-fit items-center gap-2 rounded-full py-0.5 pr-2 text-[13px] font-semibold text-fg-secondary outline-none transition-colors duration-150 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-ring/40',
+        'group inline-flex w-fit items-center gap-2 rounded-full py-0.5 pr-2 text-ui font-semibold text-fg-secondary outline-none transition-colors duration-150 hover:text-brand-600 focus-visible:ring-2 focus-visible:ring-ring/40',
         className
       )}
     >

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useApplications } from '~/hooks/useApplication';
 import { useSavedScholarships } from '~/hooks/useScholarship';
-import { buildDeadlineEvents } from '~/pages/deadlines/helper';
+import { buildDeadlineEvents } from '../helpers';
 
 // Mốc thời gian của riêng người dùng cho trang Lịch deadline
 export function useDeadlineEvents() {

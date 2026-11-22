@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ROUTES } from '~/utils/routes';
 
 // Các tham số tìm kiếm/lọc lưu trên URL của trang chủ: /?search=DAAD&degree=Master&page=2
 export const FILTER_KEYS = ['search', 'country', 'degree', 'language', 'coverage', 'field', 'min_gpa', 'min_ielts', 'amount_min'];
@@ -31,7 +32,7 @@ export function useScholarshipFilters() {
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
 
   // Áp dụng bộ lọc mới → luôn về trang chủ, trang 1
-  const apply = (next) => navigate({ pathname: '/', search: toQueryString(next) });
+  const apply = (next) => navigate({ pathname: ROUTES.home, search: toQueryString(next) });
 
   return {
     filters,
@@ -40,6 +41,6 @@ export function useScholarshipFilters() {
     apply,
     removeFilter: (key) => apply({ ...filters, [key]: undefined }),
     clearAll: () => apply({}),
-    setPage: (nextPage) => navigate({ pathname: '/', search: toQueryString(filters, nextPage) }),
+    setPage: (nextPage) => navigate({ pathname: ROUTES.home, search: toQueryString(filters, nextPage) }),
   };
 }
