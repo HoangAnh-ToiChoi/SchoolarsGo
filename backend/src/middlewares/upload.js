@@ -5,7 +5,7 @@
  */
 
 import multer from 'multer';
-import AppError from '~/utils/AppError.js';
+import { AppError, upload as uploadErrors } from '~/constants/errors.js';
 
 const ALLOWED_EXTS_BY_TYPE = {
   transcript: ['.pdf'],
@@ -69,7 +69,7 @@ const handleUploadError = (err, req, res, next) => {
   // Đọc hết body trước khi trả lời, nếu không client bị ERR_CONNECTION_RESET khi multer từ chối sớm
   req.resume();
   if (err instanceof multer.MulterError) return next(err);
-  return next(AppError.badRequest(err.message || 'Upload file không hợp lệ', 'UPLOAD_INVALID'));
+  return next(new AppError(uploadErrors.invalid(err.message)));
 };
 
 export { upload, handleUploadError };

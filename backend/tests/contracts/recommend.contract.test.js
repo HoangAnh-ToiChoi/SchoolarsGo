@@ -7,7 +7,7 @@ import { mockService } from './helpers/mockService.js';
 import { auth } from '~/middlewares/auth.js';
 import validate from '~/middlewares/validate.js';
 import { recommendSchema } from '~/validations/recommend.validation.js';
-import AppError from '~/utils/AppError.js';
+import { AppError, recommend } from '~/constants/errors.js';
 import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
 // Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
@@ -91,11 +91,7 @@ test('POST /api/recommend passes authenticated user and returns success contract
 test('POST /api/recommend surfaces operational profile errors cleanly', async () => {
   const app = buildApp({
     recommend: async () => {
-      throw new AppError(
-        'Vui lòng bổ sung thêm GPA, tiếng Anh, ngành học hoặc quốc gia mục tiêu để nhận gợi ý chính xác hơn',
-        400,
-        'PROFILE_INCOMPLETE'
-      );
+      throw new AppError(recommend.PROFILE_INCOMPLETE);
     },
   });
 

@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
-import AppError from '~/utils/AppError.js';
 import { toSessionUser } from '~/utils/sessionUser.js';
-import { authorization } from '~/constants/errors.js';
+import { AppError, authorization } from '~/constants/errors.js';
 import sessionModel from '~/models/session.model.js';
 import authModel from '~/models/auth.model.js';
 import tokenService from './token.service.js';

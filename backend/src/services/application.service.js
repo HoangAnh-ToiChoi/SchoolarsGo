@@ -1,33 +1,22 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, application as applicationErrors, scholarship as scholarshipErrors } from '~/constants/errors.js';
 import applicationModel from '~/models/application.model.js';
+import { APPLICATION_VALID_TRANSITIONS, APPLICATION_UNDELETABLE_STATUSES } from '~/constants/application.js';
 
 class ApplicationService {
-  static #VALID_TRANSITIONS = {
-    draft: ['submitted', 'withdrawn'],
-    submitted: ['under_review', 'rejected', 'withdrawn'],
-    under_review: ['interview', 'rejected', 'withdrawn'],
-    interview: ['accepted', 'rejected', 'withdrawn'],
-    accepted: [],
-    rejected: [],
-    withdrawn: [],
-  };
-
-  static #UNDELETABLE = ['submitted', 'under_review', 'interview', 'accepted'];
-
-  #guardFound(entity, message = 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.') {
-    if (!entity) throw AppError.notFound(message, 'APPLICATION_NOT_FOUND');
+  #guardFound(entity) {
+    if (!entity) throw new AppError(applicationErrors.NOT_FOUND);
   }
 
   #assertValidTransition(from, to) {
-    const allowed = ApplicationService.#VALID_TRANSITIONS[from] || [];
+    const allowed = APPLICATION_VALID_TRANSITIONS[from] || [];
     if (!allowed.includes(to)) {
-      throw AppError.badRequest('Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.', 'INVALID_STATUS_TRANSITION');
+      throw new AppError(applicationErrors.INVALID_STATUS_TRANSITION);
     }
   }
 
   #assertDeletable(status) {
-    if (ApplicationService.#UNDELETABLE.includes(status)) {
-      throw AppError.badRequest('Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.', 'CANNOT_DELETE');
+    if (APPLICATION_UNDELETABLE_STATUSES.includes(status)) {
+      throw new AppError(applicationErrors.CANNOT_DELETE);
     }
   }
 
@@ -69,14 +58,14 @@ class ApplicationService {
 
   async create(userId, { scholarshipId, checklist, notes }) {
     const exists = await applicationModel.scholarshipExists(scholarshipId);
-    if (!exists) throw AppError.notFound('Học bổng không tồn tại.', 'SCHOLARSHIP_NOT_FOUND');
+    if (!exists) throw new AppError(scholarshipErrors.NOT_EXISTS);
 
     try {
       const app = await applicationModel.create(userId, { scholarshipId, checklist, notes });
       return this.#formatApplication(app);
     } catch (err) {
       if (err.message === 'APPLICATION_ALREADY_EXISTS') {
-        throw AppError.conflict('Bạn đã ứng tuyển học bổng này rồi.', 'APPLICATION_ALREADY_EXISTS');
+        throw new AppError(applicationErrors.ALREADY_EXISTS);
       }
       throw err;
     }
@@ -95,11 +84,8 @@ class ApplicationService {
     const updates = { ...rawUpdates };
 
     if (updates.status !== undefined) {
-      if (!(updates.status in ApplicationService.#VALID_TRANSITIONS)) {
-        throw AppError.badRequest(
-          'Status không hợp lệ. Các status được phép: draft, submitted, under_review, interview, accepted, rejected, withdrawn.',
-          'INVALID_STATUS'
-        );
+      if (!(updates.status in APPLICATION_VALID_TRANSITIONS)) {
+        throw new AppError(applicationErrors.INVALID_STATUS);
       }
       this.#assertValidTransition(existing.status, updates.status);
 

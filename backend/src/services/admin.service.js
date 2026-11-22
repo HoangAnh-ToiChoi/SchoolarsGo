@@ -1,4 +1,5 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, admin as adminErrors } from '~/constants/errors.js';
+import { ADMIN_VALID_ROLES } from '~/constants/admin.js';
 import adminModel from '~/models/admin.model.js';
 import sessionService from './session.service.js';
 
@@ -55,7 +56,7 @@ class AdminService {
 
   async getUserById(userId) {
     const user = await adminModel.findUserById(userId);
-    this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    this.#guardFound(user, adminErrors.USER_NOT_FOUND);
     return user;
   }
 
@@ -64,12 +65,7 @@ class AdminService {
     this.#validateRole(newRole);
 
     const user = await adminModel.updateUserRole(targetUserId, newRole);
-    this.#guardFound(
-      user,
-      'Không tìm thấy user hoặc user đã bị vô hiệu hóa',
-      404,
-      'USER_NOT_FOUND'
-    );
+    this.#guardFound(user, adminErrors.USER_NOT_FOUND_OR_DISABLED);
     await sessionService?.endAllForUser(targetUserId, 'role_changed');
     return user;
   }
@@ -78,7 +74,7 @@ class AdminService {
     this.#guardSelfModification(targetUserId, adminId);
 
     const user = await adminModel.updateUserStatus(targetUserId, isActive);
-    this.#guardFound(user, 'Không tìm thấy user', 404, 'USER_NOT_FOUND');
+    this.#guardFound(user, adminErrors.USER_NOT_FOUND);
     if (!isActive) await sessionService?.endAllForUser(targetUserId, 'locked');
     return user;
   }
@@ -89,40 +85,25 @@ class AdminService {
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
     const scholarship = await adminModel.createScholarship(scholarshipData);
-    this.#guardFound(scholarship, 'Không thể tạo học bổng', 500, 'CREATE_SCHOLARSHIP_FAILED');
+    this.#guardFound(scholarship, adminErrors.CREATE_SCHOLARSHIP_FAILED);
     return scholarship;
   }
 
   async modifyScholarship(id, data) {
     const scholarship = await adminModel.updateScholarship(id, data);
-    this.#guardFound(
-      scholarship,
-      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
-      404,
-      'SCHOLARSHIP_NOT_FOUND'
-    );
+    this.#guardFound(scholarship, adminErrors.SCHOLARSHIP_NOT_FOUND_OR_DELETED);
     return scholarship;
   }
 
   async toggleScholarshipFeatured(id, isFeatured) {
     const scholarship = await adminModel.updateScholarshipFeatured(id, isFeatured);
-    this.#guardFound(
-      scholarship,
-      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
-      404,
-      'SCHOLARSHIP_NOT_FOUND'
-    );
+    this.#guardFound(scholarship, adminErrors.SCHOLARSHIP_NOT_FOUND_OR_DELETED);
     return scholarship;
   }
 
   async removeScholarship(id) {
     const scholarship = await adminModel.softDeleteScholarship(id);
-    this.#guardFound(
-      scholarship,
-      'Không tìm thấy học bổng hoặc học bổng đã bị xóa',
-      404,
-      'SCHOLARSHIP_NOT_FOUND'
-    );
+    this.#guardFound(scholarship, adminErrors.SCHOLARSHIP_NOT_FOUND_OR_DELETED);
     return { id: scholarship.id, title: scholarship.title };
   }
 
@@ -137,26 +118,19 @@ class AdminService {
   /** Admin không được tự đổi quyền hoặc khóa chính mình. */
   #guardSelfModification(targetUserId, adminId) {
     if (targetUserId === adminId) {
-      throw AppError.badRequest(
-        'Không thể tự thay đổi quyền hoặc vô hiệu hóa chính mình',
-        'SELF_MODIFICATION_FORBIDDEN'
-      );
+      throw new AppError(adminErrors.SELF_MODIFICATION_FORBIDDEN);
     }
   }
 
   #validateRole(role) {
-    const validRoles = ['user', 'admin'];
-    if (!validRoles.includes(role)) {
-      throw AppError.badRequest(
-        'Role không hợp lệ. Chỉ chấp nhận "user" hoặc "admin"',
-        'INVALID_ROLE'
-      );
+    if (!ADMIN_VALID_ROLES.includes(role)) {
+      throw new AppError(adminErrors.INVALID_ROLE);
     }
   }
 
-  #guardFound(entity, message, statusCode, code) {
+  #guardFound(entity, errorDefinition) {
     if (!entity) {
-      throw new AppError(message, statusCode, code);
+      throw new AppError(errorDefinition);
     }
   }
 }

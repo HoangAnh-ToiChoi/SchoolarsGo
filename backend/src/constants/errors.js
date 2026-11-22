@@ -1,3 +1,7 @@
+import { APPLICATION_VALID_TRANSITIONS } from '~/constants/application.js';
+import { DOCUMENT_VALID_TYPES } from '~/constants/document.js';
+import { PROFILE_VALID_DEGREES, PROFILE_ENGLISH_LEVEL_MAX } from '~/constants/profile.js';
+
 const authorization = Object.freeze({
   ACCESS_TOKEN_MISSING: { statusCode: 401, code: 'ACCESS_TOKEN_MISSING', message: 'Vui lòng đăng nhập để tiếp tục.' },
   ACCESS_TOKEN_EXPIRED: { statusCode: 401, code: 'ACCESS_TOKEN_EXPIRED', message: 'Phiên đăng nhập đã hết hạn.' },
@@ -16,6 +20,8 @@ const authorization = Object.freeze({
   CREATE_USER_FAILED: { statusCode: 500, code: 'CREATE_USER_FAILED', message: 'Không thể tạo tài khoản.' },
   INVALID_RESET_TOKEN: { statusCode: 400, code: 'INVALID_RESET_TOKEN', message: 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.' },
   EXPIRED_RESET_TOKEN: { statusCode: 400, code: 'EXPIRED_RESET_TOKEN', message: 'Liên kết đã hết hạn. Vui lòng yêu cầu lại.' },
+  LOGIN_REQUIRED: { statusCode: 401, code: 'UNAUTHORIZED', message: 'Vui lòng đăng nhập để tiếp tục' },
+  FORBIDDEN: { statusCode: 403, code: 'FORBIDDEN', message: 'Không có quyền truy cập' },
   ORIGIN_NOT_ALLOWED: { statusCode: 403, code: 'ORIGIN_NOT_ALLOWED', message: 'Nguồn gửi yêu cầu không được phép.' },
 });
 
@@ -42,4 +48,102 @@ const multer = Object.freeze({
   LIMIT_UNEXPECTED_FILE: { statusCode: 400, code: 'UNEXPECTED_FILE', message: 'Field upload không hợp lệ' },
 });
 
-export { authorization, common, postgres, multer };
+// Đọc CV bằng AI (cvText.service, cvExtract.service, cvLimiter)
+const cv = Object.freeze({
+  MISSING_FILE: { statusCode: 400, code: 'CV_MISSING_FILE', message: 'Thiếu file CV' },
+  INVALID_FILE: { statusCode: 400, code: 'CV_INVALID_FILE', message: 'File không phải PDF hoặc DOCX hợp lệ' },
+  UNREADABLE_FILE: { statusCode: 400, code: 'CV_INVALID_FILE', message: 'Không đọc được nội dung file' },
+  SCANNED: { statusCode: 422, code: 'CV_SCANNED', message: 'CV dạng ảnh scan, không đọc được chữ' },
+  READ_TIMEOUT: { statusCode: 504, code: 'CV_READ_TIMEOUT', message: 'Xử lý quá lâu' },
+  AI_UNAVAILABLE: { statusCode: 503, code: 'AI_UNAVAILABLE', message: 'Dịch vụ AI chưa sẵn sàng' },
+  AI_TIMEOUT: { statusCode: 504, code: 'AI_TIMEOUT', message: 'Xử lý quá lâu' },
+  AI_FAILED: { statusCode: 502, code: 'AI_FAILED', message: 'AI không phản hồi' },
+  AI_BAD_RESPONSE: { statusCode: 502, code: 'AI_BAD_RESPONSE', message: 'AI trả về dữ liệu không đọc được' },
+  LIMIT_REACHED: { statusCode: 429, code: 'TOO_MANY_REQUESTS', message: 'Bạn đã dùng hết lượt đọc CV hôm nay.' },
+});
+
+// Đơn ứng tuyển (application.service)
+const application = Object.freeze({
+  NOT_FOUND: { statusCode: 404, code: 'APPLICATION_NOT_FOUND', message: 'Không tìm thấy đơn ứng tuyển hoặc bạn không có quyền truy cập.' },
+  ALREADY_EXISTS: { statusCode: 409, code: 'APPLICATION_ALREADY_EXISTS', message: 'Bạn đã ứng tuyển học bổng này rồi.' },
+  INVALID_STATUS: { statusCode: 400, code: 'INVALID_STATUS', message: `Status không hợp lệ. Các status được phép: ${Object.keys(APPLICATION_VALID_TRANSITIONS).join(', ')}.` },
+  INVALID_STATUS_TRANSITION: { statusCode: 400, code: 'INVALID_STATUS_TRANSITION', message: 'Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.' },
+  CANNOT_DELETE: { statusCode: 400, code: 'CANNOT_DELETE', message: 'Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.' },
+});
+
+// Học bổng (scholarship.service; NOT_EXISTS dùng khi kiểm tra học bổng trước khi lưu / ứng tuyển)
+const scholarship = Object.freeze({
+  NOT_FOUND: { statusCode: 404, code: 'SCHOLARSHIP_NOT_FOUND', message: 'Không tìm thấy học bổng' },
+  NOT_EXISTS: { statusCode: 404, code: 'SCHOLARSHIP_NOT_FOUND', message: 'Học bổng không tồn tại.' },
+  INVALID_ID: { statusCode: 400, code: 'INVALID_ID', message: 'Đường dẫn học bổng không hợp lệ' },
+});
+
+// Học bổng đã lưu (saved.service)
+const saved = Object.freeze({
+  ALREADY_SAVED: { statusCode: 409, code: 'SCHOLARSHIP_ALREADY_SAVED', message: 'Bạn đã lưu học bổng này rồi.' },
+  NOT_SAVED: { statusCode: 404, code: 'NOT_SAVED', message: 'Học bổng này chưa được lưu.' },
+});
+
+// Thông báo (notification.service)
+const notification = Object.freeze({
+  NOT_FOUND: { statusCode: 404, code: 'NOTIFICATION_NOT_FOUND', message: 'Không tìm thấy thông báo.' },
+});
+
+// Tài liệu người dùng (document.service). Hàm nhận lý do lỗi để giữ nguyên nội dung thông báo cũ
+const document = Object.freeze({
+  NOT_FOUND: { statusCode: 404, code: 'DOCUMENT_NOT_FOUND', message: 'Không tìm thấy document hoặc bạn không có quyền xóa' },
+  NO_FILE: { statusCode: 400, code: 'NO_FILE', message: 'Không có file được upload' },
+  INVALID_TYPE: { statusCode: 400, code: 'INVALID_DOC_TYPE', message: `Loại document không hợp lệ. Chỉ chấp nhận: ${DOCUMENT_VALID_TYPES.join(', ')}` },
+  uploadFailed: reason => ({ statusCode: 500, code: 'UPLOAD_FAILED', message: `Upload file thất bại: ${reason}` }),
+  insertFailed: reason => ({ statusCode: 500, code: 'DB_INSERT_FAILED', message: `Lưu metadata thất bại, file đã được gỡ: ${reason}` }),
+});
+
+// Upload bằng multer (middlewares/upload.js). Lý do cụ thể do fileFilter đặt
+const upload = Object.freeze({
+  invalid: reason => ({ statusCode: 400, code: 'UPLOAD_INVALID', message: reason || 'Upload file không hợp lệ' }),
+});
+
+// Hồ sơ người dùng (profile.service)
+const profile = Object.freeze({
+  GPA_NOT_NUMBER: { statusCode: 400, code: 'INVALID_GPA', message: 'GPA phải là số' },
+  gpaOutOfRange: maxGpa => ({ statusCode: 400, code: 'INVALID_GPA', message: `GPA phải nằm trong khoảng 0 - ${maxGpa}` }),
+  ENGLISH_LEVEL_TOO_LONG: { statusCode: 400, code: 'INVALID_ENGLISH_LEVEL', message: `english_level không được vượt quá ${PROFILE_ENGLISH_LEVEL_MAX} ký tự` },
+  INVALID_DEGREE: { statusCode: 400, code: 'INVALID_DEGREE', message: `target_degree không hợp lệ. Giá trị được chấp nhận: ${PROFILE_VALID_DEGREES.join(', ')}` },
+});
+
+// Gợi ý học bổng (recommend.service)
+const recommend = Object.freeze({
+  PROFILE_REQUIRED: { statusCode: 400, code: 'PROFILE_REQUIRED', message: 'Vui lòng cập nhật profile trước khi sử dụng gợi ý' },
+  PROFILE_INCOMPLETE: { statusCode: 400, code: 'PROFILE_INCOMPLETE', message: 'Vui lòng bổ sung thêm GPA, tiếng Anh, ngành học hoặc quốc gia mục tiêu để nhận gợi ý chính xác hơn' },
+});
+
+// Khu quản trị (admin.service)
+const admin = Object.freeze({
+  SELF_MODIFICATION_FORBIDDEN: { statusCode: 400, code: 'SELF_MODIFICATION_FORBIDDEN', message: 'Không thể tự thay đổi quyền hoặc vô hiệu hóa chính mình' },
+  INVALID_ROLE: { statusCode: 400, code: 'INVALID_ROLE', message: 'Role không hợp lệ. Chỉ chấp nhận "user" hoặc "admin"' },
+  USER_NOT_FOUND: { statusCode: 404, code: 'USER_NOT_FOUND', message: 'Không tìm thấy user' },
+  USER_NOT_FOUND_OR_DISABLED: { statusCode: 404, code: 'USER_NOT_FOUND', message: 'Không tìm thấy user hoặc user đã bị vô hiệu hóa' },
+  SCHOLARSHIP_NOT_FOUND_OR_DELETED: { statusCode: 404, code: 'SCHOLARSHIP_NOT_FOUND', message: 'Không tìm thấy học bổng hoặc học bổng đã bị xóa' },
+  CREATE_SCHOLARSHIP_FAILED: { statusCode: 500, code: 'CREATE_SCHOLARSHIP_FAILED', message: 'Không thể tạo học bổng' },
+});
+
+/**
+ * AppError — lỗi nghiệp vụ của ứng dụng (isOperational = true), được `appError` ở errorHandle.controller đổi thành response.
+ * Chỉ một cách tạo: truyền định nghĩa dựng sẵn ở file này, không tự gõ chữ hay mã ở nơi ném lỗi.
+ *   throw new AppError(saved.ALREADY_SAVED);
+ *   throw new AppError(profile.gpaOutOfRange(maxGpa));   // định nghĩa có phần thay đổi thì là hàm
+ * `code` (FE đọc) và `errorCode` (trường `error` của response) đều lấy từ `definition.code`.
+ */
+class AppError extends Error {
+  constructor({ statusCode, code, message, details = null }) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+    this.code = code;
+    this.errorCode = code;
+    this.details = details;
+  }
+}
+
+// AppError cần `new` ở mọi nơi nên xuất theo tên (ngoại lệ của quy ước "chỉ export default bản dùng chung")
+export { authorization, common, postgres, multer, cv, application, scholarship, saved, notification, document, upload, profile, recommend, admin, AppError };

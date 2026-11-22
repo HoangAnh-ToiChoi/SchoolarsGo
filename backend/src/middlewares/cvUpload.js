@@ -1,11 +1,9 @@
 import multer from 'multer';
-
-const MAX_SIZE = 5 * 1024 * 1024;
-const CV_NAME = /\.(pdf|docx)$/i;
+import { CV_MAX_FILE_SIZE, CV_UPLOAD_FIELD, CV_FILE_NAME_PATTERN, CV_FILE_NAME_ERROR } from '~/constants/cv.js';
 
 // Đuôi file chỉ là lọc nhanh; loại file thật được kiểm ở cvText.service bằng byte đầu
 const fileFilter = (req, file, cb) => {
-  if (!CV_NAME.test(file.originalname)) return cb(new Error('CV chỉ nhận file .pdf hoặc .docx'), false);
+  if (!CV_FILE_NAME_PATTERN.test(file.originalname)) return cb(new Error(CV_FILE_NAME_ERROR), false);
   return cb(null, true);
 };
 
@@ -13,9 +11,9 @@ const fileFilter = (req, file, cb) => {
 const uploader = multer({
   storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: MAX_SIZE, files: 1 },
+  limits: { fileSize: CV_MAX_FILE_SIZE, files: 1 },
 });
 
-const cvUpload = uploader.single('file');
+const cvUpload = uploader.single(CV_UPLOAD_FIELD);
 
 export { cvUpload };

@@ -1,4 +1,4 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, scholarship as scholarshipErrors } from '~/constants/errors.js';
 import scholarshipModel from '~/models/scholarship.model.js';
 
 const PAGE_SIZE = 20;
@@ -9,15 +9,15 @@ class ScholarshipService {
   #countriesCache = null;
   #countriesCachedAt = 0;
 
-  #guardFound(entity, message = 'Không tìm thấy học bổng') {
-    if (!entity) throw AppError.notFound(message, 'SCHOLARSHIP_NOT_FOUND');
+  #guardFound(entity) {
+    if (!entity) throw new AppError(scholarshipErrors.NOT_FOUND);
   }
 
   // Trang chi tiết nhận id (UUID) hoặc slug (chữ thường, số, gạch ngang — xem migration 004)
   #parseIdOrSlug(value) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value || '');
     const isSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value || '') && value.length <= 120;
-    if (!isUuid && !isSlug) throw AppError.badRequest('Đường dẫn học bổng không hợp lệ', 'INVALID_ID');
+    if (!isUuid && !isSlug) throw new AppError(scholarshipErrors.INVALID_ID);
     return { isUuid };
   }
 

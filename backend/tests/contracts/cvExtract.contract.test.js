@@ -7,6 +7,9 @@ import { mockServiceFunctions, srcUrl } from './helpers/mockService.js';
 const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['enrichRecommendations', 'getClient']);
 const { default: removeContactInfo } = await import('~/utils/removeContactInfo.js');
 const { default: withTimeout } = await import('~/utils/withTimeout.js');
+const { cv: cvErrors } = await import('~/constants/errors.js');
+const { default: errorHandleController } = await import('~/controllers/errorHandle.controller.js');
+const { GoogleGenerativeAIFetchError } = await import('@google/generative-ai');
 const { default: cvTextService } = await import('~/services/cvText.service.js');
 const { default: cvExtractService } = await import('~/services/cvExtract.service.js');
 
@@ -50,7 +53,11 @@ const fakeGemini = answer => {
   return seen;
 };
 
-const failsWith = (status, code) => error => error.statusCode === status && error.code === code;
+// Service không bắt lỗi: lỗi rơi xuống errorHandle.controller, nên so kết quả sau khi đổi
+const failsWith = (status, code) => error => {
+  const resolved = errorHandleController.resolve(error);
+  return resolved.statusCode === status && resolved.errorCode === code;
+};
 
 test('removeContactInfo xóa email, số điện thoại Việt Nam, link mạng xã hội và dòng địa chỉ', () => {
   const text = [
@@ -73,7 +80,7 @@ test('removeContactInfo chạy nhanh với chuỗi rất dài (không treo vì r
 
 test('withTimeout trả lỗi 504 khi việc chạy quá lâu', async () => {
   const slow = new Promise(resolve => setTimeout(resolve, 500));
-  await assert.rejects(withTimeout(slow, 20, 'SLOW'), failsWith(504, 'SLOW'));
+  await assert.rejects(withTimeout(slow, 20, cvErrors.READ_TIMEOUT), failsWith(504, 'CV_READ_TIMEOUT'));
 });
 
 test('cvText đọc được PDF và DOCX', async () => {
@@ -135,6 +142,15 @@ test('cvExtract: lỗi đầu vào và lỗi AI trả đúng mã', async () => {
   fakeGemini('khong phai json');
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_BAD_RESPONSE'));
 
+  fakeGemini('[]');
+  await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_BAD_RESPONSE'));
+
   geminiRef.current = { getClient: () => null, enrichRecommendations: async () => [] };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(503, 'AI_UNAVAILABLE'));
+});
+
+test('cvExtract: Gemini lỗi mạng / hạn mức không bị bắt trong service, errorHandle đổi thành 502', async () => {
+  const client = { getGenerativeModel: () => ({ generateContent: async () => { throw new GoogleGenerativeAIFetchError('429', 429, 'Too Many Requests'); } }) };
+  geminiRef.current = { getClient: () => client, enrichRecommendations: async () => [] };
+  await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_FAILED'));
 });
