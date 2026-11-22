@@ -1,4 +1,5 @@
 import getSupabase from '~/configs/supabase.js';
+import { PROFILE_UPDATABLE_FIELDS } from '~/constants/profile.js';
 
 class ProfileModel {
   async findByUserId(userId) {
@@ -14,8 +15,8 @@ class ProfileModel {
   }
 
   async upsertProfile(userId, updates) {
-    const allowedFields = ['bio', 'gpa', 'gpa_scale', 'english_level', 'target_country', 'target_major', 'target_degree', 'target_intake'];
-    const filtered = Object.fromEntries(allowedFields.filter(k => updates[k] !== undefined).map(k => [k, updates[k]]));
+    const sent = PROFILE_UPDATABLE_FIELDS.filter(key => updates[key] !== undefined);
+    const filtered = Object.fromEntries(sent.map(key => [key, updates[key]]));
 
     const payload = { user_id: userId, ...filtered, updated_at: new Date().toISOString() };
     const { data, error } = await getSupabase().from('profiles').upsert(payload, { onConflict: 'user_id' }).select('*').single();
