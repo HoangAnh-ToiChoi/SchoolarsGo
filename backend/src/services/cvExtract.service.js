@@ -1,6 +1,7 @@
 import { getClient } from '~/services/gemini.service.js';
 import cvTextService from '~/services/cvText.service.js';
 import removeContactInfo from '~/utils/removeContactInfo.js';
+import keepBirthYearOnly from '~/utils/keepBirthYearOnly.js';
 import withTimeout from '~/utils/withTimeout.js';
 import { CV_PROMPT } from '~/constants/cvPrompt.js';
 import {
@@ -16,7 +17,8 @@ class CvExtractService {
   async extract(file) {
     if (!file) throw new AppError(cvErrors.MISSING_FILE);
     const text = await cvTextService.extract(file.buffer);
-    const safeText = removeContactInfo(text);
+    const yearOnly = keepBirthYearOnly(text);
+    const safeText = removeContactInfo(yearOnly);
     const raw = await this.#askGemini(this.#buildPrompt(safeText));
     return this.#toDraft(this.#parseDraft(raw));
   }
@@ -59,6 +61,7 @@ class CvExtractService {
     return {
       gpa: this.#toGpa4(parsed.gpa, parsed.gpa_scale),
       certificates: parsed.certificates?.filter(certificate => this.#hasValidScore(certificate)),
+      birth_year: parsed.birth_year,
       current_degree: parsed.current_degree,
       major: parsed.major,
       experience: parsed.experience,

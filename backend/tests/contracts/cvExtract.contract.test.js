@@ -6,6 +6,7 @@ import { mockServiceFunctions, srcUrl } from './helpers/mockService.js';
 
 const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['enrichRecommendations', 'getClient']);
 const { default: removeContactInfo } = await import('~/utils/removeContactInfo.js');
+const { default: keepBirthYearOnly } = await import('~/utils/keepBirthYearOnly.js');
 const { default: withTimeout } = await import('~/utils/withTimeout.js');
 const { cv: cvErrors } = await import('~/constants/errors.js');
 const { default: errorHandleController } = await import('~/controllers/errorHandle.controller.js');
@@ -153,4 +154,51 @@ test('cvExtract: Gemini lỗi mạng / hạn mức không bị bắt trong servi
   const client = { getGenerativeModel: () => ({ generateContent: async () => { throw new GoogleGenerativeAIFetchError('429', 429, 'Too Many Requests'); } }) };
   geminiRef.current = { getClient: () => client, enrichRecommendations: async () => [] };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_FAILED'));
+});
+
+test('removeContactInfo ẩn cả tên miền không có http, không ẩn nhầm Node.js hay ASP.NET', () => {
+  const text = [
+    'Demo: whos-free-one.vercel.app',
+    'Demo: hoanganh-toichoi.github.io/SchoolarsGo',
+    'GitHub: github.com/HoangAnh-ToiChoi/Who-s-Free',
+    'Công nghệ: Node.js, Next.js và ASP.NET Core, Vite, React 18.2',
+  ].join('\n');
+  const result = removeContactInfo(text);
+  assert.doesNotMatch(result, /vercel\.app|github\.io|github\.com|toichoi/i);
+  assert.match(result, /Node\.js, Next\.js và ASP\.NET Core, Vite, React 18\.2/);
+});
+
+test('removeContactInfo vẫn nhanh với chuỗi dài kiểu tên miền (a-a-a-..., a.a.a....)', () => {
+  const started = Date.now();
+  removeContactInfo('a-'.repeat(10000));
+  removeContactInfo('a.'.repeat(10000));
+  removeContactInfo('a'.repeat(20000));
+  assert.ok(Date.now() - started < 2000);
+});
+
+test('keepBirthYearOnly chỉ rút ngày sinh về năm, giữ nguyên các ngày khác', () => {
+  assert.equal(keepBirthYearOnly('Ngày sinh 28/12/2005'), 'Ngày sinh 2005');
+  assert.equal(keepBirthYearOnly('DOB: 1.2.2004'), 'DOB: 2004');
+  assert.equal(keepBirthYearOnly('Cấp ngày 02/11/2026'), 'Cấp ngày 02/11/2026');
+});
+
+test('cvExtract: lấy năm sinh, nhận chứng chỉ chỉ có mức (CEFR B1), prompt không còn ngày sinh đầy đủ', async () => {
+  const seen = fakeGemini(JSON.stringify({
+    gpa: 3.39, gpa_scale: 4, birth_year: 2005,
+    certificates: [{ type: 'CEFR', level: 'B1' }], current_degree: 'Bachelor',
+  }));
+  const draft = await cvExtractService.extract({ buffer: buildPdf(CV_LINE, 'Date of birth 28/12/2005') });
+  assert.equal(draft.birth_year, 2005);
+  assert.deepEqual(draft.certificates, [{ type: 'CEFR', level: 'B1' }]);
+  assert.equal(draft.gpa, 3.39);
+  assert.doesNotMatch(seen.prompt, /28\/12\/2005/);
+  assert.match(seen.prompt, /Date of birth 2005/);
+});
+
+test('cvExtract: năm sinh vô lý và chứng chỉ không có cả điểm lẫn mức bị bỏ', async () => {
+  fakeGemini(JSON.stringify({ birth_year: 1800, certificates: [{ type: 'IELTS' }], major: 'Math' }));
+  const draft = await cvExtractService.extract({ buffer: buildPdf(CV_LINE) });
+  assert.equal(draft.birth_year, undefined);
+  assert.equal(draft.certificates, undefined);
+  assert.equal(draft.major, 'Math');
 });

@@ -30,6 +30,9 @@ const CV_DEGREES = Object.freeze(['Bachelor', 'Master', 'PhD']);
 const CV_MAX_CERTIFICATES = 10;
 const CV_CERTIFICATE_TYPE_MAX = 20;
 const CV_CERTIFICATE_SCORE_MAX = 120;
+const CV_CERTIFICATE_LEVEL_MAX = 20;
+const CV_BIRTH_YEAR_MIN = 1940;
+const CV_BIRTH_YEAR_MAX = new Date().getFullYear();
 const CV_MAJOR_MAX = 100;
 const CV_EXPERIENCE_MAX = 2000;
 const CV_IELTS_NAME = 'ielts';
@@ -42,16 +45,22 @@ const CV_HIDDEN_MARK = '[ẩn]';
 const CV_CONTACT_PATTERNS = Object.freeze([
   /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g,
   /(?:https?:\/\/|www\.)\S+/gi,
+  // Tên miền không có http (vd. ten.github.io, app.vercel.app). Chỉ chữ thường nên "Node.js" và "ASP.NET" không bị ẩn nhầm; độ dài giới hạn để regex không chạy mãi
+  /\b[a-z0-9-]{1,63}(?:\.[a-z0-9-]{1,63}){0,4}\.(?:com|io|app|dev|vn|me|org)\b\S*/g,
   /\b(?:linkedin|facebook|github|twitter|instagram|zalo)\.\S+/gi,
   /(?:\+?84|\b0)(?:[\s.-]?\d){8,10}/g,
   /^.*(?:địa chỉ|address)\s*:.*$/gim,
 ]);
+
+// Chỉ ngày sinh có nhãn đi trước mới bị rút về năm (xét điều kiện tuổi chỉ cần năm); các ngày khác như ngày cấp chứng chỉ giữ nguyên
+const CV_BIRTH_DATE_PATTERN = /((?:ngày sinh|sinh ngày|date of birth|dob|birthday)\s*:?\s*)\d{1,2}[/.-]\d{1,2}[/.-](\d{4})/gi;
 
 export {
   CV_MAX_FILE_SIZE, CV_UPLOAD_FIELD, CV_FILE_NAME_PATTERN, CV_FILE_NAME_ERROR, CV_MIME,
   CV_READ_TIMEOUT_MS, CV_AI_TIMEOUT_MS, CV_MIN_TEXT_LENGTH, CV_MAX_TEXT_LENGTH, CV_RATE_WINDOW_MS,
   CV_TAG_OPEN, CV_TAG_CLOSE, CV_GENERATION_CONFIG,
   CV_DEGREES, CV_MAX_CERTIFICATES, CV_CERTIFICATE_TYPE_MAX, CV_CERTIFICATE_SCORE_MAX, CV_MAJOR_MAX, CV_EXPERIENCE_MAX,
+  CV_CERTIFICATE_LEVEL_MAX, CV_BIRTH_YEAR_MIN, CV_BIRTH_YEAR_MAX, CV_BIRTH_DATE_PATTERN,
   CV_IELTS_NAME, CV_IELTS_MAX_SCORE, GPA_TARGET_SCALE, GPA_DECIMALS,
   CV_HIDDEN_MARK, CV_CONTACT_PATTERNS, CV_FILE_ERROR_NAMES,
 };
