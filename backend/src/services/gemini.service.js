@@ -74,4 +74,4 @@ Yêu cầu:
   }
 }
 
-export { enrichRecommendations };
+export { enrichRecommendations, getClient };
