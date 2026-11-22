@@ -2,20 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
 
-import AppError from '~/utils/AppError.js';
 import responseController from '~/controllers/response.controller.js';
 import errorHandleController from '~/controllers/errorHandle.controller.js';
-import { authorization } from '~/constants/errors.js';
+import { AppError, authorization, profile, saved, notification } from '~/constants/errors.js';
 
-test('AppError.notFound: status 404, errorCode mặc định, code chỉ có khi truyền', () => {
-  const plain = AppError.notFound('Không thấy');
-  assert.equal(plain.statusCode, 404);
-  assert.equal(plain.errorCode, 'NOT_FOUND');
-  assert.equal(plain.code, undefined);
-
-  const coded = AppError.notFound('Không thấy', 'SCHOLARSHIP_NOT_FOUND');
-  assert.equal(coded.code, 'SCHOLARSHIP_NOT_FOUND');
-  assert.equal(coded.errorCode, 'SCHOLARSHIP_NOT_FOUND');
+test('AppError: định nghĩa có hàm thay đổi nội dung (profile.gpaOutOfRange) vẫn giữ status, code, message', () => {
+  const error = new AppError(profile.gpaOutOfRange(10));
+  assert.equal(error.statusCode, 400);
+  assert.equal(error.code, 'INVALID_GPA');
+  assert.equal(error.errorCode, 'INVALID_GPA');
+  assert.equal(error.message, 'GPA phải nằm trong khoảng 0 - 10');
 });
 
 test('AppError dựng từ hằng số trong constants/errors.js giữ nguyên code và status', () => {
@@ -26,12 +22,12 @@ test('AppError dựng từ hằng số trong constants/errors.js giữ nguyên c
 });
 
 test('resolveError: AppError giữ message, code kiểu cũ và thêm error', () => {
-  const resolved = errorHandleController.resolve(AppError.conflict('Trùng', 'ALREADY_SAVED'));
+  const resolved = errorHandleController.resolve(new AppError(saved.ALREADY_SAVED));
   assert.deepEqual(
     { statusCode: resolved.statusCode, code: resolved.code, errorCode: resolved.errorCode, message: resolved.message },
-    { statusCode: 409, code: 'ALREADY_SAVED', errorCode: 'ALREADY_SAVED', message: 'Trùng' },
+    { statusCode: 409, code: 'SCHOLARSHIP_ALREADY_SAVED', errorCode: 'SCHOLARSHIP_ALREADY_SAVED', message: saved.ALREADY_SAVED.message },
   );
-  assert.equal(errorHandleController.resolve(AppError.notFound('x')).code, 404);
+  assert.equal(errorHandleController.resolve(new AppError(notification.NOT_FOUND)).code, 'NOTIFICATION_NOT_FOUND');
 });
 
 test('resolveError: ZodError thành 400 VALIDATION_ERROR kèm lỗi từng trường', () => {

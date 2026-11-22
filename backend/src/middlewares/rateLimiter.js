@@ -1,4 +1,7 @@
 import rateLimit from 'express-rate-limit';
+import { getCvDailyLimit } from '~/configs/cv.config.js';
+import { CV_RATE_WINDOW_MS } from '~/constants/cv.js';
+import { cv as cvErrors } from '~/constants/errors.js';
 
 const createLimiter = (maxRequests, windowSeconds, message) => {
   return rateLimit({
@@ -26,15 +29,14 @@ const apiLimiter = isProd
 const uploadLimiter = createLimiter(20, 60, 'Quá nhiều yêu cầu tải lên, vui lòng thử lại sau.');
 const refreshLimiter = createLimiter(30, 15 * 60, 'Quá nhiều yêu cầu làm mới phiên, vui lòng thử lại sau.');
 
-// Đọc CV tốn lượt Gemini: production 5 lần / ngày / người (dev nới lỏng để thử). Cần chạy sau auth để có req.user.
-const CV_LIMIT = isProd ? 5 : 100;
+// Đọc CV tốn lượt Gemini: giới hạn / ngày / người theo configs/cv.config.js. Cần chạy sau auth để có req.user.
 const cvLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  max: CV_LIMIT,
+  windowMs: CV_RATE_WINDOW_MS,
+  max: getCvDailyLimit(),
   keyGenerator: req => req.user.id,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => res.error({ statusCode: 429, message: 'Bạn đã dùng hết lượt đọc CV hôm nay.', code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
+  handler: (req, res) => res.error({ statusCode: cvErrors.LIMIT_REACHED.statusCode, message: cvErrors.LIMIT_REACHED.message, code: cvErrors.LIMIT_REACHED.statusCode, errorCode: cvErrors.LIMIT_REACHED.code }),
 });
 
 export { authLimiter, apiLimiter, uploadLimiter, refreshLimiter, cvLimiter, createLimiter };

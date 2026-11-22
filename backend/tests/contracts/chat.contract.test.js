@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 
 import { mockServiceFunctions } from './helpers/mockService.js';
 import { auth } from '~/middlewares/auth.js';
-import AppError from '~/utils/AppError.js';
+import { AppError } from '~/constants/errors.js';
 import { createJsonApp, withServer, requestJson } from './helpers/http.js';
 
 // Controller dùng bản service xuất sẵn nên phải giả lập module trước khi nạp controller
@@ -157,7 +157,7 @@ test('POST /api/chat returns reply and persists latest exchange', async () => {
 test('POST /api/chat surfaces operational service outages cleanly', async () => {
   const app = buildApp({
     chat: async () => {
-      throw new AppError('ScholarsBot đang bận, vui lòng thử lại sau vài giây nhé!', 503, 'CHAT_BUSY');
+      throw new AppError({ statusCode: 503, code: 'CHAT_BUSY', message: 'ScholarsBot đang bận, vui lòng thử lại sau vài giây nhé!' });
     },
     saveMessages: async () => {},
     getHistory: async () => [],

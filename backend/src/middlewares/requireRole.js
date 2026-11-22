@@ -1,14 +1,14 @@
 /** Chặn người dùng không có role được phép (dùng sau middleware auth). */
 
-import AppError from '~/utils/AppError.js';
+import { AppError, authorization } from '~/constants/errors.js';
 
 const requireRole = role => (req, res, next) => {
   if (!req.user) {
-    return next(AppError.unauthorized('Vui lòng đăng nhập để tiếp tục', 'UNAUTHORIZED'));
+    return next(new AppError(authorization.LOGIN_REQUIRED));
   }
 
   if (req.user.role !== role) {
-    return next(AppError.forbidden('Không có quyền truy cập', 'FORBIDDEN'));
+    return next(new AppError(authorization.FORBIDDEN));
   }
 
   next();

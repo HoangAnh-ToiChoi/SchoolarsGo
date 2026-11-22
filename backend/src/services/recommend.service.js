@@ -1,4 +1,4 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, recommend as recommendErrors } from '~/constants/errors.js';
 import { extractIeltsScore } from '~/utils/helpers.js';
 import recommendModel from '~/models/recommend.model.js';
 import * as gemini from './gemini.service.js';
@@ -279,11 +279,11 @@ class RecommendService {
   async recommend(userId, topN = 10) {
     const rawProfile = await recommendModel.findProfileByUserId(userId);
     const profile = rawProfile ? this.#normalizeProfile(rawProfile) : null;
-    if (!profile) throw AppError.badRequest('Vui lòng cập nhật profile trước khi sử dụng gợi ý', 'PROFILE_REQUIRED');
+    if (!profile) throw new AppError(recommendErrors.PROFILE_REQUIRED);
 
     const readiness = this.#getProfileReadiness(profile);
     if (readiness.completeness < 0.3) {
-      throw AppError.badRequest('Vui lòng bổ sung thêm GPA, tiếng Anh, ngành học hoặc quốc gia mục tiêu để nhận gợi ý chính xác hơn', 'PROFILE_INCOMPLETE');
+      throw new AppError(recommendErrors.PROFILE_INCOMPLETE);
     }
 
     const scholarships = await recommendModel.findActiveScholarships(200);

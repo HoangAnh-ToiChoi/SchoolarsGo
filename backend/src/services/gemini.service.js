@@ -1,10 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiApiKey } from '~/configs/gemini.config.js';
 
 let genAI = null;
 
 const getClient = () => {
-  if (!genAI && process.env.GEMINI_API_KEY) {
-    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  if (!genAI && getGeminiApiKey()) {
+    genAI = new GoogleGenerativeAI(getGeminiApiKey());
   }
   return genAI;
 };

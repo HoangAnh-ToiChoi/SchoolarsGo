@@ -1,4 +1,4 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, notification as notificationErrors } from '~/constants/errors.js';
 import notificationModel from '~/models/notification.model.js';
 import { REMIND_DAYS, vnToday, addDays, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
@@ -76,7 +76,7 @@ class NotificationService {
 
   async markRead(userId, notificationId) {
     const found = await notificationModel.markRead(userId, notificationId);
-    if (!found) throw AppError.notFound('Không tìm thấy thông báo.', 'NOTIFICATION_NOT_FOUND');
+    if (!found) throw new AppError(notificationErrors.NOT_FOUND);
     return { id: notificationId };
   }
 

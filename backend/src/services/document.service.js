@@ -1,24 +1,20 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, document as documentErrors } from '~/constants/errors.js';
 import documentModel from '~/models/document.model.js';
 import * as storage from './storage.service.js';
+import { DOCUMENT_VALID_TYPES } from '~/constants/document.js';
 
 class DocumentService {
-  static #VALID_TYPES = ['cv', 'sop', 'transcript', 'recommendation_letter', 'other'];
-
-  #guardFound(item, message = 'Không tìm thấy document hoặc bạn không có quyền xóa') {
-    if (!item) throw AppError.notFound(message, 'DOCUMENT_NOT_FOUND');
+  #guardFound(item) {
+    if (!item) throw new AppError(documentErrors.NOT_FOUND);
   }
 
   #validateType(docType) {
-    if (!DocumentService.#VALID_TYPES.includes(docType))
-      throw AppError.badRequest(
-        `Loại document không hợp lệ. Chỉ chấp nhận: ${DocumentService.#VALID_TYPES.join(', ')}`,
-        'INVALID_DOC_TYPE'
-      );
+    if (!DOCUMENT_VALID_TYPES.includes(docType))
+      throw new AppError(documentErrors.INVALID_TYPE);
   }
 
   #ensureFile(file) {
-    if (!file) throw AppError.badRequest('Không có file được upload', 'NO_FILE');
+    if (!file) throw new AppError(documentErrors.NO_FILE);
   }
 
   #parseStoragePath(publicUrl) {
@@ -37,7 +33,7 @@ class DocumentService {
         file.mimetype
       );
     } catch (err) {
-      throw AppError.internal(`Upload file thất bại: ${err.message}`, 'UPLOAD_FAILED');
+      throw new AppError(documentErrors.uploadFailed(err.message));
     }
   }
 
@@ -64,7 +60,7 @@ class DocumentService {
       return doc;
     } catch (dbErr) {
       await storage.deleteFile(uploadResult.storagePath);
-      throw AppError.internal(`Lưu metadata thất bại, file đã được gỡ: ${dbErr.message}`, 'DB_INSERT_FAILED');
+      throw new AppError(documentErrors.insertFailed(dbErr.message));
     }
   }
 

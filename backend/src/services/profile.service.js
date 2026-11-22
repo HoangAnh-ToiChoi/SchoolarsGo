@@ -1,4 +1,5 @@
-import AppError from '~/utils/AppError.js';
+import { AppError, profile as profileErrors } from '~/constants/errors.js';
+import { PROFILE_VALID_DEGREES, PROFILE_ENGLISH_LEVEL_MAX, PROFILE_DEFAULT_GPA_SCALE } from '~/constants/profile.js';
 import profileModel from '~/models/profile.model.js';
 
 class ProfileService {
@@ -14,24 +15,20 @@ class ProfileService {
   #validateUpdate(updates) {
     if (updates.gpa !== undefined) {
       const gpa = parseFloat(updates.gpa);
-      if (Number.isNaN(gpa)) throw AppError.badRequest('GPA phải là số', 'INVALID_GPA');
-      const maxGpa = updates.gpa_scale || 4.0;
+      if (Number.isNaN(gpa)) throw new AppError(profileErrors.GPA_NOT_NUMBER);
+      const maxGpa = updates.gpa_scale || PROFILE_DEFAULT_GPA_SCALE;
       if (gpa < 0 || gpa > maxGpa)
-        throw AppError.badRequest(`GPA phải nằm trong khoảng 0 - ${maxGpa}`, 'INVALID_GPA');
+        throw new AppError(profileErrors.gpaOutOfRange(maxGpa));
     }
 
     if (updates.english_level !== undefined) {
-      if (String(updates.english_level).length > 50)
-        throw AppError.badRequest('english_level không được vượt quá 50 ký tự', 'INVALID_ENGLISH_LEVEL');
+      if (String(updates.english_level).length > PROFILE_ENGLISH_LEVEL_MAX)
+        throw new AppError(profileErrors.ENGLISH_LEVEL_TOO_LONG);
     }
 
     if (updates.target_degree !== undefined) {
-      const validDegrees = ['Bachelor', 'Master', 'PhD', 'Any'];
-      if (!validDegrees.includes(updates.target_degree))
-        throw AppError.badRequest(
-          `target_degree không hợp lệ. Giá trị được chấp nhận: ${validDegrees.join(', ')}`,
-          'INVALID_DEGREE'
-        );
+      if (!PROFILE_VALID_DEGREES.includes(updates.target_degree))
+        throw new AppError(profileErrors.INVALID_DEGREE);
     }
   }
 }
