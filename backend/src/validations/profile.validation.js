@@ -1,5 +1,32 @@
 import { z } from 'zod';
 import { DEGREES } from './scholarship.validation.js';
+import {
+  PROFILE_CURRENT_DEGREES, PROFILE_MAJOR_MAX, PROFILE_EXPERIENCE_MAX,
+  PROFILE_BIRTH_YEAR_MIN, PROFILE_BIRTH_YEAR_MAX, PROFILE_NATIONALITY_PATTERN,
+  PROFILE_MAX_CERTIFICATES, PROFILE_CERTIFICATE_TYPE_MAX, PROFILE_CERTIFICATE_LEVEL_MAX, PROFILE_CERTIFICATE_SCORE_MAX,
+  PROFILE_IELTS_NAME, PROFILE_IELTS_MAX_SCORE,
+} from '~/constants/profile.js';
+
+const toUpperCase = value => value.toUpperCase();
+
+const hasScoreOrLevel = certificate => certificate.score !== undefined || certificate.level !== undefined;
+
+// IELTS luôn phải có điểm từ 0 đến 9; chứng chỉ khác chỉ cần có điểm hoặc mức
+function hasValidIeltsScore(certificate) {
+  const isIelts = certificate.type.toLowerCase() === PROFILE_IELTS_NAME;
+  if (!isIelts) return true;
+  if (certificate.score === undefined) return false;
+  return certificate.score <= PROFILE_IELTS_MAX_SCORE;
+}
+
+// Chứng chỉ có điểm ({ IELTS, 7.0 }) hoặc chỉ có mức ({ CEFR, B1 })
+const certificateSchema = z.object({
+  type: z.string().min(1).max(PROFILE_CERTIFICATE_TYPE_MAX),
+  score: z.number().min(0).max(PROFILE_CERTIFICATE_SCORE_MAX).optional(),
+  level: z.string().min(1).max(PROFILE_CERTIFICATE_LEVEL_MAX).optional(),
+})
+  .refine(hasScoreOrLevel, { message: 'Chứng chỉ cần có điểm hoặc mức' })
+  .refine(hasValidIeltsScore, { message: `IELTS phải có điểm từ 0 đến ${PROFILE_IELTS_MAX_SCORE}` });
 
 const profileUpdateSchema = z.object({
   bio: z.string().max(2000).optional(),
@@ -16,6 +43,12 @@ const profileUpdateSchema = z.object({
     .optional(),
   target_intake: z.string().max(50).optional(),
   full_name: z.string().min(2).max(255).optional(),
+  current_degree: z.enum(PROFILE_CURRENT_DEGREES).optional(),
+  major: z.string().max(PROFILE_MAJOR_MAX).optional(),
+  nationality: z.string().regex(PROFILE_NATIONALITY_PATTERN, 'nationality là mã quốc gia 2 chữ cái, ví dụ VN').transform(toUpperCase).optional(),
+  birth_year: z.coerce.number().int().min(PROFILE_BIRTH_YEAR_MIN).max(PROFILE_BIRTH_YEAR_MAX).optional(),
+  experience: z.string().max(PROFILE_EXPERIENCE_MAX).optional(),
+  certificates: z.array(certificateSchema).max(PROFILE_MAX_CERTIFICATES).optional(),
 });
 
 export { profileUpdateSchema };
