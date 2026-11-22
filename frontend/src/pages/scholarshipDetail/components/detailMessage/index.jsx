@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
+import { ROUTES } from '~/utils/routes';
 
 // Thông báo thay cho nội dung trang: không tìm thấy học bổng (nút về trang chủ) hoặc lỗi tải (nút thử lại)
 export default function DetailMessage({ icon: Icon, title, description, onRetry }) {
@@ -16,12 +17,12 @@ export default function DetailMessage({ icon: Icon, title, description, onRetry 
               Thử lại
             </Button>
             <Button asChild variant="subtle">
-              <Link to="/">Về trang chủ</Link>
+              <Link to={ROUTES.home}>Về trang chủ</Link>
             </Button>
           </>
         ) : (
           <Button asChild>
-            <Link to="/">Về trang chủ</Link>
+            <Link to={ROUTES.home}>Về trang chủ</Link>
           </Button>
         )}
       </div>

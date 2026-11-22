@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { NAV_SECTIONS } from '~/layouts/userLayout/components/sidebarNav/navConfig';
+import { NAV_SECTIONS } from '~/layouts/userLayout/constants';
 import { cn } from '~/utils/cn';
 
 // Danh sách mục điều hướng, dùng chung cho sidebar (máy tính) và menu trượt (điện thoại).
@@ -21,10 +21,10 @@ export default function SidebarNav({ onNavigate }) {
             )
           }
         >
-          <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+          <Icon className="size-4.5 shrink-0" aria-hidden="true" />
           {label}
           {badge && (
-            <span className="ml-auto rounded-[6px] bg-brand-50 px-1.5 py-0.5 text-[11px] font-bold text-brand-600">{badge}</span>
+            <span className="ml-auto rounded-control bg-brand-50 px-1.5 py-0.5 text-label-sm font-bold text-brand-600">{badge}</span>
           )}
         </NavLink>
       ))}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Sparkles } from 'lucide-react';
+import { ROUTES } from '~/utils/routes';
 
 const ChatFAB = () => {
   const [hovered, setHovered] = useState(false);
@@ -9,7 +10,7 @@ const ChatFAB = () => {
   const { pathname } = useLocation();
 
   // Ẩn khi đang ở trang chat
-  if (pathname === '/chat') return null;
+  if (pathname === ROUTES.chat) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
@@ -31,7 +32,7 @@ const ChatFAB = () => {
 
       {/* FAB button */}
       <motion.button
-        onClick={() => navigate('/chat')}
+        onClick={() => navigate(ROUTES.chat)}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
         initial={{ scale: 0, opacity: 0 }}
@@ -52,7 +53,7 @@ const ChatFAB = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 22, delay: 1 }}
-          className="absolute -top-1.5 -right-1.5 bg-ink-950 border border-primary-400/50 text-primary-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none z-10"
+          className="absolute -top-1.5 -right-1.5 bg-ink-950 border border-primary-400/50 text-primary-400 text-micro font-bold px-1.5 py-0.5 rounded-full leading-none z-10"
         >
           AI
         </motion.span>

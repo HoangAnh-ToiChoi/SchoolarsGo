@@ -1,7 +1,8 @@
 import { CheckIcon } from '@heroicons/react/16/solid';
 import { Card } from '~/components/ui/card';
 import { cn } from '~/utils/cn';
-import { getStepIndex, STEPS } from '~/pages/applicationDetail/helper';
+import { STEPS } from '~/pages/applicationDetail/constants';
+import { getStepIndex } from '~/pages/applicationDetail/helpers';
 
 // Thanh tiến trình đơn: nhìn một lần là biết đơn đang ở chặng nào.
 // Chặng cuối đổi chữ/màu theo kết quả (được nhận = xanh, từ chối = đỏ).
@@ -40,7 +41,7 @@ export default function StatusStepper({ status }) {
               )}
               <span
                 className={cn(
-                  'relative flex size-6 items-center justify-center rounded-full border-2 text-[11px] font-bold',
+                  'relative flex size-6 items-center justify-center rounded-full border-2 text-label-sm font-bold',
                   failed
                     ? 'border-urgent-fg bg-urgent-fg text-white'
                     : won
@@ -56,7 +57,7 @@ export default function StatusStepper({ status }) {
               </span>
               <span
                 className={cn(
-                  'mt-2 text-[12px] leading-tight',
+                  'mt-2 text-label leading-tight',
                   failed
                     ? 'font-semibold text-urgent-fg'
                     : won

@@ -7,8 +7,8 @@ export default function ApplicationRowSkeleton() {
         <Skeleton className="h-4 w-3/5 bg-track" />
         <Skeleton className="h-3.5 w-2/5 bg-track" />
       </div>
-      <div className="flex items-center justify-between gap-4 md:w-[340px]">
-        <Skeleton className="h-6 w-[160px] bg-track" />
+      <div className="flex items-center justify-between gap-4 md:w-menu">
+        <Skeleton className="h-6 w-40 bg-track" />
         <Skeleton className="h-6 w-20 bg-track" />
       </div>
     </li>

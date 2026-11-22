@@ -21,6 +21,7 @@ import { cn } from '~/utils/cn';
 import { formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { PageHeader, EmptyState, Button, Card, CardContent, Badge } from '~/components/legacy';
+import { ROUTES } from '~/utils/routes';
 
 const TabButton = ({ id, label, active, onClick }) => (
   <button
@@ -194,7 +195,7 @@ const DashboardPage = () => {
               <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Button
                   fullWidth
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate(ROUTES.home)}
                   className="justify-center"
                 >
                   Tìm học bổng mới
@@ -218,7 +219,7 @@ const DashboardPage = () => {
                 <Button
                   fullWidth
                   variant="secondary"
-                  onClick={() => navigate('/applications')}
+                  onClick={() => navigate(ROUTES.applications)}
                   className="justify-center"
                 >
                   Xem tất cả ứng tuyển
@@ -338,7 +339,7 @@ const DashboardPage = () => {
                   title="Chưa có dữ liệu"
                   description="Hoàn thiện profile và tạo ứng tuyển để xem thống kê chi tiết."
                   actionLabel="Tìm học bổng"
-                  actionTo="/"
+                  actionTo={ROUTES.home}
                 />
               </div>
             )}

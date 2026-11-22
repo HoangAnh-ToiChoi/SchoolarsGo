@@ -13,8 +13,9 @@ import {
 } from '~/components/ui/dropdownMenu';
 import { DELETABLE_STATUSES } from '~/utils/application';
 import { formatDate } from '~/utils/format';
+import { ROUTES } from '~/utils/routes';
 import { COUNTRY_LABELS, labelOf, scholarshipPath } from '~/utils/scholarship';
-import { CAN_WITHDRAW, NEXT_ACTIONS } from '~/pages/applicationDetail/helper';
+import { CAN_WITHDRAW, NEXT_ACTIONS } from '~/pages/applicationDetail/constants';
 
 // Đầu trang: tên học bổng + trạng thái + hạn nộp bên trái, việc cần làm tiếp bên phải.
 // Mọi thông tin chính nằm trên một dải để không phải lia mắt xuống cột bên.
@@ -28,12 +29,12 @@ export default function DetailHeader({ application, busy, onStatusChange, onDele
 
   return (
     <header className="flex flex-col gap-4">
-      <BackLink to="/applications">Đơn ứng tuyển</BackLink>
+      <BackLink to={ROUTES.applications}>Đơn ứng tuyển</BackLink>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <h1 className="break-words text-page-title text-fg">{scholarship.title}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-fg-muted">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-ui text-fg-muted">
             <StatusBadge status={status} />
             {/* Đơn nháp cần biết còn bao lâu; đơn đã nộp thì ngày nộp có ích hơn */}
             {status === 'draft' ? (
@@ -68,7 +69,7 @@ export default function DetailHeader({ application, busy, onStatusChange, onDele
                 <EllipsisHorizontalIcon className="size-5" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[180px]">
+            <DropdownMenuContent align="end" className="min-w-44">
               <DropdownMenuItem asChild className="sm:hidden">
                 <Link to={scholarshipPath(scholarship)}>Xem học bổng</Link>
               </DropdownMenuItem>

@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '~/utils/format';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import { safeUrl } from '~/utils/security';
 import { scholarshipPath } from '~/utils/scholarship';
+import { ROUTES } from '~/utils/routes';
 
 const useScholarships = (ids) => {
   const q1 = useScholarship(ids[0]);
@@ -47,14 +48,14 @@ const ComparisonPage = () => {
     return (
       <div className="containerPage py-16 text-center bg-ink-950 min-h-screen">
         <p className="text-body text-ink-400 mb-4">Cần ít nhất 2 học bổng để so sánh</p>
-        <Link to="/" className="btnPrimary">Chọn học bổng</Link>
+        <Link to={ROUTES.home} className="btnPrimary">Chọn học bổng</Link>
       </div>
     );
   }
 
   return (
     <div className="containerPage py-8 bg-ink-950 min-h-screen">
-      <BackLink to="/" className="mb-6">Trang chủ</BackLink>
+      <BackLink to={ROUTES.home} className="mb-6">Trang chủ</BackLink>
 
       <h1 className="text-heading-1 text-ink-100 mb-8">So sánh học bổng</h1>
 

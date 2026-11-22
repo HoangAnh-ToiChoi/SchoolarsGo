@@ -1,8 +1,8 @@
 import { cn } from '~/utils/cn';
 
 const controlClass =
-  'h-[38px] w-full rounded-control border bg-surface px-2.5 text-sm text-fg outline-none transition-[border-color,box-shadow] duration-150 ' +
-  'placeholder:text-fg-muted focus:border-brand-600 focus:ring-[3px] focus:ring-brand-600/15';
+  'h-nav w-full rounded-control border bg-surface px-2.5 text-sm text-fg outline-none transition-[border-color,box-shadow] duration-150 ' +
+  'placeholder:text-fg-muted focus:border-brand-600 focus:ring focus:ring-brand-600/15';
 
 // Một ô lọc: nhãn + select hoặc input. Ô đang có giá trị thì viền tím nhạt để dễ nhận ra.
 export default function FilterField({ field, value, options = [], onChange }) {
@@ -12,7 +12,7 @@ export default function FilterField({ field, value, options = [], onChange }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-[12.5px] font-semibold text-fg-soft">
+      <label htmlFor={id} className="text-label font-semibold text-fg-soft">
         {field.label}
       </label>
       {field.type === 'select' ? (

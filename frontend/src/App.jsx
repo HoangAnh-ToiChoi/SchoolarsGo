@@ -7,6 +7,7 @@ import PageLoader from '~/components/common/pageLoader';
 import { selectAuthLoading, selectIsAdmin, selectIsAuthenticated } from '~/store/slices/authSlice';
 import { PAGE_LOADERS } from '~/pageLoaders';
 import { useSessionBootstrap } from '~/hooks/useAuth';
+import { ROUTES } from '~/utils/routes';
 
 // Mỗi trang là một thư mục pages/<tên>/index.jsx, tải lười để giảm dung lượng lần đầu (hàm tải ở pageLoaders.js)
 const HomePage = lazy(PAGE_LOADERS.home);
@@ -36,15 +37,15 @@ function AdminRoute({ children }) {
   const isLoading = useSelector(selectAuthLoading);
   const location = useLocation();
   if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to={`/login?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`} replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to={`${ROUTES.login}?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`} replace />;
+  if (!isAdmin) return <Navigate to={ROUTES.home} replace />;
   return children;
 }
 
 // Link cũ /scholarships?search=… chuyển về trang chủ, giữ nguyên từ khóa và bộ lọc
 function LegacySearchRedirect() {
   const { search } = useLocation();
-  return <Navigate to={{ pathname: '/', search }} replace />;
+  return <Navigate to={{ pathname: ROUTES.home, search }} replace />;
 }
 
 const guard = (page) => <ProtectedRoute>{page}</ProtectedRoute>;
@@ -67,7 +68,7 @@ export default function App() {
           <Route path="saved" element={guard(<SavedPage />)} />
           <Route path="compare" element={<ComparePage />} />
           <Route path="news" element={<NewsPage />} />
-          <Route path="profile" element={<Navigate to="/dashboard" replace />} />
+          <Route path="profile" element={<Navigate to={ROUTES.dashboard} replace />} />
           <Route path="dashboard" element={guard(<DashboardPage />)} />
           <Route path="applications" element={guard(<ApplicationsPage />)} />
           <Route path="applications/:id" element={guard(<ApplicationDetailPage />)} />

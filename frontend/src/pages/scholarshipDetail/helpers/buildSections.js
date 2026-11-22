@@ -1,16 +1,4 @@
-// Dấu đầu dòng hay gặp trong dữ liệu cào về: "- ", "• ", "* ", "1. ", "2) "
-const BULLET = /^\s*(?:[-•*·+]|\d+[.)])\s*/;
-
-// DB lưu quyền lợi/điều kiện/hồ sơ dạng text, mỗi ý một dòng. Tách thành danh sách để hiển thị.
-// Phòng khi API trả mảng thì dùng luôn.
-export function toListItems(value) {
-  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
-  if (typeof value !== 'string') return [];
-  return value
-    .split(/\r?\n/)
-    .map((line) => line.replace(BULLET, '').trim())
-    .filter(Boolean);
-}
+import { toListItems } from './toListItems';
 
 // Các mục nội dung của trang chi tiết. Mục nào không có dữ liệu thì bỏ hẳn (cả tab mục lục),
 // vì nhiều học bổng cào về chỉ có tóm tắt.

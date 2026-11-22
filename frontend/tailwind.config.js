@@ -70,16 +70,9 @@ export default {
         destructive: { DEFAULT: tone('danger'), foreground: '#FFFFFF' },
         // Trang cũ (chưa làm lại) dùng thang ink: 950 sáng nhất → 100 đậm nhất
         ink: {
-          950: '#FFFFFF',
-          900: tone('neutral', 4),
-          800: tone('neutral', 10),
-          700: tone('neutral', 20),
-          600: tone('neutral', 32),
-          500: tone('neutral', 62),
-          400: tone('neutral', 80),
-          300: tone('neutral', 92),
-          200: tone('neutral'),
-          100: tone('neutral', 100, 45),
+          950: '#FFFFFF', 900: tone('neutral', 4), 800: tone('neutral', 10), 700: tone('neutral', 20),
+          600: tone('neutral', 32), 500: tone('neutral', 62), 400: tone('neutral', 80), 300: tone('neutral', 92),
+          200: tone('neutral'), 100: tone('neutral', 100, 45),
         },
       },
       fontFamily: {
@@ -87,18 +80,36 @@ export default {
       },
       height: {
         header: '64px',
-        control: '40px', // điều khiển trong header
-        nav: '38px', // mục sidebar
-        filter: '34px', // nút bộ lọc
+        control: '40px', // điều khiển trong header, nút chuẩn
+        nav: '38px',     // mục sidebar, trường nhập form
+        filter: '34px',  // nút bộ lọc
+        calendar: '460px', // chiều cao khối lịch / sự kiện hạn nộp
       },
       width: {
         sidebar: '256px',
+        menu: '340px',          // khối cột tiến trình / menu ứng tuyển
+        'action-panel': '280px', // drawer điều hướng di động / panel hành động
+        drawer: '280px',
+        'detail-panel': '360px', // dropdown thông báo / panel chi tiết
+        'menu-lg': '360px',
+        'user-menu': '248px',    // menu tài khoản người dùng
+        'menu-sm': '248px',
       },
       fontSize: {
         // Design v2
+        'hero-title': ['30px', { lineHeight: '38px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display-sm': ['30px', { lineHeight: '38px', letterSpacing: '-0.02em', fontWeight: '700' }],
         'page-title': ['24px', { lineHeight: '30px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'stat': ['22px', { lineHeight: '28px', fontWeight: '700' }],
+        'countdown': ['22px', { lineHeight: '1', fontWeight: '700' }],
         'card-title': ['17px', { lineHeight: '23px', letterSpacing: '-0.015em', fontWeight: '700' }],
         'block-title': ['15px', { lineHeight: '20px', fontWeight: '700' }],
+        'ui-lg': ['14px', { lineHeight: '20px' }],
+        'ui': ['13px', { lineHeight: '18px' }],
+        'label': ['12px', { lineHeight: '16px' }],
+        'label-sm': ['11px', { lineHeight: '14px' }],
+        'caption-sm': ['11px', { lineHeight: '14px' }],
+        'micro': ['10px', { lineHeight: '14px' }],
         // Legacy
         'display':   ['3.5rem', { lineHeight: '1.05', fontWeight: '800' }],
         'heading-1': ['2rem',   { lineHeight: '1.2',  fontWeight: '700' }],
@@ -114,19 +125,22 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-        tile: '14px', // thẻ
-        inner: '10px', // ô con trong thẻ, ô tìm kiếm
+        tile: '14px',   // thẻ
+        inner: '10px',  // ô con trong thẻ, ô tìm kiếm
         control: '8px', // nút, mục menu
         // Legacy
-        'card':   '0.75rem',
-        'button': '0.5rem',
-        'input':  '0.5rem',
-        'badge':  '0.25rem',
-        'tag':    '9999px',
+        'card': '0.75rem', 'button': '0.5rem', 'input': '0.5rem', 'badge': '0.25rem', 'tag': '9999px',
       },
       spacing: {
-        'page':    '2rem',
-        'section': '5rem',
+        'page':          '2rem',
+        'section':       '5rem',
+        'sticky-offset': '88px', // Header (64px) + khoảng cách (24px)
+        'sticky':        '88px',
+        'filter-top':    '72px', // Header (64px) + khoảng cách (8px)
+        'filter':        '72px',
+        4.5:             '1.125rem', // 18px
+        18:              '4.5rem',   // 72px
+        21:              '5.25rem',  // 84px
       },
       boxShadow: {
         // Design v2
@@ -154,34 +168,16 @@ export default {
         'float':          'float 6s ease-in-out infinite',
       },
       keyframes: {
-        fadeIn: {
-          '0%':   { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%':   { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideDown: {
-          '0%':   { opacity: '0', transform: 'translateY(-10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        fadeInUp: {
-          '0%':   { opacity: '0', transform: 'translateY(24px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
+        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+        slideUp: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+        slideDown: { '0%': { opacity: '0', transform: 'translateY(-10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         pulseGlow: {
           '0%, 100%': { boxShadow: '0 0 15px color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent)' },
           '50%':      { boxShadow: '0 0 35px color-mix(in srgb, rgb(var(--c-primary)) 45%, transparent)' },
         },
-        shimmer: {
-          '0%':   { backgroundPosition: '-200% center' },
-          '100%': { backgroundPosition: '200% center' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%':      { transform: 'translateY(-8px)' },
-        },
+        shimmer: { '0%': { backgroundPosition: '-200% center' }, '100%': { backgroundPosition: '200% center' } },
+        float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
       },
     },
   },

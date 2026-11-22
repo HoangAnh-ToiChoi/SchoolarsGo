@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useRegister } from '~/hooks/useAuth';
 import { Input } from '~/components/legacy';
 import { cn } from '~/utils/cn';
+import { ROUTES } from '~/utils/routes';
 
 const RegisterPage = () => {
   const [form, setForm] = useState({ email: '', password: '', full_name: '' });
@@ -74,7 +75,7 @@ const RegisterPage = () => {
 
           <p className="text-center text-ink-400 text-sm mt-6">
             Đã có tài khoản?{' '}
-            <Link to="/login" className="text-primary-400 hover:text-primary-400 font-semibold transition-colors">
+            <Link to={ROUTES.login} className="text-primary-400 hover:text-primary-400 font-semibold transition-colors">
               Đăng nhập
             </Link>
           </p>

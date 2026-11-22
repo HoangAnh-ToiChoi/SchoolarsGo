@@ -2,6 +2,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { Home } from 'lucide-react';
 import { ADMIN_NAV } from '~/layouts/adminLayout/constants';
 import { cn } from '~/utils/cn';
+import { ROUTES } from '~/utils/routes';
 
 export default function AdminSidebar() {
   return (
@@ -10,7 +11,7 @@ export default function AdminSidebar() {
         Admin Panel
       </p>
       <Link
-        to="/"
+        to={ROUTES.home}
         className="flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium text-ink-400 hover:bg-ink-800 hover:text-ink-100 transition-all mb-2"
       >
         <Home className="w-4 h-4 shrink-0" />

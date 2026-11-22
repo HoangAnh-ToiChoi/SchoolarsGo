@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useDocuments, useUploadDocument, useDeleteDocument } from '~/hooks/useProfile';
 import { DOCUMENT_TYPES } from '~/utils/constants';
-import { autoClassifyDocument, validateDocumentFile } from '../../helper';
+import { autoClassifyDocument, validateDocumentFile } from '~/pages/profile/helpers';
 import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';

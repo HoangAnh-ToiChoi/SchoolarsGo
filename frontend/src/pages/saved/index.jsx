@@ -10,6 +10,7 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { useSavedScholarships } from '~/hooks/useScholarship';
 import { useSlowLoading } from '~/hooks/useSlowLoading';
+import { ROUTES } from '~/utils/routes';
 import { sortByDeadline } from '~/utils/scholarship';
 
 // Học bổng đã lưu: dùng chung thẻ và lưới với trang chủ để hai nơi nhìn giống hệt nhau.
@@ -46,7 +47,7 @@ export default function SavedPage() {
             Bấm biểu tượng lưu ở góc thẻ học bổng để đưa vào đây và nhận nhắc hạn nộp.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/">Tìm học bổng</Link>
+            <Link to={ROUTES.home}>Tìm học bổng</Link>
           </Button>
         </Card>
       ) : (
