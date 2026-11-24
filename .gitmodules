@@ -1,0 +1,12 @@
+[submodule "vendor/mattpocock-skills"]
+	path = vendor/mattpocock-skills
+	url = https://github.com/mattpocock/skills.git
+[submodule "vendor/graphify"]
+	path = vendor/graphify
+	url = https://github.com/Graphify-Labs/graphify.git
+[submodule "vendor/ponytail"]
+	path = vendor/ponytail
+	url = https://github.com/DietrichGebert/ponytail.git
+[submodule "vendor/ecc"]
+	path = vendor/ecc
+	url = https://github.com/affaan-m/ECC.git

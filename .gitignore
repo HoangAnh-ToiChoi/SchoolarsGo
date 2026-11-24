@@ -32,8 +32,14 @@ coverage/
 .cursorrules
 .cursor/
 
-# Claude Code
-.claude/
+# Claude Code: harness dùng chung (settings.json, hooks, agents, skills) được commit;
+# cấu hình cá nhân và dữ liệu sinh ra thì không
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+!.claude/agents/
+!.claude/skills/
+.claude/settings.local.json
 .codegraph/
 newFeature.md
 
