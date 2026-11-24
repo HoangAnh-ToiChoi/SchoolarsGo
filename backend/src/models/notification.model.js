@@ -53,6 +53,17 @@ class NotificationModel {
     if (error) throw error;
   }
 
+  /** Tên kênh realtime ngẫu nhiên của người dùng (migration 010). */
+  async findRealtimeTopic(userId) {
+    const { data, error } = await getSupabase()
+      .from('users')
+      .select('realtime_topic')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.realtime_topic ?? null;
+  }
+
   async findByUser(userId, limit) {
     const { data, error } = await getSupabase()
       .from('notifications')

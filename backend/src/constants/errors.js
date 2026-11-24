@@ -87,6 +87,7 @@ const saved = Object.freeze({
 // Thông báo (notification.service)
 const notification = Object.freeze({
   NOT_FOUND: { statusCode: 404, code: 'NOTIFICATION_NOT_FOUND', message: 'Không tìm thấy thông báo.' },
+  CHANNEL_NOT_FOUND: { statusCode: 404, code: 'NOTIFICATION_CHANNEL_NOT_FOUND', message: 'Chưa có kênh thông báo tức thời.' },
 });
 
 // Tài liệu người dùng (document.service). Hàm nhận lý do lỗi để giữ nguyên nội dung thông báo cũ
