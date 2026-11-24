@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '~/utils/constants';
 import { store } from '~/store';
-import { demoAdapter } from '~/utils/demo/demoAdapter';
 import { loggedOut } from '~/store/slices/authSlice';
 
 const api = axios.create({
@@ -62,6 +61,12 @@ api.interceptors.response.use(response => response, async function(error) {
   return Promise.reject(error);
 });
 
-if (import.meta.env.VITE_DEMO_MODE === 'true') api.defaults.adapter = demoAdapter;
+// Bản demo (GitHub Pages) trả dữ liệu minh họa. Tải lười để bản thật không chở dữ liệu demo trong chunk đầu
+async function lazyDemoAdapter(config) {
+  const { demoAdapter } = await import('~/utils/demo/demoAdapter');
+  return demoAdapter(config);
+}
+
+if (import.meta.env.VITE_DEMO_MODE === 'true') api.defaults.adapter = lazyDemoAdapter;
 
 export default api;
