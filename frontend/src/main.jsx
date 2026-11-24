@@ -10,6 +10,7 @@ import { loggedIn } from '~/store/slices/authSlice';
 import { DEMO_USER } from '~/utils/demo/demoData';
 import '~/index.css';
 import { color } from '~/utils/palette';
+import { scrubBreadcrumb, scrubSentryEvent } from '~/utils/sentry';
 
 // Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản
 if (import.meta.env.VITE_DEMO_MODE === 'true' && !store.getState().auth.isAuthenticated) {
@@ -25,6 +26,9 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     environment: import.meta.env.MODE,
     tracesSampleRate: import.meta.env.PROD ? 0.2 : 1.0,
     integrations: [Sentry.browserTracingIntegration()],
+    beforeSend: scrubSentryEvent,
+    beforeSendTransaction: scrubSentryEvent,
+    beforeBreadcrumb: scrubBreadcrumb,
   });
 }
 

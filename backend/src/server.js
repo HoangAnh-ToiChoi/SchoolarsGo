@@ -1,13 +1,16 @@
 import 'dotenv/config';
 
 import * as Sentry from '@sentry/node';
+import { scrubSentryEvent } from '~/utils/scrubSentryEvent.js';
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
-    sendDefaultPii: true,
+    sendDefaultPii: false, // không gửi IP, cookie phiên lên bên thứ ba
+    beforeSend: scrubSentryEvent,
+    beforeSendTransaction: scrubSentryEvent,
   });
 }
 
