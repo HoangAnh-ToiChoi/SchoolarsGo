@@ -5,10 +5,12 @@
  *   node scripts/ingest.js --env=.env.cloud --allow-remote --dry-run          -- chạy thử tất cả nguồn, không ghi DB
  *   node scripts/ingest.js --env=.env.cloud --allow-remote --source=scholars4dev --dry-run
  *   node scripts/ingest.js --env=.env.cloud --allow-remote                    -- kéo thật
+ *   node scripts/ingest.js --allow-remote --incremental                        -- chỉ bài mới / vừa sửa (GitHub Actions mỗi 2 giờ)
  *
  * Tuỳ chọn:
  *   --source=a,b    chỉ chạy các nguồn này (mặc định: tất cả)
- *   --limit=N       mỗi nguồn chỉ lấy tối đa N bài (để thử nhanh)
+ *   --limit=N       mỗi nguồn chỉ lấy tối đa N bài (để thử nhanh; kéo thật kèm --limit vẫn dời mốc tăng dần → nên dùng với --dry-run)
+ *   --incremental   chỉ lấy bài đăng mới hoặc vừa sửa từ lượt thành công gần nhất của từng nguồn
  *   --no-ai         không dùng Gemini (mặc định tự dùng khi có GEMINI_API_KEY)
  *   --verbose       in thêm ví dụ bài được nhận / bị loại
  *   --env=FILE      file .env (mặc định .env, tức DB local)
@@ -49,6 +51,7 @@ function printResult(stats, verbose) {
     .join(' | ') || 'không có';
   console.log(`\n── ${stats.source} ${'─'.repeat(Math.max(0, 50 - stats.source.length))}`);
   if (stats.error) console.log(`   ❌ Lỗi: ${stats.error}`);
+  if (stats.modifiedAfter) console.log(`   Tăng dần từ  : ${stats.modifiedAfter.toISOString()}`);
   console.log(`   Lấy về        : ${stats.fetched}`);
   console.log(`   Bị loại       : ${rejected}`);
   console.log(`   Trùng trong lượt: ${stats.duplicateInRun}`);
@@ -80,7 +83,7 @@ async function main() {
   console.log(`🌐 Kéo học bổng → ${process.env.PG_DATABASE}@${host}  (nguồn: ${only.join(', ') || sourceNames().join(', ')})`);
 
   const ingestion = createIngestion({ db, aiModel: await buildAiModel(), logger: { info: console.log, warn: console.warn, error: console.error } });
-  const results = await ingestion.run({ only, dryRun, limit });
+  const results = await ingestion.run({ only, dryRun, limit, incremental: hasFlag('incremental') });
   results.forEach((r) => printResult(r, hasFlag('verbose')));
 
   const total = results.reduce((acc, r) => ({ inserted: acc.inserted + r.inserted, updated: acc.updated + r.updated }), { inserted: 0, updated: 0 });

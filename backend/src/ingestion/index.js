@@ -38,13 +38,16 @@ function createIngestion({ db, aiModel = null, logger = console, fetchImpl, now 
   const aiFill = createAiFill({ model: aiModel, logger, now });
 
   return {
-    /** Kéo học bổng. only: chỉ chạy các trang này · dryRun: không ghi DB · limit: tối đa N bài mỗi trang */
-    run({ only = [], dryRun = false, limit = Infinity } = {}) {
+    /**
+     * Kéo học bổng. only: chỉ chạy các trang này · dryRun: không ghi DB · limit: tối đa N bài mỗi trang
+     * incremental: chỉ lấy bài mới / vừa sửa từ lượt thành công gần nhất của từng trang (chạy mỗi vài giờ)
+     */
+    run({ only = [], dryRun = false, limit = Infinity, incremental = false } = {}) {
       const sources = pickSources(only).map((source) => ({
         name: source.name,
         fetchPosts: (options) => fetchPosts(source, { ...options, fetchImpl, now }),
       }));
-      return runIngestion({ sources, store, aiFill, logger, now }, { dryRun, limit });
+      return runIngestion({ sources, store, aiFill, logger, now }, { dryRun, limit, incremental });
     },
     /** Tắt học bổng đã quá hạn (chạy mỗi đêm). */
     deactivateExpired: () => store.deactivateExpired(),
@@ -55,15 +58,21 @@ function createIngestion({ db, aiModel = null, logger = console, fetchImpl, now 
  * Chạy mọi trang. Tách khỏi createIngestion để test truyền trang giả và store giả vào.
  * @returns {Promise<object[]>} thống kê từng trang
  */
-async function runIngestion({ sources, store, aiFill = null, logger = console, now = () => new Date() }, { dryRun = false, limit = Infinity } = {}) {
+async function runIngestion(
+  { sources, store, aiFill = null, logger = console, now = () => new Date() },
+  { dryRun = false, limit = Infinity, incremental = false } = {}
+) {
   const seenKeys = new Set(); // chống trùng giữa các trang trong cùng một lượt: trang chạy trước (ưu tiên hơn) thắng
   const results = [];
 
   for (const source of sources) {
     const stats = newStats(source.name, dryRun);
-    logger.info(`[${source.name}] bắt đầu${dryRun ? ' (chạy thử, không ghi DB)' : ''}`);
     try {
-      const rows = await collectRows(source, { aiFill, now: now(), limit, seenKeys, stats });
+      // Chưa có lượt thành công nào thì chạy đầy đủ như cũ
+      const modifiedAfter = incremental ? await store.findLastSuccessfulRunAt(source.name) : null;
+      stats.modifiedAfter = modifiedAfter;
+      logger.info(`[${source.name}] bắt đầu${describeMode(dryRun, modifiedAfter)}`);
+      const rows = await collectRows(source, { aiFill, now: now(), limit, modifiedAfter, seenKeys, stats });
       Object.assign(stats, await saveRows(store, rows, { dryRun })); // bước 7
     } catch (error) {
       stats.error = error.message;
@@ -77,10 +86,10 @@ async function runIngestion({ sources, store, aiFill = null, logger = console, n
 }
 
 /** Bước 1 → 6 cho từng bài của một trang. Trả về các dòng sẵn sàng để lưu. */
-async function collectRows(source, { aiFill, now, limit, seenKeys, stats }) {
+async function collectRows(source, { aiFill, now, limit, modifiedAfter, seenKeys, stats }) {
   const rows = [];
 
-  for await (const post of source.fetchPosts({ limit })) { // 1
+  for await (const post of source.fetchPosts({ limit, modifiedAfter })) { // 1
     stats.fetched++;
 
     const basic = checkBasic(post); // 2
@@ -116,9 +125,15 @@ async function collectRows(source, { aiFill, now, limit, seenKeys, stats }) {
 
 /* ───────────── Thống kê ───────────── */
 
+function describeMode(dryRun, modifiedAfter) {
+  const dry = dryRun ? ' (chạy thử, không ghi DB)' : '';
+  const since = modifiedAfter ? ` — chỉ bài mới / sửa sau ${modifiedAfter.toISOString()}` : '';
+  return `${dry}${since}`;
+}
+
 function newStats(source, dryRun) {
   return {
-    source, dryRun, startedAt: new Date(), finishedAt: null,
+    source, dryRun, startedAt: new Date(), finishedAt: null, modifiedAfter: null,
     fetched: 0, rejected: {}, passed: 0, duplicateInRun: 0,
     inserted: 0, updated: 0, skipped: 0, error: null,
     samples: [], rejectedSamples: {},
