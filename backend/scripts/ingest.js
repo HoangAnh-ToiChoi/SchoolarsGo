@@ -18,7 +18,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const argValue = (name) => (process.argv.find((a) => a.startsWith(`--${name}=`)) || '').split('=').slice(1).join('=');
 const hasFlag = (name) => process.argv.includes(`--${name}`);
@@ -34,13 +33,15 @@ const { createIngestion, sourceNames } = await import('../src/ingestion/index.js
 const { RULES: RULE_NAMES } = await import('../src/ingestion/filter.js');
 
 async function buildAiModel() {
-  if (hasFlag('no-ai') || process.env.INGESTION_USE_AI === 'false') return null;
-  if (!process.env.GEMINI_API_KEY) {
+  const { getIngestionUseAi, getGeminiApiKey } = await import('../src/configs/gemini.config.js');
+  if (hasFlag('no-ai') || !getIngestionUseAi()) return null;
+  if (!getGeminiApiKey()) {
     console.warn('⚠️  Chưa có GEMINI_API_KEY nên chỉ dùng luật chữ (không có AI). Điền khoá vào backend/.env để bật.');
     return null;
   }
   console.log('🤖 Gemini bật: dùng để điền nước, bậc học, đơn vị cấp, hạn nộp còn thiếu.');
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest', generationConfig: { responseMimeType: 'application/json', temperature: 0 } });
+  const { getJsonModel } = await import('../src/services/gemini.service.js');
+  return getJsonModel();
 }
 
 function printResult(stats, verbose) {

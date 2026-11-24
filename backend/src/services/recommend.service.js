@@ -1,7 +1,6 @@
 import { AppError, recommend as recommendErrors } from '~/constants/errors.js';
 import { extractIeltsScore } from '~/utils/helpers.js';
 import recommendModel from '~/models/recommend.model.js';
-import * as gemini from './gemini.service.js';
 
 const CORE_PROFILE_FIELDS = ['gpa', 'english_level', 'target_country', 'target_major', 'target_degree'];
 const SUPPORTING_PROFILE_FIELDS = ['bio', 'target_intake', 'document_count'];
@@ -295,7 +294,8 @@ class RecommendService {
       .sort((a, b) => b.match_score - a.match_score)
       .slice(0, topN);
 
-    return gemini.enrichRecommendations(profile, top);
+    // Điểm nối dịch vụ RAG sau này (docs/rankContract.md): xếp hạng lại / viết lý do cho `top`
+    return top;
   }
 }
 

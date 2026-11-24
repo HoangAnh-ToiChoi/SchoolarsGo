@@ -1,18 +1,15 @@
 import cron from 'node-cron';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as db from '~/configs/database.config.js';
 import sessionModel from '~/models/session.model.js';
 import { createIngestion } from '~/ingestion/index.js';
+import { getIngestionUseAi } from '~/configs/gemini.config.js';
+import { getJsonModel } from '~/services/gemini.service.js';
 
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 
 // Không có khóa Gemini hoặc tắt AI thì module kéo học bổng chạy bằng luật thuần
 function createAiModel() {
-  if (process.env.INGESTION_USE_AI === 'false' || !process.env.GEMINI_API_KEY) return null;
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({
-    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
-    generationConfig: { responseMimeType: 'application/json', temperature: 0 },
-  });
+  return getIngestionUseAi() ? getJsonModel() : null;
 }
 
 const ingestionService = createIngestion({ db, aiModel: createAiModel() });
