@@ -81,18 +81,20 @@ function createStore(db) {
       return inserted;
     },
 
+    /** Một câu UPDATE cho cả lô (trước đây mỗi dòng một câu → N lượt đi về DB). */
     async updateMany(rows) {
-      let updated = 0;
-      for (const row of rows) {
-        const result = await db.query(
-          `UPDATE scholarships
-              SET deadline = $2, relevance_score = $3, is_active = $4, summary = $5, updated_at = now()
-            WHERE id = $1`,
-          [row.id, row.deadline, row.relevance_score, row.is_active, row.summary]
-        );
-        updated += result.rowCount;
-      }
-      return updated;
+      if (rows.length === 0) return 0;
+      const column = (name) => rows.map((row) => row[name] ?? null);
+      const result = await db.query(
+        `UPDATE scholarships AS s
+            SET deadline = u.deadline, relevance_score = u.relevance_score, is_active = u.is_active,
+                summary = u.summary, updated_at = now()
+           FROM unnest($1::uuid[], $2::timestamp[], $3::smallint[], $4::boolean[], $5::text[])
+                AS u(id, deadline, relevance_score, is_active, summary)
+          WHERE s.id = u.id`,
+        [column('id'), column('deadline'), column('relevance_score'), column('is_active'), column('summary')]
+      );
+      return result.rowCount;
     },
 
     /** Tắt (không xoá) học bổng đã quá hạn. Chạy mỗi đêm. */

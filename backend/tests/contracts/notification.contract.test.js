@@ -82,3 +82,35 @@ test('markRead returns 404 for a notification the user does not own', async () =
   await assert.doesNotReject(notificationService.markRead('u1', 'n-1'));
   await assert.rejects(notificationService.markRead('u1', 'other'), (err) => err.statusCode === 404);
 });
+
+test('getAll chỉ tạo nhắc hạn một lần mỗi ngày cho mỗi người (mở chuông nhiều lần không ghi DB lại)', async () => {
+  let generated = 0;
+  modelRef.current = { ...fakeRepo(), findSavedDueBetween: async () => { generated += 1; return []; } };
+  await notificationService.getAll('once-per-day-user');
+  await notificationService.getAll('once-per-day-user');
+  await notificationService.getAll('another-user');
+  assert.equal(generated, 2);
+});
+
+test('getAll bỏ nhắc hạn của học bổng admin đã tắt', async () => {
+  const future = '2099-01-01T00:00:00';
+  modelRef.current = fakeRepo({
+    rows: [
+      { id: 'n1', type: 'deadline', scholarships: { id: 's1', deadline: future, is_active: false } },
+      { id: 'n2', type: 'deadline', scholarships: { id: 's2', deadline: future, is_active: true } },
+    ],
+  });
+  const { data } = await notificationService.getAll('inactive-filter-user');
+  assert.deepEqual(data.map((n) => n.id), ['n2']);
+});
+
+test('refreshUserReminders: lỗi DB chỉ ghi log, không ném', async () => {
+  modelRef.current = { ...fakeRepo(), findSavedDueBetween: async () => { throw new Error('db down'); } };
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    await assert.doesNotReject(notificationService.refreshUserReminders('u1'));
+  } finally {
+    console.warn = warn;
+  }
+});

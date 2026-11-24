@@ -120,6 +120,7 @@
 - `CREATE INDEX idx_scholarships_field ON scholarships(field_of_study);`
 - `CREATE INDEX idx_scholarships_language ON scholarships(language);`
 - `CREATE INDEX idx_scholarships_min_gpa ON scholarships(min_gpa);`
+- Migration `009_searchIndexes.sql`: GIN trigram `idx_scholarships_title_trgm`, `idx_scholarships_provider_trgm` (tìm kiếm `ILIKE '%…%'`); `idx_scholarships_active_relevance_deadline` `(relevance_score DESC, deadline ASC NULLS LAST) WHERE is_active` (thứ tự mặc định của danh sách, nổi bật).
 
 ---
 
