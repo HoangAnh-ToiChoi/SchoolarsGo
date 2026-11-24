@@ -23,7 +23,7 @@ Thiếu `node_modules` ở phần nào cần chạy → `npm ci` trong thư mụ
 |---|---|
 | `backend/src`, `backend/tests` | `npm run lint` · `npm run test:contract` |
 | `backend/src/ingestion` | thêm `npm run test:ingestion` |
-| `frontend/src` | `npm run lint` · `npm run build` |
+| `frontend/src` | `npm run lint` · `npm run build` · `node --test 'src/**/*.test.js'` (test hàm thuần, chưa có script npm) |
 | `frontend/src/utils/demo`, chế độ pages | thêm `npm run build:pages` |
 | `.claude/hooks` | `node --test .claude/hooks/tests/*.test.mjs` (ở gốc repo) |
 
@@ -40,10 +40,11 @@ Với mỗi file, đối chiếu `.claude/hooks/lib/conventions.mjs` (hook PostT
 ## 4. Checklist CLAUDE.md (tự trả lời, có dẫn chứng)
 
 - [ ] Số dòng: file vừa sửa/tạo không vượt ngưỡng (controller 100 · service BE 200 · model 250 · component 200 · hook 150 · service FE 200)
-- [ ] BE route mới có `auth`/`requireRole`; dữ liệu người dùng lọc `user_id`
-- [ ] BE query: không SELECT * · không N+1 · đọc song song `Promise.all`
-- [ ] BE service mới có test trong `backend/tests/`
+- [ ] FE: đối chiếu checklist R1–R11 trong `docs/frontendRules/frontendRules.md`; lỗi vừa sửa đã ghi "Nhật ký quy tắc"; không còn `helper.js` / `constants.js` / `useXxx.js` lẻ ở gốc trang
 - [ ] FE màn hình đủ 4 trạng thái: skeleton · rỗng · lỗi có "Thử lại" · có dữ liệu
+- [ ] BE route mới có `auth`/`requireRole`; dữ liệu người dùng lọc `user_id`
+- [ ] BE query: không SELECT * · không N+1 · đọc song song `Promise.all` · service mới có test
+- [ ] BE lỗi: `new AppError(nhom.MA)` từ `constants/errors.js`; `process.env` chỉ trong `configs/`
 - [ ] FE không cuộn ngang ở 360 / 768 / 1024 / 1280px (chưa kiểm bằng mắt → ghi "chưa kiểm", gợi ý người dùng xem hoặc dùng Playwright MCP nếu đã bật)
 - [ ] Không console.log, import thừa, code bị comment
 
@@ -57,6 +58,7 @@ Với mỗi file, đối chiếu `.claude/hooks/lib/conventions.mjs` (hook PostT
 | BE test:contract | ✅ 42/42 / ❌ … |
 | FE lint | … |
 | FE build | … |
+| FE test helpers | … |
 | Quy ước | ✅ / ❌ (liệt kê) |
 | Checklist | ✅ / ⚠️ mục chưa kiểm được |
 Việc còn lại: …

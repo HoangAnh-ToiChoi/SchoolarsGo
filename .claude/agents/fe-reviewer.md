@@ -5,9 +5,18 @@ tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
-Bạn review frontend ScholarsGo. **CLAUDE.md ở gốc repo là luật**; đọc mục "Frontend" và "Thiết kế" trước. Không sửa file, chỉ báo cáo.
+Bạn review frontend ScholarsGo. **Luật:** `CLAUDE.md` mục 5 và `docs/frontendRules/frontendRules.md` (R1–R11 + Nhật ký quy tắc) — đọc cả hai trước. Không sửa file, chỉ báo cáo.
 
-Hook `checkConventions` đã bắt: mã màu cứng, màu Tailwind mặc định, axios/apiClient ngoài services, trang import service, `../`, console.log, `dangerouslySetInnerHTML` thiếu `sanitizeHtml`, `target="_blank"` thiếu rel, `export default function`, ngưỡng dòng. **Tập trung vào thứ hook không thấy.**
+Hook `checkConventions` đã bắt: mã màu cứng, màu Tailwind mặc định, `[Npx]` (R4), route gõ tay (R6), `catch` rỗng trong `.jsx` (R7), file `helper.js`/`constants.js`/`useXxx.js` lẻ cạnh `index.jsx` (R10), axios/apiClient ngoài services, trang import service, `../`, console.log, `dangerouslySetInnerHTML` thiếu `sanitizeHtml`, `target="_blank"` thiếu rel, `export default function`, ngưỡng dòng. Stop hook bắt hàm mới trong `helpers/` thiếu test (R9). **Tập trung vào thứ hook không thấy.**
+
+**R1–R11 cần đọc hiểu** (báo theo số quy tắc):
+- **R1** component chỉ hiển thị: ternary lồng / dựng dữ liệu trong JSX → hàm thuần `helpers/`; API, điều hướng, toast → hook `hooks/`.
+- **R2** một quy tắc một nơi: màu mức gấp `TONE_CLASS` (`utils/palette.js`), chữ hạn nộp `getDeadlineLabel` (`utils/scholarship.js`), đường dẫn `ROUTES` (`utils/routes.js`). Thấy logic/bản đồ màu/nhãn chép sang file thứ hai → báo.
+- **R3** nhãn dùng ≥ 2 nơi, số ma thuật → `constants/`.
+- **R5** không lề âm bù padding layout → `PageBand`. (Lề âm cho vùng hover tràn như `-mx-2 px-2` thì được.)
+- **R8** "hôm nay" tính một lần ở trang/hook rồi truyền xuống.
+- **R11** thứ chỉ một trang dùng phải ở lại trang; chỉ ≥ 2 trang mới lên `src/hooks/` hoặc `src/utils/`.
+- Sửa lỗi có thể lặp ở trang khác → đã ghi "Nhật ký quy tắc" chưa?
 
 ## Cách làm
 
@@ -18,7 +27,8 @@ Hook `checkConventions` đã bắt: mã màu cứng, màu Tailwind mặc định
 
 **Cấu trúc**
 - Mỗi trang/component/layout là thư mục có `index.jsx`. Trang chỉ ghép component, không gọi API.
-- Một trang dùng → `pages/<trang>/components/`; ≥ 2 trang → `components/`. Tính toán một trang dùng → `helper.js` cạnh trang.
+- Khung trang: `index.jsx` + `components/ hooks/ helpers/ constants/` (mỗi thư mục có `index.js` chỉ re-export, mỗi file một việc, tên file = tên hàm). Nơi dùng import qua thư mục (`~/pages/deadlines/helpers`), không import sâu. `helpers/` được import `constants/` cùng trang, ngược lại không.
+- Một trang dùng → ở lại trang; ≥ 2 trang → `components/`, `src/hooks/`, `src/utils/`. Liên kết tab mới dùng `ExternalLink`.
 - Trang mới đã thêm vào `PAGE_LOADERS` và `App.jsx` (lazy)? Có cần vào `PREFETCH_PAGES` (chỉ trang nhẹ)?
 - Thứ tự import: thư viện ngoài → `~/layouts`, `~/components` → `~/hooks` → `~/utils`, `~/store`, `~/services`.
 - Không thêm lớp trừu tượng / `index.js` re-export khi chưa có ≥ 3 chỗ dùng. Không dùng `components/legacy/` trong code mới.

@@ -14,6 +14,8 @@ const LINE_LIMITS = [
 const TAILWIND_PALETTE =
   /\b(?:text|bg|border|ring|fill|stroke|from|via|to|outline|divide|placeholder|decoration|shadow|accent|caret)-(?:slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
 
+// File trong pages|layouts/<...>/(helpers|hooks|constants)/
+const isPageSubfolderFile = (p) => /^frontend\/src\/(pages|layouts)\/.+\/(helpers|hooks|constants)\/[^/]+\.js$/.test(p);
 const isBackendSrc = (p) => p.startsWith('backend/src/') && p.endsWith('.js');
 const isFrontendSrc = (p) => p.startsWith('frontend/src/') && /\.(js|jsx)$/.test(p);
 // shadcn và legacy giữ nguyên kiểu gốc; không bắt theo luật màu/kiểu export
@@ -35,9 +37,16 @@ const LINE_RULES = [
   },
   {
     id: 'parent-import',
-    applies: (p) => isBackendSrc(p) || isFrontendSrc(p),
+    // Ngoại lệ theo code hiện có: helpers/ hooks/ của trang import thư mục anh em ('../constants')
+    applies: (p) => (isBackendSrc(p) || isFrontendSrc(p)) && !isPageSubfolderFile(p),
     re: /(?:from\s+|import\(\s*)['"]\.\.\//,
     message: "Import nội bộ dùng '~/', không dùng '../'.",
+  },
+  {
+    id: 'parent-import',
+    applies: isPageSubfolderFile,
+    re: /(?:from\s+|import\(\s*)['"]\.\.\/(?!(?:constants|helpers|hooks)['"/])/,
+    message: "Import nội bộ dùng '~/'; trong trang chỉ được '../constants', '../helpers', '../hooks'.",
   },
   {
     id: 'async-arrow',
@@ -70,6 +79,30 @@ const LINE_RULES = [
     message: 'Service không gọi DB client trực tiếp: đưa truy vấn vào models/.',
   },
   {
+    id: 'app-error-legacy',
+    applies: isBackendSrc,
+    re: /AppError\.(?:badRequest|unauthorized|forbidden|notFound|conflict|internal)\(|utils\/AppError|new AppError\(\s*['"`]/,
+    message: "Ném lỗi bằng `new AppError(nhom.MA)` với định nghĩa trong constants/errors.js (import { AppError } from '~/constants/errors.js'), không gõ chữ/mã/status tại chỗ.",
+  },
+  {
+    id: 'process-env',
+    applies: (p) => /^backend\/src\/(services|middlewares|controllers|models)\/.+\.js$/.test(p),
+    re: /process\.env\b/,
+    message: 'Không đọc process.env ở đây: thêm hàm trong configs/<dịchVụ>.config.js rồi gọi.',
+  },
+  {
+    id: 'arbitrary-px',
+    applies: (p) => isFrontendOwned(p) && /^frontend\/src\/(pages|layouts|components)\//.test(p),
+    re: /\[-?[0-9.]+px\]/,
+    message: 'R4: không dùng [Npx] — thêm token vào tailwind.config.js rồi dùng tên.',
+  },
+  {
+    id: 'hardcoded-route',
+    applies: (p) => /^frontend\/src\/(pages|layouts|components)\/.+\.jsx?$/.test(p) && isFrontendOwned(p),
+    re: /navigate\(\s*['"`]\/|\bto=["']\//,
+    message: "R6: điều hướng qua ROUTES (utils/routes.js), không gõ tay '/…'.",
+  },
+  {
     id: 'hex-color',
     applies: (p) => isFrontendOwned(p),
     re: /['"`\s(:]#[0-9a-fA-F]{3,8}\b/,
@@ -100,7 +133,8 @@ function lineRuleFindings(relPath, lines) {
   for (const rule of LINE_RULES) {
     if (!rule.applies(relPath)) continue;
     lines.forEach((text, i) => {
-      const code = text.replace(/\/\/.*$/, '');
+      if (/^\s*(\*|\/\/|\/\*)/.test(text)) return;
+      const code = text.replace(/\s\/\/.*$/, '');
       if (rule.re.test(code)) findings.push({ rule: rule.id, line: i + 1, text: text.trim(), message: rule.message });
     });
   }
@@ -152,6 +186,8 @@ function fileRuleFindings(relPath, content, lines) {
 
   if (isFrontendSrc(relPath)) {
     for (const m of content.matchAll(/target=["']_blank["']/g)) {
+      const lineStart = content.lastIndexOf('\n', m.index) + 1;
+      if (/^\s*(\*|\/\/|\/\*)/.test(content.slice(lineStart, m.index))) continue;
       const start = content.lastIndexOf('<', m.index);
       const end = content.indexOf('>', m.index);
       const tag = content.slice(start, end === -1 ? undefined : end);
@@ -166,12 +202,34 @@ function fileRuleFindings(relPath, content, lines) {
     }
   }
 
-  if (isFrontendOwned(relPath) && /\/index\.jsx$/.test(relPath) && /export\s+default\s+(?!function\s+[A-Z])/.test(content)) {
+  if (isFrontendOwned(relPath) && /\/index\.jsx$/.test(relPath) && /export\s+default\s+(?!function\s+[A-Z])/.test(content) && !content.includes('forwardRef(')) {
     findings.push({
       rule: 'component-export',
       line: lines.findIndex((t) => /export\s+default/.test(t)) + 1,
       text: 'export default',
       message: 'Component viết `export default function TenComponent()`.',
+    });
+  }
+
+  if (isFrontendOwned(relPath) && relPath.endsWith('.jsx')) {
+    const emptyCatch = content.match(/catch\s*(?:\([^)]*\))?\s*\{\s*(?:\/\/[^\n]*\s*)?\}/);
+    if (emptyCatch) {
+      findings.push({
+        rule: 'empty-catch',
+        line: content.slice(0, emptyCatch.index).split('\n').length,
+        text: emptyCatch[0].replace(/\s+/g, ' '),
+        message: 'R7: không try/catch rỗng trong component — xử lý lỗi ở onError của hook.',
+      });
+    }
+  }
+
+  const loose = relPath.match(/^frontend\/src\/(?:pages|layouts)\/(?:.+\/)?([^/]+)\/(helper|helpers|constants|navConfig|use[A-Z]\w*)\.js$/);
+  if (loose && !['hooks', 'helpers', 'constants'].includes(loose[1])) {
+    findings.push({
+      rule: 'loose-page-file',
+      line: 1,
+      text: relPath,
+      message: 'R10: không để helper.js / constants.js / useXxx.js lẻ cạnh index.jsx — đặt vào hooks/ helpers/ constants/ (mỗi thư mục có index.js).',
     });
   }
 

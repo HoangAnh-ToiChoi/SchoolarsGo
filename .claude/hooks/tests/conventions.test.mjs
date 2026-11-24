@@ -103,3 +103,30 @@ test('file: chặn .env và vendor/, hỏi khi sửa cấu hình lint và migrat
   assert.equal(fileDecision('backend/scripts/migrations/009_new.sql', { existsAtHead: false }), null);
   assert.equal(fileDecision('backend/src/app.js', { existsAtHead: true }), null);
 });
+
+test('BE: AppError kiểu cũ và process.env trong service bị bắt', () => {
+  assert.deepEqual(rules('backend/src/services/a.service.js', "throw AppError.notFound('x', 'X');"), ['app-error-legacy']);
+  assert.deepEqual(rules('backend/src/services/a.service.js', "throw new AppError('Sai', 400);"), ['app-error-legacy']);
+  assert.deepEqual(rules('backend/src/services/a.service.js', 'throw new AppError(saved.ALREADY_SAVED);'), []);
+  assert.deepEqual(rules('backend/src/services/a.service.js', 'const k = process.env.GEMINI_API_KEY;'), ['process-env']);
+  assert.deepEqual(rules('backend/src/configs/gemini.config.js', 'const k = process.env.GEMINI_API_KEY;'), []);
+});
+
+test('FE: [Npx], route gõ tay, try/catch rỗng, file lẻ cạnh index.jsx', () => {
+  assert.deepEqual(rules('frontend/src/pages/a/components/b/index.jsx', 'export default function B() { return <p className="pt-[22px]" />; }'), ['arbitrary-px']);
+  assert.deepEqual(rules('frontend/src/pages/a/index.jsx', "export default function A() { navigate('/applications'); }"), ['hardcoded-route']);
+  assert.deepEqual(rules('frontend/src/pages/a/index.jsx', 'export default function A() { try { x(); } catch {} }'), ['empty-catch']);
+  assert.deepEqual(rules('frontend/src/pages/a/helper.js', 'export const x = 1;'), ['loose-page-file']);
+  assert.deepEqual(rules('frontend/src/pages/a/useThing.js', 'export function useThing() {}'), ['loose-page-file']);
+  assert.deepEqual(rules('frontend/src/pages/a/hooks/useThing.js', 'export function useThing() {}'), []);
+});
+
+test('FE: helpers của trang được import ../constants; comment và forwardRef không bị bắt nhầm', () => {
+  assert.deepEqual(rules('frontend/src/pages/a/helpers/getX.js', "import { A } from '../constants';"), []);
+  assert.deepEqual(rules('frontend/src/pages/a/helpers/getX.js', "import { A } from '../../b/constants';"), ['parent-import']);
+  assert.deepEqual(rules('frontend/src/components/common/x/index.jsx', [
+    '/** Luôn có target="_blank" */',
+    'const X = forwardRef(function X(p, ref) { return <a ref={ref} target="_blank" rel="noopener noreferrer" />; });',
+    'export default X;',
+  ].join('\n')), []);
+});

@@ -39,7 +39,7 @@ test('FooService.getById ném 404 khi không thấy', async () => {
 
 - Test model: dùng `mockSupabase()` và chuỗi truy vấn giả như `saved.contract.test.js`.
 - Mỗi hàm service: **trường hợp đúng, đầu vào sai, không tìm thấy** (và luật nghiệp vụ riêng: chuyển trạng thái, mốc hạn theo `Asia/Ho_Chi_Minh`…).
-- So lỗi bằng `statusCode` và `code` của `AppError`.
+- So lỗi bằng `statusCode` và `code` của `AppError`; lấy giá trị mong đợi từ định nghĩa trong `~/constants/errors.js` (vd. `saved.ALREADY_SAVED.code`), không gõ lại chuỗi.
 - Không gọi DB/mạng thật. Không dùng thư viện test ngoài.
 - Tên file `<nhóm>.contract.test.js` (camelCase). Tên test mô tả hành vi.
 

@@ -7,7 +7,7 @@ model: sonnet
 
 Bạn review backend ScholarsGo. **CLAUDE.md ở gốc repo là luật**; đọc mục "Backend" trước khi review. Không sửa file, chỉ báo cáo.
 
-Hook `checkConventions` đã bắt các lỗi máy dò được (SELECT *, require, `../`, async arrow, console.log, try trong controller, res.json, service gọi DB, export bản dùng chung, ngưỡng dòng). **Tập trung vào thứ cần hiểu nghiệp vụ**, chỉ nhắc lỗi máy khi hook không thể thấy (ví dụ file ngoài src/).
+Hook `checkConventions` đã bắt các lỗi máy dò được (SELECT *, require, `../`, async arrow, console.log, try trong controller, res.json, service gọi DB, `AppError` kiểu cũ, `process.env` ngoài configs, export bản dùng chung, ngưỡng dòng). **Tập trung vào thứ cần hiểu nghiệp vụ**, chỉ nhắc lỗi máy khi hook không thể thấy (ví dụ file ngoài src/).
 
 ## Cách làm
 
@@ -25,7 +25,7 @@ Hook `checkConventions` đã bắt các lỗi máy dò được (SELECT *, requi
 
 **Ranh giới tầng**
 - Controller: chỉ đọc req → gọi service → `res.success/created`. Không nghiệp vụ, không gọi model.
-- Service: nghiệp vụ, ném `AppError.xxx(message, 'MA_LOI')`; không gọi DB client.
+- Service: nghiệp vụ, ném `new AppError(nhom.MA)`; không gọi DB client.
 - Model: chỉ truy vấn, `getSupabase()` trong từng hàm, không nghiệp vụ.
 - Bản dùng chung `export default new X();`, không constructor nhận phụ thuộc, không event bus.
 
@@ -36,8 +36,15 @@ Hook `checkConventions` đã bắt các lỗi máy dò được (SELECT *, requi
 - "Hôm nay", "còn N ngày" tính theo `Asia/Ho_Chi_Minh`.
 - Migration mới: số tiếp theo, tên camelCase, chạy lại không lỗi (`IF NOT EXISTS`, `CREATE OR REPLACE`), không sửa migration cũ.
 
+**Cách viết hàm, cấu hình, hằng số**
+- Mỗi dòng ≤ 3 thao tác (tốt nhất 1–2), không lồng lời gọi; mỗi hàm một việc, tên nói đúng việc.
+- Hàm phụ chỉ file đó dùng → method private `#tên` trong class; dùng ≥ 2 file mới ra `utils/`.
+- Số ma thuật, MIME, regex, danh sách giá trị hợp lệ, thông báo → `constants/<tínhNăng>.js`.
+- `process.env` chỉ đọc trong `configs/<dịchVụ>.config.js` (hàm như `getGeminiModel()`); service, middleware không đọc trực tiếp.
+
 **Lỗi và response**
-- Mã lỗi dựng sẵn lấy từ `constants/errors.js`, không gõ lại chuỗi. Kiểu lỗi mới = thêm mã + mapper trong `errorHandle.controller.js`.
+- `import { AppError } from '~/constants/errors.js'`; chỉ ném `new AppError(nhom.MA)` hoặc `new AppError(nhom.hamThongBao(x))` — không gõ chữ/mã/status tại chỗ, không còn `AppError.notFound…`. Nhóm mới theo tính năng trong `constants/errors.js`.
+- Service/model không `try/catch` chỉ để đổi lỗi: đổi lỗi thư viện = mã trong `constants/errors.js` + mapper ở `errorHandle.controller.js`. Chỉ `try/catch` khi có cách xử lý tiếp (thử lại, dự phòng).
 - Không đổi tên/bỏ trường `code`, `errors` mà FE đang đọc.
 - Không nuốt lỗi (`catch {}` trả mặc định) trừ khi có lý do nghiệp vụ được comment.
 

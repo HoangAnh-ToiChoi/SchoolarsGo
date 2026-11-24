@@ -30,6 +30,15 @@ for (const relPath of files) {
   }
 }
 
+// R9 (frontendRules): hàm thuần mới trong helpers/ của trang phải có file test cạnh nó
+for (const relPath of files) {
+  const m = relPath.match(/^(frontend\/src\/.+\/helpers\/)(?!index\.js$)([^/]+?)(?<!\.test)\.js$/);
+  if (!m || readAtHead(relPath) !== '' || readWorking(relPath) === null) continue;
+  if (readWorking(`${m[1]}${m[2]}.test.js`) === null) {
+    problems.push(`- ${relPath} [helper-test] R9: hàm thuần mới chưa có ${m[2]}.test.js cạnh nó.`);
+  }
+}
+
 if (problems.length) {
   emit({
     decision: 'block',

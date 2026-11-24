@@ -20,7 +20,15 @@ Luật nằm ở `.claude/hooks/lib/conventions.mjs` (quy ước code), `gitPoli
 node --test .claude/hooks/tests/*.test.mjs
 ```
 
-Luật máy dò: `select-star`, `commonjs`, `parent-import`, `async-arrow`, `console-log`, `controller-try`, `controller-raw-json`, `service-db-client`, `export-instance`, `constructor-deps`, `line-limit`, `hex-color`, `tailwind-palette`, `axios-outside-services`, `page-imports-service`, `xss-inner-html`, `blank-without-rel`, `component-export`. `components/ui/` (shadcn) và `components/legacy/` được miễn luật màu/kiểu export.
+Luật máy dò:
+
+| Phía | Luật |
+|---|---|
+| BE | `select-star`, `commonjs`, `parent-import`, `async-arrow`, `console-log`, `controller-try`, `controller-raw-json`, `service-db-client`, `app-error-legacy` (phải `new AppError(nhom.MA)`), `process-env` (chỉ trong `configs/`), `export-instance`, `constructor-deps`, `line-limit` |
+| FE | `hex-color`, `tailwind-palette`, `arbitrary-px` (R4), `hardcoded-route` (R6), `empty-catch` (R7), `loose-page-file` (R10), `axios-outside-services`, `page-imports-service`, `xss-inner-html`, `blank-without-rel`, `component-export`, `parent-import` (trong `hooks/ helpers/ constants/` của trang được `'../constants'`…), `line-limit` |
+| Stop | `service-test` (service BE mới phải có test), `helper-test` (R9: hàm mới trong `helpers/` phải có `.test.js` cạnh nó) |
+
+`components/ui/` (shadcn) và `components/legacy/` được miễn luật màu/kiểu export. Luật cần đọc hiểu (R1, R2, R3, R5, R8, R11, phân quyền, N+1…) để cho agent review.
 
 Thêm luật: viết vào `LINE_RULES` hoặc `fileRuleFindings`, thêm test, chạy lại lệnh trên.
 
@@ -31,7 +39,7 @@ Tắt tạm cho một máy: thêm `"disableAllHooks": true` vào `.claude/settin
 | Agent | Khi nào | Gốc ECC |
 |---|---|---|
 | `be-reviewer` | Sau khi sửa backend: tầng, phân quyền/`user_id`, query, lỗi, test | typescript-reviewer + database-reviewer |
-| `fe-reviewer` | Sau khi sửa frontend: cấu trúc, dữ liệu, 4 trạng thái, thiết kế, a11y | react-reviewer |
+| `fe-reviewer` | Sau khi sửa frontend: R1–R11 của `frontendRules.md`, cấu trúc, dữ liệu, 4 trạng thái, thiết kế, a11y | react-reviewer |
 | `security-reviewer` | Đổi auth, route nhận dữ liệu, upload, chat AI, ingestion, cấu hình | security-reviewer |
 | `be-test-writer` | Viết contract test `node:test` theo mẫu `mockService` | tdd-guide |
 

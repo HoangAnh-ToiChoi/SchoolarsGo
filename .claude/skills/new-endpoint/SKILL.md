@@ -19,10 +19,10 @@ argument-hint: "<nhóm> <method> <đường dẫn> — mô tả"
 1. **validation** `validations/<nhóm>.validation.js`: schema zod cho body/query/params; id → `z.string().uuid('…')`; query số → `z.coerce.number()` có min/max. Xuất `export { aSchema, bSchema }`.
 2. **test** `tests/contracts/<nhóm>.contract.test.js`: đúng / đầu vào sai / không tìm thấy (xem agent `be-test-writer`). Chạy → đỏ.
 3. **model** `models/<nhóm>.model.js`: class, mỗi hàm `getSupabase()` riêng, chọn cột cụ thể, `if (error) throw error;`, hàm của người dùng nhận `userId` (`findByIdAndUser(id, userId)`). Cuối file `export default new XModel();`.
-4. **service** `services/<nhóm>.service.js`: nghiệp vụ, `AppError.notFound(message, 'MA_LOI')`…; gọi model đã import; đọc song song `Promise.all`. `export default new XService();`.
-5. **controller** `controllers/<nhóm>.controller.js`: `async ten(req, res) { const data = await xService.y(req.user.id, …); return res.success(data); }` — không try/catch, không nghiệp vụ.
-6. **route** `routes/<nhóm>.routes.js` (tự nạp thành `/<nhóm>`): `router.get('/', auth, validate(schema, 'query'), controller.list)`; admin → `router.use(auth, requireRole('admin'))` đầu file.
-7. Mã lỗi dựng sẵn mới → `constants/errors.js`.
+4. **lỗi + hằng số**: thêm nhóm/mã vào `constants/errors.js` (`{ statusCode, code, message }`; thông báo có phần thay đổi → hàm). Số ma thuật, MIME, regex, danh sách giá trị → `constants/<nhóm>.js`. Cần biến môi trường → hàm trong `configs/<dịchVụ>.config.js`.
+5. **service** `services/<nhóm>.service.js`: nghiệp vụ, `throw new AppError(nhom.MA)` (`import { AppError, nhom } from '~/constants/errors.js'`); gọi model đã import; đọc song song `Promise.all`; hàm phụ là method private `#tên`; không `try/catch` chỉ để đổi lỗi; mỗi dòng ≤ 3 thao tác. `export default new XService();`.
+6. **controller** `controllers/<nhóm>.controller.js`: `async ten(req, res) { const data = await xService.y(req.user.id, …); return res.success(data); }` — không try/catch, không nghiệp vụ.
+7. **route** `routes/<nhóm>.routes.js` (tự nạp thành `/<nhóm>`): `router.get('/', auth, validate(schema, 'query'), controller.list)`; admin → `router.use(auth, requireRole('admin'))` đầu file.
 
 ## 2. Ràng buộc
 - `async function` / method `async ten() {}`; không async arrow. Import `~/…` có đuôi `.js`.
