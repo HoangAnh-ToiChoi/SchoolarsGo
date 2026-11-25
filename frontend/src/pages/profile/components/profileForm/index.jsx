@@ -2,14 +2,21 @@ import { useState } from 'react';
 import { useUpdateProfile, useDocuments } from '~/hooks/useProfile';
 import { Button } from '~/components/ui/button';
 import { Sparkles } from 'lucide-react';
-import { cn } from '~/utils/cn';
-import { PROFILE_SIGNAL_FIELDS, FUTURE_SIGNAL_FIELDS, FAST_FILL_SLOT } from '~/pages/profile/constants';
-import { validateGPA, calculateCompletionScore } from '~/pages/profile/helpers';
-
-const controlClass =
-  'h-nav w-full rounded-control border border-line bg-surface px-3 text-sm text-fg outline-none ' +
-  'transition-[border-color,box-shadow] duration-150 placeholder:text-fg-muted ' +
-  'focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20 disabled:bg-hover disabled:cursor-not-allowed';
+import {
+  CURRENT_PROFILE_FIELDS,
+  TARGET_PROFILE_FIELDS,
+  FAST_FILL_SLOT,
+} from '~/pages/profile/constants';
+import {
+  calculateCompletionScore,
+  validateSingleField,
+  validateSingleCertificate,
+  mergeCertificateRowError,
+  validateProfileForm,
+  buildProfilePayload,
+} from '~/pages/profile/helpers';
+import ProfileFieldInput from '~/pages/profile/components/profileFieldInput';
+import CertificatesField from '~/pages/profile/components/certificatesField';
 
 export default function ProfileForm({ profile = {} }) {
   const { data: documents } = useDocuments();
@@ -17,36 +24,64 @@ export default function ProfileForm({ profile = {} }) {
   const [form, setForm] = useState({});
   const [errors, setErrors] = useState({});
 
+  const currentYear = new Date().getFullYear();
   const currentProfile = { ...profile, ...form };
+  const currentCertificates = Array.isArray(currentProfile.certificates) ? currentProfile.certificates : [];
+
   const completion = calculateCompletionScore(currentProfile, documents);
   const completionPct = Number(completion);
   const missingLabels = completion.missingLabels || [];
 
   const handleFieldChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }));
+    if (errors[key]) {
+      setErrors((prev) => ({ ...prev, [key]: '' }));
+    }
+  };
+
+  const handleFieldBlur = (key, value) => {
+    const msg = validateSingleField(key, value, currentYear);
+    setErrors((prev) => ({ ...prev, [key]: msg }));
+  };
+
+  const handleCertificatesChange = (nextCerts) => {
+    setForm((prev) => ({ ...prev, certificates: nextCerts }));
+    if (errors.certificates) {
+      setErrors((prev) => ({ ...prev, certificates: null }));
+    }
+  };
+
+  const handleCertificateRowBlur = (rowIndex, fieldKey) => {
+    const cert = currentCertificates[rowIndex];
+    const rowErr = validateSingleCertificate(cert, { requirePresence: fieldKey !== 'type' });
+    setErrors((prev) => ({
+      ...prev,
+      certificates: mergeCertificateRowError(prev.certificates, rowIndex, rowErr, currentCertificates.length),
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = {};
-    const gpaVal = form.gpa !== undefined ? form.gpa : profile.gpa;
-    if (gpaVal !== undefined && gpaVal !== '') {
-      const gpaErr = validateGPA(gpaVal);
-      if (gpaErr) newErrors.gpa = gpaErr;
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    const { errors: validationErrors, hasError } = validateProfileForm(currentProfile, currentYear);
+    if (hasError) {
+      setErrors(validationErrors);
       return;
     }
     setErrors({});
-    updateProfile.mutate(form);
+    const payload = buildProfilePayload(form);
+    updateProfile.mutate(payload, {
+      onSuccess: () => {
+        setForm({});
+        setErrors({});
+      },
+    });
   };
 
   return (
     <form
+      noValidate
       onSubmit={handleSubmit}
-      className="space-y-5 rounded-tile border border-line bg-surface p-6 shadow-tile sm:p-8"
+      className="space-y-6 rounded-tile border border-line bg-surface p-4 shadow-tile sm:p-6 lg:p-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
         <h2 className="text-lg font-semibold text-heading">Thông tin cá nhân</h2>
@@ -85,87 +120,53 @@ export default function ProfileForm({ profile = {} }) {
         )}
       </div>
 
-      {/* Dynamic Fields (OCP) */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {PROFILE_SIGNAL_FIELDS.map((field) => {
-          const val = form[field.key] !== undefined ? form[field.key] : (profile[field.key] ?? '');
-          const err = errors[field.key];
-          const isSpan2 = field.colSpan === 2;
-
-          return (
-            <div key={field.key} className={cn('flex flex-col gap-1.5', isSpan2 && 'md:col-span-2')}>
-              <label htmlFor={`field-${field.key}`} className="text-xs font-semibold text-fg-soft">
-                {field.label}
-              </label>
-
-              {field.type === 'select' ? (
-                <select
-                  id={`field-${field.key}`}
-                  value={val}
-                  onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                  className={controlClass}
-                >
-                  <option value="">{field.placeholder}</option>
-                  {field.options?.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              ) : field.type === 'textarea' ? (
-                <textarea
-                  id={`field-${field.key}`}
-                  rows={field.rows || 4}
-                  value={val}
-                  placeholder={field.placeholder}
-                  onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                  className={cn(controlClass, 'h-auto py-2 resize-none')}
-                />
-              ) : (
-                <>
-                  <input
-                    id={`field-${field.key}`}
-                    type={field.type}
-                    step={field.step}
-                    min={field.min}
-                    max={field.max}
-                    placeholder={field.placeholder}
-                    list={field.datalist ? `list-${field.key}` : undefined}
-                    value={val}
-                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
-                    className={cn(controlClass, err && 'border-urgent-line focus:border-urgent-fg focus:ring-urgent-fg/20')}
-                  />
-                  {field.datalist && (
-                    <datalist id={`list-${field.key}`}>
-                      {field.datalist.map((m) => (
-                        <option key={m} value={m} />
-                      ))}
-                    </datalist>
-                  )}
-                </>
-              )}
-              {err && <p className="text-xs text-urgent-fg">{err}</p>}
-            </div>
-          );
-        })}
-
-        {/* Future Signal Slots */}
-        {FUTURE_SIGNAL_FIELDS.map((slot) => (
-          <div key={slot.key} className={cn('flex flex-col gap-1.5 opacity-60', slot.colSpan === 2 && 'md:col-span-2')}>
-            <div className="flex items-center justify-between">
-              <label htmlFor={`slot-${slot.key}`} className="text-xs font-semibold text-fg-soft">
-                {slot.label}
-              </label>
-              <span className="text-micro text-fg-muted">Sắp ra mắt</span>
-            </div>
-            <input
-              id={`slot-${slot.key}`}
-              type={slot.type}
-              disabled
-              placeholder={slot.placeholder}
-              className={controlClass}
+      {/* Nhóm 1: Thông tin hiện tại */}
+      <section aria-labelledby="profile-current-heading" className="space-y-3">
+        <h3 id="profile-current-heading" className="text-block-title text-heading">
+          Thông tin hiện tại
+        </h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {CURRENT_PROFILE_FIELDS.map((field) => (
+            <ProfileFieldInput
+              key={field.key}
+              field={field}
+              value={form[field.key] !== undefined ? form[field.key] : (profile[field.key] ?? '')}
+              error={errors[field.key]}
+              onChange={handleFieldChange}
+              onBlur={handleFieldBlur}
+              currentYear={currentYear}
             />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Nhóm 2: Chứng chỉ */}
+      <CertificatesField
+        certificates={currentCertificates}
+        error={errors.certificates}
+        onChange={handleCertificatesChange}
+        onRowBlur={handleCertificateRowBlur}
+      />
+
+      {/* Nhóm 3: Mục tiêu du học */}
+      <section aria-labelledby="profile-target-heading" className="space-y-3 border-t border-line-soft pt-5">
+        <h3 id="profile-target-heading" className="text-block-title text-heading">
+          Mục tiêu du học
+        </h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {TARGET_PROFILE_FIELDS.map((field) => (
+            <ProfileFieldInput
+              key={field.key}
+              field={field}
+              value={form[field.key] !== undefined ? form[field.key] : (profile[field.key] ?? '')}
+              error={errors[field.key]}
+              onChange={handleFieldChange}
+              onBlur={handleFieldBlur}
+              currentYear={currentYear}
+            />
+          ))}
+        </div>
+      </section>
 
       <Button type="submit" disabled={updateProfile.isPending}>
         {updateProfile.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}

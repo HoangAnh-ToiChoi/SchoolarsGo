@@ -1,3 +1,23 @@
-export { PROFILE_SIGNAL_FIELDS } from './profileSignalFields';
-export { FUTURE_SIGNAL_FIELDS } from './futureSignalFields';
-export { FAST_FILL_SLOT } from './fastFillSlot';
+export {
+  CURRENT_PROFILE_FIELDS,
+  TARGET_PROFILE_FIELDS,
+  PROFILE_SIGNAL_FIELDS,
+} from './profileSignalFields.js';
+export { FAST_FILL_SLOT } from './fastFillSlot.js';
+export {
+  CURRENT_DEGREES,
+  CURRENT_DEGREE_OPTIONS,
+  NATIONALITY_SUGGESTIONS,
+  NATIONALITY_PATTERN,
+  CERTIFICATE_TYPE_SUGGESTIONS,
+  PROFILE_LIMITS,
+  OMIT_EMPTY_KEYS,
+} from './profileLimits.js';
+export {
+  PROFILE_COMPLETION_FIELDS,
+  PROFILE_FIELD_LABELS,
+} from './profileCompletionFields.js';
+export {
+  PROFILE_CONTROL_CLASS,
+  PROFILE_ERROR_CONTROL_CLASS,
+} from './profileControlStyles.js';
