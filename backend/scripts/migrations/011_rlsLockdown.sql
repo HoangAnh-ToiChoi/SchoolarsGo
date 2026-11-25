@@ -48,4 +48,27 @@ REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;
 
+-- 4. Function: mặc định PUBLIC được EXECUTE nên anon gọi được /rest/v1/rpc/<hàm> (vd. scholarship_slugify),
+--    và hàm SECURITY DEFINER sẽ chạy bằng quyền chủ hàm. service_role được cấp EXECUTE riêng nên trigger
+--    (tạo slug, updated_at, tín hiệu realtime) vẫn chạy khi backend ghi.
+REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+
+-- 5. Đối tượng do supabase_admin tạo (extension, tính năng dashboard) theo default privileges riêng của Supabase.
+--    Role postgres thường KHÔNG đủ quyền đổi chúng: thử, không được thì chỉ báo NOTICE (không làm hỏng migration).
+--    Bảng mới vẫn được test tests/integration/rlsLockdown.test.js bắt (lấy danh sách bảng từ pg_class).
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_admin') THEN
+    BEGIN
+      EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated';
+      EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated';
+      EXECUTE 'ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated';
+    EXCEPTION WHEN insufficient_privilege THEN
+      RAISE NOTICE 'Không đủ quyền đổi default privileges của supabase_admin: bảng do supabase_admin tạo phải tự bật RLS';
+    END;
+  END IF;
+END;
+$$;
+
 COMMIT;
