@@ -19,6 +19,9 @@ test('production: chuỗi mẫu công khai (trong .env.example, script test, tà
     'test-access-secret-at-least-32-chars-long',
     'change-me-change-me-change-me-change-me',
     'replace-with-a-long-random-string-for-jwt',
+    'example-jwt-access-token-signing-value-01',
+    'placeholder-value-for-the-jwt-signing-key',
+    'super-secret-key-used-to-sign-all-tokens',
   ];
   for (const sample of samples) {
     assert.throws(() => getAuthSecrets(prod(sample, random())), /JWT_ACCESS_SECRET.*mẫu/, sample);
@@ -33,5 +36,10 @@ test('production: secret lặp ký tự (ít ký tự khác nhau) bị từ ch�
 
 test('ngoài production (dev, test) vẫn nhận chuỗi mẫu để chạy local tiện', () => {
   const env = { NODE_ENV: 'development', JWT_ACCESS_SECRET: 'local-access-secret-at-least-32-chars-long', JWT_REFRESH_SECRET: 'local-refresh-secret-at-least-32-chars-long' };
+  assert.doesNotThrow(() => getAuthSecrets(env));
+});
+
+test('thiếu NODE_ENV thì không chặn chuỗi mẫu: Railway phải đặt NODE_ENV=production (docs/pendingWork.md)', () => {
+  const env = { JWT_ACCESS_SECRET: 'your-super-secret-jwt-secret-with-at-least-32-characters-long', JWT_REFRESH_SECRET: random() };
   assert.doesNotThrow(() => getAuthSecrets(env));
 });
