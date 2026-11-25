@@ -1,7 +1,7 @@
 import getSupabase from '~/configs/supabase.js';
 
 const NOTIFICATION_COLUMNS =
-  'id, type, milestone, application_id, read_at, created_at, scholarships(id, slug, title, provider, deadline), applications(status)';
+  'id, type, milestone, application_id, read_at, created_at, scholarships(id, slug, title, provider, deadline, is_active), applications(status)';
 
 class NotificationModel {
   /**
@@ -13,7 +13,8 @@ class NotificationModel {
       .from('saved_scholarships')
       .select('user_id, scholarship_id, scholarships!inner(deadline)')
       .gte('scholarships.deadline', fromDate)
-      .lt('scholarships.deadline', toDate);
+      .lt('scholarships.deadline', toDate)
+      .eq('scholarships.is_active', true); // admin tắt học bổng thì thôi nhắc
     if (userId) q = q.eq('user_id', userId);
     const { data, error } = await q;
     if (error) throw error;
@@ -32,7 +33,8 @@ class NotificationModel {
       .select('id, user_id, scholarship_id, scholarships!inner(deadline)')
       .eq('status', 'draft')
       .gte('scholarships.deadline', fromDate)
-      .lt('scholarships.deadline', toDate);
+      .lt('scholarships.deadline', toDate)
+      .eq('scholarships.is_active', true); // admin tắt học bổng thì thôi nhắc
     if (userId) q = q.eq('user_id', userId);
     const { data, error } = await q;
     if (error) throw error;
