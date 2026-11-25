@@ -1,6 +1,6 @@
 # Việc còn tồn đọng
 
-Cập nhật 25/11/2026. Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#56 và đợt rà bảo mật 25/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
+Cập nhật 25/11/2026. Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#57 và đợt rà bảo mật 25/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
 
 Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien.md`, hiện ở nhánh `review/fullAudit`, chưa vào `dev`).
 
@@ -19,24 +19,35 @@ Chưa làm theo quyết định ngày 25/11/2026 ("về vấn đề thu hồi kh
 |---|---|---|
 | **Thu hồi khóa Supabase anon + service role** từng bị commit vào lịch sử git (hạn tới 2032). Khóa service role bỏ qua mọi RLS: đọc, ghi, xóa được mọi bảng, kể cả `users.password_hash` | Người giữ dự án Supabase | Supabase Dashboard → Project Settings → API: đổi JWT secret hoặc chuyển sang API key mới rồi tắt khóa cũ. Cập nhật `SUPABASE_SERVICE_ROLE_KEY` trên Railway, `VITE_SUPABASE_ANON_KEY` ở nơi build FE. Gọi thử PostgREST bằng khóa cũ phải bị từ chối |
 | Xem log truy cập DB / API của Supabase từ 28/03/2026 tìm truy cập lạ | Người giữ dự án Supabase | Không có truy cập ngoài backend và nhóm |
-| Kiểm `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` trên Railway là chuỗi ngẫu nhiên, không phải chuỗi mẫu (`…-at-least-32-characters-long`) từng có trong repo | Người giữ Railway | Nhánh `fix/jwtSecretGuard` chặn production khởi động với chuỗi mẫu. Nếu không chắc thì đổi (mọi người bị đăng xuất một lần) |
+| Kiểm `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` trên Railway là chuỗi ngẫu nhiên, không phải chuỗi mẫu (`…-at-least-32-characters-long`) từng có trong repo | Người giữ Railway | PR #57 chặn production khởi động với chuỗi mẫu. Nếu không chắc thì đổi (mọi người bị đăng xuất một lần) |
 | Lịch sử git vẫn chứa khóa và mật khẩu cũ. Xóa lịch sử (`git filter-repo`) **không** thu hồi được khóa, chỉ làm sau khi đã đổi hết | Nhóm | Tùy chọn, sau các bước trên |
 | gitleaks mặc định **không** bắt được khóa Supabase dạng JWT và mật khẩu trong file `.md`. Thêm luật riêng hoặc bật GitHub secret scanning | Nhóm | Quét lại lịch sử có báo các khóa đã biết |
 
+## 2. Sau khi merge các PR
 
+Trạng thái 25/11/2026: **#48–#53, #55, #56 đã merge vào `dev`**; #54 (file này) và #57 còn mở. `main` chưa nhận các PR này.
+
+**Việc gấp: chạy migration trên production theo thứ tự 009 → 010 → 011, trước khi đưa `dev` sang `main`.** 011 không phụ thuộc code mới nên chạy được ngay, và nên chạy ngay vì khóa anon đã lộ. Trong `backend/`, trên `dev` mới nhất, `.env.cloud` trỏ tới DB production:
+
+```bash
+node scripts/applyMigration.js --file=009_searchIndexes.sql --env=.env.cloud --allow-remote
+node scripts/applyMigration.js --file=010_realtimeSignals.sql --env=.env.cloud --allow-remote
+node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --allow-remote
+```
+
+Kiểm sau 011 (SQL Editor): `select count(*) from pg_policies where schemaname = 'public'` phải bằng 0.
 
 | PR | Việc phải làm sau merge |
 |---|---|
 | #48 chat / gợi ý không LLM | Chạy `npm install` trong `backend/` (gỡ `groq-sdk`, `openai`). Trên Railway, xóa biến `GROQ_API_KEY`, `OPENAI_API_KEY`, `ZHIPU_API_KEY` nếu có |
 | #49 Sentry | Không có |
 | #50 xóa cache khi đổi người dùng | **Thử bằng trình duyệt:** đăng nhập A → mở `/applications` → đăng xuất → đăng nhập B → không thấy đơn của A. Thử hết phiên trên bản GitHub Pages: phải về `/SchoolarsGo/login` |
-| #51 truy vấn backend | **Chạy migration trên production:** `cd backend && node scripts/applyMigration.js --file=009_searchIndexes.sql` |
+| #51 truy vấn backend | Chạy migration 009 (lệnh ở trên) |
 | #52 bundle FE | **Thử bản demo:** `npm run build:pages && npx vite preview --mode pages`. Menu tài khoản demo phải hiện ngay, không bị chuyển sang `/login` |
-| #56 khóa RLS | **Merge và chạy migration trước khi merge #55** (#55 đưa khóa anon vào bundle FE): `node scripts/applyMigration.js --file=011_rlsLockdown.sql`. Kiểm: `select count(*) from pg_policies where schemaname='public'` = 0 |
-| `fix/jwtSecretGuard` (chưa mở PR) | Trước khi deploy, kiểm `JWT_*_SECRET` trên Railway không phải chuỗi mẫu, nếu không production sẽ không khởi động. **Railway phải đặt `NODE_ENV=production`** (repo không tự đặt): thiếu biến này thì guard không bật, cookie mất cờ `secure`, rate limit chạy mức dev |
+| #56 khóa RLS | Chạy migration 011 (lệnh ở trên) |
+| #57 JWT secret (chưa merge) | Trước khi merge và deploy, kiểm `JWT_*_SECRET` trên Railway không phải chuỗi mẫu, nếu không production sẽ không khởi động. **Railway phải đặt `NODE_ENV=production`** (repo không tự đặt): thiếu biến này thì guard không bật, cookie mất cờ `secure`, rate limit chạy mức dev |
 | #55 realtime | Chạy migration 010, đặt `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` ở nơi build FE, kiểm Realtime còn cho kênh public |
 | #53 kéo tăng dần | Merge tiếp `dev` → `main` (GitHub chỉ chạy lịch trên nhánh mặc định). Khai báo ở Settings → Secrets and variables → Actions: secrets `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `GEMINI_API_KEY` (tùy chọn); variables `PG_SSL`, `GEMINI_MODEL` |
-| #49, #50, #52 | Merge lần lượt sẽ xung đột ở `docs/frontendRules/frontendRules.md`: mỗi PR thêm một dòng lên đầu Nhật ký quy tắc. Giữ cả các dòng |
 
 ## 3. Lỗi còn mở từ review (đã có test đặc tả đang fail)
 
