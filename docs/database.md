@@ -30,6 +30,7 @@
 | date_of_birth | date | NULLABLE | Ngày sinh |
 | role | varchar(20) | NOT NULL, DEFAULT 'user' | Vai trò: `user`, `admin` |
 | last_login_at | timestamptz | NULLABLE | Thời điểm đăng nhập gần nhất |
+| realtime_topic | uuid | NOT NULL, DEFAULT gen_random_uuid() | Tên kênh Supabase Realtime của chuông (migration 010), ngẫu nhiên để không đoán được |
 | created_at | timestamp | DEFAULT now() | Thời điểm tạo |
 | updated_at | timestamp | DEFAULT now() | Thời điểm cập nhật |
 
@@ -181,6 +182,7 @@ Migration `005_notifications.sql`. Thông báo trên chuông header.
 
 **Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
 **Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
+**Realtime (migration `010_realtimeSignals.sql`):** trigger theo câu lệnh `trg_signal_notifications_inserted` gửi `realtime.send('{}', 'notification', 'user:' || users.realtime_topic, false)` cho mỗi người có thông báo mới; `trg_signal_scholarships_inserted` trên `scholarships` gửi `{ count }` lên kênh `scholarships`. Gửi lỗi chỉ `WARNING`, không làm hỏng INSERT.
 
 ### 8. user_sessions
 

@@ -1,5 +1,6 @@
 import { AppError, notification as notificationErrors } from '~/constants/errors.js';
 import notificationModel from '~/models/notification.model.js';
+import { NOTIFICATION_TOPIC_PREFIX } from '~/constants/notification.js';
 import { REMIND_DAYS, vnToday, addDays, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
 class NotificationService {
@@ -96,6 +97,16 @@ class NotificationService {
       });
     }
     return { data, unread: data.filter(n => !n.read_at).length };
+  }
+
+  /**
+   * Kênh Supabase Realtime để chuông cập nhật ngay khi có thông báo mới. Tín hiệu không mang dữ liệu:
+   * FE nhận xong gọi lại getAll. Tên kênh ngẫu nhiên theo người dùng nên chỉ trả cho chính họ.
+   */
+  async getChannel(userId) {
+    const topic = await notificationModel.findRealtimeTopic(userId);
+    if (!topic) throw new AppError(notificationErrors.CHANNEL_NOT_FOUND);
+    return { topic: `${NOTIFICATION_TOPIC_PREFIX}${topic}` };
   }
 
   async markRead(userId, notificationId) {

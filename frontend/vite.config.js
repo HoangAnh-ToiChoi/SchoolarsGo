@@ -10,7 +10,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https:",
+  "connect-src 'self' https: wss://*.supabase.co", // wss: Supabase Realtime (chuông, học bổng mới)
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

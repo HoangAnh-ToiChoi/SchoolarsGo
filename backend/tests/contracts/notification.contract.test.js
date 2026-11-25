@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { mockService, srcUrl } from './helpers/mockService.js';
-import { vnToday, daysBetween, milestoneFor } from '~/utils/deadline.js';
+import { vnToday, addDays, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
 const modelRef = mockService(srcUrl('models/notification.model.js'));
 const { default: notificationService } = await import('~/services/notification.service.js');
@@ -58,7 +58,8 @@ test('generateDeadlineReminders prefers the draft application over the saved ent
 });
 
 test('getAll keeps one notification per scholarship, drops expired deadlines and submitted applications', async () => {
-  const future = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 19);
+  // Tính theo ngày giờ VN như service: dùng giờ UTC thì 0h–7h sáng VN ra 4 ngày và test fail
+  const future = `${addDays(vnToday(), 5)}T00:00:00`;
   const scholarship = { id: 's1', slug: 'a', title: 'A', provider: 'P', deadline: future };
   const repo = fakeRepo({
     rows: [
@@ -113,4 +114,16 @@ test('refreshUserReminders: lỗi DB chỉ ghi log, không ném', async () => {
   } finally {
     console.warn = warn;
   }
+});
+
+test('getChannel trả kênh realtime ngẫu nhiên của chính người dùng', async () => {
+  const asked = [];
+  modelRef.current = { ...fakeRepo(), findRealtimeTopic: async (userId) => { asked.push(userId); return 'a1b2'; } };
+  assert.deepEqual(await notificationService.getChannel('u1'), { topic: 'user:a1b2' });
+  assert.deepEqual(asked, ['u1']);
+});
+
+test('getChannel: chưa có kênh (DB chưa chạy migration 010) → 404, chuông vẫn dùng cách tự làm mới', async () => {
+  modelRef.current = { ...fakeRepo(), findRealtimeTopic: async () => null };
+  await assert.rejects(notificationService.getChannel('u1'), { code: 'NOTIFICATION_CHANNEL_NOT_FOUND', statusCode: 404 });
 });
