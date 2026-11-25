@@ -26,7 +26,9 @@ export const useSessionBootstrap = () => {
   }, [dispatch]);
 };
 
+// Cache TanStack Query giữ dữ liệu của người đăng nhập trước (đơn, đã lưu, thông báo): xóa mỗi khi đổi người dùng
 export const useLogin = () => {
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +37,7 @@ export const useLogin = () => {
     mutationFn: data => authService.login(data),
     onSuccess: response => {
       const { user } = response.data.data;
+      queryClient.clear();
       dispatch(loggedIn(user));
       toast.success(`Chào mừng ${user.full_name}!`);
       navigate(getRedirect(location.search), { replace: true });
@@ -44,12 +47,14 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   return useMutation({
     mutationFn: data => authService.register(data),
     onSuccess: response => {
       const { user } = response.data.data;
+      queryClient.clear();
       dispatch(loggedIn(user));
       toast.success('Đăng ký thành công! Chào mừng bạn đến với ScholarsGo');
       navigate(ROUTES.home);
@@ -59,11 +64,16 @@ export const useRegister = () => {
 };
 
 export const useLogout = () => {
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   return useMutation({
     mutationFn: () => authService.logout(),
-    onSettled: () => { dispatch(loggedOut()); navigate(ROUTES.home); },
+    onSettled: () => {
+      queryClient.clear();
+      dispatch(loggedOut());
+      navigate(ROUTES.home);
+    },
   });
 };
 
