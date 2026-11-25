@@ -1,0 +1,71 @@
+name: Ingest scholarships
+
+# Kéo học bổng ngoài server Railway (server ngủ thì cron trong Node không chạy).
+# Mỗi 2 giờ: chỉ bài mới / vừa sửa (--incremental). Lượt đầy đủ vẫn chạy trên server Chủ nhật 2:00 (GMT+7).
+# GitHub chỉ chạy lịch của workflow trên nhánh mặc định (main) và có thể trễ vài phút khi đông.
+#
+# Cần khai báo ở Settings → Secrets and variables → Actions (cùng giá trị với backend trên Railway):
+#   Secrets:   PG_HOST, PG_PORT, PG_USER, PG_PASSWORD, PG_DATABASE, GEMINI_API_KEY (tùy chọn)
+#   Variables: PG_SSL, GEMINI_MODEL, INGESTION_USE_AI (tùy chọn)
+# Chưa khai báo PG_HOST thì workflow bỏ qua bước kéo, không báo lỗi.
+
+on:
+  schedule:
+    - cron: '15 */2 * * *' # phút 15 của mỗi giờ chẵn (UTC); không trùng lượt đầy đủ 19:00 UTC thứ Bảy
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'incremental (bài mới / vừa sửa) hoặc full (mọi bài trong khoảng maxAgeDays)'
+        type: choice
+        options: [incremental, full]
+        default: incremental
+
+concurrency:
+  group: ingest-scholarships
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      PG_HOST: ${{ secrets.PG_HOST }}
+      PG_PORT: ${{ secrets.PG_PORT }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      PG_DATABASE: ${{ secrets.PG_DATABASE }}
+      PG_SSL: ${{ vars.PG_SSL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+      INGESTION_USE_AI: ${{ vars.INGESTION_USE_AI }}
+      MODE: ${{ inputs.mode || 'incremental' }} # lịch chạy không có inputs → incremental
+    steps:
+      - name: Chưa cấu hình DB
+        if: ${{ env.PG_HOST == '' }}
+        working-directory: ${{ github.workspace }} # chưa checkout nên chưa có thư mục backend/
+        run: echo "::notice::Chưa có secret PG_HOST — bỏ qua lượt kéo học bổng."
+
+      - uses: actions/checkout@v4
+        if: ${{ env.PG_HOST != '' }}
+
+      - uses: actions/setup-node@v4
+        if: ${{ env.PG_HOST != '' }}
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        if: ${{ env.PG_HOST != '' }}
+        run: npm ci
+
+      - name: Kéo học bổng
+        if: ${{ env.PG_HOST != '' }}
+        run: |
+          if [ "$MODE" = "full" ]; then npm run ingest -- --allow-remote; else npm run ingest -- --allow-remote --incremental; fi

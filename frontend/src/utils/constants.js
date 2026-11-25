@@ -1,6 +1,13 @@
 // Các constants dùng chung trong app
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
+// Supabase Realtime: chỉ nhận tín hiệu "có thay đổi" (không mang dữ liệu). Thiếu cấu hình hoặc bản demo thì tắt,
+// chuông vẫn tự làm mới theo chu kỳ. Khóa anon/publishable là khóa công khai, được phép nằm trong bundle.
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export const REALTIME_SCHOLARSHIPS = { topic: 'scholarships', event: 'inserted' };
+export const REALTIME_NOTIFICATION_EVENT = 'notification';
+
 // Pagination
 export const PAGE_SIZE = 10;
 export const MAX_LIMIT = 50;

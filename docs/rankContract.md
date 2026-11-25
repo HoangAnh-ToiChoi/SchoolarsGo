@@ -124,6 +124,7 @@ Trả `{ "ok": true, "model": "…" }`. BE dùng để quyết định có gọi
 | Dự phòng | timeout, lỗi, hoặc response sai zod thì dùng cách chấm điểm hiện tại (phương án 0) |
 | Tắt khẩn cấp | `RANK_ENABLED=false` tắt AI mà không cần deploy lại |
 | Ngưỡng thông báo mức 2 | AI đề xuất con số sau thí nghiệm, BE đặt trong `RANK_THRESHOLD`, không viết cứng |
+| Chỗ nối trong code | Từ 24/11/2026 chat và gợi ý **không gọi LLM** (model cũ đã ngừng). Dịch vụ RAG sẽ thay đúng 2 chỗ: `RecommendService.recommend()` (dòng `return top`) và `ChatService.#answer()`; bộ lọc + truy vấn DB giữ nguyên làm dữ liệu neo |
 
 ## Cột DB liên quan (migration 008)
 

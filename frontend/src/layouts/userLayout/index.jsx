@@ -1,12 +1,14 @@
-import { Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import UserHeader from '~/layouts/userLayout/components/userHeader';
 import UserSidebar from '~/layouts/userLayout/components/userSidebar';
 import ErrorBoundary from '~/components/common/ErrorBoundary';
 import ComparisonBar from '~/components/common/ComparisonBar';
-import ChatFAB from '~/components/common/ChatFAB';
 import PageLoader from '~/components/common/pageLoader';
 import { prefetchPages } from '~/pageLoaders';
+
+// Nút chat là thứ duy nhất của layout dùng framer-motion: tải lười để thư viện này ra khỏi chunk vào trang đầu
+const ChatFAB = lazy(() => import('~/components/common/ChatFAB'));
 
 // Khung chung: header trên cùng, sidebar trái (từ lg), nội dung phải. Lề nội dung 16 → 24 → 32px theo màn hình
 // Suspense đặt quanh nội dung (không bọc cả layout) để header và sidebar không bị gỡ ra khi trang đang tải.
@@ -29,7 +31,9 @@ export default function UserLayout() {
         </main>
       </div>
       <ComparisonBar />
-      <ChatFAB />
+      <Suspense fallback={null}>
+        <ChatFAB />
+      </Suspense>
     </div>
   );
 }

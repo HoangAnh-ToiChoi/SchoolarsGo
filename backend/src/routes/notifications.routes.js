@@ -9,6 +9,8 @@ const router = Router();
 
 router.get('/', auth, validate(notificationQuerySchema, 'query'), notificationController.getAll);
 
+router.get('/channel', auth, notificationController.getChannel);
+
 // Đặt trước /:id để "readAll" không bị hiểu là id
 router.patch('/readAll', auth, notificationController.markAllRead);
 

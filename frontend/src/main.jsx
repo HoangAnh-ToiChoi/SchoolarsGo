@@ -7,12 +7,15 @@ import App from '~/App';
 import { Provider } from 'react-redux';
 import { store } from '~/store';
 import { loggedIn } from '~/store/slices/authSlice';
-import { DEMO_USER } from '~/utils/demo/demoData';
 import '~/index.css';
 import { color } from '~/utils/palette';
+import { scrubBreadcrumb, scrubSentryEvent } from '~/utils/sentry';
 
-// Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản
-if (import.meta.env.VITE_DEMO_MODE === 'true' && !store.getState().auth.isAuthenticated) {
+// Bản demo: đăng nhập sẵn bằng tài khoản minh họa để xem được menu tài khoản.
+// Phải xong trước khi render, nếu không trang cần đăng nhập sẽ chuyển sang /login
+async function loginDemoUser() {
+  if (store.getState().auth.isAuthenticated) return;
+  const { DEMO_USER } = await import('~/utils/demo/demoData');
   store.dispatch(loggedIn(DEMO_USER));
 }
 
@@ -25,6 +28,9 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     environment: import.meta.env.MODE,
     tracesSampleRate: import.meta.env.PROD ? 0.2 : 1.0,
     integrations: [Sentry.browserTracingIntegration()],
+    beforeSend: scrubSentryEvent,
+    beforeSendTransaction: scrubSentryEvent,
+    beforeBreadcrumb: scrubBreadcrumb,
   });
 }
 
@@ -38,38 +44,46 @@ const queryClient = new QueryClient({
   },
 });
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
-          vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
-      <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
-        <App />
-        <Toaster
-          position="bottom-center"
-          containerStyle={{ bottom: 32 }}
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: color('neutral', { alpha: 0.95 }),
-              color: '#FFFFFF',
-              borderRadius: '9999px',
-              padding: '10px 20px',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-              backdropFilter: 'blur(8px)',
-              maxWidth: '360px',
-            },
-            success: {
-              iconTheme: { primary: color('success', { mix: 75 }), secondary: '#FFFFFF' },
-            },
-            error: {
-              iconTheme: { primary: color('danger', { mix: 75 }), secondary: '#FFFFFF' },
-            },
-          }}
-        />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </Provider>
-);
+function renderApp() {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
+            vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
+        <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
+          <App />
+          <Toaster
+            position="bottom-center"
+            containerStyle={{ bottom: 32 }}
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: color('neutral', { alpha: 0.95 }),
+                color: '#FFFFFF',
+                borderRadius: '9999px',
+                padding: '10px 20px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+                backdropFilter: 'blur(8px)',
+                maxWidth: '360px',
+              },
+              success: {
+                iconTheme: { primary: color('success', { mix: 75 }), secondary: '#FFFFFF' },
+              },
+              error: {
+                iconTheme: { primary: color('danger', { mix: 75 }), secondary: '#FFFFFF' },
+              },
+            }}
+          />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </Provider>
+  );
+}
+
+if (import.meta.env.VITE_DEMO_MODE === 'true') {
+  loginDemoUser().finally(renderApp);
+} else {
+  renderApp();
+}

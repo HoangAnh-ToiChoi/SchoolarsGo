@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 
 import { mockServiceFunctions, srcUrl } from './helpers/mockService.js';
 
-const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['enrichRecommendations', 'getClient']);
+const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['getClient']);
 const { default: removeContactInfo } = await import('~/utils/removeContactInfo.js');
 const { default: keepBirthYearOnly } = await import('~/utils/keepBirthYearOnly.js');
 const { default: withTimeout } = await import('~/utils/withTimeout.js');
@@ -50,7 +50,7 @@ const fakeGemini = answer => {
       },
     }),
   };
-  geminiRef.current = { getClient: () => client, enrichRecommendations: async () => [] };
+  geminiRef.current = { getClient: () => client };
   return seen;
 };
 
@@ -146,13 +146,13 @@ test('cvExtract: lỗi đầu vào và lỗi AI trả đúng mã', async () => {
   fakeGemini('[]');
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_BAD_RESPONSE'));
 
-  geminiRef.current = { getClient: () => null, enrichRecommendations: async () => [] };
+  geminiRef.current = { getClient: () => null };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(503, 'AI_UNAVAILABLE'));
 });
 
 test('cvExtract: Gemini lỗi mạng / hạn mức không bị bắt trong service, errorHandle đổi thành 502', async () => {
   const client = { getGenerativeModel: () => ({ generateContent: async () => { throw new GoogleGenerativeAIFetchError('429', 429, 'Too Many Requests'); } }) };
-  geminiRef.current = { getClient: () => client, enrichRecommendations: async () => [] };
+  geminiRef.current = { getClient: () => client };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_FAILED'));
 });
 

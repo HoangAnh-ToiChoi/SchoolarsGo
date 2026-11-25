@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { API_BASE_URL } from '~/utils/constants';
 import { store } from '~/store';
-import { demoAdapter } from '~/utils/demo/demoAdapter';
 import { loggedOut } from '~/store/slices/authSlice';
+import { buildLoginUrl } from '~/utils/session';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -29,9 +29,9 @@ const canRefresh = url => !NO_REFRESH.some(path => url?.includes(path));
 const sessionEnded = code => {
   store.dispatch(loggedOut());
   localStorage.removeItem('scholarsgo.session');
-  const redirect = `${window.location.pathname}${window.location.search}`;
-  const reason = code === 'SESSION_REVOKED' ? '&reason=SESSION_REVOKED' : '';
-  window.location.assign(`/login?redirect=${encodeURIComponent(redirect)}${reason}`);
+  const { pathname, search } = window.location;
+  // Tải lại cả trang: cache TanStack Query của phiên cũ cũng mất theo
+  window.location.assign(buildLoginUrl({ base: import.meta.env.BASE_URL, pathname, search, code }));
 };
 
 api.interceptors.response.use(response => response, async function(error) {
@@ -62,6 +62,12 @@ api.interceptors.response.use(response => response, async function(error) {
   return Promise.reject(error);
 });
 
-if (import.meta.env.VITE_DEMO_MODE === 'true') api.defaults.adapter = demoAdapter;
+// Bản demo (GitHub Pages) trả dữ liệu minh họa. Tải lười để bản thật không chở dữ liệu demo trong chunk đầu
+async function lazyDemoAdapter(config) {
+  const { demoAdapter } = await import('~/utils/demo/demoAdapter');
+  return demoAdapter(config);
+}
+
+if (import.meta.env.VITE_DEMO_MODE === 'true') api.defaults.adapter = lazyDemoAdapter;
 
 export default api;

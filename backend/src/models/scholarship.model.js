@@ -1,4 +1,5 @@
 import getSupabase from '~/configs/supabase.js';
+import * as database from '~/configs/database.config.js';
 // Cách viết tên Việt Nam có thể gặp trong cột country (dữ liệu cào + nhập tay)
 const DOMESTIC_COUNTRIES = ['Vietnam', 'Viet Nam', 'Việt Nam'];
 
@@ -36,16 +37,16 @@ class ScholarshipModel {
     return data || [];
   }
 
+  /** DISTINCT ở DB qua pg: PostgREST trả tối đa 1000 dòng nên lọc trùng ở JS từng làm mất nước. */
   async findCountries() {
-    const { data, error } = await getSupabase()
-      .from('scholarships')
-      .select('country')
-      .eq('is_active', true)
-      .not('country', 'is', null)
-      .order('country', { ascending: true });
-    if (error) throw error;
-    const unique = [...new Set((data || []).map(r => r.country))];
-    return unique;
+    const sql = `
+      SELECT DISTINCT country
+      FROM scholarships
+      WHERE is_active = true AND country IS NOT NULL
+      ORDER BY country
+    `;
+    const { rows } = await database.query(sql);
+    return rows.map(r => r.country);
   }
 
   /** Tìm theo id (UUID) hoặc slug — URL trang chi tiết dùng slug, link cũ vẫn dùng id. */
@@ -78,15 +79,26 @@ class ScholarshipModel {
     if (filters.degree)       q = q.eq('degree', filters.degree);
     if (filters.field)        q = q.ilike('field_of_study', `%${filters.field}%`);
     if (filters.language)     q = q.eq('language', filters.language);
-    if (filters.min_gpa)      q = q.lte('min_gpa', Number(filters.min_gpa));
-    if (filters.min_ielts)    q = q.lte('min_ielts', Number(filters.min_ielts));
+    // Học bổng không ghi yêu cầu (NULL) vẫn hợp với mọi điểm; .lte() một mình sẽ loại chúng
+    if (filters.min_gpa)      q = q.or(`min_gpa.is.null,min_gpa.lte.${Number(filters.min_gpa)}`);
+    if (filters.min_ielts)    q = q.or(`min_ielts.is.null,min_ielts.lte.${Number(filters.min_ielts)}`);
     if (filters.deadline_from) q = q.gte('deadline', filters.deadline_from);
     if (filters.deadline_to)  q = q.lte('deadline', filters.deadline_to);
     if (filters.amount_min)   q = q.gte('amount', Number(filters.amount_min));
     if (filters.coverage)     q = q.eq('coverage', filters.coverage);
     if (filters.featured === 'true' || filters.featured === true) q = q.eq('is_featured', true);
-    if (filters.search)       q = q.or(`title.ilike.%${filters.search}%,provider.ilike.%${filters.search}%`);
+    if (filters.search)       q = q.or(this.#searchFilter(filters.search));
     return q;
+  }
+
+  /**
+   * Từ khóa đưa vào .or() của PostgREST: dấu phẩy, ngoặc trong từ khóa ("Harvard, MIT") từng làm hỏng cú pháp → 500.
+   * Bọc giá trị trong nháy kép, escape dấu gạch chéo ngược và nháy kép theo cú pháp PostgREST.
+   */
+  #searchFilter(search) {
+    const escaped = search.replace(/[\\"]/g, '\\$&');
+    const pattern = `"%${escaped}%"`;
+    return `title.ilike.${pattern},provider.ilike.${pattern}`;
   }
 
   async #attachSavedStatus(rows, userId) {

@@ -10,7 +10,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: https:",
-  "connect-src 'self' https:",
+  "connect-src 'self' https: wss://*.supabase.co", // wss: Supabase Realtime (chuông, học bổng mới)
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -33,6 +33,21 @@ const spaFallbackPlugin = (outDir) => ({
   },
 });
 
+const VENDOR_CHUNKS = {
+  react: ['react', 'react-dom', 'scheduler', 'react-router', 'react-router-dom', '@remix-run/router'],
+  data: ['@reduxjs/toolkit', 'redux', 'react-redux', 'immer', 'reselect', '@tanstack/query-core', '@tanstack/react-query', 'axios'],
+  ui: ['@radix-ui', '@floating-ui', 'lucide-react', '@heroicons/react', 'date-fns', 'tailwind-merge', 'clsx'],
+};
+
+function vendorChunk(id) {
+  const match = id.match(/node_modules\/((?:@[^/]+\/)?[^/]+)/);
+  if (!match) return undefined;
+  const pkg = match[1];
+  const scope = pkg.split('/')[0];
+  const entry = Object.entries(VENDOR_CHUNKS).find(([, pkgs]) => pkgs.includes(pkg) || pkgs.includes(scope));
+  return entry?.[0];
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const outDir = path.resolve(__dirname, 'dist');
@@ -44,6 +59,14 @@ export default defineConfig(({ mode }) => {
       alias: {
         // Import từ gốc src: import { Button } from '~/components/ui/button'
         '~': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          // Thư viện ít đổi tách riêng: lần deploy sau trình duyệt vẫn dùng bản cache, chỉ tải lại code app
+          manualChunks: vendorChunk,
+        },
       },
     },
     server: {
