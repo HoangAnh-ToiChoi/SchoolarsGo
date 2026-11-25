@@ -8,6 +8,9 @@ import { selectIsAuthenticated } from '~/store/slices/authSlice';
 import { cn } from '~/utils/cn';
 import { color } from '~/utils/palette';
 
+// Server chỉ đọc 20 tin gần nhất; gửi thêm chỉ tốn băng thông
+const CHAT_HISTORY_SENT = 20;
+
 const WELCOME_MESSAGE = {
   role: 'assistant',
   content: `Xin chào! Mình là **ScholarsBot** 👋\n\nMình có thể giúp bạn:\n• 🎓 Tìm học bổng phù hợp với profile của bạn\n• 📋 Tư vấn điều kiện & quy trình ứng tuyển\n• 📝 Hướng dẫn chuẩn bị hồ sơ (SOP, CV học thuật)\n• 🌍 Thông tin du học theo quốc gia\n\nBạn đang tìm học bổng cho bậc học nào? 😊`,
@@ -279,12 +282,14 @@ const ChatPage = () => {
     try {
       const apiMessages = newMessages
         .filter((m) => m.role !== 'assistant' || m !== WELCOME_MESSAGE)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => ({ role: m.role, content: m.content }))
+        .slice(-CHAT_HISTORY_SENT);
       const res = await chatService.send(apiMessages);
       const reply = res.data?.data?.reply || 'Mình gặp sự cố, bạn thử lại nhé.';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      const status = err.response?.status;
+      // apiClient thường reject bằng Error kèm `status` (không có `response`)
+      const status = err.status ?? err.response?.status;
       const msg =
         status === 429 ? 'Bạn đang gửi tin nhắn quá nhanh. Vui lòng chờ 1 phút rồi thử lại.' :
         status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' :

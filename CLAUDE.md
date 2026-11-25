@@ -56,7 +56,7 @@ Tài liệu lệch code thì **code là đúng**.
 | FE hook | 150 | | BE service | 200 |
 | FE service | 200 | | BE model | 250 |
 
-File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `chat.service`, `recommend.service` · **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
+File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `recommend.service` · **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
 
 ---
 
@@ -108,7 +108,7 @@ routes/          URL + middleware: auth, requireRole, validate(schema)
   → models/      chỉ truy vấn DB (Supabase client hoặc pg). Không nghiệp vụ
 ```
 
-Vi phạm ranh giới → sửa trước khi merge (`chat.service` còn gọi thẳng Supabase: cần tách `chat.model`).
+Vi phạm ranh giới → sửa trước khi merge.
 
 ### 4.2 Cấu trúc thư mục
 
