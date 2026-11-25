@@ -1,6 +1,6 @@
 # Việc còn tồn đọng
 
-Cập nhật 25/11/2026. Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026) và các PR #48–#53. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
+Cập nhật 25/11/2026. Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#56 và đợt rà bảo mật 25/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
 
 Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien.md`, hiện ở nhánh `review/fullAudit`, chưa vào `dev`).
 
@@ -11,7 +11,19 @@ Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien
 | Rotate mật khẩu DB (R01) và xem log truy cập từ 15/05 | Người giữ Supabase + Railway | Mật khẩu cũ đã lộ trong lịch sử git (chi tiết trong báo cáo review, không ghi ở đây). Xóa khỏi lịch sử cũng không thu hồi được, phải đổi mật khẩu |
 | Chạy 2 script kiểm production (chỉ đọc) | Người giữ `.env` production | Kiểm chính sách RLS của `scholarships` (`pg_policy`), cột `users`, bucket `documents`; model AI còn sống không. Kết quả dùng để chốt R02, R03, R04, R06, R23 |
 
-## 2. Sau khi merge các PR đang mở
+## 1b. Bảo mật: thu hồi khóa — để kiểm lại sau (rà 25/11/2026)
+
+Chưa làm theo quyết định ngày 25/11/2026 ("về vấn đề thu hồi khoá sẽ fix sau"). Chi tiết commit chứa khóa có trong báo cáo nội bộ, **không ghi ở đây** vì repo public.
+
+| Việc | Ai | Cách kiểm xong |
+|---|---|---|
+| **Thu hồi khóa Supabase anon + service role** từng bị commit vào lịch sử git (hạn tới 2032). Khóa service role bỏ qua mọi RLS: đọc, ghi, xóa được mọi bảng, kể cả `users.password_hash` | Người giữ dự án Supabase | Supabase Dashboard → Project Settings → API: đổi JWT secret hoặc chuyển sang API key mới rồi tắt khóa cũ. Cập nhật `SUPABASE_SERVICE_ROLE_KEY` trên Railway, `VITE_SUPABASE_ANON_KEY` ở nơi build FE. Gọi thử PostgREST bằng khóa cũ phải bị từ chối |
+| Xem log truy cập DB / API của Supabase từ 28/03/2026 tìm truy cập lạ | Người giữ dự án Supabase | Không có truy cập ngoài backend và nhóm |
+| Kiểm `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` trên Railway là chuỗi ngẫu nhiên, không phải chuỗi mẫu (`…-at-least-32-characters-long`) từng có trong repo | Người giữ Railway | Nhánh `fix/jwtSecretGuard` chặn production khởi động với chuỗi mẫu. Nếu không chắc thì đổi (mọi người bị đăng xuất một lần) |
+| Lịch sử git vẫn chứa khóa và mật khẩu cũ. Xóa lịch sử (`git filter-repo`) **không** thu hồi được khóa, chỉ làm sau khi đã đổi hết | Nhóm | Tùy chọn, sau các bước trên |
+| gitleaks mặc định **không** bắt được khóa Supabase dạng JWT và mật khẩu trong file `.md`. Thêm luật riêng hoặc bật GitHub secret scanning | Nhóm | Quét lại lịch sử có báo các khóa đã biết |
+
+
 
 | PR | Việc phải làm sau merge |
 |---|---|
@@ -20,6 +32,9 @@ Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien
 | #50 xóa cache khi đổi người dùng | **Thử bằng trình duyệt:** đăng nhập A → mở `/applications` → đăng xuất → đăng nhập B → không thấy đơn của A. Thử hết phiên trên bản GitHub Pages: phải về `/SchoolarsGo/login` |
 | #51 truy vấn backend | **Chạy migration trên production:** `cd backend && node scripts/applyMigration.js --file=009_searchIndexes.sql` |
 | #52 bundle FE | **Thử bản demo:** `npm run build:pages && npx vite preview --mode pages`. Menu tài khoản demo phải hiện ngay, không bị chuyển sang `/login` |
+| #56 khóa RLS | **Merge và chạy migration trước khi merge #55** (#55 đưa khóa anon vào bundle FE): `node scripts/applyMigration.js --file=011_rlsLockdown.sql`. Kiểm: `select count(*) from pg_policies where schemaname='public'` = 0 |
+| `fix/jwtSecretGuard` (chưa mở PR) | Trước khi deploy, kiểm `JWT_*_SECRET` trên Railway không phải chuỗi mẫu, nếu không production sẽ không khởi động |
+| #55 realtime | Chạy migration 010, đặt `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` ở nơi build FE, kiểm Realtime còn cho kênh public |
 | #53 kéo tăng dần | Merge tiếp `dev` → `main` (GitHub chỉ chạy lịch trên nhánh mặc định). Khai báo ở Settings → Secrets and variables → Actions: secrets `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `GEMINI_API_KEY` (tùy chọn); variables `PG_SSL`, `GEMINI_MODEL` |
 | #49, #50, #52 | Merge lần lượt sẽ xung đột ở `docs/frontendRules/frontendRules.md`: mỗi PR thêm một dòng lên đầu Nhật ký quy tắc. Giữ cả các dòng |
 
@@ -55,6 +70,9 @@ Test ở `backend/tests/review/` trên nhánh `review/fullAudit`, chạy trên S
 - Chưa có: client gọi dịch vụ RAG, xuất dữ liệu học bổng cho việc tạo embedding, cách xác thực giữa backend và dịch vụ.
 
 ## 6. Việc nhỏ ghi lại để khỏi quên
+
+- **Proxy `/api` của Vercel** (`frontend/vercel.json`) dựa vào biến `BACKEND_URL` trong project Vercel. Thiếu biến ở môi trường nào (Production / Preview) thì Vercel giữ nguyên chuỗi `${BACKEND_URL}` và mọi lời gọi API hỏng. Kiểm: mở `https://<domain-vercel>/api/health` và đăng nhập trên domain Vercel, `/api/auth/me` trả 200. Cookie `SameSite=lax` chạy được nhờ proxy này (cùng origin).
+- Bucket `documents` còn public (R06, R07), không thuộc phạm vi #56.
 
 - `frontend/vite.config.js` báo 3 lỗi `no-undef` (`process`, `__dirname`) khi chạy eslint, nhưng `npm run lint` chỉ quét `src/` nên chưa ai thấy.
 - `errorHandle.controller.js`, `server.js`, `rateLimiter.js`, `authCookie.controller.js`, `app.js` còn đọc `process.env` trực tiếp (trái CLAUDE.md 4.6).
