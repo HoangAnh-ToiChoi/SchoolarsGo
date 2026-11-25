@@ -202,6 +202,7 @@ const draft = cvDraftSchema.parse(parsed);
 - Chọn cột cụ thể, không `SELECT *` / `select('*')`.
 - Không N+1: JOIN / select lồng (`scholarships(id, title)`) hoặc `Promise.all`.
 - Lọc theo cột mới → kiểm tra index, thiếu thì thêm trong migration.
+- **Bảng mới:** `ENABLE ROW LEVEL SECURITY` và **không tạo policy**. App không dùng Supabase Auth (`auth.uid()` luôn NULL); backend dùng service role nên không bị chặn, còn khóa anon (công khai) không đọc ghi được gì. Test: `npm run test:integration` trên Supabase local.
 - **Lọc không viết gọn được bằng SQL** (tính điểm, so khớp hồ sơ, xếp hạng):
   1. Model lấy nhẹ `id` + cột điều kiện.
   2. Service lọc / chấm điểm / sắp xếp, phân trang trên danh sách `id`.

@@ -209,14 +209,12 @@ Giới hạn ba thiết bị được áp dụng trong một transaction khóa d
 
 ## RLS (Row Level Security)
 
-Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cập dữ liệu của mình.
-- `users` — chỉ user tự đọc/update profile mình
-- `profiles` — chỉ user tự đọc/update
-- `documents` — chỉ user tự đọc/update
-- `applications` — chỉ user tự đọc/update
-- `saved_scholarships` — chỉ user tự đọc/update
-- `notifications` — chỉ user tự đọc/update
-- `scholarships` — public read (anonymous)
+Migration `011_rlsLockdown.sql` (25/11/2026): **mọi bảng bật RLS, không có policy nào**, quyền bảng của `anon` / `authenticated` bị thu.
+
+- Vì sao: app dùng auth tự viết (bảng `users` + JWT riêng), không dùng Supabase Auth. Các policy cũ theo `auth.uid()` vô nghĩa (luôn NULL), còn `scholarships_admin_insert` / `_update` (`WITH CHECK (true)`) cho khóa anon công khai thêm / sửa học bổng.
+- Backend không bị ảnh hưởng: supabase-js dùng service role (bỏ qua RLS), pool `pg` đăng nhập bằng chủ bảng.
+- Quyền theo người dùng (`user_id`) do backend kiểm (CLAUDE.md 4.7), không dựa vào RLS.
+- Bảng mới: `ENABLE ROW LEVEL SECURITY`, không tạo policy. Kiểm bằng `npm run test:integration` (`backend/tests/integration/rlsLockdown.test.js`) trên Supabase local.
 
 ---
 
