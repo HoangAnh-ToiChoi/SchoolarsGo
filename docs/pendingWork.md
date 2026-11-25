@@ -33,7 +33,7 @@ Chưa làm theo quyết định ngày 25/11/2026 ("về vấn đề thu hồi kh
 | #51 truy vấn backend | **Chạy migration trên production:** `cd backend && node scripts/applyMigration.js --file=009_searchIndexes.sql` |
 | #52 bundle FE | **Thử bản demo:** `npm run build:pages && npx vite preview --mode pages`. Menu tài khoản demo phải hiện ngay, không bị chuyển sang `/login` |
 | #56 khóa RLS | **Merge và chạy migration trước khi merge #55** (#55 đưa khóa anon vào bundle FE): `node scripts/applyMigration.js --file=011_rlsLockdown.sql`. Kiểm: `select count(*) from pg_policies where schemaname='public'` = 0 |
-| `fix/jwtSecretGuard` (chưa mở PR) | Trước khi deploy, kiểm `JWT_*_SECRET` trên Railway không phải chuỗi mẫu, nếu không production sẽ không khởi động |
+| `fix/jwtSecretGuard` (chưa mở PR) | Trước khi deploy, kiểm `JWT_*_SECRET` trên Railway không phải chuỗi mẫu, nếu không production sẽ không khởi động. **Railway phải đặt `NODE_ENV=production`** (repo không tự đặt): thiếu biến này thì guard không bật, cookie mất cờ `secure`, rate limit chạy mức dev |
 | #55 realtime | Chạy migration 010, đặt `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` ở nơi build FE, kiểm Realtime còn cho kênh public |
 | #53 kéo tăng dần | Merge tiếp `dev` → `main` (GitHub chỉ chạy lịch trên nhánh mặc định). Khai báo ở Settings → Secrets and variables → Actions: secrets `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `GEMINI_API_KEY` (tùy chọn); variables `PG_SSL`, `GEMINI_MODEL` |
 | #49, #50, #52 | Merge lần lượt sẽ xung đột ở `docs/frontendRules/frontendRules.md`: mỗi PR thêm một dòng lên đầu Nhật ký quy tắc. Giữ cả các dòng |
@@ -73,6 +73,7 @@ Test ở `backend/tests/review/` trên nhánh `review/fullAudit`, chạy trên S
 
 - **Proxy `/api` của Vercel** (`frontend/vercel.json`) dựa vào biến `BACKEND_URL` trong project Vercel. Thiếu biến ở môi trường nào (Production / Preview) thì Vercel giữ nguyên chuỗi `${BACKEND_URL}` và mọi lời gọi API hỏng. Kiểm: mở `https://<domain-vercel>/api/health` và đăng nhập trên domain Vercel, `/api/auth/me` trả 200. Cookie `SameSite=lax` chạy được nhờ proxy này (cùng origin).
 - Bucket `documents` còn public (R06, R07), không thuộc phạm vi #56.
+- Sau #56: bảng hoặc function do `supabase_admin` tạo (extension, tính năng dashboard) vẫn theo default privileges của Supabase, role `postgres` không đổi được. **Bảng mới phải tự `ENABLE ROW LEVEL SECURITY`**. Chạy `npm run test:integration` trên Supabase local sẽ bắt bảng thiếu RLS hoặc có quyền cho anon. Nên đưa test này vào CI ở đợt 1.
 
 - `frontend/vite.config.js` báo 3 lỗi `no-undef` (`process`, `__dirname`) khi chạy eslint, nhưng `npm run lint` chỉ quét `src/` nên chưa ai thấy.
 - `errorHandle.controller.js`, `server.js`, `rateLimiter.js`, `authCookie.controller.js`, `app.js` còn đọc `process.env` trực tiếp (trái CLAUDE.md 4.6).
