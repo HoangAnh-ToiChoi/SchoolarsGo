@@ -46,7 +46,7 @@ Dữ liệu đi qua các bước:
 
 ## Quy tắc
 
-1. **Module không require gì của phần còn lại của backend.** DB và Gemini được truyền vào qua `createIngestion({ db, aiModel })`. Hai nơi gọi: `src/container.js` (server, cron) và `scripts/ingest.js` (chạy tay).
+1. **Module không require gì của phần còn lại của backend.** DB và Gemini được truyền vào qua `createIngestion({ db, aiModel })`. Hai nơi gọi: `src/jobs/scholarshipScraper.js` (server, cron) và `scripts/ingest.js` (chạy tay; GitHub Actions gọi script này cho lượt tăng dần).
 2. **Luật lọc, trích xuất, chấm điểm là hàm thuần** (nhận dữ liệu, trả kết quả), không đụng DB hay mạng, nên test được ngay.
 3. **SQL chỉ nằm trong `save.js`.**
 4. **Gemini là tuỳ chọn.** Tự bật khi có `GEMINI_API_KEY`; tắt bằng `INGESTION_USE_AI=false` (server) hoặc `--no-ai` (script). Chỉ điền chỗ trống, không ghi đè thứ regex đã tìm được.
@@ -62,7 +62,16 @@ Dữ liệu đi qua các bước:
 npm run test:ingestion                                                      # test (không cần mạng, không cần DB)
 node scripts/ingest.js --env=.env.cloud --allow-remote --dry-run --verbose  # chạy thử, không ghi DB
 node scripts/ingest.js --env=.env.cloud --allow-remote                      # kéo thật
+node scripts/ingest.js --env=.env.cloud --allow-remote --incremental        # chỉ bài mới / vừa sửa từ lượt thành công gần nhất
 node scripts/applyMigration.js --file=003_ingestion.sql --env=.env.cloud --allow-remote   # migration
 ```
 
 Khi server chạy: kéo học bổng **Chủ nhật 2:00**, tắt học bổng quá hạn **mỗi đêm 3:00** (GMT+7), xem `src/jobs/scholarshipScraper.js`.
+
+**Kéo tăng dần mỗi 2 giờ** (`.github/workflows/ingest.yml`, chạy trên GitHub Actions, không phụ thuộc server Railway ngủ hay thức):
+
+- Mốc của mỗi nguồn = `started_at` của lượt **thành công** gần nhất (không lỗi, không chạy thử) trong `ingestion_runs`. Nguồn chưa có lượt nào thì chạy đầy đủ. Lượt lỗi không dời mốc, nên lượt sau lấy bù.
+- Gọi WordPress với `orderby=modified` và `modified_after` = mốc lùi 1 ngày (tham số ngày của WordPress tính theo múi giờ của trang). Sau đó lọc chính xác bằng `modified_gmt` và dừng ở bài đầu tiên cũ hơn mốc. Nhờ vậy bài đã xử lý không đi qua Gemini lần nữa, và trang chạy WordPress cũ (bỏ qua `modified_after`) vẫn đúng.
+- Bài được sửa (đổi hạn nộp, nội dung) đi qua 7 bước như bài mới; bước 7 làm mới dòng đã có.
+- `ingestion_runs.started_at` lưu giờ UTC (`toUtcText` trong `save.js`).
+- Workflow cần secrets `PG_*` (và tùy chọn `GEMINI_API_KEY`). Chưa có `PG_HOST` thì workflow bỏ qua, không báo lỗi. GitHub chỉ chạy lịch trên nhánh mặc định (`main`).

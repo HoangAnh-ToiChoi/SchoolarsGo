@@ -44,6 +44,12 @@ const INSERT_COLUMNS = [
 ];
 const INSERT_CHUNK = 100; // mỗi câu INSERT tối đa 100 dòng
 
+// Cột ingestion_runs là TIMESTAMP (không múi giờ): ghi giờ UTC rõ ràng, nếu không pg ghi theo múi giờ của máy chạy
+// (GitHub Actions UTC, máy dev +7) và mốc tăng dần sẽ lệch
+function toUtcText(date) {
+  return date ? date.toISOString() : null;
+}
+
 /** @param {{ query: Function }} db kết nối pg (src/configs/database.config.js) */
 function createStore(db) {
   return {
@@ -107,12 +113,26 @@ function createStore(db) {
     },
 
     /** Nhật ký mỗi lượt kéo (bảng ingestion_runs): lấy bao nhiêu, loại vì luật gì, thêm bao nhiêu. */
+    /**
+     * Mốc cho lượt tăng dần: lúc bắt đầu lượt thành công (không lỗi, không chạy thử) gần nhất của trang.
+     * Dùng lúc *bắt đầu*: bài sửa trong khi lượt đó đang chạy vẫn được lấy ở lượt sau.
+     */
+    async findLastSuccessfulRunAt(source) {
+      const { rows } = await db.query(
+        `SELECT max(started_at) AT TIME ZONE 'UTC' AS last_run_at
+           FROM ingestion_runs
+          WHERE source = $1 AND dry_run = false AND error IS NULL`,
+        [source]
+      );
+      return rows[0]?.last_run_at ?? null;
+    },
+
     async recordRun(run) {
       await db.query(
         `INSERT INTO ingestion_runs (source, dry_run, started_at, finished_at, fetched, rejected, inserted, updated, skipped, error)
          VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10)`,
         [
-          run.source, run.dryRun, run.startedAt, run.finishedAt, run.fetched,
+          run.source, run.dryRun, toUtcText(run.startedAt), toUtcText(run.finishedAt), run.fetched,
           JSON.stringify(run.rejected), run.inserted, run.updated, run.skipped, run.error ?? null,
         ]
       );

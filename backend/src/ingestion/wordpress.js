@@ -14,7 +14,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const USER_AGENT = 'ScholarsGoBot/1.0 (+https://scholarsgo.app)';
 const TIMEOUT_MS = 20000;
 const RETRIES = 3;
-const FIELDS = 'id,date_gmt,link,title,excerpt,content,categories,class_list';
+const FIELDS = 'id,date_gmt,modified_gmt,link,title,excerpt,content,categories,class_list';
+// Lượt tăng dần: tham số ngày của WordPress tính theo múi giờ của trang (không biết trước) nên lùi mốc gửi đi 1 ngày,
+// rồi lọc chính xác bằng modified_gmt (giờ UTC) ở phía mình
+const MODIFIED_SLACK_MS = DAY_MS;
 
 const defaultSleep = (ms) =>
   new Promise((resolve) => {
@@ -25,10 +28,13 @@ const defaultSleep = (ms) =>
 
 /**
  * @param {object} source một phần tử trong sources.js
+ * @param {{ modifiedAfter?: Date | null }} options modifiedAfter: chỉ lấy bài đăng mới hoặc vừa sửa sau mốc này
+ *   (lượt tăng dần). Không có thì lấy mọi bài trong `maxAgeDays` như cũ.
  * @returns {AsyncGenerator<object>} lần lượt từng `post`, không trùng, tối đa `limit` bài
  */
-async function* fetchPosts(source, { limit = Infinity, fetchImpl, now = () => new Date(), delayMs } = {}) {
-  const after = new Date(now().getTime() - source.maxAgeDays * DAY_MS).toISOString().slice(0, 19);
+async function* fetchPosts(source, { limit = Infinity, fetchImpl, now = () => new Date(), delayMs, modifiedAfter = null } = {}) {
+  const after = toWpDate(new Date(now().getTime() - source.maxAgeDays * DAY_MS));
+  const incremental = modifiedAfter ? incrementalQuery(modifiedAfter) : {};
   const seenIds = new Set(); // hai truy vấn của cùng trang có thể trả trùng bài
   let count = 0;
 
@@ -40,14 +46,29 @@ async function* fetchPosts(source, { limit = Infinity, fetchImpl, now = () => ne
       fetchImpl,
       ...query,
       after,
+      ...incremental,
     });
     for await (const wpPost of pages) {
       if (seenIds.has(wpPost.id)) continue;
       seenIds.add(wpPost.id);
-      yield toPost(wpPost, source);
+      const post = toPost(wpPost, source);
+      // Sắp theo ngày sửa giảm dần: gặp bài cũ hơn mốc là hết bài mới của truy vấn này
+      if (modifiedAfter && post.modifiedAt <= modifiedAfter) break;
+      yield post;
       if (++count >= limit) return;
     }
   }
+}
+
+/** Lượt tăng dần: bài sửa gần nhất trước, mốc gửi đi lùi MODIFIED_SLACK_MS cho an toàn múi giờ. */
+function incrementalQuery(modifiedAfter) {
+  const slackedSince = new Date(modifiedAfter.getTime() - MODIFIED_SLACK_MS);
+  return { orderby: 'modified', modifiedAfter: toWpDate(slackedSince) };
+}
+
+/** Date → "2026-11-24T10:00:00" (dạng WordPress nhận cho after / modified_after). */
+function toWpDate(date) {
+  return date.toISOString().slice(0, 19);
 }
 
 /* ───────────── fetchPages: gọi API WordPress ───────────── */
@@ -66,6 +87,8 @@ async function* fetchPages({
   categories,
   search,
   after,
+  modifiedAfter,
+  orderby = 'date',
   perPage = 50,
   maxPages = 3,
   delayMs = 600,
@@ -75,10 +98,11 @@ async function* fetchPages({
   const base = baseUrl.replace(/\/+$/, '');
 
   for (let page = 1; page <= maxPages; page++) {
-    const params = new URLSearchParams({ per_page: String(perPage), page: String(page), orderby: 'date', order: 'desc', _fields: FIELDS });
+    const params = new URLSearchParams({ per_page: String(perPage), page: String(page), orderby, order: 'desc', _fields: FIELDS });
     if (categories?.length) params.set('categories', categories.join(','));
     if (search) params.set('search', search);
     if (after) params.set('after', after);
+    if (modifiedAfter) params.set('modified_after', modifiedAfter); // WordPress ≥ 5.7; bản cũ bỏ qua, vẫn đúng nhờ lọc modified_gmt
 
     const response = await request(`${base}/wp-json/wp/v2/posts?${params}`, { isLaterPage: page > 1, fetchImpl, sleep });
     if (!response) return; // WordPress báo đã hết trang
@@ -118,7 +142,7 @@ async function request(url, { isLaterPage, fetchImpl, sleep }) {
 
 /**
  * Dạng `post` mà mọi bước sau dùng:
- *   { sourceName, priority, externalId, title, link, publishedAt, excerpt, contentText, categories, signals }
+ *   { sourceName, priority, externalId, title, link, publishedAt, modifiedAt, excerpt, contentText, categories, signals }
  * `signals` là gợi ý suy từ chuyên mục của trang, ví dụ "region:southeastAsia", "degree:Master", "country:Japan".
  */
 function toPost(wpPost, source) {
@@ -132,6 +156,7 @@ function toPost(wpPost, source) {
     title: stripHtml(wpPost.title?.rendered || '').replace(/\s+/g, ' ').trim(),
     link: wpPost.link,
     publishedAt: new Date(`${wpPost.date_gmt || wpPost.date}Z`),
+    modifiedAt: new Date(`${wpPost.modified_gmt || wpPost.date_gmt || wpPost.date}Z`),
     excerpt,
     contentText: stripHtml(wpPost.content?.rendered || ''),
     categories,

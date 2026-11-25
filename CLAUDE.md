@@ -117,7 +117,7 @@ backend/src/
   server.js app.js     mở cổng + bật cron · middleware chung (helmet, cors, cookie, rate limit) + gắn routes
   routes/ controllers/ services/ models/   một file mỗi nhóm; routes/index.js tự nạp *.routes.js (saved.routes.js → /saved)
   middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter
-  jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00
+  jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00 (kéo tăng dần mỗi 2 giờ: .github/workflows/ingest.yml)
   ingestion/           module kéo học bổng, tự chứa (đọc index.js trước)
   configs/ validations/ utils/   CORS, DB, JWT, mail, Supabase · schema zod theo nghiệp vụ · hash, hàm thuần dùng chung
 backend/scripts/migrations/  00N_tenMigration.sql, đánh số tăng dần, chạy lại không lỗi
