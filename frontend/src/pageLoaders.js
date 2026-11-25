@@ -24,8 +24,8 @@ export const PAGE_LOADERS = {
   adminScholarships: () => import('~/pages/admin/scholarships'),
 };
 
-// Các trang người dùng hay mở, đều nhẹ (2–20KB). Không gồm dashboard (kéo theo thư viện biểu đồ ~350KB)
-// và trang admin: những trang này tải khi bấm vào.
+// Các trang người dùng hay mở, đều nhẹ (2–20KB). Không gồm dashboard (kéo theo framer-motion) và trang admin
+// (dashboard admin kéo theo thư viện biểu đồ recharts ~350KB): những trang này tải khi bấm vào.
 const PREFETCH_PAGES = ['scholarshipDetail', 'saved', 'applications', 'applicationDetail', 'deadlines', 'recommend', 'compare', 'news', 'chat'];
 
 // Tải trước khi trình duyệt rảnh, để lúc bấm chuyển trang là có ngay, không phải chờ tải file
