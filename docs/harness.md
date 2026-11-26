@@ -14,7 +14,7 @@ Chọn lọc từ [ECC](https://github.com/affaan-m/ECC) (submodule `vendor/ecc`
 | PostToolUse Write/Edit | `checkConventions.mjs` | Kiểm file vừa sửa theo luật máy dò được; **chỉ báo vi phạm mới** (so với HEAD) để file legacy không bị nhắc mãi; file legacy vượt ngưỡng → nhắc tách | quality-gate, console-warn |
 | Stop | `stopGate.mjs` | Quét mọi file đã đổi + "service mới phải có test"; còn lỗi → yêu cầu Claude sửa (chỉ chặn 1 lần) | stop-format-typecheck, check-console-log |
 
-Luật nằm ở `.claude/hooks/lib/conventions.mjs` (quy ước code), `gitPolicy.mjs` (git), `filePolicy.mjs` (file được bảo vệ) — hàm thuần, có test:
+Luật nằm ở `.claude/hooks/lib/conventions.mjs` (quy ước code), `changeCheck.mjs` (kiểm một tập file đã đổi, dùng chung cho Stop và CI), `gitPolicy.mjs` (git), `filePolicy.mjs` (file được bảo vệ) — hàm thuần, có test:
 
 ```bash
 node --test .claude/hooks/tests/*.test.mjs
@@ -33,6 +33,18 @@ Luật máy dò:
 Thêm luật: viết vào `LINE_RULES` hoặc `fileRuleFindings`, thêm test, chạy lại lệnh trên.
 
 Tắt tạm cho một máy: thêm `"disableAllHooks": true` vào `.claude/settings.local.json` (không commit).
+
+## CI (`.github/workflows/ci.yml`)
+
+Hook chỉ chặn Claude; CI chặn mọi người. Chạy khi push vào `dev`/`main` và khi mở PR vào `dev`/`main` (kể cả PR từ fork).
+
+| Job | Bước |
+|---|---|
+| Backend | `npm ci` · `lint` · `test:contract` · `test:ingestion` (Node 22: contract test cần `--experimental-test-module-mocks`) |
+| Frontend | `npm ci` · `lint` · `npm test` (hàm thuần) · `build` |
+| Harness | `node --test .claude/hooks/tests/*.test.mjs` · **chỉ PR vào dev:** `node .claude/hooks/ciConventions.mjs origin/dev` — cùng luật với hook Stop, chỉ báo vi phạm mới so với merge-base, gồm `service-test` và `helper-test` |
+
+Chạy thử bước quy ước trên máy: `node .claude/hooks/ciConventions.mjs upstream/dev` (tên remote theo máy mình). PR `dev → main` không chạy bước này vì mang theo lịch sử cũ đã được gác khi vào dev.
 
 ## Agent (`.claude/agents/`)
 

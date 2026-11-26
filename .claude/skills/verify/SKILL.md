@@ -23,7 +23,7 @@ Thiếu `node_modules` ở phần nào cần chạy → `npm ci` trong thư mụ
 |---|---|
 | `backend/src`, `backend/tests` | `npm run lint` · `npm run test:contract` |
 | `backend/src/ingestion` | thêm `npm run test:ingestion` |
-| `frontend/src` | `npm run lint` · `npm run build` · `node --test 'src/**/*.test.js'` (test hàm thuần, chưa có script npm) |
+| `frontend/src` | `npm run lint` · `npm run build` · `npm test` (test hàm thuần trong `src/**/*.test.js`) |
 | `frontend/src/utils/demo`, chế độ pages | thêm `npm run build:pages` |
 | `.claude/hooks` | `node --test .claude/hooks/tests/*.test.mjs` (ở gốc repo) |
 
