@@ -1,6 +1,6 @@
 # Việc còn tồn đọng
 
-Cập nhật 27/11/2026 (cuối Đợt 1). Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
+Cập nhật 27/11/2026 (cuối Đợt 2, chờ merge). Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
 
 Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien.md`, hiện ở nhánh `review/fullAudit`, chưa vào `dev`). `M#` là mục MUST trong bản giao việc review ban đầu.
 
@@ -26,10 +26,10 @@ Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien
 | 3 | **Env production**: Railway `NODE_ENV=production`, `JWT_*_SECRET` không phải chuỗi mẫu → merge #57; Vercel `BACKEND_URL` | ⏳ | Thiếu `NODE_ENV` thì guard JWT không bật, cookie mất `secure`, rate limit chạy mức dev. Kiểm `https://<domain-vercel>/api/health` |
 | 4 | **Lưới test trước refactor** (R11, M8) | 🟡 chờ merge | #59: CI chạy cho `dev`/`main`, chạy test thật, kiểm quy ước trên PR. Nhánh `fix/schemaBaseline`: 48 test đặc tả vào `tests/integration/` (17 lỗi đã biết gắn `todo` R##) + job CI Integration trên Supabase local. Nhánh `fix/feHelperTests`: 16 helper FE có test. Còn: chủ repo bật branch protection `dev`/`main` bắt buộc các check |
 | 5 | **DB dựng lại được từ repo** (R03, M5) | 🟡 chờ merge | Nhánh `fix/schemaBaseline`: `000_baseline.sql` (từ `database.sql`), `007_userColumns.sql`, sửa `001`, `012_chatMessages.sql`, `npm run migrate` + bảng `schema_migrations`, LAB `docs/lab.md`. Còn: đối chiếu schema production bằng script chỉ đọc khi có quyền; production chạy `npm run migrate -- --env=.env.cloud --allow-remote` sau 009–011 |
-| 6a | **Upload** (R06, R07, M7) | ❌ | `middlewares/upload.js` chỉ kiểm đuôi file, lưu MIME do client gửi; bucket `documents` public (`getPublicUrl`). Cần kiểm byte đầu bằng `file-type` (đã có trong dependencies, đang dùng cho CV), bucket private + signed URL. **R06 chưa sửa** (bản 27/11 ghi nhầm là xong): `DocumentService.#parseStoragePath` trả `documents/<userId>/…` (thừa tên bucket) nên `storage.remove()` không xóa gì và không báo lỗi — test tích hợp `upload › xóa tài liệu…` bắt được |
-| 6b | **Kéo học bổng ghi đè admin** (R08) | ❌ | `ingestion/save.js` cập nhật `is_active`, `summary` theo link bài → bật lại học bổng admin đã tắt, xóa chỗ admin đã sửa |
-| 6c | **Khóa chống trùng** (R09) | ❌ | `ingestion/toRow.js` tạo `dedup_key` chỉ từ tiêu đề: gộp nhầm, chặn kỳ năm sau |
-| 6d | **Phụ thuộc** (R30) | ❌ | `npm audit --omit=dev` 27/11: BE 5 high + 14 moderate, FE 5 high + 5 moderate. SDK `@google/generative-ai` đã hết hỗ trợ (chuyển `@google/genai`) |
+| 6a | **Upload** (R06, R07, M7) | 🟡 chờ merge `fix/uploadSafety` | `middlewares/upload.js` chỉ kiểm đuôi file, lưu MIME do client gửi; bucket `documents` public (`getPublicUrl`). Nhánh: kiểm byte đầu bằng `file-type`, lưu MIME theo nội dung; migration 013 (cột `storage_path`, bucket private); API trả link ký 1 giờ; xóa tài liệu xóa đúng file (R06). Production: chạy 013 **trước** khi deploy backend |
+| 6b | **Kéo học bổng ghi đè admin** (R08) | 🟡 chờ merge `fix/ingestionGuard` | Migration 014 `admin_locked_at` (admin sửa / ẩn thì khóa, dòng đang ẩn mà chưa quá hạn được khóa luôn); `save.js` không đụng dòng đã khóa. Dòng admin sửa nội dung trước 014 không nhận ra được |
+| 6c | **Khóa chống trùng** (R09) | 🟡 chờ merge `fix/ingestionGuard` | `dedupKey` bỏ dấu, giữ đuôi phân biệt sau " - ", tiêu đề chung chung → NULL; kỳ năm sau làm mới dòng cũ đã quá hạn. Còn: cột `title UNIQUE` |
+| 6d | **Phụ thuộc** (R30) | 🟡 chờ merge `fix/dependencies` | `npm audit --omit=dev` còn 0 / 0 (zod 4, nodemailer 10, react-router 7; vá open redirect `?redirect=/\evil.com`). Còn: SDK `@google/generative-ai` hết hỗ trợ, chuyển `@google/genai` (Đợt 3) |
 
 ## 1b. Bảo mật: thu hồi khóa — để kiểm lại sau (rà 25/11/2026)
 
@@ -56,6 +56,14 @@ node scripts/applyMigration.js --file=010_realtimeSignals.sql --env=.env.cloud -
 node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --allow-remote
 ```
 
+**Sau khi merge các nhánh Đợt 2** (thứ tự merge: #59 → `fix/schemaBaseline` → `fix/feHelperTests` → `fix/dependencies` → `fix/uploadSafety` / `fix/ingestionGuard` / `fix/backendHardening`), trên production, trong `backend/`:
+
+1. Kiểm dữ liệu trước (chỉ đọc): `SELECT gpa_scale, count(*) FROM profiles GROUP BY 1` (giá trị khác 4 / 5 / 10 thì PUT /profile có gửi `gpa_scale` sẽ bị 400); `SELECT lower(email), count(*) FROM users GROUP BY 1 HAVING count(*) > 1` (cặp trùng phải gộp tay).
+2. `npm run migrate -- --env=.env.cloud --allow-remote --dry-run` rồi bỏ `--dry-run`: 013 (bucket `documents` private; báo thiếu quyền `storage.buckets` thì tắt Public trong Dashboard), 014 (khóa học bổng admin đã ẩn), 015 (email chữ thường). **Deploy backend ngay sau đó**: code mới đọc `storage_path`, code cũ mất link tải khi bucket đã private.
+3. `node --import ./register.js scripts/recomputeDedupKeys.js --env=.env.cloud --allow-remote` (xem) → thêm `--apply`, trước lượt kéo học bổng kế tiếp.
+4. Kiểm: `SELECT count(*) FROM documents WHERE storage_path IS NULL` (khác 0 là URL cũ không nhận ra, tài liệu đó không có link tải); `curl https://<backend>/api/health` → `data.db = "ok"`.
+5. **Tài khoản `admin@scholarsgo.com`** (mật khẩu cũ gõ cứng trong `seedAdmin.js`, còn trong lịch sử git): có trên DB thật thì đổi mật khẩu hoặc khóa.
+
 | PR | Việc phải làm sau merge |
 |---|---|
 | #48 chat / gợi ý không LLM | `npm install` trong `backend/`. Railway: xóa `GROQ_API_KEY`, `OPENAI_API_KEY`, `ZHIPU_API_KEY` nếu có |
@@ -72,22 +80,22 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 
 | Nhóm | Việc | Trạng thái | Bằng chứng / ghi chú | Đợt |
 |---|---|---|---|---|
-| Auth | Access token còn dùng được 15 phút sau đăng xuất, khóa tài khoản, hạ quyền (R14) | ❌ | `middlewares/auth.js` chỉ verify JWT. Nhóm đã chấp nhận độ trễ 15 phút (`docs/plans/authRefreshToken.md`): **cần chốt** giữ hay kiểm phiên trong DB | 2 |
-| Auth | Rate limit trong RAM, 4 route auth dùng chung bộ đếm theo IP (R15) | ❌ | `rateLimiter.js` không có `store`; khóa theo IP + email | 2 |
-| Auth | Email khác chữ hoa thành 2 tài khoản; link reset ghi ra log khi thiếu SMTP (R16) | ❌ | `configs/nodemailer.js` in link reset | 2 |
-| Auth | `scripts/seedAdmin.js` gõ cứng email/mật khẩu admin (repo public), tự nạp `backend/.env`, không chặn host ngoài localhost: chạy nhầm lên production là tạo/nâng quyền admin với mật khẩu ai cũng biết | ❌ | Đọc mật khẩu từ env (bắt buộc), thêm rào `--allow-remote` như `migrate.js`. Kiểm production không có tài khoản dùng mật khẩu mặc định đó | 2 |
+| Auth | Access token còn dùng được 15 phút sau đăng xuất, khóa tài khoản, hạ quyền (R14) | ❌ | `middlewares/auth.js` chỉ verify JWT. Nhóm đã chấp nhận độ trễ 15 phút (`docs/plans/authRefreshToken.md`): **cần chốt** giữ hay kiểm phiên trong DB. 3 test tích hợp gắn todo R14 | 3 |
+| Auth | Rate limit trong RAM, 4 route auth dùng chung bộ đếm theo IP (R15) | 🟡 chờ merge `fix/backendHardening` | Đã tách bộ đếm từng route, đăng nhập khóa theo IP + email. Còn: store dùng chung khi chạy nhiều instance | 2 |
+| Auth | Email khác chữ hoa thành 2 tài khoản; link reset ghi ra log khi thiếu SMTP (R16) | 🟡 chờ merge `fix/backendHardening` | Email chuẩn hóa ở đầu vào + migration 015; production không log link | 2 |
+| Auth | `scripts/seedAdmin.js` gõ cứng email/mật khẩu admin (repo public), tự nạp `backend/.env`, không chặn host ngoài localhost: chạy nhầm lên production là tạo/nâng quyền admin với mật khẩu ai cũng biết | 🟡 chờ merge `fix/backendHardening` | Đã đọc từ env + rào `--allow-remote`. **Còn: kiểm production không có tài khoản dùng mật khẩu mặc định cũ** (người giữ Supabase) | 2 |
 | Dữ liệu | Ràng buộc `role IN ('user','admin')` cho `users` | ❌ | Bỏ khỏi 007 vì `NOT VALID` vẫn kiểm mọi UPDATE. Chạy `SELECT DISTINCT role FROM users` trên production trước, rồi thêm ở migration mới | 2 |
-| Backend | Model bỏ qua `error` của supabase-js: lỗi DB hiện thành 401/404 (R27) | ❌ | 14 chỗ `const { data } = await …` không kiểm `error` (auth.model 5, saved 3, application 2, scholarship 2, document 1, profile 1) | 2 |
-| Backend | Admin: bộ lọc `?status` vô hiệu, thống kê theo trạng thái cũ, tạo học bổng thiếu trường trả 500 (R26) | ❌ | `admin.validation.js` không có `status` | 2 |
-| Backend | Giới hạn đầu vào (R28) | 🟡 | `notes` max 5000 đã có. Còn: `checklist` không giới hạn số mục/độ dài, `documents_used` không kiểm thuộc người dùng, ứng tuyển học bổng đã tắt | 2 |
-| Backend | Health check không kiểm DB; tắt server chưa trọn (R34) | ❌ | `app.js` luôn trả ok | 2 |
+| Backend | Model bỏ qua `error` của supabase-js: lỗi DB hiện thành 401/404 (R27) | 🟡 chờ merge `fix/backendHardening` (+ document.model ở `fix/uploadSafety`) | 14 chỗ `const { data } = await …` không kiểm `error` (auth.model 5, saved 3, application 2, scholarship 2, document 1, profile 1) | 2 |
+| Backend | Admin: bộ lọc `?status` vô hiệu, thống kê theo trạng thái cũ, tạo học bổng thiếu trường trả 500 (R26) | 🟡 chờ merge `fix/backendHardening` | `admin.validation.js` không có `status` | 2 |
+| Backend | Giới hạn đầu vào (R28) | 🟡 chờ merge `fix/backendHardening` | `notes` max 5000 đã có. Còn: `checklist` không giới hạn số mục/độ dài, `documents_used` không kiểm thuộc người dùng, ứng tuyển học bổng đã tắt | 2 |
+| Backend | Health check không kiểm DB; tắt server chưa trọn (R34) | 🟡 chờ merge `fix/backendHardening` | `app.js` luôn trả ok | 2 |
 | Backend | `process.env` đọc ngoài `configs/` (trái CLAUDE.md 4.6) | ❌ | `errorHandle.controller.js`, `server.js`, `rateLimiter.js`, `authCookie.controller.js`, `app.js` | 3 |
-| Backend | File vượt ngưỡng dòng | ❌ | `recommend.service.js` 311, `errorHandle.controller.js` 112, `admin.controller`, `admin.service`. Tách khi sửa tới | 3 |
+| Backend | File vượt ngưỡng dòng | ❌ | `recommend.service.js` 311, `errorHandle.controller.js` 118 (Đợt 2 thêm mapper 413), `admin.controller`, `admin.service`. Tách khi sửa tới | 3 |
 | Dữ liệu | Cột thời gian không múi giờ; hạn ISO `Z` lúc 0h VN lệch một ngày (R25, M6) | ❌ | `database.sql` không có cột `TIMESTAMPTZ` nào. Dữ liệu hạn 2099 cũ: kiểm `count(*) where deadline >= '2090-01-01'` | 1–2 |
 | Dữ liệu | `country` là chuỗi tự do (R22) | ❌ | ISO mới dùng cho `nationality`, `eligible_nationalities` | 3 |
 | Dữ liệu | Mất transaction khi dùng supabase-js; index thừa/thiếu (R35) | ❌ | | 3 |
 | Nghiệp vụ | Gợi ý thiếu điều kiện cứng: bậc học, quốc tịch, tuổi (R20, M9) | ❌ | `recommend.service.js` chỉ chặn theo GPA/IELTS | 3 |
-| Nghiệp vụ | GPA thang 10 (R33) | 🟡 | CV đã quy về thang 4; form hồ sơ vẫn từ chối 8.5 / `gpa_scale` 10 | 2 |
+| Nghiệp vụ | GPA thang 10 (R33) | 🟡 chờ merge `fix/backendHardening` | CV đã quy về thang 4; form hồ sơ vẫn từ chối 8.5 / `gpa_scale` 10 | 2 |
 | AI | Không timeout khi gọi Gemini (R19); lọc PII của CV còn hở (R17); prompt injection từ dữ liệu cào (R18) | ❌ | Chỉ còn CV và kéo học bổng gọi AI (#48) | 3 |
 | Pipeline | Không có bước duyệt (staging); học bổng không hạn nộp hiện mãi (R29) | ❌ | **Cần chốt** cột `status` hay bảng staging | 4 |
 | FE | ErrorBoundary không gửi Sentry; trang thiếu trạng thái lỗi có nút thử lại (R32) | ❌ | `ErrorBoundary.jsx` chỉ `console.error` | 3 |
@@ -119,3 +127,8 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 - `003_ingestion.sql` tạo `ingestion_runs` không bật RLS; `011` bật lại trong cùng lượt `npm run migrate`, chỉ hở nếu dừng giữa 003 và 011 trên DB trống.
 - Gợi ý đọc toàn bộ học bổng còn mở mỗi lần gọi (~0.4s với 4500 dòng). Lưu lượng tăng thì cache danh sách ứng viên vài phút.
 - Báo cáo review: thêm mục đối chiếu các PR của upstream; đổi nhãn R14 thành "đánh đổi đã chấp nhận" nếu nhóm giữ.
+- Từ Đợt 2 (models ném lỗi supabase-js): id sai dạng UUID ở đường dẫn (`/applications/abc`) trả 400 `INVALID_DATA_FORMAT` thay vì 404. Muốn 404 thì thêm `validate(idSchema, 'params')` cho các route còn thiếu (applications, documents, admin, auth/sessions).
+- Rate limit tính theo `req.ip` với `TRUST_PROXY=1` (đúng khi chỉ có Railway đứng trước). Thêm Cloudflare / CDN thì phải tăng `TRUST_PROXY`, nếu không mọi người dùng chung một bộ đếm.
+- Học bổng lừa đảo đăng lại với link mới và tiêu đề khác vẫn vào được (khóa admin chỉ chặn đúng dòng đã ẩn): cần blocklist nguồn / tiêu đề nếu gặp nhiều.
+- Bản ghi tài liệu cũ có `file_url` không khớp dạng URL công khai: xóa bản ghi nhưng file còn trên Storage.
+- `npm run lint` của BE còn 42 cảnh báo (`no-console`, `no-param-reassign` ở `scholarship.model`), 0 lỗi.
