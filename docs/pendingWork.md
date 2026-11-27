@@ -1,6 +1,6 @@
 # Việc còn tồn đọng
 
-Cập nhật 27/11/2026. Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
+Cập nhật 27/11/2026 (cuối Đợt 1). Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
 
 Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien.md`, hiện ở nhánh `review/fullAudit`, chưa vào `dev`). `M#` là mục MUST trong bản giao việc review ban đầu.
 
@@ -24,9 +24,9 @@ Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien
 | 1 | **Thu hồi khóa** (R01, M3): mật khẩu DB, khóa Supabase anon + service role từng bị commit vào lịch sử git | ❌ hoãn theo quyết định 25/11 | Chi tiết ở mục 1b. Khóa service role bỏ qua mọi RLS |
 | 2 | **Migration production 009 → 010 → 011** | ⏳ | Lệnh ở mục 2. Kiểm: `select count(*) from pg_policies where schemaname = 'public'` = 0. Trong repo RLS đã khóa (R04, M1), production chưa |
 | 3 | **Env production**: Railway `NODE_ENV=production`, `JWT_*_SECRET` không phải chuỗi mẫu → merge #57; Vercel `BACKEND_URL` | ⏳ | Thiếu `NODE_ENV` thì guard JWT không bật, cookie mất `secure`, rate limit chạy mức dev. Kiểm `https://<domain-vercel>/api/health` |
-| 4 | **Lưới test trước refactor** (R11, M8) | 🟡 | #59: CI chạy cho `dev`/`main`, chạy test thật, kiểm quy ước trên PR (chờ merge). Còn: chủ repo bật branch protection `dev`/`main` bắt buộc 3 check Backend / Frontend / Harness; đưa test đặc tả `tests/review/` (nhánh `review/fullAudit`) thành `tests/integration/` và chạy trên CI bằng Supabase local |
-| 5 | **DB dựng lại được từ repo** (R03, M5) | ❌ | Không file SQL nào tạo `users.role / is_active / last_login_at`; `001_add_indexes.sql` tạo index trên bảng `saved` (không tồn tại, đúng là `saved_scholarships`); số 007 để trống; `chat_messages` nằm ngoài migration; chưa có bảng `schema_migrations` |
-| 6a | **Upload** (R07, M7) | ❌ | `middlewares/upload.js` chỉ kiểm đuôi file, lưu MIME do client gửi; bucket `documents` public (`getPublicUrl`). Cần kiểm byte đầu bằng `file-type` (đã có trong dependencies, đang dùng cho CV), bucket private + signed URL |
+| 4 | **Lưới test trước refactor** (R11, M8) | 🟡 chờ merge | #59: CI chạy cho `dev`/`main`, chạy test thật, kiểm quy ước trên PR. Nhánh `fix/schemaBaseline`: 48 test đặc tả vào `tests/integration/` (17 lỗi đã biết gắn `todo` R##) + job CI Integration trên Supabase local. Nhánh `fix/feHelperTests`: 16 helper FE có test. Còn: chủ repo bật branch protection `dev`/`main` bắt buộc các check |
+| 5 | **DB dựng lại được từ repo** (R03, M5) | 🟡 chờ merge | Nhánh `fix/schemaBaseline`: `000_baseline.sql` (từ `database.sql`), `007_userColumns.sql`, sửa `001`, `012_chatMessages.sql`, `npm run migrate` + bảng `schema_migrations`, LAB `docs/lab.md`. Còn: đối chiếu schema production bằng script chỉ đọc khi có quyền; production chạy `npm run migrate -- --env=.env.cloud --allow-remote` sau 009–011 |
+| 6a | **Upload** (R06, R07, M7) | ❌ | `middlewares/upload.js` chỉ kiểm đuôi file, lưu MIME do client gửi; bucket `documents` public (`getPublicUrl`). Cần kiểm byte đầu bằng `file-type` (đã có trong dependencies, đang dùng cho CV), bucket private + signed URL. **R06 chưa sửa** (bản 27/11 ghi nhầm là xong): `DocumentService.#parseStoragePath` trả `documents/<userId>/…` (thừa tên bucket) nên `storage.remove()` không xóa gì và không báo lỗi — test tích hợp `upload › xóa tài liệu…` bắt được |
 | 6b | **Kéo học bổng ghi đè admin** (R08) | ❌ | `ingestion/save.js` cập nhật `is_active`, `summary` theo link bài → bật lại học bổng admin đã tắt, xóa chỗ admin đã sửa |
 | 6c | **Khóa chống trùng** (R09) | ❌ | `ingestion/toRow.js` tạo `dedup_key` chỉ từ tiêu đề: gộp nhầm, chặn kỳ năm sau |
 | 6d | **Phụ thuộc** (R30) | ❌ | `npm audit --omit=dev` 27/11: BE 5 high + 14 moderate, FE 5 high + 5 moderate. SDK `@google/generative-ai` đã hết hỗ trợ (chuyển `@google/genai`) |
@@ -90,11 +90,11 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 | Pipeline | Không có bước duyệt (staging); học bổng không hạn nộp hiện mãi (R29) | ❌ | **Cần chốt** cột `status` hay bảng staging | 4 |
 | FE | ErrorBoundary không gửi Sentry; trang thiếu trạng thái lỗi có nút thử lại (R32) | ❌ | `ErrorBoundary.jsx` chỉ `console.error` | 3 |
 | FE | a11y label của `Input` (R31) | 🟡 | `legacy/Input.jsx` đã gắn `htmlFor` theo `id \|\| name`; chưa kiểm bằng axe; modal admin tự viết | 3 |
-| FE | 18 hàm trong `helpers/` chưa có test (R9 frontendRules); `helpers/` import `../../../utils` vì `node --test` không hiểu `~/` | ❌ | `node .claude/hooks/ciConventions.mjs <remote>/main` liệt kê đủ | 1 |
+| FE | 16 hàm trong `helpers/` chưa có test (R9 frontendRules); `helpers/` import `../../../utils` vì `node --test` không hiểu `~/` | 🟡 chờ merge | Nhánh `fix/feHelperTests` (loader `testRegister.js`, 50 test mới) | 1 |
 | FE | `frontend/vite.config.js` có 3 lỗi `no-undef` nhưng `npm run lint` chỉ quét `src/` | ❌ | | 3 |
 | Harness | LAB dựng lại được (`supabase/config.toml`, seed dữ liệu giả, `docs/lab.md`); quy trình release `dev → main` (checklist, tag, smoke test); migration có bảng theo dõi | ❌ | | 1–2 |
 
-**Đã xong sau đợt review 24/11** (không cần làm lại): R02 chat/gợi ý không còn gọi model đã tắt (#48) · R04 trong repo (#56) · R05 (#50) · R06 xóa tài liệu xóa luôn file · R10 tìm kiếm có dấu phẩy · R12 chat giới hạn tin nhắn · R13 Sentry không gửi cookie (#49) · R21 lọc GPA/IELTS giữ học bổng không yêu cầu · R23 danh sách quốc gia · R24 không nhắc hạn học bổng đã tắt · M2 một hệ auth · M4 cookie · sentinel 2099 trong code · regex ẩn email trong CV chạy O(n²) (#59).
+**Đã xong sau đợt review 24/11** (không cần làm lại): R02 chat/gợi ý không còn gọi model đã tắt (#48) · R04 trong repo (#56) · R05 (#50) · R10 tìm kiếm có dấu phẩy · R12 chat giới hạn tin nhắn · R13 Sentry không gửi cookie (#49) · R21 lọc GPA/IELTS giữ học bổng không yêu cầu · R23 danh sách quốc gia · R24 không nhắc hạn học bổng đã tắt · M2 một hệ auth · M4 cookie · sentinel 2099 trong code · regex ẩn email trong CV chạy O(n²) (#59).
 
 ## 4. Quyết định nhóm cần chốt trước đợt 1
 
