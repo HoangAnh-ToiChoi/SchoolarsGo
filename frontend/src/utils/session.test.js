@@ -35,4 +35,16 @@ describe('safeRedirectPath', () => {
     assert.equal(safeRedirectPath('/\t/evil.com', '/'), '/');
     assert.equal(safeRedirectPath('/\n/evil.com', '/'), '/');
   });
+
+  it('dạng mã hóa hay "/./" vẫn là đường dẫn cùng trang web, giữ nguyên (navigate không giải mã %5C)', () => {
+    assert.equal(safeRedirectPath('/%5Cevil.com', '/'), '/%5Cevil.com');
+    assert.equal(safeRedirectPath('/.//evil.com', '/'), '/.//evil.com');
+    assert.equal(safeRedirectPath('/\u0000', '/'), '/');
+  });
+
+  it('trang đăng nhập / đăng ký thì về trang mặc định', () => {
+    assert.equal(safeRedirectPath('/login', '/'), '/');
+    assert.equal(safeRedirectPath('/register?x=1', '/'), '/');
+    assert.equal(safeRedirectPath('/loginHelp', '/'), '/loginHelp');
+  });
 });
