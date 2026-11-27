@@ -21,10 +21,18 @@ class ApplicationService {
     }
   }
 
-  // documents_used và document_id trong checklist chỉ được trỏ tới tài liệu của chính người dùng
-  async #assertOwnDocuments(userId, { checklist, documents_used: documentsUsed }) {
+  #documentIdsOf({ checklist, documents_used: documentsUsed } = {}) {
     const fromChecklist = (checklist || []).map(entry => entry.document_id).filter(Boolean);
-    const ids = [...new Set([...(documentsUsed || []), ...fromChecklist])];
+    return new Set([...(documentsUsed || []), ...fromChecklist]);
+  }
+
+  // documents_used và document_id trong checklist chỉ được trỏ tới tài liệu của chính người dùng.
+  // Chỉ kiểm id MỚI so với đơn đang lưu: tài liệu đã đính kèm rồi bị xóa (jsonb, không có khóa ngoại)
+  // không được làm người dùng kẹt, không sửa tiếp được đơn
+  async #assertOwnDocuments(userId, updates, existing = null) {
+    const alreadyAttached = this.#documentIdsOf(existing ?? {});
+    const requested = [...this.#documentIdsOf(updates)];
+    const ids = requested.filter(id => !alreadyAttached.has(id));
     if (ids.length === 0) return;
     const owned = await applicationModel.countOwnedDocuments(userId, ids);
     if (owned !== ids.length) throw new AppError(applicationErrors.DOCUMENT_NOT_OWNED);
@@ -94,7 +102,7 @@ class ApplicationService {
     this.#guardFound(existing);
 
     const updates = { ...rawUpdates };
-    await this.#assertOwnDocuments(userId, updates);
+    await this.#assertOwnDocuments(userId, updates, existing);
 
     if (updates.status !== undefined) {
       if (!(updates.status in APPLICATION_VALID_TRANSITIONS)) {

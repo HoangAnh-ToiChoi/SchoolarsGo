@@ -83,3 +83,13 @@ test('update: đơn không thuộc người dùng → 404', async () => {
   modelRef.current = fakeModel({ existing: null });
   await assert.rejects(applicationService.update('u2', 'a1', { notes: 'x' }), { statusCode: 404, errorCode: 'APPLICATION_NOT_FOUND' });
 });
+
+test('update: tài liệu đã đính kèm rồi bị xóa không chặn việc sửa đơn; chỉ kiểm id mới', async () => {
+  const existing = { ...ROW, checklist: [{ item: 'CV', done: true, document_id: DOC_B }], documents_used: [DOC_B] };
+  const model = fakeModel({ owned: [DOC_A], existing });
+  modelRef.current = model;
+  const checklist = [{ item: 'CV', done: true, document_id: DOC_B }, { item: 'SOP', done: true, document_id: DOC_A }];
+  await applicationService.update('u1', 'a1', { checklist });
+  assert.deepEqual(model.calls.asked, [DOC_A]);
+  assert.deepEqual(model.calls.updated.checklist, checklist);
+});

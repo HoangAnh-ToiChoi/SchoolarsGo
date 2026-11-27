@@ -2,6 +2,7 @@ import rateLimit from 'express-rate-limit';
 import { getCvDailyLimit } from '~/configs/cv.config.js';
 import { CV_RATE_WINDOW_MS } from '~/constants/cv.js';
 import { cv as cvErrors } from '~/constants/errors.js';
+import { clientIpKey } from '~/utils/clientIp.js';
 
 const createLimiter = (maxRequests, windowSeconds, message, options = {}) => {
   return rateLimit({
@@ -10,6 +11,7 @@ const createLimiter = (maxRequests, windowSeconds, message, options = {}) => {
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => res.error({ statusCode: 429, message, code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
+    keyGenerator: clientIpKey,
     ...options,
   });
 };
@@ -23,7 +25,7 @@ const isProd = process.env.NODE_ENV === 'production';
 // Chạy trước validate nên tự chuẩn hóa email giống auth.validation
 function ipAndEmailKey(req) {
   const email = String(req.body?.email ?? '').trim().toLowerCase();
-  return `${req.ip}|${email}`;
+  return `${clientIpKey(req)}|${email}`;
 }
 
 // Đăng nhập: production 5 lần sai / 15 phút cho mỗi cặp IP + email (đăng nhập đúng không tính), dev 200 lần / phút
