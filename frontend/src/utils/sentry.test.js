@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { scrubBreadcrumb, scrubSentryEvent, scrubUrl } from './sentry.js';
+import { scrubBreadcrumb, scrubSentryEvent, scrubText, scrubUrl } from './sentry.js';
 
 const MASK = '[ẩn]';
 
@@ -25,6 +25,27 @@ describe('scrubSentryEvent', () => {
   it('sự kiện không có request giữ nguyên', () => {
     const event = { message: 'lỗi' };
     assert.equal(scrubSentryEvent(event), event);
+  });
+
+  it('che email và số điện thoại trong message lỗi và exception', () => {
+    const event = scrubSentryEvent({
+      message: 'gửi tới an.nguyen@gmail.com thất bại',
+      exception: { values: [{ type: 'TypeError', value: 'Không đọc được hồ sơ 0901 234 567' }] },
+    });
+    assert.equal(event.message, `gửi tới ${MASK} thất bại`);
+    assert.equal(event.exception.values[0].value, `Không đọc được hồ sơ ${MASK}`);
+    assert.equal(event.exception.values[0].type, 'TypeError');
+  });
+});
+
+describe('scrubText', () => {
+  it('giữ nguyên chữ không có dữ liệu cá nhân và giá trị không phải chuỗi', () => {
+    assert.equal(scrubText("Cannot read properties of undefined (reading 'title')"), "Cannot read properties of undefined (reading 'title')");
+    assert.equal(scrubText(undefined), undefined);
+  });
+
+  it('che số +84', () => {
+    assert.equal(scrubText('gọi +84 912.345.678'), `gọi ${MASK}`);
   });
 });
 

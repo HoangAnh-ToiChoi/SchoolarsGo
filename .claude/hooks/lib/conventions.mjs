@@ -15,6 +15,7 @@ const TAILWIND_PALETTE =
   /\b(?:text|bg|border|ring|fill|stroke|from|via|to|outline|divide|placeholder|decoration|shadow|accent|caret)-(?:slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
 
 // File trong pages|layouts/<...>/(helpers|hooks|constants)/
+const ERROR_BOUNDARY_CLASS = /class\s+\w+\s+extends\s+(?:React\.)?Component\b[\s\S]*getDerivedStateFromError/;
 const isPageSubfolderFile = (p) => /^frontend\/src\/(pages|layouts)\/.+\/(helpers|hooks|constants)\/[^/]+\.js$/.test(p);
 const isBackendSrc = (p) => p.startsWith('backend/src/') && p.endsWith('.js');
 const isFrontendSrc = (p) => p.startsWith('frontend/src/') && /\.(js|jsx)$/.test(p);
@@ -202,7 +203,8 @@ function fileRuleFindings(relPath, content, lines) {
     }
   }
 
-  if (isFrontendOwned(relPath) && /\/index\.jsx$/.test(relPath) && /export\s+default\s+(?!function\s+[A-Z])/.test(content) && !content.includes('forwardRef(')) {
+  // React chỉ bắt lỗi render bằng class (getDerivedStateFromError): error boundary được viết class
+  if (isFrontendOwned(relPath) && /\/index\.jsx$/.test(relPath) && /export\s+default\s+(?!function\s+[A-Z])/.test(content) && !content.includes('forwardRef(') && !ERROR_BOUNDARY_CLASS.test(content)) {
     findings.push({
       rule: 'component-export',
       line: lines.findIndex((t) => /export\s+default/.test(t)) + 1,
