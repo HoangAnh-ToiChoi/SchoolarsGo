@@ -1,4 +1,6 @@
+export const DASHBOARD_TAB = { overview: 'overview', profile: 'profile' };
+
 export const DASHBOARD_TABS = [
-  { id: 'overview', label: 'Tổng quan' },
-  { id: 'profile', label: 'Hồ sơ' },
+  { id: DASHBOARD_TAB.overview, label: 'Tổng quan' },
+  { id: DASHBOARD_TAB.profile, label: 'Hồ sơ' },
 ];

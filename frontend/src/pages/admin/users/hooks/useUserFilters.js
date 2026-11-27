@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { buildUserFilters } from '../helpers';
+import { buildUserFilters } from '~/pages/admin/users/helpers';
 
 // Bộ lọc danh sách người dùng: đổi điều kiện lọc nào cũng quay về trang 1
 export function useUserFilters() {

@@ -4,8 +4,8 @@ import { chatService } from '~/services/chat.service';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
 import {
   CHAT_HISTORY_SENT, CHAT_MAX_LENGTH, FALLBACK_REPLY, MESSAGE_TOO_LONG, QUICK_CHIPS_MAX_MESSAGES, WELCOME_MESSAGE,
-} from '../constants';
-import { buildApiMessages, getChatErrorMessage } from '../helpers';
+} from '~/pages/chat/constants';
+import { buildApiMessages, getChatErrorMessage } from '~/pages/chat/helpers';
 
 // Hội thoại với ScholarsBot: nạp lịch sử (khi đã đăng nhập), gửi tin, cuộn xuống tin mới nhất
 export function useChatConversation() {

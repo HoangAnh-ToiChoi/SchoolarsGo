@@ -1,4 +1,4 @@
-import { EMPTY_FORM } from '../constants';
+import { EMPTY_FORM } from '~/pages/admin/scholarships/constants';
 
 // Giá trị ban đầu của form: thêm mới thì để trống, sửa thì lấy từ học bổng (ô ngày chỉ nhận yyyy-MM-dd)
 export function toScholarshipForm(scholarship) {

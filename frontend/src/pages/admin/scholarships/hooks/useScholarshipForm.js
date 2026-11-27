@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toScholarshipForm, toScholarshipPayload } from '../helpers';
+import { toScholarshipForm, toScholarshipPayload } from '~/pages/admin/scholarships/helpers';
 
 // Form thêm / sửa học bổng; giá trị đầu lấy một lần khi mở hộp thoại
 export function useScholarshipForm(scholarship, onSave) {

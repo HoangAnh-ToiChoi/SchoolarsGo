@@ -1,4 +1,4 @@
-import { DASHBOARD_LIST_LIMIT, UPCOMING_WINDOW_DAYS } from '../constants';
+import { DASHBOARD_LIST_LIMIT, UPCOMING_WINDOW_DAYS } from '~/pages/dashboard/constants';
 
 // Học bổng hết hạn trong 30 ngày tới (chưa qua hạn), hạn gần nhất trước
 export function getUpcomingDeadlines(scholarships, now) {

@@ -6,7 +6,7 @@ import { cn } from '~/utils/cn';
 export default function ChatInput({ input, setInput, onSend, isLoading, inputRef }) {
   const charCount = input.length;
   const charOver = charCount > CHAT_WARN_LENGTH;
-  const canSend = input.trim() && !isLoading;
+  const canSend = Boolean(input.trim()) && !isLoading;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ export default function ChatInput({ input, setInput, onSend, isLoading, inputRef
             )}
             <button
               type="submit"
-              disabled={!input.trim() || isLoading}
+              disabled={!canSend}
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all',
                 canSend

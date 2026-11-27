@@ -3,7 +3,7 @@ import { useApplications } from '~/hooks/useApplication';
 import { useSavedScholarships, useScholarships } from '~/hooks/useScholarship';
 import {
   countByStatus, getProfileCompletion, getRecentApplications, getUpcomingDeadlines,
-} from '../helpers';
+} from '~/pages/dashboard/helpers';
 
 // Bốn nguồn dữ liệu tải song song; "bây giờ" tính một lần cho cả trang
 export function useDashboardData() {

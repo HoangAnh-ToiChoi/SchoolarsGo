@@ -1,4 +1,4 @@
-import { DASHBOARD_LIST_LIMIT } from '../constants';
+import { DASHBOARD_LIST_LIMIT } from '~/pages/dashboard/constants';
 
 // Đơn tạo gần đây nhất trước; không đổi thứ tự mảng gốc
 export function getRecentApplications(applications) {

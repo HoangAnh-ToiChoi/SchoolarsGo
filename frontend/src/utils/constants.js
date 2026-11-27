@@ -13,6 +13,8 @@ export const PAGE_SIZE = 10;
 export const MAX_LIMIT = 50;
 // Bảng quản trị (người dùng, học bổng) tải mỗi trang 20 dòng
 export const ADMIN_PAGE_SIZE = 20;
+// Phân trang khi chưa có dữ liệu từ server
+export const EMPTY_META = { page: 1, totalPages: 1, total: 0 };
 
 // Document types
 export const DOCUMENT_TYPES = [

@@ -1,4 +1,4 @@
-import { SOON_DAYS, URGENT_DAYS } from '../constants';
+import { SOON_DAYS, URGENT_DAYS } from '~/pages/dashboard/constants';
 
 // Mức gấp theo ngưỡng riêng của dashboard: ≤ 7 ngày, ≤ 14 ngày, còn lại
 export function getDeadlineUrgency(daysUntil) {

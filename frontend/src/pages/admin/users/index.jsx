@@ -4,10 +4,9 @@ import { useAdminUsers } from '~/hooks/useAdmin';
 import StatusConfirmModal from '~/pages/admin/users/components/statusConfirmModal';
 import UserFilters from '~/pages/admin/users/components/userFilters';
 import UserRow from '~/pages/admin/users/components/userRow';
+import { EMPTY_META } from '~/utils/constants';
 import { USER_COLUMNS, USER_SKELETON_ROWS } from '~/pages/admin/users/constants';
 import { useUserActions, useUserFilters } from '~/pages/admin/users/hooks';
-
-const EMPTY_META = { page: 1, totalPages: 1, total: 0 };
 
 export default function AdminUsersPage() {
   const { filters, setPage, ...filterProps } = useUserFilters();

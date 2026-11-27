@@ -3,13 +3,11 @@ import { Plus } from 'lucide-react';
 import AdminPageTitle from '~/components/admin/adminPageTitle';
 import AdminTable from '~/components/admin/adminTable';
 import { useScholarships } from '~/hooks/useScholarship';
-import { ADMIN_PAGE_SIZE } from '~/utils/constants';
+import { ADMIN_PAGE_SIZE, EMPTY_META } from '~/utils/constants';
 import ScholarshipModal from '~/pages/admin/scholarships/components/scholarshipModal';
 import ScholarshipRow from '~/pages/admin/scholarships/components/scholarshipRow';
 import { SCHOLARSHIP_COLUMNS, SCHOLARSHIP_SKELETON_ROWS } from '~/pages/admin/scholarships/constants';
 import { useScholarshipActions } from '~/pages/admin/scholarships/hooks';
-
-const EMPTY_META = { page: 1, totalPages: 1, total: 0 };
 
 export default function AdminScholarshipsPage() {
   const [page, setPage] = useState(1);

@@ -3,11 +3,11 @@ import ProfilePage from '~/pages/profile';
 import LoadingSpinner from '~/components/common/LoadingSpinner';
 import OverviewTab from '~/pages/dashboard/components/overviewTab';
 import TabButton from '~/pages/dashboard/components/tabButton';
-import { DASHBOARD_TABS } from '~/pages/dashboard/constants';
+import { DASHBOARD_TAB, DASHBOARD_TABS } from '~/pages/dashboard/constants';
 import { useDashboardData } from '~/pages/dashboard/hooks';
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(DASHBOARD_TAB.overview);
   const data = useDashboardData();
 
   if (data.isLoading) {
@@ -23,11 +23,11 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {activeTab === 'overview' && <OverviewTab data={data} onOpenProfile={() => setActiveTab('profile')} />}
+        {activeTab === DASHBOARD_TAB.overview && <OverviewTab data={data} onOpenProfile={() => setActiveTab(DASHBOARD_TAB.profile)} />}
       </div>
 
       {/* Tab hồ sơ rộng hết trang, tự có containerNarrow bên trong */}
-      {activeTab === 'profile' && <ProfilePage embedded />}
+      {activeTab === DASHBOARD_TAB.profile && <ProfilePage embedded />}
     </div>
   );
 }

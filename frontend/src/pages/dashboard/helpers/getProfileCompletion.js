@@ -1,4 +1,4 @@
-import { PROFILE_FIELDS } from '../constants';
+import { PROFILE_FIELDS } from '~/pages/dashboard/constants';
 
 // % trường hồ sơ đã điền, làm tròn
 export function getProfileCompletion(profile) {
