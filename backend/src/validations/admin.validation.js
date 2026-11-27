@@ -22,7 +22,10 @@ const scholarshipFields = z.object({
   is_active: z.boolean().optional(),
 });
 
+// country, degree NOT NULL trong DB: thiếu thì báo 400 ở đây thay vì để Postgres ném lỗi 500
 const adminCreateScholarshipSchema = scholarshipFields.extend({
+  country: z.string().min(1, 'Quốc gia không được để trống').max(100),
+  degree: z.enum(DEGREES, { message: `degree phải là một trong: ${DEGREES.join(', ')}` }),
   is_featured: z.boolean().optional().default(false),
   is_active: z.boolean().optional().default(true),
 });
@@ -48,6 +51,8 @@ const adminUserQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().min(1).max(50).optional().default(20),
   role: z.enum(['user', 'admin']).optional(),
+  // Thiếu ở schema thì validate bỏ đi, bộ lọc trạng thái trên trang admin không có tác dụng
+  status: z.enum(['active', 'inactive']).optional(),
   search: z.string().max(255).optional(),
 });
 

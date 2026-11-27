@@ -2,7 +2,7 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { closeDb, createScholarship, registerUser, sql, startServer, stopServer } from './helpers/app.js';
+import { closeDb, createScholarship, registerAdmin, registerUser, sql, startServer, stopServer } from './helpers/app.js';
 import { daysBetween, milestoneFor, vnToday } from '~/utils/deadline.js';
 
 before(async () => {
@@ -23,9 +23,19 @@ describe('Hạn nộp theo Asia/Ho_Chi_Minh', () => {
     assert.equal(vnToday(new Date('2026-11-24T16:30:00Z')), '2026-11-24');
   });
 
-  it('hạn admin nhập dạng ISO Z lúc 0h VN (17:00Z hôm trước) được đếm đúng ngày VN', { todo: 'R25 — lỗi đã biết, gỡ todo khi sửa' }, () => {
+  it('hạn admin nhập dạng ISO Z lúc 0h VN (17:00Z hôm trước) được đếm đúng ngày VN', () => {
     // 2026-12-01T17:00:00Z = 00:00 ngày 02/12 giờ VN → hôm nay 24/11 VN còn 8 ngày
     assert.equal(daysBetween('2026-11-24', '2026-12-01T17:00:00Z'), 8);
+  });
+
+  it('admin nhập hạn ISO 0h giờ VN (17:00Z hôm trước) được lưu đúng ngày VN', async () => {
+    const admin = await registerAdmin('deadlineIso');
+    const res = await admin.client.request('POST', '/api/admin/scholarships', {
+      body: { title: `Hạn ISO ${Date.now()}`, provider: 'X', country: 'Japan', degree: 'Master', deadline: '2027-03-01T17:00:00.000Z' },
+    });
+    assert.equal(res.status, 201, JSON.stringify(res.json));
+    const [row] = await sql(`SELECT to_char(deadline, 'YYYY-MM-DD') AS day FROM scholarships WHERE id = $1`, [res.json.data.id]);
+    assert.equal(row.day, '2027-03-02');
   });
 
   it('mốc nhắc: còn 0 ngày → mốc 1; còn 15 ngày → không nhắc', () => {
@@ -45,7 +55,7 @@ describe('Gợi ý học bổng', () => {
     assert.ok(res.status < 500, `status ${res.status} ${JSON.stringify(res.json).slice(0, 200)}`);
   });
 
-  it('hồ sơ Bachelor + VN không được gợi ý học bổng chỉ dành cho PhD / quốc tịch JP', { todo: 'R20 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('hồ sơ Bachelor + VN không được gợi ý học bổng chỉ dành cho PhD / quốc tịch JP', async () => {
     await U.client.request('PUT', '/api/profile', {
       body: { gpa: 3.8, english_level: 'IELTS 7.5', target_country: 'Japan', target_degree: 'Bachelor', target_major: 'Computer Science', nationality: 'VN' },
     });
@@ -79,6 +89,17 @@ describe('Gợi ý học bổng', () => {
   });
 });
 
+async function waitFor(check, timeoutMs = 3000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await check()) return;
+    await new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+  }
+  throw new Error('waitFor: hết thời gian chờ');
+}
+
 describe('Thông báo nhắc hạn', () => {
   it('không nhắc hạn cho học bổng đã bị admin tắt', async () => {
     const U = await registerUser('notif');
@@ -87,6 +108,8 @@ describe('Thông báo nhắc hạn', () => {
     const control = await createScholarship({ deadline: in5days });
     await U.client.request('POST', `/api/saved/${s.id}`);
     await U.client.request('POST', `/api/saved/${control.id}`);
+    // Lưu học bổng tạo nhắc hạn mà không chờ (refreshUserReminders): đợi xong, không thì nó ghi sau bước xóa bên dưới
+    await waitFor(async () => (await sql('SELECT 1 FROM notifications WHERE user_id = $1', [U.user.id])).length >= 2);
     await sql('UPDATE scholarships SET is_active = false WHERE id = $1', [s.id]);
     await sql('DELETE FROM notifications WHERE user_id = $1', [U.user.id]); // xóa nhắc tạo lúc lưu, chỉ xét lượt GET
     // GET /notifications tạo nhắc hạn (mỗi người một lần mỗi ngày) trước khi đọc

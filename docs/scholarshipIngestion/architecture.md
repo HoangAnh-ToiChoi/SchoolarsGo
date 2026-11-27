@@ -73,5 +73,19 @@ Khi server chạy: kéo học bổng **Chủ nhật 2:00**, tắt học bổng q
 - Mốc của mỗi nguồn = `started_at` của lượt **thành công** gần nhất (không lỗi, không chạy thử) trong `ingestion_runs`. Nguồn chưa có lượt nào thì chạy đầy đủ. Lượt lỗi không dời mốc, nên lượt sau lấy bù.
 - Gọi WordPress với `orderby=modified` và `modified_after` = mốc lùi 1 ngày (tham số ngày của WordPress tính theo múi giờ của trang). Sau đó lọc chính xác bằng `modified_gmt` và dừng ở bài đầu tiên cũ hơn mốc. Nhờ vậy bài đã xử lý không đi qua Gemini lần nữa, và trang chạy WordPress cũ (bỏ qua `modified_after`) vẫn đúng.
 - Bài được sửa (đổi hạn nộp, nội dung) đi qua 7 bước như bài mới; bước 7 làm mới dòng đã có.
+
+**Bước 7 quyết định từng dòng** (`saveRows` trong `save.js`):
+
+| Trường hợp | Làm gì |
+|---|---|
+| Dòng đã có bị admin sửa hoặc ẩn (`admin_locked_at`, migration 014) | Bỏ qua: không bật lại, không ghi đè hạn nộp / tóm tắt |
+| Cùng link bài | Làm mới hạn nộp, điểm, trạng thái, tóm tắt |
+| Cùng `dedup_key`, dòng cũ đã quá hạn | Kỳ mới: chuyển dòng cũ sang link, tiêu đề, hạn mới (tiêu đề trùng học bổng khác thì giữ tiêu đề cũ) |
+| Cùng `dedup_key`, dòng cũ còn hạn | Bỏ qua (trang khác đã đăng) |
+| Chưa có | Thêm mới |
+
+`dedup_key` (`toRow.js`): tiêu đề bỏ dấu, bỏ năm, bỏ đuôi sau ` | ` và đuôi kêu gọi sau ` - ` ("- Apply by …"); đuôi khác sau ` - ` giữ lại (MEXT theo trường ≠ theo đại sứ quán). Tiêu đề chỉ toàn từ chung chung thì khoá là `NULL`, chỉ chống trùng theo link.
+
+Đổi công thức `dedupKey` thì tính lại khoá đã lưu, nếu không lượt kéo sau sẽ thêm bản trùng: `node --import ./register.js scripts/recomputeDedupKeys.js --env=<file env>` (chạy thử, in thay đổi) rồi thêm `--apply` (DB thật thêm `--allow-remote`). Khoá mới đụng khoá dòng khác thì giữ khoá cũ và báo ra.
 - `ingestion_runs.started_at` lưu giờ UTC (`toUtcText` trong `save.js`).
 - Workflow cần secrets `PG_*` (và tùy chọn `GEMINI_API_KEY`). Chưa có `PG_HOST` thì workflow bỏ qua, không báo lỗi. GitHub chỉ chạy lịch trên nhánh mặc định (`main`).

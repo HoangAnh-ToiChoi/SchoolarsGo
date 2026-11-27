@@ -48,9 +48,11 @@ test('PUT /profile kiểm chứng chỉ: IELTS phải có điểm 0 đến 9, ch
   assert.ok(!fails({ certificates: [{ type: 'TOEFL', score: 100 }] }));
 });
 
-test('PUT /profile vẫn kiểm các trường cũ như trước (GPA tối đa 4)', () => {
-  assert.ok(fails({ gpa: 5 }));
-  assert.ok(!fails({ gpa: 3.4, bio: 'xin chào' }));
+test('PUT /profile: GPA nhập tối đa 10 (thang 10), thang điểm chỉ 4 / 5 / 10', () => {
+  assert.ok(fails({ gpa: 10.5 }));
+  assert.ok(fails({ gpa: 3, gpa_scale: '7' }));
+  assert.ok(!fails({ gpa: 8.5, gpa_scale: '10' }));
+  assert.ok(!fails({ gpa: 3.4, gpa_scale: '4.0', bio: 'xin chào' }));
 });
 
 // Supabase giả: ghi lại dữ liệu được upsert

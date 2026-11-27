@@ -1,16 +1,23 @@
 import getSupabase from '~/configs/supabase.js';
 import * as database from '~/configs/database.config.js';
 import { RECOMMEND_SCHOLARSHIP_COLUMNS } from '~/constants/recommend.js';
+import { PROFILE_UPDATABLE_FIELDS } from '~/constants/profile.js';
 
 class RecommendModel {
   async findProfileByUserId(userId) {
-    const { data: profile } = await getSupabase().from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    const { data: profile, error: profileError } = await getSupabase()
+      .from('profiles')
+      .select(PROFILE_UPDATABLE_FIELDS.join(', '))
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (profileError) throw profileError;
     if (!profile) return null;
 
-    const { data: documents } = await getSupabase()
+    const { data: documents, error: documentsError } = await getSupabase()
       .from('documents')
       .select('id, type')
       .eq('user_id', userId);
+    if (documentsError) throw documentsError;
 
     return {
       ...profile,
@@ -26,7 +33,7 @@ class RecommendModel {
   async findCandidates() {
     const sql = `
       SELECT id, title, provider, country, degree, field_of_study, min_gpa, min_ielts, deadline,
-             intake, summary, benefits, requirements, eligibility
+             intake, summary, benefits, requirements, eligibility, eligible_nationalities, max_age
       FROM scholarships
       WHERE is_active = true AND (deadline IS NULL OR deadline >= now())
       ORDER BY relevance_score DESC, deadline ASC NULLS LAST -- cùng điểm phù hợp thì giữ thứ tự cũ (sort ổn định)

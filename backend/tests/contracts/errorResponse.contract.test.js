@@ -46,6 +46,7 @@ test('resolveError: lỗi Postgres, JWT, multer, JSON hỏng được đổi đ�
   assert.equal(errorHandleController.resolve({ name: 'JsonWebTokenError' }).errorCode, 'INVALID_TOKEN');
   assert.equal(errorHandleController.resolve({ code: 'LIMIT_FILE_SIZE' }).errorCode, 'FILE_TOO_LARGE');
   assert.equal(errorHandleController.resolve({ type: 'entity.parse.failed' }).errorCode, 'MALFORMED_JSON');
+  assert.equal(errorHandleController.resolve({ type: 'entity.too.large' }).statusCode, 413);
 });
 
 test('resolveError: lỗi lạ thành 500 và không lộ message nội bộ', () => {

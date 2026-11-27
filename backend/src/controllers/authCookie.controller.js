@@ -1,4 +1,5 @@
 import { getCookieSameSite } from '~/configs/jwt.config.js';
+import { isProduction } from '~/configs/app.config.js';
 
 const ACCESS_PATH = '/api';
 const REFRESH_PATH = '/api/auth';
@@ -26,7 +27,7 @@ class AuthCookieController {
   #options(path, maxAge) {
     return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction(),
       sameSite: getCookieSameSite(),
       maxAge,
       path,

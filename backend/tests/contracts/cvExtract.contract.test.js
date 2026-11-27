@@ -4,13 +4,13 @@ import JSZip from 'jszip';
 
 import { mockServiceFunctions, srcUrl } from './helpers/mockService.js';
 
-const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['getClient']);
+const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['getJsonModel']);
 const { default: removeContactInfo } = await import('~/utils/removeContactInfo.js');
 const { default: keepBirthYearOnly } = await import('~/utils/keepBirthYearOnly.js');
 const { default: withTimeout } = await import('~/utils/withTimeout.js');
 const { cv: cvErrors } = await import('~/constants/errors.js');
 const { default: errorHandleController } = await import('~/controllers/errorHandle.controller.js');
-const { GoogleGenerativeAIFetchError } = await import('@google/generative-ai');
+const { ApiError } = await import('@google/genai');
 const { default: cvTextService } = await import('~/services/cvText.service.js');
 const { default: cvExtractService } = await import('~/services/cvExtract.service.js');
 
@@ -42,15 +42,13 @@ const buildDocx = async text => {
 // Gemini giả: ghi lại prompt nhận được và trả về chuỗi cố định
 const fakeGemini = answer => {
   const seen = { prompt: null };
-  const client = {
-    getGenerativeModel: () => ({
-      generateContent: async prompt => {
-        seen.prompt = prompt;
-        return { response: { text: () => answer } };
-      },
-    }),
+  const model = {
+    generateContent: async prompt => {
+      seen.prompt = prompt;
+      return { response: { text: () => answer } };
+    },
   };
-  geminiRef.current = { getClient: () => client };
+  geminiRef.current = { getJsonModel: () => model };
   return seen;
 };
 
@@ -78,9 +76,38 @@ test('removeContactInfo vẫn ẩn email tên miền nhiều cấp và email có
   assert.doesNotMatch(result, /hcmus|gmail/);
 });
 
+test('R17: removeContactInfo ẩn hộ chiếu, CCCD, số quốc tế, email viết tránh, dòng "Add:"', () => {
+  const text = [
+    'Passport: C1234567',
+    'Số CCCD: 079201001234',
+    'Phone: +1 (415) 555-0134, +44 20 7946 0958',
+    'Mail: nguyen.a [at] gmail [dot] com',
+    'Add: 99 Le Loi, District 1',
+    'GPA 3.4, IELTS 7.0, mã môn CS101, năm 2024, điểm 8.5/10',
+  ].join('\n');
+  const result = removeContactInfo(text);
+  assert.doesNotMatch(result, /C1234567|079201001234|415|555-0134|7946|gmail|Le Loi/);
+  assert.match(result, /GPA 3\.4, IELTS 7\.0, mã môn CS101, năm 2024, điểm 8\.5\/10/);
+});
+
+test('R17 (review): email cách chữ / full-width, địa chỉ không dấu hai chấm, CCCD bắt đầu bằng 0 không lộ chữ số cuối', () => {
+  const text = [
+    'Mail: ten @ gmail . com, hoặc ten2 at yahoo dot com, hoặc ten3＠outlook.com',
+    'CCCD: 079305001234',
+    'Address 12 Le Loi, HCM',
+    'Home: 34 Tran Hung Dao street',
+    'Tôi làm việc tại Hà Nội, look at this project, thêm mã môn ADD101',
+  ].join('\n');
+  const result = removeContactInfo(text);
+  assert.doesNotMatch(result, /gmail|yahoo|outlook|0793|1234|Le Loi|Tran Hung Dao/);
+  // Mẫu giấy tờ ẩn cả nhãn lẫn số; trước đây mẫu điện thoại ăn trước và để lộ chữ số cuối ("[ẩn]4")
+  assert.match(result, /^\[ẩn\]$/m);
+  assert.match(result, /look at this project, thêm mã môn ADD101/);
+});
+
 test('removeContactInfo chạy nhanh với chuỗi rất dài (không treo vì regex)', () => {
   const started = Date.now();
-  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)}`);
+  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)} ${'+1 '.repeat(50000)} ${'x [at] '.repeat(30000)} ${'a @ '.repeat(30000)} ${'b at '.repeat(30000)} ${'address '.repeat(30000)}`);
   assert.ok(Date.now() - started < 2000);
 });
 
@@ -151,13 +178,13 @@ test('cvExtract: lỗi đầu vào và lỗi AI trả đúng mã', async () => {
   fakeGemini('[]');
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_BAD_RESPONSE'));
 
-  geminiRef.current = { getClient: () => null };
+  geminiRef.current = { getJsonModel: () => null };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(503, 'AI_UNAVAILABLE'));
 });
 
 test('cvExtract: Gemini lỗi mạng / hạn mức không bị bắt trong service, errorHandle đổi thành 502', async () => {
-  const client = { getGenerativeModel: () => ({ generateContent: async () => { throw new GoogleGenerativeAIFetchError('429', 429, 'Too Many Requests'); } }) };
-  geminiRef.current = { getClient: () => client };
+  const model = { generateContent: async () => { throw new ApiError({ message: 'Too Many Requests', status: 429 }); } };
+  geminiRef.current = { getJsonModel: () => model };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_FAILED'));
 });
 

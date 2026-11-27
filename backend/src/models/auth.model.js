@@ -2,34 +2,38 @@ import getSupabase from '~/configs/supabase.js';
 
 class AuthModel {
   async findByEmail(email) {
-    const { data } = await getSupabase().from('users').select('id').eq('email', email).maybeSingle();
+    const { data, error } = await getSupabase().from('users').select('id').eq('email', email).maybeSingle();
+    if (error) throw error;
     return data;
   }
 
   async findByEmailWithCredentials(email) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('users')
       .select('id, email, password_hash, full_name, avatar_url, phone, date_of_birth, role, is_active, created_at')
       .eq('email', email)
       .maybeSingle();
+    if (error) throw error;
     return data;
   }
 
   async findById(id) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('users')
       .select('id, email, full_name, avatar_url, phone, date_of_birth, role, created_at')
       .eq('id', id)
       .maybeSingle();
+    if (error) throw error;
     return data;
   }
 
   async findSessionUserById(id) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('users')
       .select('id, email, full_name, avatar_url, phone, date_of_birth, role, is_active')
       .eq('id', id)
       .maybeSingle();
+    if (error) throw error;
     return data;
   }
 
@@ -63,11 +67,12 @@ class AuthModel {
   }
 
   async findByResetToken(tokenHash) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('users')
       .select('id, email, reset_token_expires')
       .eq('reset_token', tokenHash)
       .maybeSingle();
+    if (error) throw error;
     return data;
   }
 

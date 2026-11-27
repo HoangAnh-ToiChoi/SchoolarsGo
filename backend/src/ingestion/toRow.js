@@ -47,21 +47,34 @@ const STOP_WORDS = new Set([
   'scholarship', 'scholarships', 'programme', 'programmes', 'program', 'programs',
   'fully', 'funded', 'apply', 'now', 'open', 'applications', 'application',
   'for', 'the', 'in', 'at', 'of', 'and', 'to', 'a', 'an', 'international', 'students', 'student',
+  'hoc', 'bong', // "học bổng" sau khi bỏ dấu
 ]);
+
+// Đuôi sau " - " chỉ là lời kêu gọi / hạn nộp, không phân biệt học bổng: "... - Apply by December 1, 2026".
+// Đuôi khác giữ lại: "MEXT 2027 - University Recommendation" và "... - Embassy Recommendation" là hai học bổng.
+const NOISE_TAIL = /\s+[-–—]\s+(?:apply|deadline|fully funded|funded|how to|step[- ]by[- ]step|applications?|now open|open|call for)\b.*$/i;
+
+// Bỏ dấu tiếng Việt trước khi lọc ký tự: "Học bổng" → "hoc bong" (trước đây thành "h-c-b-ng")
+function toAscii(text) {
+  const unaccented = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return unaccented.replace(/đ/g, 'd').replace(/Đ/g, 'D');
+}
 
 /**
  * Khoá chống trùng: cùng một học bổng đăng ở hai trang (hoặc hai năm) cho cùng một khoá.
  * "Swedish Institute Scholarship 2027 | Fully Funded" và "Swedish Institute Scholarships 2026/2027"
- * đều thành "swedish-institute".
+ * đều thành "swedish-institute". Kỳ năm sau cùng khoá với kỳ trước: save.js làm mới dòng cũ đã quá hạn.
+ * Tiêu đề chỉ toàn từ chung chung ("Fully Funded Scholarships 2026") → null: không chống trùng theo khoá.
  */
 function dedupKey(title) {
-  const head = String(title)
-    .split(/\s+[|-]\s+/)[0] // bỏ đuôi sau " | " hoặc " - "
-    .toLowerCase()
-    .replace(/\b20\d{2}(?:\s*[/-]\s*(?:20)?\d{2})?\b/g, ' ') // bỏ năm: 2027, 2026/2027, 2026-27
-    .replace(/[^a-z0-9\s]/g, ' ');
-  const words = head.split(/\s+/).filter((w) => w && !STOP_WORDS.has(w));
-  return words.join('-').slice(0, 200);
+  const head = String(title).split(/\s+\|\s+/)[0]; // bỏ đuôi sau " | "
+  const withoutTail = toAscii(head).replace(NOISE_TAIL, '');
+  const lowered = withoutTail.toLowerCase();
+  const withoutYears = lowered.replace(/\b20\d{2}(?:\s*[/-]\s*(?:20)?\d{2})?\b/g, ' '); // bỏ năm: 2027, 2026/2027, 2026-27
+  const cleaned = withoutYears.replace(/[^a-z0-9\s]/g, ' ');
+  const words = cleaned.split(/\s+/).filter((w) => w && !STOP_WORDS.has(w));
+  const key = words.join('-').slice(0, 200);
+  return key || null;
 }
 
 /** Cắt chuỗi cho vừa cột; null/undefined giữ là null (không thành chuỗi "null"). */

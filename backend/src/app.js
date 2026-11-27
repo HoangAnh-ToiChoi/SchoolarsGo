@@ -16,8 +16,10 @@ import { apiLimiter } from './middlewares/rateLimiter.js';
 import checkOrigin from './middlewares/checkOrigin.js';
 import responseController from './controllers/response.controller.js';
 import errorHandleController from './controllers/errorHandle.controller.js';
+import healthController from './controllers/health.controller.js';
 import './configs/database.config.js';
 import routes from './routes/index.js';
+import { isProduction } from './configs/app.config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -27,7 +29,8 @@ app.set('trust proxy', getTrustProxy());
 app.use(responseController.attach);
 app.use(helmet());
 app.use(cors({ origin: corsOrigin, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
+// File đi qua multipart (multer, có giới hạn riêng); JSON lớn nhất là ghi chú / checklist vài chục KB. 10MB cũ là chỗ làm cạn RAM
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   // Express 5: req.body là undefined khi request không có body
@@ -36,10 +39,10 @@ app.use((req, res, next) => {
 });
 app.use(cookieParser());
 app.use(checkOrigin);
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(morgan(isProduction() ? 'combined' : 'dev'));
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.get('/api/health', healthCheck);
+app.get('/api/health', healthController.check);
 app.use('/api', apiLimiter, routes);
 app.use(
   '/api-docs',
@@ -53,9 +56,5 @@ app.use(
 
 app.use(errorHandleController.notFound);
 app.use(errorHandleController.handle);
-
-function healthCheck(req, res) {
-  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
-}
 
 export default app;

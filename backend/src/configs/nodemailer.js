@@ -13,7 +13,9 @@ const createTransport = () => {
 async function sendResetEmail(email, resetLink) {
   const transport = createTransport();
   if (!transport) {
-    console.info(`[Mailer] SMTP chưa cấu hình. Reset link cho ${email}: ${resetLink}`);
+    // Link chứa token đặt lại mật khẩu: production ghi log là lộ cho ai đọc được log (Railway, Sentry). Chỉ in khi dev
+    if (process.env.NODE_ENV === 'production') console.warn('[Mailer] SMTP chưa cấu hình, không gửi được email đặt lại mật khẩu');
+    else console.info(`[Mailer] SMTP chưa cấu hình. Reset link cho ${email}: ${resetLink}`);
     return;
   }
   await transport.sendMail({

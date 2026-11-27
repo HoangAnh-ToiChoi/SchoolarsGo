@@ -7,7 +7,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 | **Frontend** | React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query |
 | **Backend** | Node.js (ESM) + Express 5, Supabase PostgreSQL |
 | **Demo** | GitHub Pages (chỉ FE) |
-| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) |
+| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) · `docs/pendingWork.md` (việc đã xác định nhưng chưa làm) |
 
 Tài liệu lệch code thì **code là đúng**.
 
@@ -55,8 +55,6 @@ Tài liệu lệch code thì **code là đúng**.
 | FE component | 200 | | BE controller | 100 |
 | FE hook | 150 | | BE service | 200 |
 | FE service | 200 | | BE model | 250 |
-
-File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `recommend.service` · **FE (trang legacy)** `profile`.
 
 ---
 
@@ -180,7 +178,7 @@ const draft = cvDraftSchema.parse(parsed);
 ### 4.8 Lỗi
 
 - **Controller không `try/catch/next`**, handler chỉ `(req, res)`: Express 5 tự chuyển lỗi `async` sang `errorHandle.controller`.
-- **Service, model cũng không `try/catch` chỉ để đổi lỗi:** để lỗi rơi xuống `errorHandle.controller`. Muốn đổi lỗi thư viện (PDF hỏng, Gemini, JSON hỏng…) thành mã chuẩn thì thêm mã vào `constants/errors.js` + một mapper ở file đó. Chỉ `try/catch` khi thật sự có cách xử lý tiếp (thử lại, giá trị dự phòng).
+- **Service, model cũng không `try/catch` chỉ để đổi lỗi:** để lỗi rơi xuống `errorHandle.controller`. Muốn đổi lỗi thư viện (PDF hỏng, Gemini, JSON hỏng…) thành mã chuẩn thì thêm mã vào `constants/errors.js` + một mapper ở `utils/resolveError.js`. Chỉ `try/catch` khi thật sự có cách xử lý tiếp (thử lại, giá trị dự phòng).
 - **Lỗi nghiệp vụ:** class `AppError` nằm cùng các định nghĩa lỗi trong `constants/errors.js` (không còn `utils/AppError.js`), nhập bằng `import { AppError } from '~/constants/errors.js'`. Chỉ có một cách ném:
 
   ```js
@@ -189,7 +187,7 @@ const draft = cvDraftSchema.parse(parsed);
   ```
 
   **Không** tự gõ chữ / mã / status ở nơi ném lỗi, không còn `AppError.badRequest | notFound…`. Nhóm đặt theo tính năng (`application`, `saved`, `profile`, `cv`…). Danh sách giá trị hợp lệ dùng trong thông báo lấy từ `constants/<tínhNăng>.js`, không gõ lại.
-- **`errorHandle.controller.js`** → `resolveError()` đổi mọi lỗi (zod, Postgres, JWT, multer, JSON hỏng, `AppError`, lỗi lạ) thành `{ statusCode, code, errorCode, message, details }`; lỗi lạ trả 500 chung chung. Kiểu lỗi mới = mã trong `constants/errors.js` + một mapper ở file này.
+- **`errorHandle.controller.js`** gọi `resolveError()` (`utils/resolveError.js`) đổi mọi lỗi (zod, Postgres, JWT, multer, JSON hỏng / quá lớn, `AppError`, lỗi lạ) thành `{ statusCode, code, errorCode, message, details }`; lỗi lạ trả 500 chung chung. Kiểu lỗi mới = mã trong `constants/errors.js` + một mapper ở `utils/resolveError.js`.
 
 ### 4.9 Response và kiểm tra đầu vào
 
