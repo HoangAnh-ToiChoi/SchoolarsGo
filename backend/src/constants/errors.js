@@ -102,9 +102,10 @@ const document = Object.freeze({
   insertFailed: reason => ({ statusCode: 500, code: 'DB_INSERT_FAILED', message: `Lưu metadata thất bại, file đã được gỡ: ${reason}` }),
 });
 
-// Health check (health.service): chỉ dùng nội bộ để dừng chờ DB, không trả cho client
+// Health check (health.service, health.controller). DB_TIMEOUT chỉ dùng nội bộ để dừng chờ DB
 const health = Object.freeze({
   DB_TIMEOUT: { statusCode: 503, code: 'DB_TIMEOUT', message: 'DB không trả lời' },
+  DB_DOWN: { statusCode: 503, code: 'SERVICE_UNAVAILABLE', message: 'Dịch vụ tạm thời không truy cập được cơ sở dữ liệu' },
 });
 
 // Upload bằng multer (middlewares/upload.js). Lý do cụ thể do fileFilter đặt

@@ -17,7 +17,7 @@ describe('Health check', () => {
   it('DB chạy → 200, báo db ok, không cần đăng nhập', async () => {
     const res = await createClient().request('GET', '/api/health');
     assert.equal(res.status, 200, JSON.stringify(res.json));
-    assert.equal(res.json.status, 'ok');
-    assert.equal(res.json.db, 'ok');
+    assert.equal(res.json.data.status, 'ok');
+    assert.equal(res.json.data.db, 'ok');
   });
 });
