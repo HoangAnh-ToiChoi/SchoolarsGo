@@ -64,18 +64,23 @@ class RecommendMatchService {
     } else if (!anyOnEitherSide) fit.blockers.push(`Học bổng dành cho bậc ${scholarship.degree}`);
   }
 
-  // Quốc tịch là điều kiện cứng (R20). Hồ sơ chưa khai quốc tịch thì không chặn (không đoán)
+  // Quốc tịch là điều kiện cứng (R20). Hồ sơ chưa khai quốc tịch thì không chặn (không đoán).
+  // Cột eligible_nationalities nhập tay, không có CHECK: so không phân biệt hoa thường
   #nationality(fit, profile, scholarship) {
     const allowed = scholarship.eligible_nationalities;
     if (!profile.nationality || !Array.isArray(allowed) || allowed.length === 0) return;
-    if (!allowed.includes(profile.nationality)) fit.blockers.push(`Học bổng chỉ nhận quốc tịch ${allowed.join(', ')}`);
+    const allowedCodes = allowed.map(code => String(code).toUpperCase());
+    const nationality = String(profile.nationality).toUpperCase();
+    if (!allowedCodes.includes(nationality)) fit.blockers.push(`Học bổng chỉ nhận quốc tịch ${allowedCodes.join(', ')}`);
   }
 
-  // Tuổi là điều kiện cứng (R20): tính theo năm sinh và năm hiện tại giờ VN
+  // Tuổi là điều kiện cứng (R20). Hồ sơ chỉ có năm sinh nên tuổi thật là (năm nay - năm sinh) hoặc nhỏ hơn 1
+  // (chưa tới sinh nhật): chỉ chặn khi tuổi nhỏ nhất có thể vẫn vượt max_age, không loại nhầm người còn đủ tuổi
   #age(fit, profile, scholarship) {
     if (!profile.birth_year || !scholarship.max_age) return;
-    const age = Number(vnToday().slice(0, 4)) - Number(profile.birth_year);
-    if (age > scholarship.max_age) fit.blockers.push(`Học bổng giới hạn tuổi tối đa ${scholarship.max_age}`);
+    const thisYear = Number(vnToday().slice(0, 4));
+    const youngestPossibleAge = thisYear - Number(profile.birth_year) - 1;
+    if (youngestPossibleAge > scholarship.max_age) fit.blockers.push(`Học bổng giới hạn tuổi tối đa ${scholarship.max_age}`);
   }
 
   #country(fit, profile, scholarship) {
