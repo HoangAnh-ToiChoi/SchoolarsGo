@@ -11,6 +11,8 @@ export const REALTIME_NOTIFICATION_EVENT = 'notification';
 // Pagination
 export const PAGE_SIZE = 10;
 export const MAX_LIMIT = 50;
+// Bảng quản trị (người dùng, học bổng) tải mỗi trang 20 dòng
+export const ADMIN_PAGE_SIZE = 20;
 
 // Document types
 export const DOCUMENT_TYPES = [
