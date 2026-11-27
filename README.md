@@ -42,5 +42,6 @@ Frontend luôn gọi API qua `/api`. Khi chạy local, Vite chuyển tiếp đư
 backend/     API Express (routes → controllers → services → repositories)
 frontend/    Ứng dụng React (xem CLAUDE.md)
 docs/        api.md, database.md; docs/archive/ là tài liệu cũ giữ để tham khảo
-database.sql, databaseChatMessages.sql   Lược đồ cơ sở dữ liệu
+backend/scripts/migrations/   Lược đồ CSDL: 000_baseline.sql + migration đánh số; dựng bằng `npm run migrate`
+supabase/    Cấu hình Supabase local cho LAB và CI (docs/lab.md)
 ```

@@ -42,6 +42,7 @@ Hook chỉ chặn Claude; CI chặn mọi người. Chạy khi push vào `dev`/`
 |---|---|
 | Backend | `npm ci` · `lint` · `test:contract` · `test:ingestion` (Node 22: contract test cần `--experimental-test-module-mocks`) |
 | Frontend | `npm ci` · `lint` · `npm test` (hàm thuần) · `build` |
+| Integration | Supabase local (CLI 3.4.0) · `npm run migrate` hai lần (lần 2 không còn gì để áp) · `npm run test:integration`. Test `todo` = lỗi đã biết (mã R##), không làm job đỏ |
 | Harness | `node --test .claude/hooks/tests/*.test.mjs` · **chỉ PR vào dev:** `node .claude/hooks/ciConventions.mjs origin/dev` — cùng luật với hook Stop, chỉ báo vi phạm mới so với merge-base, gồm `service-test` và `helper-test` |
 
 Chạy thử bước quy ước trên máy: `node .claude/hooks/ciConventions.mjs upstream/dev` (tên remote theo máy mình). PR `dev → main` không chạy bước này vì mang theo lịch sử cũ đã được gác khi vào dev.

@@ -271,8 +271,10 @@ Migration `011_rlsLockdown.sql` (25/11/2026): **mọi bảng bật RLS, không c
 Dự án dùng Supabase Cloud (không còn dùng Docker):
 
 1. Tạo project ở supabase.com.
-2. Vào **SQL Editor**, chạy `database.sql` rồi `databaseChatMessages.sql` để tạo bảng.
-3. Điền `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` và các biến `PG_*` vào `backend/.env` (xem `backend/.env.example`).
+2. Điền `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` và các biến `PG_*` vào `backend/.env` (xem `backend/.env.example`).
+3. Tạo bảng: trong `backend/` chạy `npm run migrate -- --allow-remote` (chạy `scripts/migrations/000_baseline.sql` → mới nhất, ghi lại vào bảng `schema_migrations`). DB đã dựng tay từ trước thì lần đầu chạy vẫn an toàn vì mọi file chạy lại không lỗi; hoặc `--baseline` để chỉ ghi nhận.
+
+Dựng DB trên máy (Supabase local) để thử và chạy test tích hợp: `docs/lab.md`.
 4. Xem dữ liệu bằng Supabase Dashboard → Table Editor.
 
 ---

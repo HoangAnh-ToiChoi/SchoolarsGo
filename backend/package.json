@@ -11,11 +11,12 @@
     "test:ingestion": "node --import ./register.js --test tests/ingestion/*.test.js",
     "ingest": "node --import ./register.js scripts/ingest.js",
     "ingest:dry": "node --import ./register.js scripts/ingest.js --dry-run --verbose",
+    "migrate": "node scripts/migrate.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.js\"",
-    "test:integration": "node --import ./register.js --test tests/integration/*.test.js"
+    "test:integration": "node --import ./register.js --test --test-concurrency=1 --test-force-exit tests/integration/*.test.js"
   },
   "keywords": [
     "scholarship",
