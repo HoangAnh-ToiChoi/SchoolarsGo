@@ -1,21 +1,33 @@
 import { z } from 'zod';
 import { DEGREES } from './scholarship.validation.js';
 
+// Cột amount DECIMAL(12,2)
+const MAX_AMOUNT = 9999999999.99;
+const MAX_LONG_TEXT = 5000;
+
+// Chuỗi rỗng là "không gửi" (không để coerce biến thành 0), null là xóa giá trị đang có
+const emptyToUndefined = (value) => (value === '' ? undefined : value);
+const amountField = z.preprocess(emptyToUndefined, z.union([z.null(), z.coerce.number().min(0).max(MAX_AMOUNT)]).optional());
+// Ô ngày của trình duyệt gửi YYYY-MM-DD (đã là ngày lịch); client khác gửi ISO có giờ
+const deadlineField = z
+  .union([z.iso.date(), z.iso.datetime()], { message: 'deadline phải là YYYY-MM-DD hoặc ISO 8601' })
+  .nullable()
+  .optional();
+
 // Trường chung của tạo và sửa học bổng, KHÔNG có giá trị mặc định: zod 4 áp default cả trong .partial(),
 // nên PATCH chỉ đổi tiêu đề sẽ ghi is_featured = false (gỡ nổi bật) nếu default nằm ở đây
 const scholarshipFields = z.object({
   title: z.string().min(1, 'Tiêu đề không được để trống').max(500),
   provider: z.string().min(1, 'Tổ chức cấp học bổng không được để trống').max(255),
   country: z.string().max(100).optional(),
-  degree: z
-    .string()
-    .refine(v => !v || DEGREES.includes(v), {
-      message: `degree phải là một trong: ${DEGREES.join(', ')}`,
-    })
-    .optional(),
+  degree: z.enum(DEGREES, { message: `degree phải là một trong: ${DEGREES.join(', ')}` }).optional(),
   field_of_study: z.string().max(255).optional(),
-  amount: z.string().max(255).optional(),
-  deadline: z.string().datetime({ message: 'deadline phải là ISO 8601' }).optional(),
+  amount: amountField,
+  deadline: deadlineField,
+  language: z.string().max(50).optional(),
+  coverage: z.string().max(255).optional(),
+  summary: z.string().max(MAX_LONG_TEXT).optional(),
+  requirements: z.string().max(MAX_LONG_TEXT).optional(),
   min_gpa: z.coerce.number().min(0).max(4).optional(),
   min_ielts: z.coerce.number().min(0).max(9).optional(),
   is_featured: z.boolean().optional(),

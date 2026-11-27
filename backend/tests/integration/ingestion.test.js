@@ -76,7 +76,7 @@ describe('Kéo học bổng không ghi đè admin (R08)', () => {
 
   it('admin PATCH không có trường hợp lệ nào → 400, không phải 500', async () => {
     const s = await createScholarship({});
-    const res = await admin.client.request('PATCH', `/api/admin/scholarships/${s.id}`, { body: { summary: 'không có trong schema' } });
+    const res = await admin.client.request('PATCH', `/api/admin/scholarships/${s.id}`, { body: { relevance_score: 100 } });
     assert.equal(res.status, 400, JSON.stringify(res.json));
   });
 

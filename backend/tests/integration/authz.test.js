@@ -138,6 +138,35 @@ describe('Quyền admin', () => {
     assert.ok(!list.some((x) => x.email === banned.email), 'user bị khóa vẫn có trong danh sách active');
   });
 
+  it('payload đúng như form admin gửi được lưu đủ trường; xóa số tiền / hạn bằng null', async () => {
+    const admin = await registerAdmin('formPayload');
+    const created = await admin.client.request('POST', '/api/admin/scholarships', {
+      body: {
+        title: `Form ${Date.now()}`, provider: 'P', country: 'Japan', degree: 'Master', language: 'English',
+        coverage: 'Full', amount: 12500.5, deadline: '2027-03-01', summary: 'Mô tả', requirements: 'IELTS 6.5',
+      },
+    });
+    assert.equal(created.status, 201, JSON.stringify(created.json));
+    const read = async () => {
+      const [row] = await sql(
+        `SELECT language, coverage, amount::float AS amount, to_char(deadline, 'YYYY-MM-DD') AS day, summary, requirements
+           FROM scholarships WHERE id = $1`,
+        [created.json.data.id]
+      );
+      return row;
+    };
+    assert.deepEqual(await read(), {
+      language: 'English', coverage: 'Full', amount: 12500.5, day: '2027-03-01', summary: 'Mô tả', requirements: 'IELTS 6.5',
+    });
+
+    const patched = await admin.client.request('PATCH', `/api/admin/scholarships/${created.json.data.id}`, {
+      body: { amount: null, deadline: null, requirements: '' },
+    });
+    assert.equal(patched.status, 200, JSON.stringify(patched.json));
+    const after = await read();
+    assert.deepEqual([after.amount, after.day, after.requirements, after.summary], [null, null, '', 'Mô tả']);
+  });
+
   it('admin tạo học bổng thiếu country/degree nhận 400 (không 500)', async () => {
     const admin = await registerAdmin('creator');
     const res = await admin.client.request('POST', '/api/admin/scholarships', {
