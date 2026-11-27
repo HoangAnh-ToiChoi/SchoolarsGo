@@ -110,6 +110,7 @@
 | application_url | text | NULLABLE | Link nộp đơn |
 | image_url | text | NULLABLE | Ảnh banner |
 | is_featured | boolean | DEFAULT false | Nổi bật |
+| admin_locked_at | timestamptz | | Admin đã sửa hoặc ẩn: lượt kéo tự động không ghi đè, không bật lại (migration 014) |
 | is_active | boolean | DEFAULT true | Còn hạn |
 | source | varchar(100) | NULLABLE | Nguồn (scholars4dev, own...) |
 | created_at | timestamp | DEFAULT now() | Thời điểm tạo |

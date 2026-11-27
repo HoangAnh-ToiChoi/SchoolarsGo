@@ -29,3 +29,23 @@ test('cleanTitle: bỏ đuôi quảng cáo sau dấu |', () => {
   assert.equal(cleanTitle('University of Southampton Scholarships 2027 | UK'), 'University of Southampton Scholarships 2027 | UK');
   assert.equal(cleanTitle('Plain Title Scholarship'), 'Plain Title Scholarship');
 });
+
+test('đuôi sau " - " phân biệt học bổng thì giữ lại (MEXT theo trường / theo đại sứ quán)', () => {
+  assert.notEqual(
+    dedupKey('MEXT Scholarship 2027 - University Recommendation'),
+    dedupKey('MEXT Scholarship 2027 - Embassy Recommendation')
+  );
+});
+
+test('cùng chương trình khác ngành không gộp chung một khoá', () => {
+  assert.notEqual(dedupKey('Erasmus Mundus Scholarship 2026 - Data Science'), dedupKey('Erasmus Mundus Scholarship 2027 - Marine Biology'));
+});
+
+test('tiêu đề toàn từ chung chung → null, không dồn mọi bài vào khoá rỗng', () => {
+  assert.equal(dedupKey('Fully Funded Scholarships 2026 for International Students'), null);
+});
+
+test('tiêu đề tiếng Việt bỏ dấu trước khi lọc ký tự', () => {
+  assert.equal(dedupKey('Học bổng Chính phủ Hungary 2027'), 'chinh-phu-hungary');
+  assert.equal(dedupKey('Học bổng Đài Loan 2027'), 'dai-loan');
+});
