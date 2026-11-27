@@ -2,6 +2,7 @@ import { ZodError } from 'zod';
 import { ApiError as GeminiApiError } from '@google/genai';
 import { common, postgres, multer, cv } from '~/constants/errors.js';
 import { CV_FILE_ERROR_NAMES } from '~/constants/cv.js';
+import { AI_TIMEOUT_ERROR_NAME } from '~/constants/ai.js';
 
 /**
  * Đổi một lỗi bất kỳ thành { statusCode, code, errorCode, message, details } cho errorHandle.controller.
@@ -20,6 +21,7 @@ function resolveError(err) {
     ?? malformedJsonError(err)
     ?? payloadTooLargeError(err)
     ?? cvFileError(err)
+    ?? aiTimeoutError(err)
     ?? aiError(err)
     ?? aiBadResponseError(err)
     ?? appError(err);
@@ -67,6 +69,11 @@ function payloadTooLargeError(err) {
 // Thư viện đọc PDF ném lỗi riêng khi file hỏng / có mật khẩu: lỗi của người dùng, không phải lỗi server
 function cvFileError(err) {
   return CV_FILE_ERROR_NAMES.includes(err.name) ? build(cv.UNREADABLE_FILE) : null;
+}
+
+// Request Gemini bị hủy vì quá giờ (gemini.service đặt tên lỗi này)
+function aiTimeoutError(err) {
+  return err.name === AI_TIMEOUT_ERROR_NAME ? build(cv.AI_TIMEOUT) : null;
 }
 
 // Gemini lỗi mạng, quá hạn mức, bị chặn nội dung… (cvExtract.service không bắt, lỗi rơi xuống đây)

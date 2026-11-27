@@ -69,3 +69,11 @@ test('R20 bậc học đoán mà lệch: không loại, không cộng điểm b�
   assert.equal(fit.breakdown.degree, 0);
   assert.ok(fit.reasons.some(reason => reason.startsWith('Lưu ý') && reason.includes('PhD')));
 });
+
+// Chủ ý: bản cũ đọc `description`, cột không có trong bảng scholarships nên phần mô tả chưa bao giờ được tính
+test('điểm ngữ nghĩa tính theo cột summary của học bổng', () => {
+  const profile = { ...PROFILE, intent_summary: 'robotics research laboratory' };
+  const without = recommendMatchService.semanticFit(profile, { ...SCHOLARSHIP, summary: null });
+  const withSummary = recommendMatchService.semanticFit(profile, { ...SCHOLARSHIP, summary: 'robotics research laboratory' });
+  assert.ok(withSummary.score > without.score);
+});

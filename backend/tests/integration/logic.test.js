@@ -86,6 +86,26 @@ describe('Gợi ý học bổng', () => {
     assert.ok(!ids.includes(jpOnly.id), 'gợi ý học bổng chỉ cho quốc tịch JP cho người VN');
   });
 
+  it('ngưỡng GPA / IELTS đọc ra là số: 0 không tính là yêu cầu, lý do không in "3.00"', async () => {
+    const N = await registerUser('numeric');
+    await N.client.request('PUT', '/api/profile', {
+      body: { gpa: 3.8, english_level: 'IELTS 7.5', target_country: 'Japan', target_degree: 'Master', target_major: 'Computer Science' },
+    });
+    const base = { country: 'Japan', degree: 'Master', field_of_study: 'Computer Science', relevance_score: 100 };
+    const withMin = await createScholarship({ ...base, title: `Numeric min ${Date.now()}`, min_gpa: 3, min_ielts: 7 });
+    const zeroMin = await createScholarship({ ...base, title: `Numeric zero ${Date.now()}`, min_gpa: 0, min_ielts: 0 });
+
+    const res = await N.client.request('POST', '/api/recommend', { body: { top_n: 50 } });
+    assert.equal(res.status, 200, JSON.stringify(res.json).slice(0, 300));
+    const list = res.json.data?.recommendations || res.json.data || [];
+    const find = (id) => list.find((x) => x.scholarship?.id === id);
+
+    const reasons = find(withMin.id).reasons.join(' | ');
+    assert.match(reasons, /GPA [\d.]+ đạt yêu cầu tối thiểu 3(?![.\d])/);
+    assert.match(reasons, /IELTS 7\.5 đạt yêu cầu tối thiểu 7(?![.\d])/);
+    assert.doesNotMatch(find(zeroMin.id).reasons.join(' | '), /yêu cầu tối thiểu/);
+  });
+
   it('thiếu IELTS thì không được gợi ý như đủ điều kiện cho học bổng đòi IELTS 7.0', async () => {
     const V = await registerUser('noIelts');
     await V.client.request('PUT', '/api/profile', { body: { gpa: 3.9, target_country: 'Korea', target_major: 'Economics' } });

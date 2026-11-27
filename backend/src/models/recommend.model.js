@@ -32,8 +32,10 @@ class RecommendModel {
    */
   async findCandidates() {
     const sql = `
-      SELECT id, title, provider, country, degree, degree_source, field_of_study, min_gpa, min_ielts, deadline,
-             intake, summary, benefits, requirements, eligibility, eligible_nationalities, max_age
+      SELECT id, title, provider, country, degree, degree_source, field_of_study, deadline,
+             intake, summary, benefits, requirements, eligibility, eligible_nationalities, max_age,
+             -- pg trả numeric thành chuỗi: "0.00" bị coi là có yêu cầu, lý do gợi ý in "3.00"
+             min_gpa::float8 AS min_gpa, min_ielts::float8 AS min_ielts
       FROM scholarships
       WHERE is_active = true AND (deadline IS NULL OR deadline >= now())
       ORDER BY relevance_score DESC, deadline ASC NULLS LAST -- cùng điểm phù hợp thì giữ thứ tự cũ (sort ổn định)
