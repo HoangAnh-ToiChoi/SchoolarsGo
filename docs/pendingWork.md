@@ -1,6 +1,6 @@
 # Việc còn tồn đọng
 
-Cập nhật 27/11/2026 (cuối Đợt 2, chờ merge). Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
+Cập nhật 27/11/2026 (cuối Đợt 3, chờ merge). Danh sách việc **đã xác định nhưng chưa làm**, gom từ đợt review toàn repo (24/11/2026), các PR #48–#59, đợt rà bảo mật 25/11/2026 và đợt kiểm lại trên `dev` ngày 27/11/2026. Xong việc nào thì xóa dòng đó (ghi số PR vào commit). Việc mới phát sinh thì thêm vào đúng nhóm.
 
 Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien.md`, hiện ở nhánh `review/fullAudit`, chưa vào `dev`). `M#` là mục MUST trong bản giao việc review ban đầu.
 
@@ -29,7 +29,7 @@ Mã `R##` là mã phát hiện trong báo cáo review (`docs/review/01-phat-hien
 | 6a | **Upload** (R06, R07, M7) | 🟡 chờ merge `fix/uploadSafety` | `middlewares/upload.js` chỉ kiểm đuôi file, lưu MIME do client gửi; bucket `documents` public (`getPublicUrl`). Nhánh: kiểm byte đầu bằng `file-type`, lưu MIME theo nội dung; migration 013 (cột `storage_path`, bucket private); API trả link ký 1 giờ; xóa tài liệu xóa đúng file (R06). Production: chạy 013 **trước** khi deploy backend |
 | 6b | **Kéo học bổng ghi đè admin** (R08) | 🟡 chờ merge `fix/ingestionGuard` | Migration 014 `admin_locked_at` (admin sửa / ẩn thì khóa, dòng đang ẩn mà chưa quá hạn được khóa luôn); `save.js` không đụng dòng đã khóa. Dòng admin sửa nội dung trước 014 không nhận ra được |
 | 6c | **Khóa chống trùng** (R09) | 🟡 chờ merge `fix/ingestionGuard` | `dedupKey` bỏ dấu, giữ đuôi phân biệt sau " - ", tiêu đề chung chung → NULL; kỳ năm sau làm mới dòng cũ đã quá hạn. Còn: cột `title UNIQUE` |
-| 6d | **Phụ thuộc** (R30) | 🟡 chờ merge `fix/dependencies` | `npm audit --omit=dev` còn 0 / 0 (zod 4, nodemailer 10, react-router 7; vá open redirect `?redirect=/\evil.com`). Còn: SDK `@google/generative-ai` hết hỗ trợ, chuyển `@google/genai` (Đợt 3) |
+| 6d | **Phụ thuộc** (R30) | 🟡 chờ merge `fix/dependencies` | `npm audit --omit=dev` còn 0 / 0 (zod 4, nodemailer 10, react-router 7; vá open redirect `?redirect=/\evil.com`). SDK `@google/genai` 2.x: chờ merge `fix/aiSafety` (3.x cần Node ≥ 22) |
 
 ## 1b. Bảo mật: thu hồi khóa — để kiểm lại sau (rà 25/11/2026)
 
@@ -55,6 +55,8 @@ node scripts/applyMigration.js --file=009_searchIndexes.sql --env=.env.cloud --a
 node scripts/applyMigration.js --file=010_realtimeSignals.sql --env=.env.cloud --allow-remote
 node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --allow-remote
 ```
+
+**Đợt 3** (sau Đợt 2): BE xếp chồng `fix/recommendRules` → `refactor/backendConventions` → `fix/aiSafety` (trên `fix/backendHardening`); FE `fix/frontendResilience` (trên `fix/dependencies`). Không có migration. `fix/aiSafety`: `npm ci` trong `backend/` (đổi SDK sang `@google/genai`).
 
 **Sau khi merge các nhánh Đợt 2** (thứ tự merge: #59 → `fix/schemaBaseline` → `fix/feHelperTests` → `fix/dependencies` → `fix/uploadSafety` / `fix/ingestionGuard` / `fix/backendHardening`), trên production, trong `backend/`:
 
@@ -89,19 +91,19 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 | Backend | Admin: bộ lọc `?status` vô hiệu, thống kê theo trạng thái cũ, tạo học bổng thiếu trường trả 500 (R26) | 🟡 chờ merge `fix/backendHardening` | `admin.validation.js` không có `status` | 2 |
 | Backend | Giới hạn đầu vào (R28) | 🟡 chờ merge `fix/backendHardening` | `notes` max 5000 đã có. Còn: `checklist` không giới hạn số mục/độ dài, `documents_used` không kiểm thuộc người dùng, ứng tuyển học bổng đã tắt | 2 |
 | Backend | Health check không kiểm DB; tắt server chưa trọn (R34) | 🟡 chờ merge `fix/backendHardening` | `app.js` luôn trả ok | 2 |
-| Backend | `process.env` đọc ngoài `configs/` (trái CLAUDE.md 4.6) | ❌ | `errorHandle.controller.js`, `server.js`, `rateLimiter.js`, `authCookie.controller.js`, `app.js` | 3 |
-| Backend | File vượt ngưỡng dòng | ❌ | `recommend.service.js` 311, `errorHandle.controller.js` 118 (Đợt 2 thêm mapper 413), `admin.controller`, `admin.service`. Tách khi sửa tới | 3 |
-| Dữ liệu | Cột thời gian không múi giờ; hạn ISO `Z` lúc 0h VN lệch một ngày (R25, M6) | ❌ | `database.sql` không có cột `TIMESTAMPTZ` nào. Dữ liệu hạn 2099 cũ: kiểm `count(*) where deadline >= '2090-01-01'` | 1–2 |
+| Backend | `process.env` đọc ngoài `configs/` (trái CLAUDE.md 4.6) | 🟡 chờ merge `refactor/backendConventions` | `configs/app.config.js`. Còn: `services/storage.service.js` (đã bỏ ở `fix/uploadSafety`, kiểm lại sau khi gộp) | 3 |
+| Backend | File vượt ngưỡng dòng | 🟡 chờ merge `fix/recommendRules`, `refactor/backendConventions` | `recommend.service` 127 + `recommendMatch.service` 172, `errorHandle.controller` 36 (mapper sang `utils/resolveError.js`), `admin.service` 147. Còn FE legacy: `chat`, `dashboard`, `profile`, `admin/*` | 3 |
+| Dữ liệu | Cột thời gian không múi giờ; hạn ISO `Z` lúc 0h VN lệch một ngày (R25, M6) | 🟡 chờ merge `fix/recommendRules` | Admin ghi hạn đổi về ngày VN (`toVnDate`), đếm ngày theo VN. Còn: cột vẫn không `TIMESTAMPTZ`; dữ liệu hạn 2099 cũ: kiểm `count(*) where deadline >= '2090-01-01'` | 1–2 |
 | Dữ liệu | `country` là chuỗi tự do (R22) | ❌ | ISO mới dùng cho `nationality`, `eligible_nationalities` | 3 |
 | Dữ liệu | Mất transaction khi dùng supabase-js; index thừa/thiếu (R35) | ❌ | | 3 |
-| Nghiệp vụ | Gợi ý thiếu điều kiện cứng: bậc học, quốc tịch, tuổi (R20, M9) | ❌ | `recommend.service.js` chỉ chặn theo GPA/IELTS | 3 |
+| Nghiệp vụ | Gợi ý thiếu điều kiện cứng: bậc học, quốc tịch, tuổi (R20, M9) | 🟡 chờ merge `fix/recommendRules` | Chặn bậc học / quốc tịch / tuổi (chỉ khi chắc chắn quá tuổi vì hồ sơ chỉ có năm sinh). **Cần chốt:** cột `degree` của học bổng kéo về do regex đoán, sai thì chặn nhầm (vd. bài Master có nhắc PhD ở cuối); giữ chặn cứng hay chỉ trừ điểm với dữ liệu chưa được admin xác nhận | 3 |
 | Nghiệp vụ | GPA thang 10 (R33) | 🟡 chờ merge `fix/backendHardening` | CV đã quy về thang 4; form hồ sơ vẫn từ chối 8.5 / `gpa_scale` 10 | 2 |
-| AI | Không timeout khi gọi Gemini (R19); lọc PII của CV còn hở (R17); prompt injection từ dữ liệu cào (R18) | ❌ | Chỉ còn CV và kéo học bổng gọi AI (#48) | 3 |
+| AI | Không timeout khi gọi Gemini (R19); lọc PII của CV còn hở (R17); prompt injection từ dữ liệu cào (R18) | 🟡 chờ merge `fix/aiSafety` | R19 đã có `withTimeout` + nay hủy hẳn request (`abortSignal`). R17: thêm hộ chiếu / CCCD có nhãn, SĐT quốc tế, email viết tránh, NFKC, dòng địa chỉ. R18: thẻ `bai_viet`, provider theo danh sách ký tự. Còn: họ tên, trường, nơi làm việc vẫn gửi Gemini (không lọc được bằng regex: nên ghi rõ cho người dùng); số CCCD không nhãn | 3 |
 | Pipeline | Không có bước duyệt (staging); học bổng không hạn nộp hiện mãi (R29) | ❌ | **Cần chốt** cột `status` hay bảng staging | 4 |
-| FE | ErrorBoundary không gửi Sentry; trang thiếu trạng thái lỗi có nút thử lại (R32) | ❌ | `ErrorBoundary.jsx` chỉ `console.error` | 3 |
+| FE | ErrorBoundary không gửi Sentry; trang thiếu trạng thái lỗi có nút thử lại (R32) | 🟡 chờ merge `fix/frontendResilience` | Boundary gửi Sentry (che email / SĐT trong message), tự reset khi đổi trang, lỗi tải chunk thì tải lại trang. Còn: trạng thái lỗi + nút thử lại cho trang legacy (recommend, compare, news, dashboard, chat, admin/*); boundary gốc quanh `<Routes>` (lỗi ở header / sidebar hiện trang trắng) | 4 |
 | FE | a11y label của `Input` (R31) | 🟡 | `legacy/Input.jsx` đã gắn `htmlFor` theo `id \|\| name`; chưa kiểm bằng axe; modal admin tự viết | 3 |
 | FE | 16 hàm trong `helpers/` chưa có test (R9 frontendRules); `helpers/` import `../../../utils` vì `node --test` không hiểu `~/` | 🟡 chờ merge | Nhánh `fix/feHelperTests` (loader `testRegister.js`, 50 test mới) | 1 |
-| FE | `frontend/vite.config.js` có 3 lỗi `no-undef` nhưng `npm run lint` chỉ quét `src/` | ❌ | | 3 |
+| FE | `frontend/vite.config.js` có 3 lỗi `no-undef` nhưng `npm run lint` chỉ quét `src/` | 🟡 chờ merge `fix/frontendResilience` | Lint quét cả file cấu hình | 3 |
 | Harness | LAB dựng lại được (`supabase/config.toml`, seed dữ liệu giả, `docs/lab.md`); quy trình release `dev → main` (checklist, tag, smoke test); migration có bảng theo dõi | ❌ | | 1–2 |
 
 **Đã xong sau đợt review 24/11** (không cần làm lại): R02 chat/gợi ý không còn gọi model đã tắt (#48) · R04 trong repo (#56) · R05 (#50) · R10 tìm kiếm có dấu phẩy · R12 chat giới hạn tin nhắn · R13 Sentry không gửi cookie (#49) · R21 lọc GPA/IELTS giữ học bổng không yêu cầu · R23 danh sách quốc gia · R24 không nhắc hạn học bổng đã tắt · M2 một hệ auth · M4 cookie · sentinel 2099 trong code · regex ẩn email trong CV chạy O(n²) (#59).
@@ -131,4 +133,6 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 - Rate limit tính theo `req.ip` với `TRUST_PROXY=1` (đúng khi chỉ có Railway đứng trước). Thêm Cloudflare / CDN thì phải tăng `TRUST_PROXY`, nếu không mọi người dùng chung một bộ đếm.
 - Học bổng lừa đảo đăng lại với link mới và tiêu đề khác vẫn vào được (khóa admin chỉ chặn đúng dòng đã ẩn): cần blocklist nguồn / tiêu đề nếu gặp nhiều.
 - Bản ghi tài liệu cũ có `file_url` không khớp dạng URL công khai: xóa bản ghi nhưng file còn trên Storage.
+- Ingestion `classifyError` khớp `401|403|404` trên toàn bộ message lỗi Gemini: message có số này ở chỗ khác sẽ tắt AI cả lượt. Nên đọc `status` của `ApiError`.
+- `utils/deadline.js toVnDate` nhận `Date` thì coi là đã đúng mốc VN: nếu sau này truyền Date do pg parse từ cột `timestamp` (giờ server UTC) sẽ lệch ngày.
 - `npm run lint` của BE còn 42 cảnh báo (`no-console`, `no-param-reassign` ở `scholarship.model`), 0 lỗi.
