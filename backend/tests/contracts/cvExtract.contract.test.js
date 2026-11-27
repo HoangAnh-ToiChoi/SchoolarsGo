@@ -73,6 +73,11 @@ test('removeContactInfo xóa email, số điện thoại Việt Nam, link mạng
   assert.match(result, /GPA 3\.4, IELTS 7\.0/);
 });
 
+test('removeContactInfo vẫn ẩn email tên miền nhiều cấp và email có phần trước @ rất dài', () => {
+  const result = removeContactInfo(`Liên hệ sv@mail.hcmus.edu.vn hoặc ${'x'.repeat(80)}@gmail.com`);
+  assert.doesNotMatch(result, /hcmus|gmail/);
+});
+
 test('removeContactInfo chạy nhanh với chuỗi rất dài (không treo vì regex)', () => {
   const started = Date.now();
   removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)}`);
