@@ -1,6 +1,7 @@
 // Đặc tả ghi học bổng kéo về trên DB thật: admin đã sửa / ẩn thì cron không đụng tới (R08), kỳ năm sau làm mới dòng cũ (R09).
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { closeDb, createScholarship, registerAdmin, sql, startServer, stopServer } from './helpers/app.js';
 import * as database from '~/configs/database.config.js';
@@ -119,5 +120,24 @@ describe('Khoá chống trùng (R09)', () => {
     const rows = [pulledRow({ source_url: `https://pulled.test/${unique('n1')}/`, dedup_key: null }), pulledRow({ source_url: `https://pulled.test/${unique('n2')}/`, dedup_key: null })];
     const stats = await saveRows(store, rows, { now: NOW });
     assert.equal(stats.inserted, 2, JSON.stringify(stats));
+  });
+});
+
+describe('Migration 014: khóa học bổng admin đã ẩn từ trước', () => {
+  it('dòng ẩn trước hạn (dù nay đã quá hạn) bị khóa; dòng cron tắt sau hạn thì không', async () => {
+    const past = new Date(Date.now() - 30 * 864e5);
+    // updated_at đặt lúc INSERT: trigger của bảng ghi đè updated_at ở mọi UPDATE
+    const hiddenAt = new Date(past.getTime() - 5 * 864e5);
+    const expiredAt = new Date(past.getTime() + 864e5);
+    const hidden = await createScholarship({ dedup_key: unique('hid'), deadline: past, is_active: false, updated_at: hiddenAt });
+    const expired = await createScholarship({ dedup_key: unique('exp'), deadline: past, is_active: false, updated_at: expiredAt });
+
+    const migration = await readFile(new URL('../../scripts/migrations/014_adminLock.sql', import.meta.url), 'utf8');
+    await sql(migration);
+
+    const rows = await sql('SELECT id, admin_locked_at FROM scholarships WHERE id = ANY($1)', [[hidden.id, expired.id]]);
+    const locked = Object.fromEntries(rows.map((r) => [r.id, Boolean(r.admin_locked_at)]));
+    assert.equal(locked[hidden.id], true, 'học bổng admin ẩn trước hạn không bị khóa');
+    assert.equal(locked[expired.id], false, 'học bổng cron tắt sau hạn bị khóa, kỳ năm sau không làm mới được');
   });
 });
