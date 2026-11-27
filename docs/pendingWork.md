@@ -139,5 +139,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 - Lặp còn lại ở BE: hạn refresh token 7 ngày viết 3 nơi (`authCookie.controller`, `session.service` ×2; phải khớp nhau); `TIMEZONE` khai báo 3 nơi; tính phân trang ở 4 service/model.
 - FE `dashboard`: nhãn trạng thái khác `STATUS_META` ("Được chấp nhận" / "Bị từ chối" thay vì "Được nhận" / "Từ chối"); badge truyền màu `amber`, `rose` mà `legacy/Badge` không có nên hiện không màu.
 - FE `admin/users`: nếu bản ghi thiếu `is_active` thì nút ghi "Khóa" nhưng gửi `isActive: true` (backend hiện luôn trả cột này nên chưa xảy ra).
-- **Form học bổng của admin** (`pages/admin/scholarships`): gửi `amount` dạng số trong khi `admin.validation` đòi chuỗi, và `deadline` dạng `YYYY-MM-DD` trong khi đòi ISO datetime → tạo / sửa học bổng có giá trị hoặc hạn nộp bị 400 (lỗi có từ trước, phát hiện 28/11/2026).
+- Form học bổng admin: đã sửa ở `fix/adminScholarshipFormUi` (FE) + `fix/adminScholarshipForm` (BE), chờ merge. **Merge / deploy cùng nhau, nếu không thì FE trước**: BE mới với form cũ sẽ ghi đè `requirements` bằng chuỗi rỗng. Còn: `language`, `coverage` là chữ tự do trong khi bộ lọc công khai so đúng chuỗi.
+- **Migration tự chạy** (`chore/autoMigrate`, chờ merge): sau khi đã chạy tay lần đầu và kiểm schema production, đặt biến `AUTO_MIGRATE=true` trên Railway.
+- **Railway ngừng đọc `railway.json` từ 01/01/2027** (docs.railway.com/config-as-code): trước đó chuyển healthcheck, start command, pre-deploy command sang `.railway/railway.ts` hoặc Dashboard.
 - `npm run lint` của BE còn 42 cảnh báo (`no-console`, `no-param-reassign` ở `scholarship.model`), 0 lỗi.
