@@ -6,10 +6,11 @@ import { loggedIn, loggedOut, sessionLoading } from '~/store/slices/authSlice';
 import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '~/utils/routes';
+import { safeRedirectPath } from '~/utils/session';
 
 const getRedirect = search => {
   const requested = new URLSearchParams(search).get('redirect');
-  return requested?.startsWith('/') && !requested.startsWith('//') ? requested : ROUTES.home;
+  return safeRedirectPath(requested, ROUTES.home);
 };
 
 export const useSessionBootstrap = () => {

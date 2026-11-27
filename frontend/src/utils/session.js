@@ -12,3 +12,22 @@ export function buildLoginUrl({ base, pathname, search, code }) {
   const reason = code === 'SESSION_REVOKED' ? '&reason=SESSION_REVOKED' : '';
   return `${basePath}${ROUTES.login}?redirect=${redirect}${reason}`;
 }
+
+// Trình duyệt coi "\" như "/" và bỏ ký tự điều khiển (tab, xuống dòng): "/\evil.com", "/<tab>/evil.com" thành "//evil.com"
+function hasUnsafeChar(path) {
+  return [...path].some((ch) => ch === '\\' || ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
+}
+
+// Quay lại trang đăng nhập / đăng ký sau khi đã đăng nhập là vòng lặp vô nghĩa
+const AUTH_PATHS = [ROUTES.login, ROUTES.register];
+
+function isAuthPage(path) {
+  const pathname = path.split(/[?#]/)[0];
+  return AUTH_PATHS.includes(pathname);
+}
+
+/** Đường dẫn quay lại sau đăng nhập (`?redirect=`): chỉ nhận đường dẫn nội bộ, không phải trang đăng nhập; còn lại về `fallback`. */
+export function safeRedirectPath(requested, fallback) {
+  const internal = requested?.startsWith('/') && !requested.startsWith('//');
+  return internal && !hasUnsafeChar(requested) && !isAuthPage(requested) ? requested : fallback;
+}

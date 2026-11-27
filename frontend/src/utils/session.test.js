@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildLoginUrl } from './session.js';
+import { buildLoginUrl, safeRedirectPath } from './session.js';
 
 describe('buildLoginUrl', () => {
   it('bản GitHub Pages: giữ base ở URL đăng nhập, bỏ base khỏi redirect', () => {
@@ -15,5 +15,36 @@ describe('buildLoginUrl', () => {
   it('phiên bị thu hồi thì kèm lý do', () => {
     const url = buildLoginUrl({ base: '/', pathname: '/', search: '', code: 'SESSION_REVOKED' });
     assert.match(url, /&reason=SESSION_REVOKED$/);
+  });
+});
+
+describe('safeRedirectPath', () => {
+  it('nhận đường dẫn nội bộ, giữ query', () => {
+    assert.equal(safeRedirectPath('/applications?tab=draft', '/'), '/applications?tab=draft');
+  });
+
+  it('thiếu hoặc không bắt đầu bằng "/" thì về trang mặc định', () => {
+    assert.equal(safeRedirectPath(null, '/'), '/');
+    assert.equal(safeRedirectPath('https://evil.com', '/'), '/');
+    assert.equal(safeRedirectPath('javascript:alert(1)', '/'), '/');
+  });
+
+  it('chặn đường dẫn trình duyệt hiểu thành trang khác: //, /\\, ký tự điều khiển', () => {
+    assert.equal(safeRedirectPath('//evil.com', '/'), '/');
+    assert.equal(safeRedirectPath('/\\evil.com', '/'), '/');
+    assert.equal(safeRedirectPath('/\t/evil.com', '/'), '/');
+    assert.equal(safeRedirectPath('/\n/evil.com', '/'), '/');
+  });
+
+  it('dạng mã hóa hay "/./" vẫn là đường dẫn cùng trang web, giữ nguyên (navigate không giải mã %5C)', () => {
+    assert.equal(safeRedirectPath('/%5Cevil.com', '/'), '/%5Cevil.com');
+    assert.equal(safeRedirectPath('/.//evil.com', '/'), '/.//evil.com');
+    assert.equal(safeRedirectPath('/\u0000', '/'), '/');
+  });
+
+  it('trang đăng nhập / đăng ký thì về trang mặc định', () => {
+    assert.equal(safeRedirectPath('/login', '/'), '/');
+    assert.equal(safeRedirectPath('/register?x=1', '/'), '/');
+    assert.equal(safeRedirectPath('/loginHelp', '/'), '/loginHelp');
   });
 });

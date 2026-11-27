@@ -48,9 +48,9 @@ function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        {/* v7_startTransition: chuyển trang trong startTransition — trang mới chưa tải xong thì
+        {/* React Router 7 chuyển trang trong startTransition (mặc định): trang mới chưa tải xong thì
             vẫn giữ trang cũ trên màn hình thay vì nháy vòng xoay */}
-        <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true }}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <App />
           <Toaster
             position="bottom-center"
