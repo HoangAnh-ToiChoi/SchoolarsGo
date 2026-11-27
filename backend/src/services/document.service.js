@@ -71,6 +71,8 @@ class DocumentService {
   async #withSignedUrls(docs) {
     const paths = docs.map((doc) => this.#storagePathOf(doc)).filter(Boolean);
     const urls = paths.length ? await documentStorageModel.createSignedUrls(paths) : new Map();
+    // File không còn trên Storage (hoặc URL cũ lạ) thì tài liệu hiện không có link: ghi log để biết mà dọn
+    if (urls.size < paths.length) console.warn(`[Storage] ${paths.length - urls.size} tài liệu không ký được link`);
     return docs.map((doc) => this.#toResponse(doc, urls));
   }
 
