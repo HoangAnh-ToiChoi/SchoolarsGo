@@ -1,21 +1,37 @@
 import { z } from 'zod';
 import { DEGREES } from './scholarship.validation.js';
 
+// Cột amount DECIMAL(12,2)
+const MAX_AMOUNT = 9999999999.99;
+const MAX_LONG_TEXT = 5000;
+
+const NUMERIC_TEXT = /^\d+(\.\d+)?$/;
+
+// Chỉ nhận số hoặc chuỗi số (coerce sẽ đổi false, [], "  " thành 0). Chuỗi rỗng là "không gửi", null là xóa giá trị
+const emptyToUndefined = (value) => (value === '' ? undefined : value);
+const toNumber = (value) => (typeof value === 'string' && NUMERIC_TEXT.test(value.trim()) ? Number(value.trim()) : value);
+const parseAmount = (value) => toNumber(emptyToUndefined(value));
+const amountField = z.preprocess(parseAmount, z.number().min(0).max(MAX_AMOUNT).nullable().optional());
+// Ô ngày của trình duyệt gửi YYYY-MM-DD (đã là ngày lịch); client khác gửi ISO có giờ
+const deadlineField = z
+  .union([z.iso.date(), z.iso.datetime()], { message: 'deadline phải là YYYY-MM-DD hoặc ISO 8601' })
+  .nullable()
+  .optional();
+
 // Trường chung của tạo và sửa học bổng, KHÔNG có giá trị mặc định: zod 4 áp default cả trong .partial(),
 // nên PATCH chỉ đổi tiêu đề sẽ ghi is_featured = false (gỡ nổi bật) nếu default nằm ở đây
 const scholarshipFields = z.object({
   title: z.string().min(1, 'Tiêu đề không được để trống').max(500),
   provider: z.string().min(1, 'Tổ chức cấp học bổng không được để trống').max(255),
   country: z.string().max(100).optional(),
-  degree: z
-    .string()
-    .refine(v => !v || DEGREES.includes(v), {
-      message: `degree phải là một trong: ${DEGREES.join(', ')}`,
-    })
-    .optional(),
+  degree: z.enum(DEGREES, { message: `degree phải là một trong: ${DEGREES.join(', ')}` }).optional(),
   field_of_study: z.string().max(255).optional(),
-  amount: z.string().max(255).optional(),
-  deadline: z.string().datetime({ message: 'deadline phải là ISO 8601' }).optional(),
+  amount: amountField,
+  deadline: deadlineField,
+  language: z.string().max(50).optional(),
+  coverage: z.string().max(255).optional(),
+  summary: z.string().max(MAX_LONG_TEXT).optional(),
+  requirements: z.string().max(MAX_LONG_TEXT).optional(),
   min_gpa: z.coerce.number().min(0).max(4).optional(),
   min_ielts: z.coerce.number().min(0).max(9).optional(),
   is_featured: z.boolean().optional(),
@@ -30,9 +46,13 @@ const adminCreateScholarshipSchema = scholarshipFields.extend({
   is_active: z.boolean().optional().default(true),
 });
 
+// Trường "không gửi" vẫn còn khóa với giá trị undefined: để nguyên thì SQL ghi NULL vào cột đó
+const dropUndefined = (data) => Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
+
 // Body rỗng (hoặc chỉ có trường lạ, zod bỏ đi) thì SQL thành "SET , updated_at" → 500: chặn bằng 400
 const adminUpdateScholarshipSchema = scholarshipFields
   .partial()
+  .transform(dropUndefined)
   .refine((data) => Object.keys(data).length > 0, { message: 'Cần ít nhất một trường để cập nhật' });
 
 const adminUpdateUserRoleSchema = z.object({
