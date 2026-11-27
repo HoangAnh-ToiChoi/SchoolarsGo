@@ -72,6 +72,7 @@ function storeWithLastRun(lastRunBySource) {
     findExisting: async () => [],
     insertMany: async () => 0,
     updateMany: async () => 0,
+    renewMany: async () => 0,
     recordRun: async () => {},
   };
 }
