@@ -80,6 +80,20 @@ describe('Kéo học bổng không ghi đè admin (R08)', () => {
     assert.equal(res.status, 400, JSON.stringify(res.json));
   });
 
+  it('kéo lại bài cũ bù nguồn bậc học còn trống, không đổi nguồn đã có hoặc khi bậc khác', async () => {
+    const sourceAfterPull = async (stored, pulled) => {
+      const url = `https://pulled.test/${unique('source')}/`;
+      const s = await createScholarship({ source_url: url, dedup_key: unique('k'), ...stored });
+      await saveRows(store, [pulledRow({ source_url: url, ...pulled })], { now: NOW });
+      const [row] = await sql('SELECT degree_source FROM scholarships WHERE id = $1', [s.id]);
+      return row.degree_source;
+    };
+    const fromCategory = { degree: 'PhD', degree_source: 'category' };
+    assert.equal(await sourceAfterPull({ degree: 'PhD' }, fromCategory), 'category');
+    assert.equal(await sourceAfterPull({ degree: 'PhD', degree_source: 'admin' }, fromCategory), 'admin');
+    assert.equal(await sourceAfterPull({ degree: 'Master' }, fromCategory), null);
+  });
+
   it('học bổng admin chưa đụng tới vẫn được làm mới theo bài gốc', async () => {
     const url = `https://pulled.test/${unique('fresh')}/`;
     const s = await createScholarship({ source_url: url, dedup_key: unique('k'), summary: 'cũ' });

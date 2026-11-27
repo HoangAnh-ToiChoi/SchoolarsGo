@@ -154,10 +154,20 @@ class AdminModel {
     return this.#queryOne(sql, values);
   }
 
+  // Form sửa luôn gửi lại bậc học đang có: chỉ ghi nguồn mới khi bậc thật sự đổi, nếu không sửa lỗi chính tả
+  // cũng biến bậc đoán thành "đã xác nhận". Trong SET, cột `degree` còn là giá trị cũ
+  #assignment(key, index, keys) {
+    const value = `$${index + 1}`;
+    const degreeIndex = keys.indexOf('degree');
+    if (key !== 'degree_source' || degreeIndex === -1) return `${key} = ${value}`;
+    // Ép kiểu vì cùng tham số vừa gán vào cột vừa đem so: không ép thì Postgres báo 42P08
+    return `degree_source = CASE WHEN degree IS DISTINCT FROM $${degreeIndex + 1}::varchar THEN ${value} ELSE degree_source END`;
+  }
+
   async updateScholarship(id, data) {
     const keys = Object.keys(data);
     const values = Object.values(data);
-    const setClause = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+    const setClause = keys.map((key, i) => this.#assignment(key, i, keys)).join(', ');
 
     const sql = `
       UPDATE scholarships

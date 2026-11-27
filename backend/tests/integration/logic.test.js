@@ -37,6 +37,16 @@ describe('Hạn nộp theo Asia/Ho_Chi_Minh', () => {
     const [row] = await sql(`SELECT to_char(deadline, 'YYYY-MM-DD') AS day, degree_source FROM scholarships WHERE id = $1`, [res.json.data.id]);
     assert.equal(row.day, '2027-03-02');
     assert.equal(row.degree_source, 'admin', 'bậc học admin nhập phải được ghi là đã xác nhận');
+
+    const sourceAfterPatch = async (body) => {
+      await sql(`UPDATE scholarships SET degree = 'PhD', degree_source = 'body' WHERE id = $1`, [res.json.data.id]);
+      const patched = await admin.client.request('PATCH', `/api/admin/scholarships/${res.json.data.id}`, { body });
+      assert.equal(patched.status, 200, JSON.stringify(patched.json));
+      const [after] = await sql('SELECT degree_source FROM scholarships WHERE id = $1', [res.json.data.id]);
+      return after.degree_source;
+    };
+    assert.equal(await sourceAfterPatch({ degree: 'PhD', title: `Sửa chính tả ${Date.now()}` }), 'body', 'lưu lại bậc cũ không phải xác nhận');
+    assert.equal(await sourceAfterPatch({ degree: 'Master' }), 'admin', 'đổi bậc là admin xác nhận');
   });
 
   it('mốc nhắc: còn 0 ngày → mốc 1; còn 15 ngày → không nhắc', () => {

@@ -154,6 +154,7 @@ test('Gemini: chỉ điền chỗ trống, không ghi đè thứ đã có', asyn
   const filled = await extractor(rawPost(), { country: 'Germany', degree: 'Any', degreeKnown: false, provider: null, deadline: null });
   assert.equal(filled.country, 'Germany');
   assert.equal(filled.degree, 'PhD');
+  assert.equal(filled.degreeSource, 'ai');
   assert.equal(filled.provider, 'Kyoto University');
   assert.equal(filled.deadline.toISOString().slice(0, 10), '2027-02-01');
 });

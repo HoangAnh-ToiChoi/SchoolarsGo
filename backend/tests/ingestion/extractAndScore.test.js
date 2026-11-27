@@ -1,3 +1,4 @@
+import { toRow } from '~/ingestion/toRow.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { extractInfo as extractFacts } from '~/ingestion/extract.js';
@@ -97,4 +98,10 @@ test('nguồn bậc học: chuyên mục → category, tiêu đề → title, th
   assert.equal(sourceOf({ signals: [], title: 'PhD Scholarship 2027', contentText: 'Apply now.' }), 'title');
   assert.equal(sourceOf({ signals: [], title: 'Scholarship 2027', contentText: 'For PhD applicants.' }), 'body');
   assert.equal(sourceOf({ signals: [], title: 'Scholarship 2027', contentText: 'Master or PhD.' }), null);
+});
+
+test('toRow ghi nguồn bậc học; bậc Any thì nguồn là null', () => {
+  const rowFor = (info) => toRow({ post: rawPost(), info, score: 50, now: NOW });
+  assert.equal(rowFor({ degree: 'PhD', degreeSource: 'ai' }).degree_source, 'ai');
+  assert.equal(rowFor({ degree: 'Any', degreeSource: 'body' }).degree_source, null);
 });
