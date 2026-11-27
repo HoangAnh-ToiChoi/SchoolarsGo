@@ -1,4 +1,4 @@
-import { AppError, application as applicationErrors, scholarship as scholarshipErrors } from '~/constants/errors.js';
+import { AppError, application as applicationErrors } from '~/constants/errors.js';
 import applicationModel from '~/models/application.model.js';
 import notificationService from '~/services/notification.service.js';
 import { APPLICATION_VALID_TRANSITIONS, APPLICATION_UNDELETABLE_STATUSES } from '~/constants/application.js';
@@ -19,6 +19,23 @@ class ApplicationService {
     if (APPLICATION_UNDELETABLE_STATUSES.includes(status)) {
       throw new AppError(applicationErrors.CANNOT_DELETE);
     }
+  }
+
+  #documentIdsOf({ checklist, documents_used: documentsUsed } = {}) {
+    const fromChecklist = (checklist || []).map(entry => entry.document_id).filter(Boolean);
+    return new Set([...(documentsUsed || []), ...fromChecklist]);
+  }
+
+  // documents_used và document_id trong checklist chỉ được trỏ tới tài liệu của chính người dùng.
+  // Chỉ kiểm id MỚI so với đơn đang lưu: tài liệu đã đính kèm rồi bị xóa (jsonb, không có khóa ngoại)
+  // không được làm người dùng kẹt, không sửa tiếp được đơn
+  async #assertOwnDocuments(userId, updates, existing = null) {
+    const alreadyAttached = this.#documentIdsOf(existing ?? {});
+    const requested = [...this.#documentIdsOf(updates)];
+    const ids = requested.filter(id => !alreadyAttached.has(id));
+    if (ids.length === 0) return;
+    const owned = await applicationModel.countOwnedDocuments(userId, ids);
+    if (owned !== ids.length) throw new AppError(applicationErrors.DOCUMENT_NOT_OWNED);
   }
 
   #formatApplication(row) {
@@ -58,8 +75,9 @@ class ApplicationService {
   }
 
   async create(userId, { scholarshipId, checklist, notes }) {
-    const exists = await applicationModel.scholarshipExists(scholarshipId);
-    if (!exists) throw new AppError(scholarshipErrors.NOT_EXISTS);
+    const open = await applicationModel.isScholarshipOpen(scholarshipId);
+    if (!open) throw new AppError(applicationErrors.SCHOLARSHIP_CLOSED);
+    await this.#assertOwnDocuments(userId, { checklist });
 
     try {
       const app = await applicationModel.create(userId, { scholarshipId, checklist, notes });
@@ -84,6 +102,7 @@ class ApplicationService {
     this.#guardFound(existing);
 
     const updates = { ...rawUpdates };
+    await this.#assertOwnDocuments(userId, updates, existing);
 
     if (updates.status !== undefined) {
       if (!(updates.status in APPLICATION_VALID_TRANSITIONS)) {

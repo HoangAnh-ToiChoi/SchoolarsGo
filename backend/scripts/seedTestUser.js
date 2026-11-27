@@ -1,6 +1,6 @@
 /**
  * Seed Test User
- * Script tạo account test để dev và demo.
+ * Script tạo account test để dev và demo. Chỉ chạy trên DB local (localhost / 127.0.0.1).
  *
  * Cách dùng:
  *   node scripts/seedTestUser.js
@@ -20,13 +20,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const { Pool } = pg;
 
+// Mật khẩu tài khoản test gõ cứng và repo public: chỉ được tạo trên DB local, không bao giờ trên DB thật
+const LOCAL_HOSTS = ['localhost', '127.0.0.1'];
+const pgHost = process.env.PG_HOST || 'localhost';
+if (!LOCAL_HOSTS.includes(pgHost)) {
+  console.error(`❌ PG_HOST là "${pgHost}": tài khoản test (mật khẩu công khai) chỉ tạo trên DB local.`);
+  process.exit(1);
+}
+
 const SALT_ROUNDS = 12;
 const TEST_EMAIL = 'baocao147281@example.com';
 const TEST_PASSWORD = '123456';
 const TEST_FULL_NAME = 'Báo Cáo';
 
 const pool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
+  host: pgHost,
   port: parseInt(process.env.PG_PORT || '5432', 10),
   database: process.env.PG_DATABASE || 'scholarsgo',
   user: process.env.PG_USER || 'postgres',

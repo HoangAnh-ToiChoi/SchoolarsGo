@@ -136,7 +136,8 @@ export function createClient() {
 let counter = 0;
 export function uniqueEmail(tag) {
   counter += 1;
-  return `it.${tag}.${Date.now()}.${counter}@example.test`;
+  // Chữ thường: backend đổi email về chữ thường, helper còn so khớp email trong SQL (registerAdmin)
+  return `it.${tag}.${Date.now()}.${counter}@example.test`.toLowerCase();
 }
 
 /** Đăng ký + giữ phiên. Trả { client, email, password, user }. */

@@ -53,10 +53,11 @@ class ApplicationModel {
   }
 
   async findByIdAndUser(applicationId, userId) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('applications')
       .select('*, scholarships(id, slug, title, provider, country, deadline, amount, image_url)')
       .eq('id', applicationId).eq('user_id', userId).maybeSingle();
+    if (error) throw error;
     if (!data) return null;
     return { ...data, scholarship_id: data.scholarships?.id, scholarship_slug: data.scholarships?.slug, scholarship_title: data.scholarships?.title, country: data.scholarships?.country, deadline: data.scholarships?.deadline, amount: data.scholarships?.amount, image_url: data.scholarships?.image_url };
   }
@@ -77,9 +78,22 @@ class ApplicationModel {
     return count;
   }
 
-  async scholarshipExists(scholarshipId) {
-    const { data } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+  /** Học bổng còn mở nhận đơn (có và chưa bị tắt). */
+  async isScholarshipOpen(scholarshipId) {
+    const { data, error } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).eq('is_active', true).maybeSingle();
+    if (error) throw error;
     return !!data;
+  }
+
+  /** Số tài liệu trong `documentIds` thuộc về người dùng (kiểm documents_used / checklist không trỏ sang tài liệu người khác). */
+  async countOwnedDocuments(userId, documentIds) {
+    const { count, error } = await getSupabase()
+      .from('documents')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('id', documentIds);
+    if (error) throw error;
+    return count || 0;
   }
 }
 

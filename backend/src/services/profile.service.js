@@ -1,5 +1,6 @@
 import { AppError, profile as profileErrors } from '~/constants/errors.js';
-import { PROFILE_VALID_DEGREES, PROFILE_ENGLISH_LEVEL_MAX, PROFILE_DEFAULT_GPA_SCALE } from '~/constants/profile.js';
+import { PROFILE_VALID_DEGREES, PROFILE_ENGLISH_LEVEL_MAX, PROFILE_DEFAULT_GPA_SCALE, PROFILE_STORED_GPA_SCALE } from '~/constants/profile.js';
+import { toGpa4 } from '~/utils/gpa.js';
 import profileModel from '~/models/profile.model.js';
 
 class ProfileService {
@@ -9,7 +10,16 @@ class ProfileService {
 
   async updateProfile(userId, updates) {
     this.#validateUpdate(updates);
-    return profileModel.upsertProfile(userId, updates);
+    const normalized = this.#normalizeGpa(updates);
+    return profileModel.upsertProfile(userId, normalized);
+  }
+
+  // GPA thang 5 / 10 quy về thang 4 trước khi lưu (R33): cột gpa có CHECK 0–4, gợi ý so với min_gpa thang 4
+  #normalizeGpa(updates) {
+    if (updates.gpa === undefined) return updates;
+    const scale = updates.gpa_scale || PROFILE_DEFAULT_GPA_SCALE;
+    const gpa = toGpa4(parseFloat(updates.gpa), scale);
+    return { ...updates, gpa, gpa_scale: PROFILE_STORED_GPA_SCALE };
   }
 
   #validateUpdate(updates) {

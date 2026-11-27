@@ -104,23 +104,25 @@ class ScholarshipModel {
   async #attachSavedStatus(rows, userId) {
     if (!userId || rows.length === 0) return rows.map(r => ({ ...r, is_saved: false }));
     const ids = rows.map(r => r.id);
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('saved_scholarships')
       .select('scholarship_id')
       .eq('user_id', userId)
       .in('scholarship_id', ids);
+    if (error) throw error;
     const savedIds = new Set((data || []).map(r => r.scholarship_id));
     return rows.map(r => ({ ...r, is_saved: savedIds.has(r.id) }));
   }
 
   async #checkSavedStatus(userId, scholarshipId) {
     if (!userId) return false;
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('saved_scholarships')
       .select('id')
       .eq('user_id', userId)
       .eq('scholarship_id', scholarshipId)
       .maybeSingle();
+    if (error) throw error;
     return !!data;
   }
 }

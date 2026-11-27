@@ -2,23 +2,54 @@ import rateLimit from 'express-rate-limit';
 import { getCvDailyLimit } from '~/configs/cv.config.js';
 import { CV_RATE_WINDOW_MS } from '~/constants/cv.js';
 import { cv as cvErrors } from '~/constants/errors.js';
+import { clientIpKey } from '~/utils/clientIp.js';
 
-const createLimiter = (maxRequests, windowSeconds, message) => {
+const createLimiter = (maxRequests, windowSeconds, message, options = {}) => {
   return rateLimit({
     windowMs: windowSeconds * 1000,
     max: maxRequests,
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => res.error({ statusCode: 429, message, code: 429, errorCode: 'TOO_MANY_REQUESTS' }),
+    keyGenerator: clientIpKey,
+    ...options,
   });
 };
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// Đăng nhập: production 5 lần / 15 phút, dev 200 lần / phút
-const authLimiter = isProd
-  ? createLimiter(5, 15 * 60, 'Quá nhiều yêu cầu đăng nhập, vui lòng thử lại sau 15 phút.')
+// Mỗi route auth một bộ đếm riêng (R15): trước đây 4 route dùng chung một bộ theo IP, nên đăng nhập sai 5 lần
+// là cả IP (ký túc xá, quán cà phê dùng chung NAT) không đăng ký hay lấy lại mật khẩu được nữa.
+// Bộ đếm nằm trong RAM của tiến trình: đủ cho 1 instance Railway; chạy nhiều instance thì cần store dùng chung.
+
+// Chạy trước validate nên tự chuẩn hóa email giống auth.validation
+function ipAndEmailKey(req) {
+  const email = String(req.body?.email ?? '').trim().toLowerCase();
+  return `${clientIpKey(req)}|${email}`;
+}
+
+// Đăng nhập: production 5 lần sai / 15 phút cho mỗi cặp IP + email (đăng nhập đúng không tính), dev 200 lần / phút
+const loginLimiter = isProd
+  ? createLimiter(5, 15 * 60, 'Quá nhiều lần đăng nhập sai, vui lòng thử lại sau 15 phút.', { keyGenerator: ipAndEmailKey, skipSuccessfulRequests: true })
   : createLimiter(200, 60, 'Quá nhiều yêu cầu đăng nhập.');
+
+// Chặn dò mật khẩu trên nhiều email từ một IP: 50 lần / 15 phút (production)
+const loginIpLimiter = isProd
+  ? createLimiter(50, 15 * 60, 'Quá nhiều yêu cầu đăng nhập từ địa chỉ này, vui lòng thử lại sau.')
+  : createLimiter(1000, 60, 'Quá nhiều yêu cầu đăng nhập.');
+
+// Đăng ký: production 10 lần / giờ / IP
+const registerLimiter = isProd
+  ? createLimiter(10, 60 * 60, 'Quá nhiều yêu cầu đăng ký, vui lòng thử lại sau.')
+  : createLimiter(200, 60, 'Quá nhiều yêu cầu đăng ký.');
+
+// Quên mật khẩu (gửi email): production 5 lần / giờ cho mỗi cặp IP + email; đặt lại bằng token: 10 lần / 15 phút / IP
+const forgotPasswordLimiter = isProd
+  ? createLimiter(5, 60 * 60, 'Quá nhiều yêu cầu đặt lại mật khẩu, vui lòng thử lại sau.', { keyGenerator: ipAndEmailKey })
+  : createLimiter(200, 60, 'Quá nhiều yêu cầu đặt lại mật khẩu.');
+const resetPasswordLimiter = isProd
+  ? createLimiter(10, 15 * 60, 'Quá nhiều yêu cầu đặt lại mật khẩu, vui lòng thử lại sau.')
+  : createLimiter(200, 60, 'Quá nhiều yêu cầu đặt lại mật khẩu.');
 
 // API chung: production 100 lần / phút, dev 500 lần / phút
 const apiLimiter = isProd
@@ -39,4 +70,15 @@ const cvLimiter = rateLimit({
   handler: (req, res) => res.error({ statusCode: cvErrors.LIMIT_REACHED.statusCode, message: cvErrors.LIMIT_REACHED.message, code: cvErrors.LIMIT_REACHED.statusCode, errorCode: cvErrors.LIMIT_REACHED.code }),
 });
 
-export { authLimiter, apiLimiter, uploadLimiter, refreshLimiter, cvLimiter, createLimiter };
+export {
+  loginLimiter,
+  loginIpLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+  apiLimiter,
+  uploadLimiter,
+  refreshLimiter,
+  cvLimiter,
+  createLimiter,
+};

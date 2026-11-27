@@ -41,6 +41,7 @@ class ErrorHandleController {
       ?? ErrorHandleController.#jwtError(err)
       ?? ErrorHandleController.#multerError(err)
       ?? ErrorHandleController.#malformedJsonError(err)
+      ?? ErrorHandleController.#payloadTooLargeError(err)
       ?? ErrorHandleController.#cvFileError(err)
       ?? ErrorHandleController.#aiError(err)
       ?? ErrorHandleController.#aiBadResponseError(err)
@@ -79,6 +80,11 @@ class ErrorHandleController {
 
   static #malformedJsonError(err) {
     return err.type === 'entity.parse.failed' ? ErrorHandleController.#build(common.MALFORMED_JSON) : null;
+  }
+
+  // Body JSON vượt giới hạn express.json (app.js): lỗi của client, trước đây rơi xuống 500
+  static #payloadTooLargeError(err) {
+    return err.type === 'entity.too.large' ? ErrorHandleController.#build(common.PAYLOAD_TOO_LARGE) : null;
   }
 
   // Thư viện đọc PDF ném lỗi riêng khi file hỏng / có mật khẩu: lỗi của người dùng, không phải lỗi server

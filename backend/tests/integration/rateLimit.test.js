@@ -1,4 +1,4 @@
-// Đặc tả rate limit ở chế độ production (5 lần / 15 phút / IP cho nhóm auth).
+// Đặc tả rate limit ở chế độ production: mỗi route auth một bộ đếm; đăng nhập 5 lần sai / 15 phút / IP + email.
 // Chạy riêng một tiến trình: NODE_ENV phải là production TRƯỚC khi nạp app.
 process.env.NODE_ENV = 'production';
 
@@ -29,11 +29,33 @@ describe('Rate limit đăng nhập (production)', () => {
     assert.equal(statuses.at(-1), 429, statuses.join(','));
   });
 
-  it('bộ đếm dùng chung cho register/forgot: người khác cùng IP bị khóa đăng ký', { todo: 'R15 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('đăng nhập sai nhiều lần không khóa đăng ký của người khác cùng IP', async () => {
     const res = await createClient().request('POST', '/api/auth/register', {
       body: { email: uniqueEmail('innocent'), password: 'Review#12345', full_name: 'Innocent' },
       headers: { origin: 'http://localhost:5173' },
     });
     assert.notEqual(res.status, 429, 'đăng ký bị chặn vì bộ đếm đăng nhập sai của người khác cùng IP');
+  });
+
+  it('đăng nhập sai 5 lần với một email không khóa email khác cùng IP', async () => {
+    const res = await createClient().request('POST', '/api/auth/login', {
+      body: { email: uniqueEmail('otherVictim'), password: 'wrong' },
+      headers: { origin: 'http://localhost:5173' },
+    });
+    assert.equal(res.status, 401, `email khác bị khóa theo: ${res.status}`);
+  });
+
+  it('khóa theo email không lách được bằng chữ hoa / khoảng trắng', async () => {
+    const email = uniqueEmail('caseBrute');
+    const variants = [email, email.toUpperCase(), ` ${email}`, `${email} `, email.toUpperCase(), email];
+    const statuses = [];
+    for (const variant of variants) {
+      const res = await createClient().request('POST', '/api/auth/login', {
+        body: { email: variant, password: 'wrong' },
+        headers: { origin: 'http://localhost:5173' },
+      });
+      statuses.push(res.status);
+    }
+    assert.equal(statuses.at(-1), 429, statuses.join(','));
   });
 });

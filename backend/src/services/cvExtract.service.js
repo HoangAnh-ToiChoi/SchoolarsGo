@@ -3,10 +3,11 @@ import cvTextService from '~/services/cvText.service.js';
 import removeContactInfo from '~/utils/removeContactInfo.js';
 import keepBirthYearOnly from '~/utils/keepBirthYearOnly.js';
 import withTimeout from '~/utils/withTimeout.js';
+import { toGpa4 } from '~/utils/gpa.js';
 import { CV_PROMPT } from '~/constants/cvPrompt.js';
 import {
   CV_AI_TIMEOUT_MS, CV_GENERATION_CONFIG, CV_TAG_OPEN, CV_TAG_CLOSE,
-  CV_IELTS_NAME, CV_IELTS_MAX_SCORE, GPA_TARGET_SCALE, GPA_DECIMALS,
+  CV_IELTS_NAME, CV_IELTS_MAX_SCORE,
 } from '~/constants/cv.js';
 import { AppError, cv as cvErrors } from '~/constants/errors.js';
 import { getGeminiModel } from '~/configs/gemini.config.js';
@@ -45,13 +46,6 @@ class CvExtractService {
     return parsed.data;
   }
 
-  // GPA quy về thang 4. Lớn hơn thang ghi trong CV là sai nên bỏ.
-  #toGpa4(gpa, scale = GPA_TARGET_SCALE) {
-    if (gpa === undefined || gpa > scale) return undefined;
-    const converted = (gpa / scale) * GPA_TARGET_SCALE;
-    return Number(converted.toFixed(GPA_DECIMALS));
-  }
-
   #hasValidScore(certificate) {
     const isIelts = certificate.type.toLowerCase() === CV_IELTS_NAME;
     return !isIelts || certificate.score <= CV_IELTS_MAX_SCORE;
@@ -59,7 +53,7 @@ class CvExtractService {
 
   #toDraft(parsed) {
     return {
-      gpa: this.#toGpa4(parsed.gpa, parsed.gpa_scale),
+      gpa: toGpa4(parsed.gpa, parsed.gpa_scale),
       certificates: parsed.certificates?.filter(certificate => this.#hasValidScore(certificate)),
       birth_year: parsed.birth_year,
       current_degree: parsed.current_degree,
