@@ -40,7 +40,7 @@ test('lưu trùng → không tạo nhắc hạn', async () => {
 test('tạo đơn thành công → tạo nhắc hạn cho người đó', async () => {
   const refreshed = trackReminders();
   applicationModelRef.current = {
-    scholarshipExists: async () => true,
+    isScholarshipOpen: async () => true,
     create: async () => ({ id: 'a1', status: 'draft', checklist: [], scholarships: null }),
   };
   await applicationService.create('u2', { scholarshipId: 's1' });

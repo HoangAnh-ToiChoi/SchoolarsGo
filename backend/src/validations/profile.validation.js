@@ -4,7 +4,7 @@ import {
   PROFILE_CURRENT_DEGREES, PROFILE_MAJOR_MAX, PROFILE_EXPERIENCE_MAX,
   PROFILE_BIRTH_YEAR_MIN, PROFILE_BIRTH_YEAR_MAX, PROFILE_NATIONALITY_PATTERN,
   PROFILE_MAX_CERTIFICATES, PROFILE_CERTIFICATE_TYPE_MAX, PROFILE_CERTIFICATE_LEVEL_MAX, PROFILE_CERTIFICATE_SCORE_MAX,
-  PROFILE_IELTS_NAME, PROFILE_IELTS_MAX_SCORE,
+  PROFILE_IELTS_NAME, PROFILE_IELTS_MAX_SCORE, PROFILE_GPA_SCALES, PROFILE_GPA_MAX_INPUT,
 } from '~/constants/profile.js';
 
 const toUpperCase = value => value.toUpperCase();
@@ -30,8 +30,12 @@ const certificateSchema = z.object({
 
 const profileUpdateSchema = z.object({
   bio: z.string().max(2000).optional(),
-  gpa: z.coerce.number().min(0).max(4).optional(),
-  gpa_scale: z.string().max(10).optional(),
+  gpa: z.coerce.number().min(0).max(PROFILE_GPA_MAX_INPUT).optional(),
+  // Form cũ gửi "4.0" (chuỗi); thang khác 4 / 5 / 10 thì từ chối
+  gpa_scale: z.coerce
+    .number()
+    .refine(v => PROFILE_GPA_SCALES.includes(v), { message: `gpa_scale phải là một trong: ${PROFILE_GPA_SCALES.join(', ')}` })
+    .optional(),
   english_level: z.string().max(50).optional(),
   target_country: z.string().max(100).optional(),
   target_major: z.string().max(255).optional(),

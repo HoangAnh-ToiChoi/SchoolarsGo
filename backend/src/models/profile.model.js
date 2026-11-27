@@ -3,14 +3,18 @@ import { PROFILE_UPDATABLE_FIELDS } from '~/constants/profile.js';
 
 class ProfileModel {
   async findByUserId(userId) {
-    let { data: profile } = await getSupabase().from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    const { data: found, error: profileError } = await getSupabase().from('profiles').select('*').eq('user_id', userId).maybeSingle();
+    if (profileError) throw profileError;
 
+    let profile = found;
     if (!profile) {
-      const { data } = await getSupabase().from('profiles').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('*').single();
+      const { data, error } = await getSupabase().from('profiles').upsert({ user_id: userId }, { onConflict: 'user_id' }).select('*').single();
+      if (error) throw error;
       profile = data;
     }
 
-    const { data: docs } = await getSupabase().from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    const { data: docs, error: docsError } = await getSupabase().from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    if (docsError) throw docsError;
     return { ...profile, documents: docs || [] };
   }
 

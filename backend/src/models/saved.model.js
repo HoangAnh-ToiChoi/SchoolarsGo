@@ -17,9 +17,10 @@ class SavedModel {
   }
 
   async findByUserAndScholarship(userId, scholarshipId) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('saved_scholarships').select('*')
       .eq('user_id', userId).eq('scholarship_id', scholarshipId).maybeSingle();
+    if (error) throw error;
     return data;
   }
 
@@ -49,15 +50,17 @@ class SavedModel {
   }
 
   async scholarshipExists(scholarshipId) {
-    const { data } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+    const { data, error } = await getSupabase().from('scholarships').select('id').eq('id', scholarshipId).maybeSingle();
+    if (error) throw error;
     return !!data;
   }
 
   async getScholarshipDetails(scholarshipId) {
-    const { data } = await getSupabase()
+    const { data, error } = await getSupabase()
       .from('scholarships')
       .select('id, title, provider, country, degree, amount, currency, deadline, image_url, is_featured')
       .eq('id', scholarshipId).maybeSingle();
+    if (error) throw error;
     return data;
   }
 }

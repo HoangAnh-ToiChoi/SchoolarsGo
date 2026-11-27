@@ -59,19 +59,25 @@ describe('Đã lưu / đơn ứng tuyển', () => {
     assert.ok([400, 404].includes(res.status), `status ${res.status} ${JSON.stringify(res.json)}`);
   });
 
-  it('note 1MB của saved bị từ chối', { todo: 'R28 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('note 1MB của saved bị từ chối (413 vì vượt giới hạn body JSON)', async () => {
     const s = await createScholarship();
     const res = await U.client.request('POST', `/api/saved/${s.id}`, { body: { note: 'x'.repeat(1024 * 1024) } });
-    assert.equal(res.status, 400, `lưu được note 1MB: status ${res.status}`);
+    assert.ok([400, 413].includes(res.status), `lưu được note 1MB: status ${res.status}`);
   });
 
-  it('không tạo được đơn cho học bổng đã tắt', { todo: 'R28 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('note dài hơn giới hạn của saved (dưới giới hạn body) bị 400', async () => {
+    const s = await createScholarship();
+    const res = await U.client.request('POST', `/api/saved/${s.id}`, { body: { note: 'x'.repeat(5000) } });
+    assert.equal(res.status, 400, `lưu được note 5000 ký tự: status ${res.status}`);
+  });
+
+  it('không tạo được đơn cho học bổng đã tắt', async () => {
     const s = await createScholarship({ is_active: false });
     const res = await U.client.request('POST', '/api/applications', { body: { scholarship_id: s.id } });
     assert.ok(res.status >= 400, `tạo được đơn cho học bổng đã tắt: ${res.status}`);
   });
 
-  it('checklist 5000 mục bị từ chối', { todo: 'R28 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('checklist 5000 mục bị từ chối', async () => {
     const s = await createScholarship();
     const checklist = Array.from({ length: 5000 }, (_, i) => ({ item: `mục ${i}`, done: false }));
     const res = await U.client.request('POST', '/api/applications', { body: { scholarship_id: s.id, checklist } });
@@ -91,9 +97,18 @@ describe('Đã lưu / đơn ứng tuyển', () => {
 });
 
 describe('Hồ sơ', () => {
-  it('GPA thang 10 (8.5, gpa_scale 10) được nhận và quy đổi', { todo: 'R33 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('GPA thang 10 (8.5, gpa_scale 10) được nhận và quy đổi', async () => {
     const res = await U.client.request('PUT', '/api/profile', { body: { gpa: 8.5, gpa_scale: '10' } });
     assert.equal(res.status, 200, `GPA thang 10 bị từ chối: ${res.status} ${res.json?.message}`);
+    const [row] = await sql('SELECT gpa, gpa_scale FROM profiles WHERE user_id = $1', [U.user.id]);
+    assert.equal(Number(row.gpa), 3.4);
+    assert.equal(row.gpa_scale, '4.0');
+  });
+
+  it('GPA 8.5 mà không khai thang (mặc định thang 4) bị 400; thang lạ bị 400', async () => {
+    const noScale = await U.client.request('PUT', '/api/profile', { body: { gpa: 8.5 } });
+    const oddScale = await U.client.request('PUT', '/api/profile', { body: { gpa: 3, gpa_scale: '7' } });
+    assert.deepEqual([noScale.status, oddScale.status], [400, 400]);
   });
 
   it('chuỗi bio quá dài bị 400', async () => {

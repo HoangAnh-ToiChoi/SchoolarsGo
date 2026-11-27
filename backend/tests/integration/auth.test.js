@@ -26,7 +26,7 @@ describe('Đăng ký / đăng nhập', () => {
     assert.doesNotMatch(JSON.stringify(res.json), /password_hash|refresh_token/);
   });
 
-  it('email khác chữ hoa/thường là cùng một tài khoản', { todo: 'R16 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('email khác chữ hoa/thường là cùng một tài khoản', async () => {
     const email = uniqueEmail('case');
     const first = await createClient().request('POST', '/api/auth/register', {
       body: { email, password: 'Review#12345', full_name: 'Case One' },
@@ -36,6 +36,10 @@ describe('Đăng ký / đăng nhập', () => {
       body: { email: email.toUpperCase(), password: 'Review#12345', full_name: 'Case Two' },
     });
     assert.equal(second.status, 409, `tạo được tài khoản trùng: status ${second.status}`);
+    const login = await createClient().request('POST', '/api/auth/login', {
+      body: { email: ` ${email.toUpperCase()} `, password: 'Review#12345' },
+    });
+    assert.equal(login.status, 200, `đăng nhập bằng email chữ hoa: ${login.status}`);
   });
 
   it('sai mật khẩu và email không tồn tại trả cùng mã + thông báo', async () => {

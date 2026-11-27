@@ -30,6 +30,7 @@ const common = Object.freeze({
   INTERNAL_SERVER_ERROR: { statusCode: 500, code: 'INTERNAL_SERVER_ERROR', message: 'Lỗi máy chủ, vui lòng thử lại sau' },
   VALIDATION_ERROR: { statusCode: 400, code: 'VALIDATION_ERROR', message: 'Dữ liệu không hợp lệ' },
   MALFORMED_JSON: { statusCode: 400, code: 'MALFORMED_JSON', message: 'Request body không phải JSON hợp lệ' },
+  PAYLOAD_TOO_LARGE: { statusCode: 413, code: 'PAYLOAD_TOO_LARGE', message: 'Dữ liệu gửi lên quá lớn.' },
   ROUTE_NOT_FOUND: { statusCode: 404, code: 'ROUTE_NOT_FOUND', message: 'Endpoint not found' },
   INVALID_TOKEN: { statusCode: 401, code: 'INVALID_TOKEN', message: 'Token không hợp lệ' },
   TOKEN_EXPIRED: { statusCode: 401, code: 'TOKEN_EXPIRED', message: 'Phiên đăng nhập đã hết hạn' },
@@ -69,6 +70,8 @@ const application = Object.freeze({
   INVALID_STATUS: { statusCode: 400, code: 'INVALID_STATUS', message: `Status không hợp lệ. Các status được phép: ${Object.keys(APPLICATION_VALID_TRANSITIONS).join(', ')}.` },
   INVALID_STATUS_TRANSITION: { statusCode: 400, code: 'INVALID_STATUS_TRANSITION', message: 'Không thể chuyển trạng thái này. Kiểm tra luồng trạng thái hợp lệ.' },
   CANNOT_DELETE: { statusCode: 400, code: 'CANNOT_DELETE', message: 'Không thể xóa đơn đã nộp. Hãy rút đơn thay vì xóa.' },
+  SCHOLARSHIP_CLOSED: { statusCode: 400, code: 'SCHOLARSHIP_CLOSED', message: 'Học bổng đã đóng, không tạo đơn mới được.' },
+  DOCUMENT_NOT_OWNED: { statusCode: 400, code: 'DOCUMENT_NOT_OWNED', message: 'Tài liệu đính kèm không tồn tại trong hồ sơ của bạn.' },
 });
 
 // Học bổng (scholarship.service; NOT_EXISTS dùng khi kiểm tra học bổng trước khi lưu / ứng tuyển)
@@ -97,6 +100,11 @@ const document = Object.freeze({
   INVALID_TYPE: { statusCode: 400, code: 'INVALID_DOC_TYPE', message: `Loại document không hợp lệ. Chỉ chấp nhận: ${DOCUMENT_VALID_TYPES.join(', ')}` },
   uploadFailed: reason => ({ statusCode: 500, code: 'UPLOAD_FAILED', message: `Upload file thất bại: ${reason}` }),
   insertFailed: reason => ({ statusCode: 500, code: 'DB_INSERT_FAILED', message: `Lưu metadata thất bại, file đã được gỡ: ${reason}` }),
+});
+
+// Health check (health.service): chỉ dùng nội bộ để dừng chờ DB, không trả cho client
+const health = Object.freeze({
+  DB_TIMEOUT: { statusCode: 503, code: 'DB_TIMEOUT', message: 'DB không trả lời' },
 });
 
 // Upload bằng multer (middlewares/upload.js). Lý do cụ thể do fileFilter đặt
@@ -147,4 +155,4 @@ class AppError extends Error {
 }
 
 // AppError cần `new` ở mọi nơi nên xuất theo tên (ngoại lệ của quy ước "chỉ export default bản dùng chung")
-export { authorization, common, postgres, multer, cv, application, scholarship, saved, notification, document, upload, profile, recommend, admin, AppError };
+export { authorization, common, postgres, multer, cv, application, scholarship, saved, notification, document, upload, health, profile, recommend, admin, AppError };

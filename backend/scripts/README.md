@@ -6,7 +6,7 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 
 | Script | Mô tả |
 |--------|--------|
-| `seedAdmin.js` | Tạo tài khoản admin mặc định |
+| `seedAdmin.js` | Tạo admin (hoặc nâng quyền tài khoản có sẵn) từ `ADMIN_EMAIL` + `ADMIN_PASSWORD` (≥ 12 ký tự); DB ngoài localhost cần `--allow-remote` |
 | `seedTestUser.js` | Tạo tài khoản test user |
 
 ## Cào dữ liệu
@@ -45,7 +45,7 @@ Dự án chạy theo **Supabase Cloud** (không dùng Docker nữa):
 | `backend/.env` | Cấu hình chính (Supabase URL, key, `PG_*`) |
 | `backend/.env.cloud` | Cấu hình riêng cho script chạy tay (tự tạo từ `.env.cloud.example`, không commit) |
 
-Tạo bảng: `npm run migrate` (DB local) hoặc `npm run migrate -- --env=.env.cloud --allow-remote` (Supabase Cloud), sau đó `node scripts/seedAdmin.js`. Script chạy `migrations/000_baseline.sql` → mới nhất, bỏ qua file đã ghi trong bảng `schema_migrations`.
+Tạo bảng: `npm run migrate` (DB local) hoặc `npm run migrate -- --env=.env.cloud --allow-remote` (Supabase Cloud), sau đó `ADMIN_EMAIL=… ADMIN_PASSWORD=… node scripts/seedAdmin.js --env=<file env>` (thêm `--allow-remote` cho DB thật). Script chạy `migrations/000_baseline.sql` → mới nhất, bỏ qua file đã ghi trong bảng `schema_migrations`.
 
 ## Kéo học bổng từ nguồn bên ngoài
 

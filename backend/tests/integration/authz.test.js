@@ -76,7 +76,7 @@ describe('IDOR giữa hai người dùng', () => {
     assert.equal(after.revoked_at, null, 'B đã thu hồi được phiên của A');
   });
 
-  it('documents_used chỉ nhận tài liệu của chính mình', { todo: 'R28 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('documents_used chỉ nhận tài liệu của chính mình', async () => {
     const [d] = await sql(
       `INSERT INTO documents (user_id, type, file_name, file_url, file_size, mime_type)
        VALUES ($1, 'cv', 'b.pdf', 'http://x/documents/b.pdf', 10, 'application/pdf') RETURNING id`,
@@ -119,7 +119,7 @@ describe('Quyền admin', () => {
     assert.equal(res.status, 401, 'user bị khóa vẫn dùng được access token');
   });
 
-  it('bộ lọc ?status=inactive của /admin/users có tác dụng', { todo: 'R26 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('bộ lọc ?status=inactive của /admin/users có tác dụng', async () => {
     const admin = await registerAdmin('filter');
     const banned = await registerUser('inactiveOne');
     await sql('UPDATE users SET is_active = false WHERE email = $1', [banned.email]);
@@ -129,7 +129,7 @@ describe('Quyền admin', () => {
     assert.ok(!list.some((x) => x.email === banned.email), 'user bị khóa vẫn có trong danh sách active');
   });
 
-  it('admin tạo học bổng thiếu country/degree nhận 400 (không 500)', { todo: 'R26 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('admin tạo học bổng thiếu country/degree nhận 400 (không 500)', async () => {
     const admin = await registerAdmin('creator');
     const res = await admin.client.request('POST', '/api/admin/scholarships', {
       body: { title: `Thiếu nước ${Date.now()}`, provider: 'X' },

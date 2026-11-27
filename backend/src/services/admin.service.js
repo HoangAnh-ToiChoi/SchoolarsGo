@@ -1,5 +1,6 @@
 import { AppError, admin as adminErrors } from '~/constants/errors.js';
 import { ADMIN_VALID_ROLES } from '~/constants/admin.js';
+import { APPLICATION_STATUSES } from '~/constants/application.js';
 import adminModel from '~/models/admin.model.js';
 import sessionService from './session.service.js';
 
@@ -107,8 +108,9 @@ class AdminService {
     return { id: scholarship.id, title: scholarship.title };
   }
 
+  // Trước đây đếm theo bộ trạng thái cũ (saved, in_progress…) nên draft / under_review / interview luôn mất
   #normalizeStatusCounts(rows) {
-    const map = { saved: 0, in_progress: 0, submitted: 0, accepted: 0, rejected: 0 };
+    const map = Object.fromEntries(APPLICATION_STATUSES.map(status => [status, 0]));
     rows.forEach(row => {
       if (row.status in map) map[row.status] = parseInt(row.count, 10);
     });
