@@ -5,11 +5,13 @@
 -- về chữ thường (validations/auth.validation.js), nên email cũ có chữ hoa phải đổi theo, nếu không
 -- chủ tài khoản đó không đăng nhập được. Chạy lại nhiều lần không lỗi.
 
--- Đổi về chữ thường những email chưa bị trùng với một tài khoản khác
+-- Đổi về chữ thường những email không trùng (không kể chữ hoa) với tài khoản nào khác.
+-- Cả nhóm trùng giữ nguyên, kể cả khi mọi email trong nhóm đều có chữ hoa: đổi một cái sẽ đụng khóa unique,
+-- còn chọn giữ tài khoản nào là quyết định của người gộp tay.
 UPDATE users AS u
 SET email = lower(u.email)
 WHERE u.email <> lower(u.email)
-  AND NOT EXISTS (SELECT 1 FROM users AS other WHERE other.email = lower(u.email) AND other.id <> u.id);
+  AND NOT EXISTS (SELECT 1 FROM users AS other WHERE lower(other.email) = lower(u.email) AND other.id <> u.id);
 
 -- Chặn ở DB: chỉ tạo được khi không còn cặp trùng. Còn trùng thì migration vẫn được ghi là đã áp (không chặn
 -- các migration sau) nhưng báo WARNING: gộp tay các cặp trùng

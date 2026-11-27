@@ -59,3 +59,18 @@ describe('Rate limit đăng nhập (production)', () => {
     assert.equal(statuses.at(-1), 429, statuses.join(','));
   });
 });
+
+describe('Rate limit quên mật khẩu (production)', () => {
+  it('một IP đổi email liên tục vẫn bị chặn sau 20 lần / giờ', async () => {
+    const statuses = [];
+    for (let i = 0; i < 21; i += 1) {
+      const res = await createClient().request('POST', '/api/auth/forgotPassword', {
+        body: { email: uniqueEmail('spray') },
+        headers: { origin: 'http://localhost:5173' },
+      });
+      statuses.push(res.status);
+    }
+    assert.ok(statuses.slice(0, 20).every((status) => status !== 429), statuses.join(','));
+    assert.equal(statuses.at(-1), 429, statuses.join(','));
+  });
+});

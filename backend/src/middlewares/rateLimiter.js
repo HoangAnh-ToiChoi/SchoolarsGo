@@ -44,6 +44,11 @@ const registerLimiter = isProd
   ? createLimiter(10, 60 * 60, 'Quá nhiều yêu cầu đăng ký, vui lòng thử lại sau.')
   : createLimiter(200, 60, 'Quá nhiều yêu cầu đăng ký.');
 
+// Chặn một IP gửi mail đặt lại mật khẩu hàng loạt bằng cách đổi email: 20 lần / giờ (production)
+const forgotPasswordIpLimiter = isProd
+  ? createLimiter(20, 60 * 60, 'Quá nhiều yêu cầu đặt lại mật khẩu từ địa chỉ này, vui lòng thử lại sau.')
+  : createLimiter(1000, 60, 'Quá nhiều yêu cầu đặt lại mật khẩu.');
+
 // Quên mật khẩu (gửi email): production 5 lần / giờ cho mỗi cặp IP + email; đặt lại bằng token: 10 lần / 15 phút / IP
 const forgotPasswordLimiter = isProd
   ? createLimiter(5, 60 * 60, 'Quá nhiều yêu cầu đặt lại mật khẩu, vui lòng thử lại sau.', { keyGenerator: ipAndEmailKey })
@@ -75,6 +80,7 @@ export {
   loginLimiter,
   loginIpLimiter,
   registerLimiter,
+  forgotPasswordIpLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter,
   apiLimiter,

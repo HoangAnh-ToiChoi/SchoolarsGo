@@ -130,3 +130,29 @@ describe('Bucket tài liệu private', () => {
     assert.equal(left.length, 1);
   });
 });
+
+describe('Upload: dữ liệu multipart bất thường', () => {
+  const send = (form) => U.client.request('POST', '/api/documents/upload', { form });
+
+  it('loại tài liệu trùng tên thuộc tính có sẵn của object bị từ chối 400, server vẫn chạy', async () => {
+    for (const type of ['constructor', 'toString', '__proto__']) {
+      const res = await send(formWith(type, 'a.pdf', PDF, 'application/pdf'));
+      assert.equal(res.status, 400, `${type}: ${res.status} ${JSON.stringify(res.json)}`);
+    }
+    const health = await U.client.request('GET', '/api/health');
+    assert.equal(health.status, 200);
+  });
+
+  it('quá nhiều field chữ hoặc field quá dài bị từ chối 400', async () => {
+    const many = formWith('cv', 'a.pdf', PDF, 'application/pdf');
+    for (let i = 0; i < 20; i += 1) many.append(`extra${i}`, 'x');
+    const manyRes = await send(many);
+    assert.equal(manyRes.status, 400, JSON.stringify(manyRes.json));
+    const long = new FormData();
+    long.append('note', 'x'.repeat(100_000));
+    long.append('type', 'cv');
+    long.append('file', new Blob([PDF], { type: 'application/pdf' }), 'a.pdf');
+    const longRes = await send(long);
+    assert.equal(longRes.status, 400, JSON.stringify(longRes.json));
+  });
+});

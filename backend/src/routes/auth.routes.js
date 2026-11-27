@@ -7,6 +7,7 @@ import {
   loginLimiter,
   loginIpLimiter,
   registerLimiter,
+  forgotPasswordIpLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter,
   refreshLimiter,
@@ -22,7 +23,7 @@ router.get('/me', auth, authController.me);
 router.get('/account', auth, authController.account);
 router.get('/sessions', auth, authController.sessions);
 router.delete('/sessions/:id', auth, authController.endSession);
-router.post('/forgotPassword', forgotPasswordLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/forgotPassword', forgotPasswordIpLimiter, forgotPasswordLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/resetPassword', resetPasswordLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
 export default router;

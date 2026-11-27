@@ -6,6 +6,7 @@
 
 import multer from 'multer';
 import { AppError, upload as uploadErrors } from '~/constants/errors.js';
+import { MULTIPART_LIMITS } from '~/constants/upload.js';
 
 const ALLOWED_EXTS_BY_TYPE = {
   transcript: ['.pdf'],
@@ -16,6 +17,13 @@ const ALLOWED_EXTS_BY_TYPE = {
 };
 
 const storage = multer.memoryStorage();
+
+// "type" do client gửi: tra thẳng bảng thì "constructor", "__proto__" trả về thứ không phải mảng,
+// lỗi ném trong sự kiện của busboy làm sập tiến trình
+function allowedExtsOf(docType) {
+  const known = typeof docType === 'string' && Object.hasOwn(ALLOWED_EXTS_BY_TYPE, docType);
+  return known ? ALLOWED_EXTS_BY_TYPE[docType] : null;
+}
 
 /**
  * Kiểm tra field "type" và đuôi file theo loại tài liệu. Lỗi ném ra được handleUploadError đổi thành JSON 400.
@@ -29,7 +37,7 @@ const fileFilter = (req, file, cb) => {
     return cb(new Error('Thiếu field "type" trong request'), false);
   }
 
-  const allowedExts = ALLOWED_EXTS_BY_TYPE[docType];
+  const allowedExts = allowedExtsOf(docType);
   if (!allowedExts) {
     return cb(
       new Error(
@@ -52,6 +60,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
+    ...MULTIPART_LIMITS,
     fileSize: 10 * 1024 * 1024,
     files: 1,
   },
