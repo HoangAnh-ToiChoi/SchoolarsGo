@@ -73,16 +73,8 @@ export async function closeDb() {
   await pool.end();
 }
 
-// Bucket tài liệu: production tạo tay trên Dashboard, Supabase local thì tạo ở đây
-async function ensureDocumentsBucket() {
-  await sql(
-    `INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true) ON CONFLICT (id) DO NOTHING`
-  );
-}
-
 export async function startServer() {
   if (server) return baseUrl;
-  await ensureDocumentsBucket();
   await new Promise((resolve) => {
     server = app.listen(0, resolve);
   });

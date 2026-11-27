@@ -71,9 +71,10 @@
 | user_id | uuid | FK → users.id, NOT NULL | Liên kết user |
 | type | varchar(50) | NOT NULL | Loại: cv, sop, transcript, recommendation_letter, other |
 | file_name | varchar(255) | NOT NULL | Tên file gốc |
-| file_url | text | NOT NULL | URL file trên Supabase Storage |
+| storage_path | text | | Đường dẫn trong bucket private `documents`: `{user_id}/{type}/{tên}_{8 ký tự}.{đuôi}` (migration 013) |
+| file_url | text | | Chỉ còn ở bản ghi trước 013 (URL công khai cũ). API trả `file_url` là link ký có hạn 1 giờ |
 | file_size | integer | NOT NULL | Kích thước (bytes) |
-| mime_type | varchar(100) | NOT NULL | MIME type |
+| mime_type | varchar(100) | NOT NULL | MIME đọc từ byte đầu file (không theo Content-Type client gửi) |
 | is_verified | boolean | DEFAULT false | Đã được xác minh |
 | created_at | timestamp | DEFAULT now() | Thời điểm tạo |
 
@@ -429,7 +430,6 @@ backend/src/
 │   ├── profile.service.js
 │   ├── scholarship.service.js
 │   ├── application-v2.service.js
-│   └── storage.service.js    ← uploadFile, deleteFile (Supabase Storage)
 ├── repositories/
 │   ├── base.repository.js    ← Base class kế thừa
 │   ├── document.repository.js

@@ -7,7 +7,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 | **Frontend** | React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query |
 | **Backend** | Node.js (ESM) + Express 5, Supabase PostgreSQL |
 | **Demo** | GitHub Pages (chỉ FE) |
-| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) |
+| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) · `docs/pendingWork.md` (việc đã xác định nhưng chưa làm) |
 
 Tài liệu lệch code thì **code là đúng**.
 
@@ -55,8 +55,6 @@ Tài liệu lệch code thì **code là đúng**.
 | FE component | 200 | | BE controller | 100 |
 | FE hook | 150 | | BE service | 200 |
 | FE service | 200 | | BE model | 250 |
-
-File cũ đang vượt, tách khi sửa tới: **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
 
 ---
 
@@ -232,7 +230,7 @@ frontend/src/
   pageLoaders.js       hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
   pages/<trang>/       index.jsx (chỉ ghép component, không gọi API) + components/ hooks/ helpers/ constants/
   layouts/             userLayout, adminLayout: index.jsx để dùng, components/ là phần triển khai
-  components/          ui/ (shadcn) · common/ · application/ · scholarship/ · scholarshipFilter/ · legacy/ (code mới không dùng)
+  components/          ui/ (shadcn) · common/ · admin/ (khung bảng trang quản trị) · application/ · scholarship/ · scholarshipFilter/ · legacy/ (code mới không dùng)
   hooks/ services/     TanStack Query dùng chung · <nhóm>.service.js gọi API qua utils/apiClient
   store/slices/ utils/ Redux: auth, comparison, ui · cn, format, scholarship, application, security, palette, demo/
 ```

@@ -213,6 +213,8 @@ List user's documents (auth required).
 }
 ```
 
+`file_url` là link ký có hạn 1 giờ (bucket private), tải lại danh sách để có link mới. `null` khi file không còn trên Storage.
+
 ---
 
 ### POST /api/documents/upload
@@ -223,6 +225,8 @@ Upload a document (auth required).
 |-------|------|----------|-------|
 | file | File | Yes | File cần upload |
 | type | string | Yes | cv, sop, transcript, recommendation_letter, other |
+
+Loại nội dung kiểm bằng byte đầu file: `transcript`, `recommendation_letter` chỉ PDF; `cv`, `sop` PDF / DOC / DOCX; `other` thêm PNG, JPEG. Sai → 400 `UPLOAD_INVALID`.
 
 **Response 201:**
 ```json

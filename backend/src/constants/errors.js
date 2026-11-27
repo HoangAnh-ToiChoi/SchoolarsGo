@@ -98,8 +98,8 @@ const document = Object.freeze({
   NOT_FOUND: { statusCode: 404, code: 'DOCUMENT_NOT_FOUND', message: 'Không tìm thấy document hoặc bạn không có quyền xóa' },
   NO_FILE: { statusCode: 400, code: 'NO_FILE', message: 'Không có file được upload' },
   INVALID_TYPE: { statusCode: 400, code: 'INVALID_DOC_TYPE', message: `Loại document không hợp lệ. Chỉ chấp nhận: ${DOCUMENT_VALID_TYPES.join(', ')}` },
-  uploadFailed: reason => ({ statusCode: 500, code: 'UPLOAD_FAILED', message: `Upload file thất bại: ${reason}` }),
   insertFailed: reason => ({ statusCode: 500, code: 'DB_INSERT_FAILED', message: `Lưu metadata thất bại, file đã được gỡ: ${reason}` }),
+  CONTENT_MISMATCH: { statusCode: 400, code: 'UPLOAD_INVALID', message: 'Nội dung file không đúng định dạng cho phép của loại tài liệu này' },
 });
 
 // Health check (health.service, health.controller). DB_TIMEOUT chỉ dùng nội bộ để dừng chờ DB

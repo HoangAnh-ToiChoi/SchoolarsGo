@@ -62,6 +62,9 @@ test('FE: token dự án (neutral, brand) không bị bắt; components/ui đư�
 
 test('FE: component phải export default function, trang không import service', () => {
   assert.deepEqual(rules('frontend/src/pages/a/index.jsx', 'const A = () => null;\nexport default A;'), ['component-export']);
+  const boundary = 'export default class B extends Component {\n  static getDerivedStateFromError() { return { hasError: true }; }\n}';
+  assert.deepEqual(rules('frontend/src/components/common/b/index.jsx', boundary), []);
+  assert.deepEqual(rules('frontend/src/pages/a/index.jsx', 'export default class A extends Component {}'), ['component-export']);
   assert.ok(rules('frontend/src/pages/a/index.jsx', "import s from '~/services/a.service';\nexport default function A() {}").includes('page-imports-service'));
 });
 
