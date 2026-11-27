@@ -27,7 +27,7 @@ Cập nhật: 12/11/2026. Nhóm 3 vai trò: FE, BE, AI.
 
 | Phần việc | FE | BE | AI |
 |---|---|---|---|
-| Đọc CV | Dùng sẵn: TanStack Query, shadcn/ui | Có sẵn: `multer` (nhận file), `@google/generative-ai` (Gemini) · Thêm mới: `pdf-parse` (PDF → chữ), `mammoth` (Word → chữ) | Chưa biết |
+| Đọc CV | Dùng sẵn: TanStack Query, shadcn/ui | Có sẵn: `multer` (nhận file), `@google/genai` (Gemini, thay `@google/generative-ai` đã hết hỗ trợ) · Thêm mới: `pdf-parse` (PDF → chữ), `mammoth` (Word → chữ) | Chưa biết |
 | Hồ sơ + yêu cầu học bổng | Dùng sẵn | Có sẵn: `zod` (kiểm tra giá trị), module kéo học bổng | Chưa biết |
 | Xét điều kiện | Dùng sẵn | Không cần thư viện mới (hàm thuần) | — |
 | Xếp hạng | Dùng sẵn | Có sẵn: `fetch` của Node (gọi dịch vụ AI) | Chưa biết |

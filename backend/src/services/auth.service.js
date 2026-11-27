@@ -5,6 +5,7 @@ import { AppError, authorization } from '~/constants/errors.js';
 import authModel from '~/models/auth.model.js';
 import hashService from '~/utils/hash.js';
 import sessionService from './session.service.js';
+import { getFrontendUrl } from '~/configs/app.config.js';
 
 class AuthService {
   async register(email, password, fullName, userAgent) {
@@ -61,7 +62,7 @@ class AuthService {
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     await authModel.saveResetToken(user.id, tokenHash, expiresAt);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendUrl();
     await sendResetEmail(email, `${frontendUrl}/resetPassword?token=${rawToken}`);
   }
 

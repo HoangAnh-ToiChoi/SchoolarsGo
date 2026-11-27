@@ -1,6 +1,7 @@
 import { AppError, admin as adminErrors } from '~/constants/errors.js';
 import { ADMIN_VALID_ROLES } from '~/constants/admin.js';
 import { APPLICATION_STATUSES } from '~/constants/application.js';
+import { toVnDate } from '~/utils/deadline.js';
 import adminModel from '~/models/admin.model.js';
 import sessionService from './session.service.js';
 
@@ -80,9 +81,16 @@ class AdminService {
     return user;
   }
 
+  // Cột deadline lưu ngày giờ VN không múi giờ: ISO "…T17:00:00Z" (0h VN hôm sau) ghi thẳng thì Postgres bỏ múi giờ
+  // và lưu nhầm sang ngày hôm trước (R25). Đổi về ngày VN trước khi ghi
+  #withVnDeadline(data) {
+    if (!data.deadline) return data;
+    return { ...data, deadline: toVnDate(data.deadline) };
+  }
+
   async addScholarship(data) {
     const scholarshipData = {
-      ...data,
+      ...this.#withVnDeadline(data),
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
     const scholarship = await adminModel.createScholarship(scholarshipData);
@@ -91,7 +99,7 @@ class AdminService {
   }
 
   async modifyScholarship(id, data) {
-    const scholarship = await adminModel.updateScholarship(id, data);
+    const scholarship = await adminModel.updateScholarship(id, this.#withVnDeadline(data));
     this.#guardFound(scholarship, adminErrors.SCHOLARSHIP_NOT_FOUND_OR_DELETED);
     return scholarship;
   }

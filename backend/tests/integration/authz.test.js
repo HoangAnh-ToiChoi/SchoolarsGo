@@ -71,7 +71,7 @@ describe('IDOR giữa hai người dùng', () => {
     const [s] = await sql('SELECT id FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL LIMIT 1', [A.user.id]);
     const res = await B.client.request('DELETE', `/api/auth/sessions/${s.id}`);
     assert.equal(res.status, 404, `status ${res.status}`);
-    // /auth/me của A vẫn 200 kể cả khi phiên bị thu hồi (access token sống 15 phút, R14) nên phải kiểm DB
+    // /auth/me của A vẫn 200 kể cả khi phiên bị thu hồi (access token sống 15 phút, R14 đã chấp nhận) nên phải kiểm DB
     const [after] = await sql('SELECT revoked_at FROM user_sessions WHERE id = $1', [s.id]);
     assert.equal(after.revoked_at, null, 'B đã thu hồi được phiên của A');
   });
@@ -103,20 +103,29 @@ describe('Quyền admin', () => {
     assert.equal(res.status, 401);
   });
 
-  it('admin bị hạ quyền thì mất quyền admin ngay (không đợi token hết hạn)', { todo: 'R14 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  // R14 (đánh đổi đã chấp nhận 28/11/2026): quyền trong access token chỉ cập nhật khi refresh (tối đa 15 phút)
+  it('admin bị hạ quyền: token cũ còn quyền tới khi hết hạn (R14), refresh xong thì mất quyền admin', async () => {
     const admin = await registerAdmin('demoted');
     const before = await admin.client.request('GET', '/api/admin/stats');
     assert.equal(before.status, 200, JSON.stringify(before.json));
     await sql(`UPDATE users SET role = 'user' WHERE email = $1`, [admin.email]);
-    const afterDemote = await admin.client.request('GET', '/api/admin/stats');
-    assert.equal(afterDemote.status, 403, 'token cũ vẫn mang role admin');
+    const beforeRefresh = await admin.client.request('GET', '/api/admin/stats');
+    assert.equal(beforeRefresh.status, 200, 'R14: token chưa hết hạn vẫn mang quyền cũ (đổi hành vi này thì sửa test + docs)');
+    const refresh = await admin.client.request('POST', '/api/auth/refresh');
+    assert.equal(refresh.status, 200, JSON.stringify(refresh.json));
+    const afterRefresh = await admin.client.request('GET', '/api/admin/stats');
+    assert.equal(afterRefresh.status, 403, 'refresh không đọc lại quyền từ DB');
   });
 
-  it('tài khoản bị khóa (is_active=false) không gọi API được nữa', { todo: 'R14 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
+  it('tài khoản bị khóa: token cũ còn tới khi hết hạn (R14), refresh bị từ chối và phiên bị thu hồi', async () => {
     const u = await registerUser('banned');
     await sql('UPDATE users SET is_active = false WHERE email = $1', [u.email]);
-    const res = await u.client.request('GET', '/api/profile');
-    assert.equal(res.status, 401, 'user bị khóa vẫn dùng được access token');
+    const stillValid = await u.client.request('GET', '/api/profile');
+    assert.equal(stillValid.status, 200, 'R14: token chưa hết hạn vẫn dùng được (đổi hành vi này thì sửa test + docs)');
+    const refresh = await u.client.request('POST', '/api/auth/refresh');
+    assert.equal(refresh.status, 401, 'user bị khóa vẫn refresh được');
+    const open = await sql('SELECT count(*)::int AS n FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL', [u.user.id]);
+    assert.equal(open[0].n, 0, 'phiên của user bị khóa chưa bị thu hồi');
   });
 
   it('bộ lọc ?status=inactive của /admin/users có tác dụng', async () => {

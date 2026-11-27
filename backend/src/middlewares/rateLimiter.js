@@ -3,6 +3,7 @@ import { getCvDailyLimit } from '~/configs/cv.config.js';
 import { CV_RATE_WINDOW_MS } from '~/constants/cv.js';
 import { cv as cvErrors } from '~/constants/errors.js';
 import { clientIpKey } from '~/utils/clientIp.js';
+import { isProduction } from '~/configs/app.config.js';
 
 const createLimiter = (maxRequests, windowSeconds, message, options = {}) => {
   return rateLimit({
@@ -16,7 +17,7 @@ const createLimiter = (maxRequests, windowSeconds, message, options = {}) => {
   });
 };
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = isProduction();
 
 // Mỗi route auth một bộ đếm riêng (R15): trước đây 4 route dùng chung một bộ theo IP, nên đăng nhập sai 5 lần
 // là cả IP (ký túc xá, quán cà phê dùng chung NAT) không đăng ký hay lấy lại mật khẩu được nữa.
