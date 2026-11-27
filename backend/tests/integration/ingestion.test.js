@@ -5,7 +5,8 @@ import { readFile } from 'node:fs/promises';
 
 import { closeDb, createScholarship, registerAdmin, sql, startServer, stopServer } from './helpers/app.js';
 import * as database from '~/configs/database.config.js';
-import { createStore, saveRows } from '~/ingestion/save.js';
+import { saveRows } from '~/ingestion/save.js';
+import { createStore } from '~/ingestion/store.js';
 
 const store = createStore(database);
 const NOW = new Date();

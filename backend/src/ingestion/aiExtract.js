@@ -1,5 +1,6 @@
 import { parseDeadline } from './extract.js';
 import { findCountry } from './countries.js';
+import { defaultSleep } from './time.js';
 
 /**
  * BƯỚC 3 (tuỳ chọn) — Nhờ Gemini điền những chỗ luật chữ (extract.js) không tìm được:
@@ -22,11 +23,6 @@ const COOLDOWN_MS = 60000;
 const MAX_FAILURES_IN_A_ROW = 3;
 const MAX_CONTENT_CHARS = 3500;
 const VALID_DEGREES = new Set(['Bachelor', 'Master', 'PhD']);
-
-const defaultSleep = (ms) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 
 /**
  * Các tham số sau `now` chỉ để test thay thời gian thật.

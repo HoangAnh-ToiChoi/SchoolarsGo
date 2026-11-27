@@ -24,21 +24,24 @@ Mỗi file là một bước, tên file là việc nó làm:
 src/ingestion/
 ├── index.js       ĐỌC TRƯỚC — createIngestion() lắp DB + Gemini; runIngestion() chạy 7 bước
 ├── sources.js     5 trang web và cấu hình (thêm/tắt trang ở đây)
-├── wordpress.js   1. gọi API WordPress, thử lại khi 429/5xx, đổi HTML → chữ (post)
+├── wordpress.js   1. gọi API WordPress, thử lại khi 429/5xx
+├── toPost.js      1. đổi bài WordPress (HTML) → chữ thuần + gợi ý từ chuyên mục (post)
 ├── filter.js      2 + 4. luật loại bài R1–R6 và danh sách từ khoá
 ├── extract.js     3. tìm hạn nộp, nước, bậc học, đơn vị cấp, GPA, IELTS bằng regex (info)
 ├── aiExtract.js   3. (tuỳ chọn) Gemini điền chỗ regex không tìm được
 ├── countries.js   danh sách tên nước và cách viết khác
 ├── score.js       5. chấm độ phù hợp với sinh viên Việt Nam
 ├── toRow.js       6. đổi thành dòng bảng scholarships + khoá chống trùng
-└── save.js        7. quyết định thêm / làm mới / bỏ qua + toàn bộ SQL
+├── save.js        7. quyết định thêm / làm mới / bỏ qua
+├── store.js       7. toàn bộ SQL (createStore)
+└── time.js        DAY_MS, defaultSleep dùng chung
 ```
 
 Dữ liệu đi qua các bước:
 
 | Tên | Tạo ở | Gồm |
 |---|---|---|
-| `post` | `wordpress.js` | `sourceName, priority, title, link, publishedAt, excerpt, contentText, categories, signals` |
+| `post` | `toPost.js` | `sourceName, priority, title, link, publishedAt, excerpt, contentText, categories, signals` |
 | `info` | `extract.js` | `deadline, degree, degreeKnown, country, provider, coverage, language, minGpa, minIelts` |
 | `row` | `toRow.js` | đúng cột bảng `scholarships` + `dedup_key` |
 
@@ -48,7 +51,7 @@ Dữ liệu đi qua các bước:
 
 1. **Module không require gì của phần còn lại của backend.** DB và Gemini được truyền vào qua `createIngestion({ db, aiModel })`. Hai nơi gọi: `src/jobs/scholarshipScraper.js` (server, cron) và `scripts/ingest.js` (chạy tay; GitHub Actions gọi script này cho lượt tăng dần).
 2. **Luật lọc, trích xuất, chấm điểm là hàm thuần** (nhận dữ liệu, trả kết quả), không đụng DB hay mạng, nên test được ngay.
-3. **SQL chỉ nằm trong `save.js`.**
+3. **SQL chỉ nằm trong `store.js`.**
 4. **Gemini là tuỳ chọn.** Tự bật khi có `GEMINI_API_KEY`; tắt bằng `INGESTION_USE_AI=false` (server) hoặc `--no-ai` (script). Chỉ điền chỗ trống, không ghi đè thứ regex đã tìm được.
 
 ## Thêm một trang WordPress mới
@@ -87,5 +90,5 @@ Khi server chạy: kéo học bổng **Chủ nhật 2:00**, tắt học bổng q
 `dedup_key` (`toRow.js`): tiêu đề bỏ dấu, bỏ năm, bỏ đuôi sau ` | ` và đuôi kêu gọi sau ` - ` ("- Apply by …"); đuôi khác sau ` - ` giữ lại (MEXT theo trường ≠ theo đại sứ quán). Tiêu đề chỉ toàn từ chung chung thì khoá là `NULL`, chỉ chống trùng theo link.
 
 Đổi công thức `dedupKey` thì tính lại khoá đã lưu, nếu không lượt kéo sau sẽ thêm bản trùng: `node --import ./register.js scripts/recomputeDedupKeys.js --env=<file env>` (chạy thử, in thay đổi) rồi thêm `--apply` (DB thật thêm `--allow-remote`). Khoá mới đụng khoá dòng khác thì giữ khoá cũ và báo ra.
-- `ingestion_runs.started_at` lưu giờ UTC (`toUtcText` trong `save.js`).
+- `ingestion_runs.started_at` lưu giờ UTC (`toUtcText` trong `store.js`).
 - Workflow cần secrets `PG_*` (và tùy chọn `GEMINI_API_KEY`). Chưa có `PG_HOST` thì workflow bỏ qua, không báo lỗi. GitHub chỉ chạy lịch trên nhánh mặc định (`main`).
