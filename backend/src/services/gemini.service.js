@@ -12,6 +12,12 @@ function getClient() {
   return client;
 }
 
+// Hủy hẳn request HTTP khi quá giờ: withTimeout của nơi gọi chỉ reject Promise, request vẫn chạy ngầm giữ socket và chữ CV
+function withAbort(config, timeoutMs) {
+  if (!timeoutMs) return config;
+  return { ...config, abortSignal: AbortSignal.timeout(timeoutMs) };
+}
+
 /**
  * Model trả JSON, giữ giao diện cũ `generateContent(prompt) → { response: { text() } }` cho đọc CV và ingestion/aiExtract.
  * Không có khóa API thì null (CV báo AI_UNAVAILABLE, ingestion chạy bằng luật thuần).
@@ -20,8 +26,9 @@ function getJsonModel(config = JSON_CONFIG) {
   const ai = getClient();
   if (!ai) return null;
   return {
-    async generateContent(prompt) {
-      const response = await ai.models.generateContent({ model: getGeminiModel(), contents: prompt, config });
+    async generateContent(prompt, { timeoutMs } = {}) {
+      const requestConfig = withAbort(config, timeoutMs);
+      const response = await ai.models.generateContent({ model: getGeminiModel(), contents: prompt, config: requestConfig });
       const text = response.text ?? '';
       return { response: { text: () => text } };
     },

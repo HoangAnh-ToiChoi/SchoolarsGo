@@ -49,14 +49,19 @@ const CV_CONTACT_PATTERNS = Object.freeze([
   // Tên miền không có http (vd. ten.github.io, app.vercel.app). Chỉ chữ thường nên "Node.js" và "ASP.NET" không bị ẩn nhầm; độ dài giới hạn để regex không chạy mãi
   /\b[a-z0-9-]{1,63}(?:\.[a-z0-9-]{1,63}){0,4}\.(?:com|io|app|dev|vn|me|org)\b\S*/g,
   /\b(?:linkedin|facebook|github|twitter|instagram|zalo)\.\S+/gi,
+  // Giấy tờ tùy thân có nhãn: hộ chiếu, CCCD / CMND (không nhãn thì không đoán, dễ ẩn nhầm mã môn học).
+  // Đứng trước mẫu số điện thoại: CCCD bắt đầu bằng 0 mà để mẫu điện thoại ăn trước thì lộ chữ số cuối
+  /(?:passport|hộ chiếu|cccd|cmnd|căn cước|national id|id card)(?:\s*(?:no\.?|number|số))?\s*:?\s*[A-Z]{0,2}\d{6,12}\b/gi,
   /(?:\+?84|\b0)(?:[\s.-]?\d){8,10}/g,
   // Số điện thoại quốc tế: +1 (415) 555-0134, +44 20 7946 0958
   /\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d){5,10}/g,
-  // Email viết tránh bộ lọc: "ten [at] gmail [dot] com"
+  // Email viết tránh bộ lọc: "ten [at] gmail [dot] com", "ten @ gmail . com", "ten at gmail dot com"
   /[\w.+-]{1,64}\s?[[(]\s?at\s?[\])]\s?[\w-]{1,63}(?:\s?[[(]\s?dot\s?[\])]\s?[\w-]{1,63}){1,4}/gi,
-  // Giấy tờ tùy thân có nhãn: hộ chiếu, CCCD / CMND (không nhãn thì không đoán, dễ ẩn nhầm mã môn học)
-  /(?:passport|hộ chiếu|cccd|cmnd|căn cước|national id|id card)(?:\s*(?:no\.?|number|số))?\s*:?\s*[A-Z]{0,2}\d{6,12}\b/gi,
-  /^.*(?:địa chỉ|address|addr\.?|add)\s*:.*$/gim,
+  /[\w.+-]{1,64}\s{0,3}@\s{0,3}[\w-]{1,63}(?:\s{0,3}\.\s{0,3}[\w-]{1,63}){1,4}/g,
+  /[\w.+-]{1,64}\sat\s[\w-]{1,63}(?:\sdot\s[\w-]{1,63}){1,4}/gi,
+  // Dòng địa chỉ: có nhãn + dấu hai chấm, hoặc nhãn rồi tới số nhà ("Address 12 Le Loi")
+  /^.*(?<![a-z])(?:địa chỉ|address|addr\.?|add|home)\s*:.*$/gim,
+  /^.*(?<![a-z])(?:địa chỉ|address)\s+\d.*$/gim,
 ]);
 
 // Chỉ ngày sinh có nhãn đi trước mới bị rút về năm (xét điều kiện tuổi chỉ cần năm); các ngày khác như ngày cấp chứng chỉ giữ nguyên

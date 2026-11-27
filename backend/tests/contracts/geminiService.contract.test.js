@@ -46,3 +46,13 @@ test('cấu hình riêng (CV) được truyền nguyên; client tạo một lầ
   assert.deepEqual(calls.params.at(-1).config, config);
   assert.equal(calls.apiKeys.length, 1);
 });
+
+test('có timeoutMs: gửi abortSignal để hủy hẳn request HTTP khi quá giờ; không có thì cấu hình giữ nguyên', async () => {
+  await getJsonModel().generateContent('x', { timeoutMs: 5000 });
+  const { abortSignal, ...rest } = calls.params.at(-1).config;
+  assert.ok(abortSignal instanceof AbortSignal);
+  assert.equal(abortSignal.aborted, false);
+  assert.deepEqual(rest, { responseMimeType: 'application/json', temperature: 0 });
+  await getJsonModel().generateContent('y');
+  assert.equal('abortSignal' in calls.params.at(-1).config, false);
+});

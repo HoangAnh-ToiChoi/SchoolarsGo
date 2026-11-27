@@ -90,9 +90,24 @@ test('R17: removeContactInfo ẩn hộ chiếu, CCCD, số quốc tế, email vi
   assert.match(result, /GPA 3\.4, IELTS 7\.0, mã môn CS101, năm 2024, điểm 8\.5\/10/);
 });
 
+test('R17 (review): email cách chữ / full-width, địa chỉ không dấu hai chấm, CCCD bắt đầu bằng 0 không lộ chữ số cuối', () => {
+  const text = [
+    'Mail: ten @ gmail . com, hoặc ten2 at yahoo dot com, hoặc ten3＠outlook.com',
+    'CCCD: 079305001234',
+    'Address 12 Le Loi, HCM',
+    'Home: 34 Tran Hung Dao street',
+    'Tôi làm việc tại Hà Nội, look at this project, thêm mã môn ADD101',
+  ].join('\n');
+  const result = removeContactInfo(text);
+  assert.doesNotMatch(result, /gmail|yahoo|outlook|0793|1234|Le Loi|Tran Hung Dao/);
+  // Mẫu giấy tờ ẩn cả nhãn lẫn số; trước đây mẫu điện thoại ăn trước và để lộ chữ số cuối ("[ẩn]4")
+  assert.match(result, /^\[ẩn\]$/m);
+  assert.match(result, /look at this project, thêm mã môn ADD101/);
+});
+
 test('removeContactInfo chạy nhanh với chuỗi rất dài (không treo vì regex)', () => {
   const started = Date.now();
-  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)} ${'+1 '.repeat(50000)} ${'x [at] '.repeat(30000)}`);
+  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)} ${'+1 '.repeat(50000)} ${'x [at] '.repeat(30000)} ${'a @ '.repeat(30000)} ${'b at '.repeat(30000)} ${'address '.repeat(30000)}`);
   assert.ok(Date.now() - started < 2000);
 });
 

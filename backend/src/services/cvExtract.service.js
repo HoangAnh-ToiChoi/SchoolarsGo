@@ -33,7 +33,7 @@ class CvExtractService {
   async #askGemini(prompt) {
     const model = getJsonModel(CV_GENERATION_CONFIG);
     if (!model) throw new AppError(cvErrors.AI_UNAVAILABLE);
-    const result = await withTimeout(model.generateContent(prompt), CV_AI_TIMEOUT_MS, cvErrors.AI_TIMEOUT);
+    const result = await withTimeout(model.generateContent(prompt, { timeoutMs: CV_AI_TIMEOUT_MS }), CV_AI_TIMEOUT_MS, cvErrors.AI_TIMEOUT);
     return result.response.text();
   }
 
