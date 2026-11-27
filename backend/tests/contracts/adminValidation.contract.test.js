@@ -29,3 +29,16 @@ test('giá trị sai bị từ chối', () => {
     assert.equal(adminUpdateScholarshipSchema.safeParse(bad).success, false, JSON.stringify(bad));
   }
 });
+
+test('PATCH amount rỗng không được biến thành NULL trong SQL: khóa bị bỏ hẳn', () => {
+  const data = adminUpdateScholarshipSchema.parse({ title: 'B', amount: '' });
+  assert.deepEqual(Object.keys(data), ['title']);
+  assert.equal(adminUpdateScholarshipSchema.safeParse({ amount: '' }).success, false, 'không còn gì để cập nhật');
+});
+
+test('amount chỉ nhận số hoặc chuỗi số', () => {
+  for (const bad of ['  ', false, true, [], '1e3', '12a']) {
+    assert.equal(adminUpdateScholarshipSchema.safeParse({ amount: bad }).success, false, JSON.stringify(bad));
+  }
+  assert.equal(adminUpdateScholarshipSchema.parse({ amount: ' 1500 ' }).amount, 1500);
+});

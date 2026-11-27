@@ -5,9 +5,13 @@ import { DEGREES } from './scholarship.validation.js';
 const MAX_AMOUNT = 9999999999.99;
 const MAX_LONG_TEXT = 5000;
 
-// Chuỗi rỗng là "không gửi" (không để coerce biến thành 0), null là xóa giá trị đang có
+const NUMERIC_TEXT = /^\d+(\.\d+)?$/;
+
+// Chỉ nhận số hoặc chuỗi số (coerce sẽ đổi false, [], "  " thành 0). Chuỗi rỗng là "không gửi", null là xóa giá trị
 const emptyToUndefined = (value) => (value === '' ? undefined : value);
-const amountField = z.preprocess(emptyToUndefined, z.union([z.null(), z.coerce.number().min(0).max(MAX_AMOUNT)]).optional());
+const toNumber = (value) => (typeof value === 'string' && NUMERIC_TEXT.test(value.trim()) ? Number(value.trim()) : value);
+const parseAmount = (value) => toNumber(emptyToUndefined(value));
+const amountField = z.preprocess(parseAmount, z.number().min(0).max(MAX_AMOUNT).nullable().optional());
 // Ô ngày của trình duyệt gửi YYYY-MM-DD (đã là ngày lịch); client khác gửi ISO có giờ
 const deadlineField = z
   .union([z.iso.date(), z.iso.datetime()], { message: 'deadline phải là YYYY-MM-DD hoặc ISO 8601' })
@@ -42,9 +46,13 @@ const adminCreateScholarshipSchema = scholarshipFields.extend({
   is_active: z.boolean().optional().default(true),
 });
 
+// Trường "không gửi" vẫn còn khóa với giá trị undefined: để nguyên thì SQL ghi NULL vào cột đó
+const dropUndefined = (data) => Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
+
 // Body rỗng (hoặc chỉ có trường lạ, zod bỏ đi) thì SQL thành "SET , updated_at" → 500: chặn bằng 400
 const adminUpdateScholarshipSchema = scholarshipFields
   .partial()
+  .transform(dropUndefined)
   .refine((data) => Object.keys(data).length > 0, { message: 'Cần ít nhất một trường để cập nhật' });
 
 const adminUpdateUserRoleSchema = z.object({
