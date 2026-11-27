@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { mockService, srcUrl } from './helpers/mockService.js';
-import { vnToday, addDays, daysBetween, milestoneFor } from '~/utils/deadline.js';
+import { vnToday, addDays, toVnDate, daysBetween, milestoneFor } from '~/utils/deadline.js';
 
 const modelRef = mockService(srcUrl('models/notification.model.js'));
 const { default: notificationService } = await import('~/services/notification.service.js');
@@ -126,4 +126,13 @@ test('getChannel trả kênh realtime ngẫu nhiên của chính người dùng'
 test('getChannel: chưa có kênh (DB chưa chạy migration 010) → 404, chuông vẫn dùng cách tự làm mới', async () => {
   modelRef.current = { ...fakeRepo(), findRealtimeTopic: async () => null };
   await assert.rejects(notificationService.getChannel('u1'), { code: 'NOTIFICATION_CHANNEL_NOT_FOUND', statusCode: 404 });
+});
+
+test('R25: hạn có múi giờ (ISO Z / +07:00 / Date) đổi sang ngày giờ VN; hạn không múi giờ giữ nguyên ngày', () => {
+  assert.equal(toVnDate('2026-12-01T17:00:00Z'), '2026-12-02');
+  assert.equal(toVnDate('2026-12-01T16:59:59.000Z'), '2026-12-01');
+  assert.equal(toVnDate('2026-12-02T00:00:00+07:00'), '2026-12-02');
+  assert.equal(toVnDate(new Date('2026-12-01T17:00:00Z')), '2026-12-02');
+  assert.equal(toVnDate('2026-12-02T00:00:00'), '2026-12-02');
+  assert.equal(daysBetween('2026-11-24', '2026-12-01T17:00:00Z'), 8);
 });
