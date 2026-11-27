@@ -75,6 +75,8 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 | Auth | Access token còn dùng được 15 phút sau đăng xuất, khóa tài khoản, hạ quyền (R14) | ❌ | `middlewares/auth.js` chỉ verify JWT. Nhóm đã chấp nhận độ trễ 15 phút (`docs/plans/authRefreshToken.md`): **cần chốt** giữ hay kiểm phiên trong DB | 2 |
 | Auth | Rate limit trong RAM, 4 route auth dùng chung bộ đếm theo IP (R15) | ❌ | `rateLimiter.js` không có `store`; khóa theo IP + email | 2 |
 | Auth | Email khác chữ hoa thành 2 tài khoản; link reset ghi ra log khi thiếu SMTP (R16) | ❌ | `configs/nodemailer.js` in link reset | 2 |
+| Auth | `scripts/seedAdmin.js` gõ cứng email/mật khẩu admin (repo public), tự nạp `backend/.env`, không chặn host ngoài localhost: chạy nhầm lên production là tạo/nâng quyền admin với mật khẩu ai cũng biết | ❌ | Đọc mật khẩu từ env (bắt buộc), thêm rào `--allow-remote` như `migrate.js`. Kiểm production không có tài khoản dùng mật khẩu mặc định đó | 2 |
+| Dữ liệu | Ràng buộc `role IN ('user','admin')` cho `users` | ❌ | Bỏ khỏi 007 vì `NOT VALID` vẫn kiểm mọi UPDATE. Chạy `SELECT DISTINCT role FROM users` trên production trước, rồi thêm ở migration mới | 2 |
 | Backend | Model bỏ qua `error` của supabase-js: lỗi DB hiện thành 401/404 (R27) | ❌ | 14 chỗ `const { data } = await …` không kiểm `error` (auth.model 5, saved 3, application 2, scholarship 2, document 1, profile 1) | 2 |
 | Backend | Admin: bộ lọc `?status` vô hiệu, thống kê theo trạng thái cũ, tạo học bổng thiếu trường trả 500 (R26) | ❌ | `admin.validation.js` không có `status` | 2 |
 | Backend | Giới hạn đầu vào (R28) | 🟡 | `notes` max 5000 đã có. Còn: `checklist` không giới hạn số mục/độ dài, `documents_used` không kiểm thuộc người dùng, ứng tuyển học bổng đã tắt | 2 |
@@ -113,5 +115,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 
 - Proxy `/api` của Vercel dựa vào biến `BACKEND_URL`. Thiếu ở môi trường nào (Production / Preview) thì Vercel giữ nguyên chuỗi `${BACKEND_URL}` và mọi lời gọi API hỏng. Cookie `SameSite=lax` chạy được nhờ proxy này (cùng origin).
 - Sau #56: bảng hoặc function do `supabase_admin` tạo vẫn theo default privileges của Supabase. **Bảng mới phải tự `ENABLE ROW LEVEL SECURITY`**; `npm run test:integration` trên Supabase local bắt bảng thiếu RLS (đưa vào CI ở đợt 1).
+- CI: action ghim theo tag (`actions/checkout@v4`, `supabase/setup-cli@v1`), chưa ghim SHA; nên ghim SHA cho action bên thứ ba.
+- `003_ingestion.sql` tạo `ingestion_runs` không bật RLS; `011` bật lại trong cùng lượt `npm run migrate`, chỉ hở nếu dừng giữa 003 và 011 trên DB trống.
 - Gợi ý đọc toàn bộ học bổng còn mở mỗi lần gọi (~0.4s với 4500 dòng). Lưu lượng tăng thì cache danh sách ứng viên vài phút.
 - Báo cáo review: thêm mục đối chiếu các PR của upstream; đổi nhãn R14 thành "đánh đổi đã chấp nhận" nếu nhóm giữ.
