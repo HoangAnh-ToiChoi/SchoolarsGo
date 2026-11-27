@@ -82,7 +82,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 
 | Nhóm | Việc | Trạng thái | Bằng chứng / ghi chú | Đợt |
 |---|---|---|---|---|
-| Auth | Access token còn dùng được 15 phút sau đăng xuất, khóa tài khoản, hạ quyền (R14) | ❌ | `middlewares/auth.js` chỉ verify JWT. Nhóm đã chấp nhận độ trễ 15 phút (`docs/plans/authRefreshToken.md`): **cần chốt** giữ hay kiểm phiên trong DB. 3 test tích hợp gắn todo R14 | 3 |
+| Auth | Access token còn dùng được 15 phút sau đăng xuất, khóa tài khoản, hạ quyền (R14) | ✅ đánh đổi đã chấp nhận (28/11/2026) | Giữ độ trễ 15 phút: access token không kiểm DB; refresh kiểm phiên + `is_active` + đọc lại `role`. 3 test tích hợp ghi đúng hành vi này (`fix/aiSafety`). Muốn chặn tức thì thì phải kiểm phiên trong DB mỗi request | — |
 | Auth | Rate limit trong RAM, 4 route auth dùng chung bộ đếm theo IP (R15) | 🟡 chờ merge `fix/backendHardening` | Đã tách bộ đếm từng route, đăng nhập khóa theo IP + email. Còn: store dùng chung khi chạy nhiều instance | 2 |
 | Auth | Email khác chữ hoa thành 2 tài khoản; link reset ghi ra log khi thiếu SMTP (R16) | 🟡 chờ merge `fix/backendHardening` | Email chuẩn hóa ở đầu vào + migration 015; production không log link | 2 |
 | Auth | `scripts/seedAdmin.js` gõ cứng email/mật khẩu admin (repo public), tự nạp `backend/.env`, không chặn host ngoài localhost: chạy nhầm lên production là tạo/nâng quyền admin với mật khẩu ai cũng biết | 🟡 chờ merge `fix/backendHardening` | Đã đọc từ env + rào `--allow-remote`. **Còn: kiểm production không có tài khoản dùng mật khẩu mặc định cũ** (người giữ Supabase) | 2 |
@@ -111,7 +111,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 ## 4. Quyết định nhóm cần chốt trước đợt 1
 
 1. **Nguồn sự thật của schema:** dump production làm baseline `000` (cần quyền DB production) hay sửa `database.sql` + migration cho dựng được từ trống rồi đối chiếu production sau.
-2. **R14:** giữ độ trễ 15 phút hay kiểm phiên trong DB mỗi request.
+2. ~~**R14**~~: đã chốt 28/11/2026 giữ độ trễ 15 phút.
 3. **Duyệt dữ liệu cào:** cột `status` trên `scholarships` hay bảng staging riêng (quyết định cách sửa R08/R09).
 4. **RAG/embedding:** dịch vụ `/rank` riêng (ADR 0003) hay pgvector; `docs/roadmap.md` và ADR đang ghi ngược nhau.
 5. **Thời điểm rotate khóa** (MUST 1).
@@ -128,7 +128,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 - CI: action ghim theo tag (`actions/checkout@v4`, `supabase/setup-cli@v1`), chưa ghim SHA; nên ghim SHA cho action bên thứ ba.
 - `003_ingestion.sql` tạo `ingestion_runs` không bật RLS; `011` bật lại trong cùng lượt `npm run migrate`, chỉ hở nếu dừng giữa 003 và 011 trên DB trống.
 - Gợi ý đọc toàn bộ học bổng còn mở mỗi lần gọi (~0.4s với 4500 dòng). Lưu lượng tăng thì cache danh sách ứng viên vài phút.
-- Báo cáo review: thêm mục đối chiếu các PR của upstream; đổi nhãn R14 thành "đánh đổi đã chấp nhận" nếu nhóm giữ.
+- Báo cáo review: thêm mục đối chiếu các PR của upstream; đổi nhãn R14 thành "đánh đổi đã chấp nhận" (đã chốt 28/11/2026).
 - Từ Đợt 2 (models ném lỗi supabase-js): id sai dạng UUID ở đường dẫn (`/applications/abc`) trả 400 `INVALID_DATA_FORMAT` thay vì 404. Muốn 404 thì thêm `validate(idSchema, 'params')` cho các route còn thiếu (applications, documents, admin, auth/sessions).
 - Rate limit tính theo `req.ip` với `TRUST_PROXY=1` (đúng khi chỉ có Railway đứng trước). Thêm Cloudflare / CDN thì phải tăng `TRUST_PROXY`, nếu không mọi người dùng chung một bộ đếm.
 - Học bổng lừa đảo đăng lại với link mới và tiêu đề khác vẫn vào được (khóa admin chỉ chặn đúng dòng đã ẩn): cần blocklist nguồn / tiêu đề nếu gặp nhiều.
