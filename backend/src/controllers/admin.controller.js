@@ -3,12 +3,12 @@ import adminService from '~/services/admin.service.js';
 class AdminController {
   async getStats(req, res) {
     const stats = await adminService.fetchDashboardStats();
-    return res.status(200).json({ success: true, data: stats });
+    return res.success(stats);
   }
 
   async getChartStats(req, res) {
     const chartData = await adminService.fetchDashboardChart();
-    return res.status(200).json({ success: true, data: chartData });
+    return res.success(chartData);
   }
 
   async getUsers(req, res) {
@@ -20,12 +20,12 @@ class AdminController {
       search,
       status,
     });
-    return res.status(200).json({ success: true, data: result.data, meta: result.meta });
+    return res.success(result.data, 'OK', result.meta);
   }
 
   async getUserById(req, res) {
     const user = await adminService.getUserById(req.params.id);
-    return res.status(200).json({ success: true, data: user });
+    return res.success(user);
   }
 
   async updateUserRole(req, res) {
@@ -33,7 +33,7 @@ class AdminController {
     const { role } = req.body;
     const adminId = req.user.id;
     const user = await adminService.changeUserRole(targetUserId, role, adminId);
-    return res.status(200).json({ success: true, data: user });
+    return res.success(user);
   }
 
   async updateUserStatus(req, res) {
@@ -41,28 +41,28 @@ class AdminController {
     const { isActive } = req.body;
     const adminId = req.user.id;
     const user = await adminService.changeUserStatus(targetUserId, isActive, adminId);
-    return res.status(200).json({ success: true, data: user });
+    return res.success(user);
   }
 
   async createScholarship(req, res) {
     const scholarship = await adminService.addScholarship(req.body);
-    return res.status(201).json({ success: true, data: scholarship });
+    return res.created(scholarship, 'Đã tạo học bổng');
   }
 
   async updateScholarship(req, res) {
     const scholarship = await adminService.modifyScholarship(req.params.id, req.body);
-    return res.status(200).json({ success: true, data: scholarship });
+    return res.success(scholarship);
   }
 
   async updateScholarshipFeatured(req, res) {
     const { isFeatured } = req.body;
     const scholarship = await adminService.toggleScholarshipFeatured(req.params.id, isFeatured);
-    return res.status(200).json({ success: true, data: scholarship });
+    return res.success(scholarship);
   }
 
   async deleteScholarship(req, res) {
     await adminService.removeScholarship(req.params.id);
-    return res.status(200).json({ success: true, message: 'Đã xóa học bổng' });
+    return res.success(null, 'Đã xóa học bổng');
   }
 }
 

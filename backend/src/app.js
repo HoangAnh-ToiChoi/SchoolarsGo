@@ -19,6 +19,7 @@ import errorHandleController from './controllers/errorHandle.controller.js';
 import healthController from './controllers/health.controller.js';
 import './configs/database.config.js';
 import routes from './routes/index.js';
+import { isProduction } from './configs/app.config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +39,7 @@ app.use((req, res, next) => {
 });
 app.use(cookieParser());
 app.use(checkOrigin);
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(morgan(isProduction() ? 'combined' : 'dev'));
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/api/health', healthController.check);
