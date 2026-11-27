@@ -58,7 +58,7 @@ class ErrorHandleController {
 
   static #zodError(err) {
     if (!(err instanceof ZodError)) return null;
-    return ErrorHandleController.#build(common.VALIDATION_ERROR, err.errors.map(e => ({ field: e.path.join('.'), message: e.message })));
+    return ErrorHandleController.#build(common.VALIDATION_ERROR, err.issues.map(e => ({ field: e.path.join('.'), message: e.message })));
   }
 
   static #postgresError(err) {

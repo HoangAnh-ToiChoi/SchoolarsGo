@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { DEGREES } from './scholarship.validation.js';
 
-const adminCreateScholarshipSchema = z.object({
+// Trường chung của tạo và sửa học bổng, KHÔNG có giá trị mặc định: zod 4 áp default cả trong .partial(),
+// nên PATCH chỉ đổi tiêu đề sẽ ghi is_featured = false (gỡ nổi bật) nếu default nằm ở đây
+const scholarshipFields = z.object({
   title: z.string().min(1, 'Tiêu đề không được để trống').max(500),
   provider: z.string().min(1, 'Tổ chức cấp học bổng không được để trống').max(255),
   country: z.string().max(100).optional(),
@@ -16,22 +18,30 @@ const adminCreateScholarshipSchema = z.object({
   deadline: z.string().datetime({ message: 'deadline phải là ISO 8601' }).optional(),
   min_gpa: z.coerce.number().min(0).max(4).optional(),
   min_ielts: z.coerce.number().min(0).max(9).optional(),
+  is_featured: z.boolean().optional(),
+  is_active: z.boolean().optional(),
+});
+
+const adminCreateScholarshipSchema = scholarshipFields.extend({
   is_featured: z.boolean().optional().default(false),
   is_active: z.boolean().optional().default(true),
 });
 
-const adminUpdateScholarshipSchema = adminCreateScholarshipSchema.partial();
+// Body rỗng (hoặc chỉ có trường lạ, zod bỏ đi) thì SQL thành "SET , updated_at" → 500: chặn bằng 400
+const adminUpdateScholarshipSchema = scholarshipFields
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, { message: 'Cần ít nhất một trường để cập nhật' });
 
 const adminUpdateUserRoleSchema = z.object({
   role: z.enum(['user', 'admin'], { message: 'Role phải là "user" hoặc "admin"' }),
 });
 
 const adminUpdateUserStatusSchema = z.object({
-  isActive: z.boolean({ required_error: 'isActive là bắt buộc' }),
+  isActive: z.boolean({ message: 'isActive là bắt buộc' }),
 });
 
 const adminUpdateScholarshipFeaturedSchema = z.object({
-  isFeatured: z.boolean({ required_error: 'isFeatured là bắt buộc' }),
+  isFeatured: z.boolean({ message: 'isFeatured là bắt buộc' }),
 });
 
 const adminUserQuerySchema = z.object({

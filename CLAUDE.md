@@ -285,7 +285,7 @@ pages/deadlines/
 
 ### 5.5 Hiệu năng, bảo mật, truy cập
 
-- **Chuyển trang không nháy:** `Suspense` quanh `<Outlet />` trong layout, router bật `v7_startTransition`. Tải quá 5 giây → `SlowLoading`. `Reveal` chỉ chạy khi có dữ liệu, tôn trọng `prefers-reduced-motion`.
+- **Chuyển trang không nháy:** `Suspense` quanh `<Outlet />` trong layout, React Router 7 chuyển trang trong `startTransition` (mặc định). Tải quá 5 giây → `SlowLoading`. `Reveal` chỉ chạy khi có dữ liệu, tôn trọng `prefers-reduced-motion`.
 - **XSS:** không `dangerouslySetInnerHTML` (bắt buộc thì qua `sanitizeHtml()`); URL từ dữ liệu qua `safeUrl()`; link tab mới có `rel="noopener noreferrer"`.
 - **Accessibility:** thẻ thật (`<button>`, `<a href>`, `<label>`); nút chỉ có icon có `aria-label`; icon trang trí `aria-hidden`; hover và focus nhìn thấy được.
 
