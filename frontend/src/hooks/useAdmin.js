@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 
 const USERS_KEY = ['admin', 'users'];
 const SCHOLARSHIPS_KEY = ['scholarships'];
+// Sửa / xóa học bổng: trang chi tiết, danh sách đã lưu và đơn ứng tuyển cũng nhúng dữ liệu học bổng
+const SCHOLARSHIP_KEYS = [SCHOLARSHIPS_KEY, ['scholarship'], ['saved'], ['applications']];
 
 // Mọi thao tác admin cùng một nhịp: gọi API → làm mới danh sách liên quan → báo kết quả
 function useAdminMutation(mutationFn, { invalidate, success, failure }) {
@@ -11,7 +13,8 @@ function useAdminMutation(mutationFn, { invalidate, success, failure }) {
   return useMutation({
     mutationFn,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: invalidate });
+      const keys = Array.isArray(invalidate[0]) ? invalidate : [invalidate];
+      keys.forEach((queryKey) => qc.invalidateQueries({ queryKey }));
       toast.success(success);
     },
     onError: (e) => toast.error(e.message || failure),
@@ -60,7 +63,7 @@ export const useAdminCreateScholarship = () =>
 
 export const useAdminUpdateScholarship = () =>
   useAdminMutation(({ id, ...data }) => adminService.updateScholarship(id, data), {
-    invalidate: SCHOLARSHIPS_KEY,
+    invalidate: SCHOLARSHIP_KEYS,
     success: 'Đã cập nhật học bổng',
     failure: 'Cập nhật thất bại',
   });
@@ -74,7 +77,7 @@ export const useAdminToggleFeatured = () =>
 
 export const useAdminDeleteScholarship = () =>
   useAdminMutation((id) => adminService.deleteScholarship(id), {
-    invalidate: SCHOLARSHIPS_KEY,
+    invalidate: SCHOLARSHIP_KEYS,
     success: 'Đã xóa học bổng',
     failure: 'Xóa thất bại',
   });

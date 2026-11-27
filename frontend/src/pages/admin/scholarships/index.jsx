@@ -4,6 +4,7 @@ import AdminPageTitle from '~/components/admin/adminPageTitle';
 import AdminTable from '~/components/admin/adminTable';
 import { useScholarships } from '~/hooks/useScholarship';
 import { ADMIN_PAGE_SIZE, EMPTY_META } from '~/utils/constants';
+import EditScholarshipModal from '~/pages/admin/scholarships/components/editScholarshipModal';
 import ScholarshipModal from '~/pages/admin/scholarships/components/scholarshipModal';
 import ScholarshipRow from '~/pages/admin/scholarships/components/scholarshipRow';
 import { SCHOLARSHIP_COLUMNS, SCHOLARSHIP_SKELETON_ROWS } from '~/pages/admin/scholarships/constants';
@@ -51,9 +52,12 @@ export default function AdminScholarshipsPage() {
         ))}
       </AdminTable>
 
-      {actions.modal && (
-        <ScholarshipModal
-          scholarship={actions.modal.mode === 'edit' ? actions.modal.scholarship : null}
+      {actions.modal?.mode === 'create' && (
+        <ScholarshipModal onClose={actions.closeModal} onSave={actions.save} isSaving={actions.isSaving} />
+      )}
+      {actions.modal?.mode === 'edit' && (
+        <EditScholarshipModal
+          scholarship={actions.modal.scholarship}
           onClose={actions.closeModal}
           onSave={actions.save}
           isSaving={actions.isSaving}
