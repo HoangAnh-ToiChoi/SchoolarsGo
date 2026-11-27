@@ -1,0 +1,6 @@
+export { CAPABILITIES } from './capabilities';
+export {
+  CHAT_COUNTER_FROM, CHAT_HISTORY_SENT, CHAT_MAX_LENGTH, CHAT_WARN_LENGTH, COPY_RESET_MS, QUICK_CHIPS_MAX_MESSAGES,
+} from './chatLimits';
+export { CHAT_ALLOWED_TAGS, FALLBACK_REPLY, MESSAGE_TOO_LONG, WELCOME_MESSAGE } from './chatTexts';
+export { QUICK_REPLIES } from './quickReplies';

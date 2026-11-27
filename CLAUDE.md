@@ -56,7 +56,7 @@ Tài liệu lệch code thì **code là đúng**.
 | FE hook | 150 | | BE service | 200 |
 | FE service | 200 | | BE model | 250 |
 
-File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `recommend.service` · **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
+File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `recommend.service` · **FE (trang legacy)** `profile`.
 
 ---
 
@@ -231,7 +231,7 @@ frontend/src/
   pageLoaders.js       hàm tải từng trang + tải trước khi rảnh (thêm trang mới: thêm vào đây)
   pages/<trang>/       index.jsx (chỉ ghép component, không gọi API) + components/ hooks/ helpers/ constants/
   layouts/             userLayout, adminLayout: index.jsx để dùng, components/ là phần triển khai
-  components/          ui/ (shadcn) · common/ · application/ · scholarship/ · scholarshipFilter/ · legacy/ (code mới không dùng)
+  components/          ui/ (shadcn) · common/ · admin/ (khung bảng trang quản trị) · application/ · scholarship/ · scholarshipFilter/ · legacy/ (code mới không dùng)
   hooks/ services/     TanStack Query dùng chung · <nhóm>.service.js gọi API qua utils/apiClient
   store/slices/ utils/ Redux: auth, comparison, ui · cn, format, scholarship, application, security, palette, demo/
 ```
