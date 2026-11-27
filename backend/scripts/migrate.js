@@ -6,6 +6,9 @@
  *   npm run migrate -- --dry-run                           -- chỉ liệt kê file sẽ chạy, không ghi gì vào DB
  *   npm run migrate -- --env=.env.cloud --allow-remote     -- Supabase Cloud
  *
+ * Railway chạy script này trước mỗi lần deploy (railway.json: preDeployCommand, cờ --if-auto). Chỉ chạy khi biến
+ * AUTO_MIGRATE=true: bật sau khi đã chạy tay lần đầu và kiểm schema production. Lỗi thì Railway không deploy bản mới.
+ *
  * Mọi file migration viết dạng chạy lại không lỗi, nên lần đầu chạy trên DB đã dựng tay (chưa có schema_migrations)
  * cứ chạy thường: file nào đã áp thì không đổi gì, file thiếu (vd. index của 001, cột của 007) sẽ được bù.
  */
@@ -94,8 +97,17 @@ async function apply(pool, name) {
   await pool.query('INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
 }
 
+/** Lệnh trước deploy: chưa bật AUTO_MIGRATE thì bỏ qua (thoát 0, deploy vẫn tiếp tục). */
+function isAutoDisabled() {
+  return hasFlag('if-auto') && process.env.AUTO_MIGRATE !== 'true';
+}
+
 async function main() {
   loadEnv();
+  if (isAutoDisabled()) {
+    console.info('🗄  AUTO_MIGRATE chưa bật: bỏ qua migration trước deploy');
+    return;
+  }
   const dryRun = hasFlag('dry-run');
   const files = listMigrationFiles();
   const pool = createPool();
