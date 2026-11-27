@@ -1,5 +1,6 @@
 import FormField from '~/pages/admin/scholarships/components/formField';
-import { COVERAGE_OPTIONS, DEGREE_OPTIONS } from '~/pages/admin/scholarships/constants';
+import { DEGREE_OPTIONS } from '~/pages/admin/scholarships/constants';
+import { getCoverageOptions } from '~/pages/admin/scholarships/helpers';
 
 const WIDE = 'sm:col-span-2';
 
@@ -28,7 +29,7 @@ export default function ScholarshipFormFields({ form, set }) {
       <FormField label="Hình thức">
         <select {...bind('coverage')} className="input">
           <option value="">Chọn hình thức</option>
-          {COVERAGE_OPTIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          {getCoverageOptions(form.coverage).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </FormField>
       <FormField label="Giá trị (USD)">
@@ -38,7 +39,7 @@ export default function ScholarshipFormFields({ form, set }) {
         <input type="date" {...bind('deadline')} className="input" />
       </FormField>
       <FormField label="Mô tả" className={WIDE}>
-        <textarea rows={3} {...bind('description')} className="input resize-none" placeholder="Mô tả học bổng..." />
+        <textarea rows={3} {...bind('summary')} className="input resize-none" placeholder="Mô tả học bổng..." />
       </FormField>
       <FormField label="Yêu cầu" className={WIDE}>
         <textarea rows={3} {...bind('requirements')} className="input resize-none" placeholder="GPA tối thiểu, IELTS..." />

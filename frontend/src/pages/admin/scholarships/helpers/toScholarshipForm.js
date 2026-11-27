@@ -12,7 +12,7 @@ export function toScholarshipForm(scholarship) {
     coverage: scholarship.coverage || '',
     amount: scholarship.amount ?? '',
     deadline: scholarship.deadline ? scholarship.deadline.split('T')[0] : '',
-    description: scholarship.description || '',
+    summary: scholarship.summary || '',
     requirements: scholarship.requirements || '',
   };
 }
