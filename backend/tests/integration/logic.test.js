@@ -34,8 +34,9 @@ describe('Hạn nộp theo Asia/Ho_Chi_Minh', () => {
       body: { title: `Hạn ISO ${Date.now()}`, provider: 'X', country: 'Japan', degree: 'Master', deadline: '2027-03-01T17:00:00.000Z' },
     });
     assert.equal(res.status, 201, JSON.stringify(res.json));
-    const [row] = await sql(`SELECT to_char(deadline, 'YYYY-MM-DD') AS day FROM scholarships WHERE id = $1`, [res.json.data.id]);
+    const [row] = await sql(`SELECT to_char(deadline, 'YYYY-MM-DD') AS day, degree_source FROM scholarships WHERE id = $1`, [res.json.data.id]);
     assert.equal(row.day, '2027-03-02');
+    assert.equal(row.degree_source, 'admin', 'bậc học admin nhập phải được ghi là đã xác nhận');
   });
 
   it('mốc nhắc: còn 0 ngày → mốc 1; còn 15 ngày → không nhắc', () => {
@@ -60,7 +61,7 @@ describe('Gợi ý học bổng', () => {
       body: { gpa: 3.8, english_level: 'IELTS 7.5', target_country: 'Japan', target_degree: 'Bachelor', target_major: 'Computer Science', nationality: 'VN' },
     });
     const phd = await createScholarship({
-      title: `PhD only Japan Computer Science ${Date.now()}`, country: 'Japan', degree: 'PhD', field_of_study: 'Computer Science', relevance_score: 100,
+      title: `PhD only Japan Computer Science ${Date.now()}`, country: 'Japan', degree: 'PhD', degree_source: 'title', field_of_study: 'Computer Science', relevance_score: 100,
     });
     const jpOnly = await createScholarship({
       title: `Japanese nationals Computer Science ${Date.now()}`, country: 'Japan', degree: 'Bachelor', field_of_study: 'Computer Science', relevance_score: 100,

@@ -141,6 +141,7 @@ function mergeGaps(info, ai, now) {
   if (!merged.degreeKnown && VALID_DEGREES.has(ai.degree)) {
     merged.degree = ai.degree;
     merged.degreeKnown = true;
+    merged.degreeSource = 'ai';
   }
   const provider = cleanProvider(ai.provider);
   if (!merged.provider && provider) merged.provider = provider;

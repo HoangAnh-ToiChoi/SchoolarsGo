@@ -1,5 +1,5 @@
 import { AppError, admin as adminErrors } from '~/constants/errors.js';
-import { ADMIN_VALID_ROLES } from '~/constants/admin.js';
+import { ADMIN_DEGREE_SOURCE, ADMIN_VALID_ROLES } from '~/constants/admin.js';
 import { APPLICATION_STATUSES } from '~/constants/application.js';
 import { toVnDate } from '~/utils/deadline.js';
 import adminModel from '~/models/admin.model.js';
@@ -88,9 +88,19 @@ class AdminService {
     return { ...data, deadline: toVnDate(data.deadline) };
   }
 
+  #withDegreeSource(data) {
+    if (!data.degree) return data;
+    return { ...data, degree_source: ADMIN_DEGREE_SOURCE };
+  }
+
+  #toScholarshipRecord(data) {
+    const withDeadline = this.#withVnDeadline(data);
+    return this.#withDegreeSource(withDeadline);
+  }
+
   async addScholarship(data) {
     const scholarshipData = {
-      ...this.#withVnDeadline(data),
+      ...this.#toScholarshipRecord(data),
       is_active: data.is_active !== undefined ? data.is_active : true,
     };
     const scholarship = await adminModel.createScholarship(scholarshipData);
@@ -99,7 +109,8 @@ class AdminService {
   }
 
   async modifyScholarship(id, data) {
-    const scholarship = await adminModel.updateScholarship(id, this.#withVnDeadline(data));
+    const record = this.#toScholarshipRecord(data);
+    const scholarship = await adminModel.updateScholarship(id, record);
     this.#guardFound(scholarship, adminErrors.SCHOLARSHIP_NOT_FOUND_OR_DELETED);
     return scholarship;
   }

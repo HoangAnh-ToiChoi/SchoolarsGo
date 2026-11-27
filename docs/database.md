@@ -94,6 +94,7 @@
 | city | varchar(255) | NULLABLE | Thành phố |
 | university | varchar(255) | NULLABLE | Trường đại học |
 | degree | varchar(50) | NOT NULL | Bậc học (Bachelor, Master, PhD, Any) |
+| degree_source | varchar(10) | NULLABLE | Nguồn bậc học: category, title, admin (đủ tin, gợi ý loại nếu lệch) · body, ai, NULL (chỉ nhắc kiểm tra) |
 | field_of_study | varchar(255) | NULLABLE | Ngành học |
 | amount | decimal(12,2) | NULLABLE | Số tiền học bổng |
 | currency | varchar(10) | DEFAULT 'USD' | Đơn vị tiền tệ |

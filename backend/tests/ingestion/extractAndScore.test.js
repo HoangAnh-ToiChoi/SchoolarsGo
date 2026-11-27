@@ -90,3 +90,11 @@ test('nước đến học: tiêu đề thắng chuyên mục; không có gì th
   const fromSignal = rawPost({ title: 'Great Scholarship for Students', signals: ['country:Japan'], contentText: 'x' });
   assert.equal(extractFacts(fromSignal, { now: NOW }).country, 'Japan');
 });
+
+test('nguồn bậc học: chuyên mục → category, tiêu đề → title, thân bài → body, không rõ → null', () => {
+  const sourceOf = (overrides) => extractFacts(rawPost(overrides), { now: NOW }).degreeSource;
+  assert.equal(sourceOf({ signals: ['degree:PhD'] }), 'category');
+  assert.equal(sourceOf({ signals: [], title: 'PhD Scholarship 2027', contentText: 'Apply now.' }), 'title');
+  assert.equal(sourceOf({ signals: [], title: 'Scholarship 2027', contentText: 'For PhD applicants.' }), 'body');
+  assert.equal(sourceOf({ signals: [], title: 'Scholarship 2027', contentText: 'Master or PhD.' }), null);
+});

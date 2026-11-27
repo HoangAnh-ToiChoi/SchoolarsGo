@@ -49,3 +49,13 @@ test('sửa học bổng không tồn tại → 404', async () => {
     error => error.statusCode === 404,
   );
 });
+
+test('bậc học admin gửi lên được ghi là admin xác nhận; không gửi bậc thì không đụng nguồn', async () => {
+  const calls = recordingModel({ id: 's1' });
+  await adminService.addScholarship({ title: 'A', degree: 'PhD' });
+  await adminService.modifyScholarship('s1', { degree: 'Master' });
+  await adminService.modifyScholarship('s1', { title: 'B' });
+  assert.equal(calls[0][1].degree_source, 'admin');
+  assert.equal(calls[1][2].degree_source, 'admin');
+  assert.equal('degree_source' in calls[2][2], false);
+});

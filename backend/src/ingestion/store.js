@@ -5,7 +5,7 @@
 
 // Cột ghi khi thêm mới (thứ tự cố định để ghép $1, $2...)
 const INSERT_COLUMNS = [
-  'title', 'provider', 'country', 'degree', 'coverage', 'deadline', 'language',
+  'title', 'provider', 'country', 'degree', 'degree_source', 'coverage', 'deadline', 'language',
   'min_gpa', 'min_ielts', 'summary', 'source', 'source_url', 'source_priority',
   'published_at', 'relevance_score', 'dedup_key', 'is_active', 'is_featured',
 ];

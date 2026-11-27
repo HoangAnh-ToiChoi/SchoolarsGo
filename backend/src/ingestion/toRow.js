@@ -7,11 +7,13 @@ const VALID_DEGREES = new Set(['Bachelor', 'Master', 'PhD', 'Any']);
 
 function toRow({ post, info, score, now }) {
   const deadline = info.deadline ?? null;
+  const degree = VALID_DEGREES.has(info.degree) ? info.degree : 'Any';
   return {
     title: truncate(cleanTitle(post.title), 500),
     provider: truncate(info.provider || 'Unknown', 255),
     country: truncate(info.country || 'International', 100),
-    degree: VALID_DEGREES.has(info.degree) ? info.degree : 'Any',
+    degree,
+    degree_source: degree === 'Any' ? null : (info.degreeSource ?? null),
     coverage: truncate(info.coverage, 255),
     deadline,
     language: truncate(info.language || 'English', 50),
