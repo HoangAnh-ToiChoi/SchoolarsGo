@@ -89,3 +89,13 @@ test('admin khóa dòng giữa lúc đọc và lúc ghi: SQL không ghi, dòng �
   const stats = await saveRows(store, [row()], { now: NOW });
   assert.deepEqual(stats, { inserted: 0, updated: 0, skipped: 1 });
 });
+
+test('hai dòng làm mới cùng tiêu đề trong một lô: dòng sau gửi title null (giữ tiêu đề cũ)', async () => {
+  const store = fakeStore([
+    { id: 'old-x', source_url: 'https://b.test/x/', dedup_key: 'x', deadline: new Date('2026-01-01'), admin_locked_at: null },
+    { id: 'old-y', source_url: 'https://b.test/y/', dedup_key: 'y', deadline: new Date('2026-01-01'), admin_locked_at: null },
+  ]);
+  const rows = [row({ title: 'Same 2027', source_url: 'https://a.test/1/' }), row({ title: 'Same 2027', dedup_key: 'y', source_url: 'https://a.test/2/' })];
+  await saveRows(store, rows, { now: NOW });
+  assert.deepEqual(store.state.renewed.map((r) => r.title), ['Same 2027', null]);
+});

@@ -85,5 +85,7 @@ Khi server chạy: kéo học bổng **Chủ nhật 2:00**, tắt học bổng q
 | Chưa có | Thêm mới |
 
 `dedup_key` (`toRow.js`): tiêu đề bỏ dấu, bỏ năm, bỏ đuôi sau ` | ` và đuôi kêu gọi sau ` - ` ("- Apply by …"); đuôi khác sau ` - ` giữ lại (MEXT theo trường ≠ theo đại sứ quán). Tiêu đề chỉ toàn từ chung chung thì khoá là `NULL`, chỉ chống trùng theo link.
+
+Đổi công thức `dedupKey` thì tính lại khoá đã lưu, nếu không lượt kéo sau sẽ thêm bản trùng: `node --import ./register.js scripts/recomputeDedupKeys.js --env=<file env>` (chạy thử, in thay đổi) rồi thêm `--apply` (DB thật thêm `--allow-remote`). Khoá mới đụng khoá dòng khác thì giữ khoá cũ và báo ra.
 - `ingestion_runs.started_at` lưu giờ UTC (`toUtcText` trong `save.js`).
 - Workflow cần secrets `PG_*` (và tùy chọn `GEMINI_API_KEY`). Chưa có `PG_HOST` thì workflow bỏ qua, không báo lỗi. GitHub chỉ chạy lịch trên nhánh mặc định (`main`).

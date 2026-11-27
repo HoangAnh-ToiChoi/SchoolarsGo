@@ -116,6 +116,25 @@ describe('Khoá chống trùng (R09)', () => {
     assert.equal(row.source_url, `https://pulled.test/${key}-new/`);
   });
 
+  it('hai kỳ mới cùng tiêu đề trong một lô không làm lỗi cả lượt kéo', async () => {
+    const past = new Date(Date.now() - 30 * 864e5);
+    const k1 = unique('dupA');
+    const k2 = unique('dupB');
+    const a = await createScholarship({ source_url: `https://pulled.test/${k1}-old/`, dedup_key: k1, deadline: past });
+    const b = await createScholarship({ source_url: `https://pulled.test/${k2}-old/`, dedup_key: k2, deadline: past });
+    const title = unique('Shared New Title');
+    const rows = [
+      pulledRow({ source_url: `https://pulled.test/${k1}-new/`, dedup_key: k1, title }),
+      pulledRow({ source_url: `https://pulled.test/${k2}-new/`, dedup_key: k2, title }),
+    ];
+    const stats = await saveRows(store, rows, { now: NOW });
+    assert.equal(stats.updated, 2, JSON.stringify(stats));
+    const titles = await sql('SELECT id, title FROM scholarships WHERE id = ANY($1)', [[a.id, b.id]]);
+    const byId = Object.fromEntries(titles.map((r) => [r.id, r.title]));
+    assert.equal(byId[a.id], title);
+    assert.equal(byId[b.id], b.title);
+  });
+
   it('nhiều bài khoá null cùng được thêm (không dồn vào một khoá rỗng)', async () => {
     const rows = [pulledRow({ source_url: `https://pulled.test/${unique('n1')}/`, dedup_key: null }), pulledRow({ source_url: `https://pulled.test/${unique('n2')}/`, dedup_key: null })];
     const stats = await saveRows(store, rows, { now: NOW });

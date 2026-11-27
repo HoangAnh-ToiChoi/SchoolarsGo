@@ -44,6 +44,7 @@ async function saveRows(store, rows, { dryRun = false, now = new Date() } = {}) 
   const toUpdate = [];
   const toRenew = [];
   const renewedIds = new Set();
+  const renewTitles = new Set();
   let skipped = 0;
   for (const row of rows) {
     const { action, id } = decide(row, index, now);
@@ -52,8 +53,11 @@ async function saveRows(store, rows, { dryRun = false, now = new Date() } = {}) 
     if (action === 'insert') toInsert.push(row);
     else if (action === 'update') toUpdate.push({ ...row, id });
     else if (action === 'renew' && !renewTwice) {
-      toRenew.push({ ...row, id });
+      // Hai dòng làm mới cùng tiêu đề trong một lô: dòng sau giữ tiêu đề cũ (title UNIQUE, cả câu UPDATE sẽ lỗi)
+      const title = renewTitles.has(row.title) ? null : row.title;
+      toRenew.push({ ...row, id, title });
       renewedIds.add(id);
+      renewTitles.add(row.title);
     } else skipped++;
   }
 
@@ -140,14 +144,15 @@ function createStore(db) {
 
     /**
      * Kỳ mới của học bổng đã quá hạn (cùng khoá, link bài mới): chuyển dòng cũ sang bài mới thay vì bỏ qua.
-     * Tiêu đề trùng một dòng khác (cột title UNIQUE) thì giữ tiêu đề cũ để cả lô không lỗi.
+     * title NULL hoặc trùng một dòng khác (cột title UNIQUE) thì giữ tiêu đề cũ để cả lô không lỗi.
      */
     async renewMany(rows) {
       if (rows.length === 0) return 0;
       const column = (name) => rows.map((row) => row[name] ?? null);
       const result = await db.query(
         `UPDATE scholarships AS s
-            SET title = CASE WHEN EXISTS (SELECT 1 FROM scholarships t WHERE t.title = u.title AND t.id <> s.id)
+            SET title = CASE WHEN u.title IS NULL
+                               OR EXISTS (SELECT 1 FROM scholarships t WHERE t.title = u.title AND t.id <> s.id)
                              THEN s.title ELSE u.title END,
                 source_url = u.source_url, source = u.source, source_priority = u.source_priority,
                 published_at = u.published_at, deadline = u.deadline, relevance_score = u.relevance_score,
