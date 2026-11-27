@@ -93,11 +93,19 @@ jobs:
 
       - name: Lấy URL và khóa của Supabase local
         run: |
-          eval "$(supabase status -o env)"
+          supabase status -o env > supabase.env
+          read_var() { grep -E "^$1=" supabase.env | head -1 | cut -d= -f2- | tr -d '"'; }
+          api_url="$(read_var API_URL)"
+          anon_key="$(read_var ANON_KEY)"
+          service_key="$(read_var SERVICE_ROLE_KEY)"
+          # Thiếu biến (CLI đổi tên) thì dừng ở đây thay vì để test tự bỏ qua
+          for value in "$api_url" "$anon_key" "$service_key"; do
+            [ -n "$value" ] || { echo "::error::supabase status thiếu API_URL / ANON_KEY / SERVICE_ROLE_KEY"; exit 1; }
+          done
           {
-            echo "SUPABASE_URL=$API_URL"
-            echo "SUPABASE_ANON_KEY=$ANON_KEY"
-            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_URL=$api_url"
+            echo "SUPABASE_ANON_KEY=$anon_key"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$service_key"
           } >> "$GITHUB_ENV"
 
       - run: npm ci

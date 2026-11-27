@@ -9,14 +9,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS role          VARCHAR(20) NOT NULL DE
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active     BOOLEAN     NOT NULL DEFAULT true;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ NULL;
 
--- Giá trị hợp lệ khớp ADMIN_VALID_ROLES (backend/src/constants/admin.js).
--- NOT VALID: không quét lại dữ liệu cũ của production, chỉ chặn dòng ghi mới; chạy VALIDATE sau khi đã kiểm dữ liệu.
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_role_valid') THEN
-    ALTER TABLE users ADD CONSTRAINT users_role_valid CHECK (role IN ('user', 'admin')) NOT VALID;
-  END IF;
-END $$;
+-- Chưa thêm CHECK (role IN ('user', 'admin')): kể cả NOT VALID, Postgres vẫn kiểm ràng buộc ở MỌI lần UPDATE dòng đó
+-- (vd. ghi last_login_at khi đăng nhập), nên một dòng production có role lạ sẽ làm đăng nhập lỗi 500.
+-- Thêm ở migration sau, khi đã kiểm `SELECT DISTINCT role FROM users` trên production.
 
 -- Trang admin lọc người dùng theo vai trò và trạng thái
 CREATE INDEX IF NOT EXISTS idx_users_role      ON users(role);

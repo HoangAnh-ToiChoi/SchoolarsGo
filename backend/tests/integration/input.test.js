@@ -35,6 +35,7 @@ describe('Tìm kiếm học bổng', () => {
 
   it('limit quá lớn bị chặn (không trả hàng nghìn dòng)', async () => {
     const res = await createClient().request('GET', '/api/scholarships?limit=100000');
+    assert.ok(res.status < 500, `status ${res.status}`);
     assert.ok(res.status === 400 || (res.json?.data?.length ?? 0) <= 100, `status ${res.status}`);
   });
 
@@ -85,7 +86,7 @@ describe('Đã lưu / đơn ứng tuyển', () => {
     const statuses = results.map((r) => r.status).sort();
     const rows = await sql('SELECT count(*)::int AS n FROM applications WHERE user_id = $1 AND scholarship_id = $2', [U.user.id, s.id]);
     assert.equal(rows[0].n, 1);
-    assert.ok(!statuses.some((x) => x >= 500), `có 500: ${statuses}`);
+    assert.deepEqual(statuses, [201, 409, 409, 409, 409]);
   });
 });
 

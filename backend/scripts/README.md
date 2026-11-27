@@ -52,5 +52,5 @@ Tạo bảng: `npm run migrate` (DB local) hoặc `npm run migrate -- --env=.env
 | Script | Mô tả |
 |---|---|
 | `ingest.js` | Kéo học bổng từ 5 nguồn (module `src/ingestion`). Chi tiết: `docs/scholarshipIngestion/architecture.md`. Dùng `--dry-run` để chạy thử |
-| `migrate.js` (`npm run migrate`) | Chạy mọi migration chưa áp theo thứ tự, ghi vào `schema_migrations`. `--dry-run` liệt kê, `--baseline` chỉ ghi nhận (DB đã chạy tay đủ) |
+| `migrate.js` (`npm run migrate`) | Chạy mọi migration chưa áp theo thứ tự, ghi vào `schema_migrations`. `--dry-run` chỉ liệt kê, không ghi gì vào DB |
 | `applyMigration.js` | Chạy một file trong `scripts/migrations/` (ví dụ `--file=003_ingestion.sql`), không ghi `schema_migrations` |

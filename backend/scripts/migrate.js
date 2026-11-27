@@ -2,13 +2,12 @@
  * Chạy mọi migration chưa áp trong scripts/migrations/ theo thứ tự số, ghi lại vào bảng schema_migrations.
  *
  * Cách dùng (trong backend/):
- *   npm run migrate                                        -- DB local (PG_* trong .env)
- *   npm run migrate -- --dry-run                           -- chỉ liệt kê file sẽ chạy
+ *   npm run migrate                                        -- DB local (PG_* trong .env hoặc biến đã export)
+ *   npm run migrate -- --dry-run                           -- chỉ liệt kê file sẽ chạy, không ghi gì vào DB
  *   npm run migrate -- --env=.env.cloud --allow-remote     -- Supabase Cloud
- *   npm run migrate -- --env=.env.cloud --allow-remote --baseline
- *       -- DB đã chạy tay đủ các file hiện có: chỉ ghi tên file vào schema_migrations, không chạy lại
  *
- * Mọi file migration viết dạng chạy lại không lỗi, nên lần đầu chạy trên DB cũ (chưa có schema_migrations) vẫn an toàn.
+ * Mọi file migration viết dạng chạy lại không lỗi, nên lần đầu chạy trên DB đã dựng tay (chưa có schema_migrations)
+ * cứ chạy thường: file nào đã áp thì không đổi gì, file thiếu (vd. index của 001, cột của 007) sẽ được bù.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,20 +29,28 @@ const CREATE_TRACKING_TABLE = `
 `;
 
 function argValue(name) {
-  const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
-  return arg ? arg.split('=')[1] : undefined;
+  const prefix = `--${name}=`;
+  const arg = process.argv.find((a) => a.startsWith(prefix));
+  return arg ? arg.slice(prefix.length) : undefined;
 }
 
 function hasFlag(name) {
   return process.argv.includes(`--${name}`);
 }
 
+function loadEnv() {
+  const envFile = argValue('env') || '.env';
+  const envPath = path.resolve(__dirname, '..', envFile);
+  dotenv.config({ path: envPath });
+}
+
 /** Tên file migration theo thứ tự; số trùng là lỗi vì thứ tự chạy không còn xác định. */
 function listMigrationFiles() {
-  const files = fs.readdirSync(MIGRATIONS_DIR).filter((f) => MIGRATION_FILE.test(f)).sort();
+  const all = fs.readdirSync(MIGRATIONS_DIR);
+  const files = all.filter((f) => MIGRATION_FILE.test(f)).sort();
   const numbers = files.map((f) => f.slice(0, 3));
-  const duplicated = numbers.filter((n, i) => numbers.indexOf(n) !== i);
-  if (duplicated.length) throw new Error(`Trùng số migration: ${[...new Set(duplicated)].join(', ')}`);
+  const duplicated = new Set(numbers.filter((n, i) => numbers.indexOf(n) !== i));
+  if (duplicated.size) throw new Error(`Trùng số migration: ${[...duplicated].join(', ')}`);
   return files;
 }
 
@@ -58,45 +65,49 @@ function createPool() {
     database: process.env.PG_DATABASE || 'postgres',
     user: process.env.PG_USER || 'postgres',
     password: process.env.PG_PASSWORD,
+    // Supabase pooler dùng chứng chỉ không nằm trong kho CA mặc định của Node (giống configs/database.config.js)
     ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
   });
 }
 
-async function appliedNames(pool) {
-  await pool.query(CREATE_TRACKING_TABLE);
+/** Tên file đã áp. Chạy thử (--dry-run) thì chỉ đọc: bảng theo dõi chưa có nghĩa là chưa áp file nào. */
+async function appliedNames(pool, dryRun) {
+  if (dryRun) {
+    const { rows } = await pool.query(`SELECT to_regclass('public.schema_migrations') AS t`);
+    if (!rows[0].t) return new Set();
+  } else {
+    await pool.query(CREATE_TRACKING_TABLE);
+  }
   const { rows } = await pool.query('SELECT name FROM schema_migrations');
-  return new Set(rows.map((r) => r.name));
-}
-
-async function record(pool, name) {
-  await pool.query('INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
+  const names = rows.map((r) => r.name);
+  return new Set(names);
 }
 
 async function apply(pool, name) {
   const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, name), 'utf8');
-  await pool.query(sql);
-  await record(pool, name);
+  try {
+    await pool.query(sql);
+  } catch (error) {
+    error.message = `${name}: ${error.message}`;
+    throw error;
+  }
+  await pool.query('INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
 }
 
 async function main() {
-  dotenv.config({ path: path.resolve(__dirname, '..', argValue('env') || '.env') });
+  loadEnv();
+  const dryRun = hasFlag('dry-run');
   const files = listMigrationFiles();
   const pool = createPool();
   try {
-    const applied = await appliedNames(pool);
+    const applied = await appliedNames(pool, dryRun);
     const pending = files.filter((f) => !applied.has(f));
-    console.info(`🗄  ${process.env.PG_DATABASE || 'postgres'}@${process.env.PG_HOST || 'localhost'}: ${pending.length} migration chưa áp`);
+    const target = `${process.env.PG_DATABASE || 'postgres'}@${process.env.PG_HOST || 'localhost'}`;
+    console.info(`🗄  ${target}: ${pending.length} migration chưa áp${dryRun ? ' (chạy thử, không ghi gì)' : ''}`);
 
     for (const name of pending) {
-      if (hasFlag('dry-run')) {
-        console.info(`   · ${name}`);
-      } else if (hasFlag('baseline')) {
-        await record(pool, name);
-        console.info(`   ✓ ${name} (chỉ ghi nhận)`);
-      } else {
-        await apply(pool, name);
-        console.info(`   ✓ ${name}`);
-      }
+      if (!dryRun) await apply(pool, name);
+      console.info(`   ${dryRun ? '·' : '✓'} ${name}`);
     }
   } finally {
     await pool.end();

@@ -70,9 +70,10 @@ describe('Gợi ý học bổng', () => {
     await V.client.request('PUT', '/api/profile', { body: { gpa: 3.9, target_country: 'Korea', target_major: 'Economics' } });
     const s = await createScholarship({ title: `Korea Economics IELTS ${Date.now()}`, country: 'Korea', field_of_study: 'Economics', min_ielts: 7.0, relevance_score: 100 });
     const res = await V.client.request('POST', '/api/recommend', { body: { top_n: 50 } });
+    assert.equal(res.status, 200, JSON.stringify(res.json).slice(0, 300));
     const list = res.json.data?.recommendations || res.json.data || [];
     const hit = list.find((x) => (x.id || x.scholarship?.id) === s.id);
-    if (!hit) return;
+    if (!hit) return; // không gợi ý cũng là kết quả chấp nhận được; gợi ý thì phải kèm cảnh báo
     const text = JSON.stringify(hit);
     assert.match(text, /ielts|blocker|thiếu|missing/i, `gợi ý không cảnh báo thiếu IELTS: ${text.slice(0, 300)}`);
   });
@@ -83,11 +84,17 @@ describe('Thông báo nhắc hạn', () => {
     const U = await registerUser('notif');
     const in5days = new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10);
     const s = await createScholarship({ deadline: in5days });
+    const control = await createScholarship({ deadline: in5days });
     await U.client.request('POST', `/api/saved/${s.id}`);
+    await U.client.request('POST', `/api/saved/${control.id}`);
     await sql('UPDATE scholarships SET is_active = false WHERE id = $1', [s.id]);
+    await sql('DELETE FROM notifications WHERE user_id = $1', [U.user.id]); // xóa nhắc tạo lúc lưu, chỉ xét lượt GET
+    // GET /notifications tạo nhắc hạn (mỗi người một lần mỗi ngày) trước khi đọc
     const res = await U.client.request('GET', '/api/notifications');
     assert.equal(res.status, 200, JSON.stringify(res.json));
-    const rows = await sql('SELECT id FROM notifications WHERE user_id = $1 AND scholarship_id = $2', [U.user.id, s.id]);
-    assert.equal(rows.length, 0, 'tạo thông báo cho học bổng đã tắt');
+    const rows = await sql('SELECT scholarship_id FROM notifications WHERE user_id = $1', [U.user.id]);
+    const ids = rows.map((r) => r.scholarship_id);
+    assert.ok(ids.includes(control.id), 'đối chứng: học bổng còn mở phải có nhắc hạn (nếu không, test không chứng minh gì)');
+    assert.ok(!ids.includes(s.id), 'tạo thông báo cho học bổng đã tắt');
   });
 });

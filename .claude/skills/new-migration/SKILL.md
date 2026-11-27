@@ -12,7 +12,7 @@ Chuyển thể từ ECC `database-migrations` + `postgres-patterns`, theo quy ư
 ```bash
 ls backend/scripts/migrations/
 ```
-Số = lớn nhất hiện có + 1, 3 chữ số (đang có tới `008`; `007` bị bỏ trống — **không** điền lại). Tên `00N_tenMigration.sql` camelCase.
+Số = lớn nhất hiện có + 1, 3 chữ số (`ls backend/scripts/migrations`; `npm run migrate` báo lỗi nếu trùng số). Tên `00N_tenMigration.sql` camelCase.
 
 **Không sửa migration đã commit** (hook `guardFiles` sẽ hỏi lại): thay đổi tiếp theo luôn là file mới.
 

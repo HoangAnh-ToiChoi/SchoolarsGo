@@ -62,7 +62,12 @@ Test gắn `todo: 'R## …'` là **lỗi đã biết** (danh sách ở `docs/pen
 ```bash
 cd backend && npm run dev              # cùng shell đã export DOTENV_CONFIG_PATH ở bước 3
 cd frontend && npm run dev             # Vite chuyển /api tới http://localhost:3001 — đổi PORT=3001 trong file env nếu muốn dùng proxy mặc định
-node scripts/seedAdmin.js              # tạo admin (trong backend/). Script này tự nạp backend/.env nhưng không ghi đè biến đã export, nên BẮT BUỘC chạy trong shell đã export ở bước 3
+```
+
+Tài khoản admin trên LAB: đăng ký một tài khoản qua giao diện rồi nâng quyền bằng SQL (chỉ trên DB local):
+
+```bash
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -c "UPDATE users SET role = 'admin' WHERE email = '<email vừa đăng ký>'"
 ```
 
 ## 5. Dọn

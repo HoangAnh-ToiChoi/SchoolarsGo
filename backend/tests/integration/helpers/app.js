@@ -1,31 +1,51 @@
 // Hạ tầng test tích hợp: chạy app thật (HTTP) trên Supabase local. KHÔNG bao giờ chạy với DB hay .env thật.
-// Cách chạy: docs/lab.md. Thiếu cấu hình local thì file test tự bỏ qua (thoát 0) để `npm run test:integration` không hỏng trên máy chưa dựng LAB.
+// Cách chạy: docs/lab.md. Trên máy cá nhân thiếu cấu hình LAB thì file test tự bỏ qua (thoát 0);
+// trên CI (biến CI) thì thất bại, để job không xanh giả khi không chạy test nào.
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 
 const LOCAL_HOSTS = ['127.0.0.1', 'localhost'];
+// Cổng mặc định của Supabase local (supabase/config.jsonc): tunnel tới DB thật trên localhost thường dùng cổng khác
+const LAB_PG_PORT = '54322';
+const LAB_API_PORT = '54321';
+const REAL_ENV_FILES = ['.env', '.env.cloud', '.env.production'];
 const BACKEND_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
-function hostOf(url) {
+function parseUrl(url) {
   try {
-    return new URL(url).hostname;
+    return new URL(url);
   } catch {
-    return '';
+    return null;
   }
 }
 
-function unsafeReason() {
-  const { PG_HOST, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DOTENV_CONFIG_PATH } = process.env;
-  if (!PG_HOST || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return 'thiếu biến môi trường Supabase local';
-  if (!LOCAL_HOSTS.includes(PG_HOST) || !LOCAL_HOSTS.includes(hostOf(SUPABASE_URL))) return 'chỉ chạy trên Supabase local';
-  // app.js nạp dotenv/config: không có DOTENV_CONFIG_PATH thì nó đọc backend/.env thật (SMTP, khóa AI…)
-  if (existsSync(path.join(BACKEND_DIR, '.env')) && !DOTENV_CONFIG_PATH) return 'có backend/.env thật mà chưa đặt DOTENV_CONFIG_PATH';
-  return null;
+function notLocalReason({ PG_HOST, PG_PORT, SUPABASE_URL }) {
+  const api = parseUrl(SUPABASE_URL);
+  const localDb = LOCAL_HOSTS.includes(PG_HOST) && PG_PORT === LAB_PG_PORT;
+  const localApi = api && LOCAL_HOSTS.includes(api.hostname) && api.port === LAB_API_PORT;
+  return localDb && localApi ? null : `chỉ chạy trên Supabase local (DB :${LAB_PG_PORT}, API :${LAB_API_PORT})`;
 }
 
-const skipReason = unsafeReason();
+// app.js nạp dotenv/config: không có DOTENV_CONFIG_PATH thì nó đọc backend/.env thật (SMTP, khóa AI…)
+function realEnvReason({ DOTENV_CONFIG_PATH }) {
+  if (DOTENV_CONFIG_PATH && REAL_ENV_FILES.includes(path.basename(DOTENV_CONFIG_PATH))) {
+    return `DOTENV_CONFIG_PATH trỏ vào ${path.basename(DOTENV_CONFIG_PATH)}: dùng file env riêng cho LAB`;
+  }
+  const hasRealEnv = existsSync(path.join(BACKEND_DIR, '.env'));
+  return hasRealEnv && !DOTENV_CONFIG_PATH ? 'có backend/.env thật mà chưa đặt DOTENV_CONFIG_PATH' : null;
+}
+
+function unsafeReason(env) {
+  if (!env.PG_HOST || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return 'thiếu biến môi trường Supabase local';
+  return notLocalReason(env) ?? realEnvReason(env);
+}
+
+const skipReason = unsafeReason(process.env);
+if (skipReason && process.env.CI) {
+  throw new Error(`[integration] CI không chạy được test tích hợp: ${skipReason}`);
+}
 if (skipReason) {
   console.warn(`[integration] bỏ qua: ${skipReason}`);
   process.exit(0);

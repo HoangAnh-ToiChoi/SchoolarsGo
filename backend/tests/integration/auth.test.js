@@ -62,7 +62,7 @@ describe('Đăng xuất và phiên', () => {
     assert.equal(res.status, 401, 'cookie bị đánh cắp vẫn dùng được sau khi chủ đăng xuất');
   });
 
-  it('refresh xoay vòng: refresh token cũ dùng lại (sau cửa sổ 30s) bị từ chối — kiểm qua DB', async () => {
+  it('refresh xoay vòng trong cùng phiên, không sinh thêm phiên mới', async () => {
     const u = await registerUser('rotate');
     const before = await sql('SELECT count(*)::int AS n FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL', [u.user.id]);
     const res = await u.client.request('POST', '/api/auth/refresh');

@@ -70,9 +70,10 @@ describe('IDOR giữa hai người dùng', () => {
   it('B không kết thúc được phiên đăng nhập của A', async () => {
     const [s] = await sql('SELECT id FROM user_sessions WHERE user_id = $1 AND revoked_at IS NULL LIMIT 1', [A.user.id]);
     const res = await B.client.request('DELETE', `/api/auth/sessions/${s.id}`);
-    assert.ok([403, 404].includes(res.status), `status ${res.status}`);
-    const me = await A.client.request('GET', '/api/auth/me');
-    assert.equal(me.status, 200);
+    assert.equal(res.status, 404, `status ${res.status}`);
+    // /auth/me của A vẫn 200 kể cả khi phiên bị thu hồi (access token sống 15 phút, R14) nên phải kiểm DB
+    const [after] = await sql('SELECT revoked_at FROM user_sessions WHERE id = $1', [s.id]);
+    assert.equal(after.revoked_at, null, 'B đã thu hồi được phiên của A');
   });
 
   it('documents_used chỉ nhận tài liệu của chính mình', { todo: 'R28 — lỗi đã biết, gỡ todo khi sửa' }, async () => {
