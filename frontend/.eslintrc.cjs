@@ -18,6 +18,11 @@ module.exports = {
   },
   overrides: [
     {
+      // File chạy bằng Node (cấu hình Vite, loader của npm test): có process, không có window
+      files: ['vite.config.js', 'testRegister.js', 'testAliasLoader.js', '.eslintrc.cjs'],
+      env: { node: true, browser: false },
+    },
+    {
       // Component shadcn/ui export kèm biến thể (buttonVariants…) theo thiết kế của thư viện
       files: ['src/components/ui/**'],
       rules: { 'react-refresh/only-export-components': 'off' },
