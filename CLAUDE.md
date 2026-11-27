@@ -7,7 +7,7 @@ Nền tảng tìm học bổng cho sinh viên Việt Nam. File này là **nguồ
 | **Frontend** | React 18 + Vite, Tailwind 3, shadcn/ui, Redux Toolkit, TanStack Query |
 | **Backend** | Node.js (ESM) + Express 5, Supabase PostgreSQL |
 | **Demo** | GitHub Pages (chỉ FE) |
-| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) |
+| **Tài liệu** | `docs/frontendRules/frontendRules.md` (quy tắc FE bắt buộc R1–R11; **sửa lỗi xong phải ghi thành quy tắc ở đó**) · `docs/roadmap.md` (việc từng vai trò) · `docs/api.md` · `docs/database.md` · `docs/scholarshipIngestion/` · `docs/harness.md` (hook, agent, lệnh `/verify` `/review-diff`… của Claude Code) · `docs/pendingWork.md` (việc đã xác định nhưng chưa làm) |
 
 Tài liệu lệch code thì **code là đúng**.
 
