@@ -1,4 +1,4 @@
-import { getClient } from '~/services/gemini.service.js';
+import { getJsonModel } from '~/services/gemini.service.js';
 import cvTextService from '~/services/cvText.service.js';
 import removeContactInfo from '~/utils/removeContactInfo.js';
 import keepBirthYearOnly from '~/utils/keepBirthYearOnly.js';
@@ -10,7 +10,6 @@ import {
   CV_IELTS_NAME, CV_IELTS_MAX_SCORE,
 } from '~/constants/cv.js';
 import { AppError, cv as cvErrors } from '~/constants/errors.js';
-import { getGeminiModel } from '~/configs/gemini.config.js';
 import { cvDraftSchema } from '~/validations/cvDraft.validation.js';
 
 class CvExtractService {
@@ -32,9 +31,8 @@ class CvExtractService {
   }
 
   async #askGemini(prompt) {
-    const client = getClient();
-    if (!client) throw new AppError(cvErrors.AI_UNAVAILABLE);
-    const model = client.getGenerativeModel({ model: getGeminiModel(), generationConfig: CV_GENERATION_CONFIG });
+    const model = getJsonModel(CV_GENERATION_CONFIG);
+    if (!model) throw new AppError(cvErrors.AI_UNAVAILABLE);
     const result = await withTimeout(model.generateContent(prompt), CV_AI_TIMEOUT_MS, cvErrors.AI_TIMEOUT);
     return result.response.text();
   }

@@ -1,10 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockService, mockServiceFunctions, srcUrl } from './helpers/mockService.js';
+import { mockService, srcUrl } from './helpers/mockService.js';
 
 const modelRef = mockService(srcUrl('models/recommend.model.js'));
-const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['enrichRecommendations', 'getClient']);
 const { default: recommendService } = await import('~/services/recommend.service.js');
 
 const PROFILE = {
@@ -32,7 +31,6 @@ function setup({ profile = PROFILE, candidates = [], details } = {}) {
       return [...rows].reverse(); // DB không hứa thứ tự: service phải tự ghép
     },
   };
-  geminiRef.current = { enrichRecommendations: async (_profile, top) => top };
   return calls;
 }
 

@@ -1,5 +1,5 @@
 import { ZodError } from 'zod';
-import { GoogleGenerativeAIError } from '@google/generative-ai';
+import { ApiError as GeminiApiError } from '@google/genai';
 import { common, postgres, multer, cv } from '~/constants/errors.js';
 import { CV_FILE_ERROR_NAMES } from '~/constants/cv.js';
 
@@ -71,7 +71,7 @@ function cvFileError(err) {
 
 // Gemini lỗi mạng, quá hạn mức, bị chặn nội dung… (cvExtract.service không bắt, lỗi rơi xuống đây)
 function aiError(err) {
-  return err instanceof GoogleGenerativeAIError ? build(cv.AI_FAILED) : null;
+  return err instanceof GeminiApiError ? build(cv.AI_FAILED) : null;
 }
 
 // JSON.parse chữ AI trả về bị hỏng. Lỗi JSON của request body đã được #malformedJsonError nhận trước (có `type`)

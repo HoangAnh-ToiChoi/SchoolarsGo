@@ -4,13 +4,13 @@ import JSZip from 'jszip';
 
 import { mockServiceFunctions, srcUrl } from './helpers/mockService.js';
 
-const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['getClient']);
+const geminiRef = mockServiceFunctions(srcUrl('services/gemini.service.js'), ['getJsonModel']);
 const { default: removeContactInfo } = await import('~/utils/removeContactInfo.js');
 const { default: keepBirthYearOnly } = await import('~/utils/keepBirthYearOnly.js');
 const { default: withTimeout } = await import('~/utils/withTimeout.js');
 const { cv: cvErrors } = await import('~/constants/errors.js');
 const { default: errorHandleController } = await import('~/controllers/errorHandle.controller.js');
-const { GoogleGenerativeAIFetchError } = await import('@google/generative-ai');
+const { ApiError } = await import('@google/genai');
 const { default: cvTextService } = await import('~/services/cvText.service.js');
 const { default: cvExtractService } = await import('~/services/cvExtract.service.js');
 
@@ -42,15 +42,13 @@ const buildDocx = async text => {
 // Gemini giả: ghi lại prompt nhận được và trả về chuỗi cố định
 const fakeGemini = answer => {
   const seen = { prompt: null };
-  const client = {
-    getGenerativeModel: () => ({
-      generateContent: async prompt => {
-        seen.prompt = prompt;
-        return { response: { text: () => answer } };
-      },
-    }),
+  const model = {
+    generateContent: async prompt => {
+      seen.prompt = prompt;
+      return { response: { text: () => answer } };
+    },
   };
-  geminiRef.current = { getClient: () => client };
+  geminiRef.current = { getJsonModel: () => model };
   return seen;
 };
 
@@ -165,13 +163,13 @@ test('cvExtract: lỗi đầu vào và lỗi AI trả đúng mã', async () => {
   fakeGemini('[]');
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_BAD_RESPONSE'));
 
-  geminiRef.current = { getClient: () => null };
+  geminiRef.current = { getJsonModel: () => null };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(503, 'AI_UNAVAILABLE'));
 });
 
 test('cvExtract: Gemini lỗi mạng / hạn mức không bị bắt trong service, errorHandle đổi thành 502', async () => {
-  const client = { getGenerativeModel: () => ({ generateContent: async () => { throw new GoogleGenerativeAIFetchError('429', 429, 'Too Many Requests'); } }) };
-  geminiRef.current = { getClient: () => client };
+  const model = { generateContent: async () => { throw new ApiError({ message: 'Too Many Requests', status: 429 }); } };
+  geminiRef.current = { getJsonModel: () => model };
   await assert.rejects(cvExtractService.extract({ buffer: buildPdf(CV_LINE) }), failsWith(502, 'AI_FAILED'));
 });
 
