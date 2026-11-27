@@ -27,6 +27,7 @@ test('R20 quốc tịch: chỉ nhận JP thì chặn hồ sơ VN; danh sách r�
   assert.deepEqual(blockersOf({}, { eligible_nationalities: ['JP', 'VN'] }), []);
   assert.deepEqual(blockersOf({}, { eligible_nationalities: [] }), []);
   assert.deepEqual(blockersOf({ nationality: null }, { eligible_nationalities: ['JP'] }), []);
+  assert.deepEqual(blockersOf({ nationality: 'VN' }, { eligible_nationalities: ['vn'] }), []);
 });
 
 test('R20 tuổi: quá tuổi tối đa thì chặn; chưa khai năm sinh thì không chặn', () => {
@@ -34,6 +35,14 @@ test('R20 tuổi: quá tuổi tối đa thì chặn; chưa khai năm sinh thì k
   assert.equal(blockersOf({ birth_year: thisYear - 40 }, { max_age: 35 }).length, 1);
   assert.deepEqual(blockersOf({ birth_year: thisYear - 30 }, { max_age: 35 }), []);
   assert.deepEqual(blockersOf({ birth_year: null }, { max_age: 35 }), []);
+});
+
+test('R20 tuổi chỉ có năm sinh: chưa chắc quá tuổi thì không chặn', () => {
+  const thisYear = Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()).slice(0, 4));
+  // Sinh năm thisYear-36: có thể mới 35 (chưa tới sinh nhật) → không chặn với max 35
+  assert.deepEqual(blockersOf({ birth_year: thisYear - 36 }, { max_age: 35 }), []);
+  // Sinh năm thisYear-37: ít nhất 36 tuổi → chặn
+  assert.equal(blockersOf({ birth_year: thisYear - 37 }, { max_age: 35 }).length, 1);
 });
 
 test('GPA / IELTS thấp hơn yêu cầu vẫn là blocker như trước', () => {
