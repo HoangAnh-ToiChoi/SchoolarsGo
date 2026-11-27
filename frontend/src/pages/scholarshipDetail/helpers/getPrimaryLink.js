@@ -1,4 +1,4 @@
-import { safeUrl } from '../../../utils/security.js';
+import { safeUrl } from '~/utils/security.js';
 
 /**
  * Xác định liên kết chính (primary) và liên kết phụ (bài đăng gốc) cho học bổng.
