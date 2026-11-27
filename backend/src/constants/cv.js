@@ -43,7 +43,8 @@ const GPA_DECIMALS = 2;
 // Xóa thông tin liên hệ trước khi gửi chữ CV cho AI bên ngoài. Mỗi mẫu chỉ dùng lượng từ đơn giản, không lồng nhau, để chuỗi dài không làm regex chạy mãi
 const CV_HIDDEN_MARK = '[ẩn]';
 const CV_CONTACT_PATTERNS = Object.freeze([
-  /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g,
+  // Giới hạn độ dài theo chuẩn email (trước @ ≤ 64, mỗi nhãn tên miền ≤ 63): để không giới hạn thì chuỗi dài không có @ chạy O(n²)
+  /[\w.+-]{1,64}@[\w-]{1,63}(?:\.[\w-]{1,63}){1,8}/g,
   /(?:https?:\/\/|www\.)\S+/gi,
   // Tên miền không có http (vd. ten.github.io, app.vercel.app). Chỉ chữ thường nên "Node.js" và "ASP.NET" không bị ẩn nhầm; độ dài giới hạn để regex không chạy mãi
   /\b[a-z0-9-]{1,63}(?:\.[a-z0-9-]{1,63}){0,4}\.(?:com|io|app|dev|vn|me|org)\b\S*/g,

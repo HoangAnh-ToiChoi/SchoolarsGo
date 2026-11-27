@@ -1,14 +1,23 @@
 name: CI
 
+# Nhóm mở PR vào dev (kể cả từ fork) rồi định kỳ đưa dev lên main, nên CI gác cả hai nhánh.
+# Nhánh feat/… fix/… được kiểm khi mở PR, không chạy lại cho từng lần push.
 on:
   push:
-    branches: [main, develop, 'feat/**', 'fix/**']
+    branches: [dev, main]
   pull_request:
-    branches: [main]
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint-backend:
-    name: Lint Backend
+  backend:
+    name: Backend (lint + test)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,20 +25,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # test:contract dùng --experimental-test-module-mocks (cần Node ≥ 22.3)
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:contract
+      - run: npm run test:ingestion
 
-      - name: Lint
-        run: npm run lint
-
-  build-frontend:
-    name: Build Frontend
+  frontend:
+    name: Frontend (lint + test + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,17 +48,34 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
         env:
           VITE_API_BASE_URL: /api
+
+  harness:
+    name: Harness (hook test + quy ước)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # cần lịch sử để tìm merge-base với nhánh gốc của PR
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test luật của hook
+        run: node --test .claude/hooks/tests/*.test.mjs
+
+      # Cùng luật với hook Stop của Claude Code, áp cho cả code viết tay. Chỉ gác PR vào dev:
+      # PR dev → main mang theo lịch sử cũ đã được gác ở bước này rồi.
+      - name: Quy ước CLAUDE.md trên file đã đổi
+        if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+        run: node .claude/hooks/ciConventions.mjs origin/dev

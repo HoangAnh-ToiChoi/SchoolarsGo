@@ -83,7 +83,7 @@ File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin
 
 ```bash
 # frontend/
-npm run dev | lint | build      # dev gọi API theo VITE_API_BASE_URL (.env.local) · lint 0 lỗi · build được
+npm run dev | lint | test | build  # dev gọi API theo VITE_API_BASE_URL (.env.local) · lint 0 lỗi · test hàm thuần · build được
 npm run build:pages             # bản demo GitHub Pages (dữ liệu minh họa)
 
 # backend/
