@@ -120,6 +120,7 @@ backend/src/
   jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00 (kéo tăng dần mỗi 2 giờ: .github/workflows/ingest.yml)
   ingestion/           module kéo học bổng, tự chứa (đọc index.js trước)
   configs/ validations/ utils/   CORS, DB, JWT, mail, Supabase · schema zod theo nghiệp vụ · hash, hàm thuần dùng chung
+  docs/swagger/        đặc tả OpenAPI cho /api-docs: index.js gộp, mỗi nhóm route một *.paths.js, mảnh chung ở shared.js
 backend/scripts/migrations/  000_baseline.sql + 00N_tenMigration.sql, đánh số tăng dần, chạy lại không lỗi; dựng DB = npm run migrate
 backend/tests/       contracts/ (test service) · ingestion/ (test module kéo học bổng)
 ```

@@ -5,14 +5,14 @@
  *
  * Mỗi trang trong sources.js chạy lần lượt; mỗi bài của trang đi qua 7 bước:
  *
- *   1. fetchPosts    wordpress.js   lấy bài từ API WordPress, đổi HTML → chữ                  → post
+ *   1. fetchPosts    wordpress.js   lấy bài từ API WordPress; toPost.js đổi HTML → chữ           → post
  *   2. checkBasic    filter.js      loại rác chỉ nhìn tiêu đề/link (việc làm, quảng cáo…)
  *   3. extractInfo   extract.js     tìm hạn nộp, nước, bậc học, GPA, IELTS bằng regex          → info
  *      aiFill        aiExtract.js   (nếu có khoá Gemini) điền chỗ regex không tìm được
  *   4. checkDetails  filter.js      loại bài đã hết hạn, chỉ dành cho nước khác
  *   5. scorePost     score.js       chấm độ phù hợp với sinh viên Việt Nam (0–100)
  *   6. toRow         toRow.js       đổi thành một dòng của bảng scholarships                   → row
- *   7. saveRows      save.js        thêm mới / làm mới / bỏ qua nếu đã có hoặc admin đã khóa
+ *   7. saveRows      save.js        thêm mới / làm mới / bỏ qua nếu đã có hoặc admin đã khóa (SQL ở store.js)
  *
  * Bước 2 chạy trước bước 3 để không tốn lượt gọi Gemini cho bài rác.
  * Một trang lỗi (sập, bị chặn) thì ghi lỗi rồi chạy trang tiếp theo.
@@ -25,7 +25,8 @@ import { extractInfo } from './extract.js';
 import { createAiFill } from './aiExtract.js';
 import { scorePost } from './score.js';
 import { toRow } from './toRow.js';
-import { saveRows, createStore } from './save.js';
+import { saveRows } from './save.js';
+import { createStore } from './store.js';
 
 const SAMPLE_SIZE = 5; // giữ vài bài mẫu (được nhận / bị loại) để scripts/ingest.js --verbose in ra
 
