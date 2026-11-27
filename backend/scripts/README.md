@@ -7,7 +7,7 @@ Các script dùng cho development, seeding và debugging. Chạy với `node scr
 | Script | Mô tả |
 |--------|--------|
 | `seedAdmin.js` | Tạo admin (hoặc nâng quyền tài khoản có sẵn) từ `ADMIN_EMAIL` + `ADMIN_PASSWORD` (≥ 12 ký tự); DB ngoài localhost cần `--allow-remote` |
-| `seedTestUser.js` | Tạo tài khoản test user |
+| `seedTestUser.js` | Tạo tài khoản test user (mật khẩu công khai): chỉ chạy trên DB local, host khác bị từ chối |
 
 ## Cào dữ liệu
 
