@@ -1,4 +1,5 @@
 import multer from 'multer';
+import { MULTIPART_LIMITS } from '~/constants/upload.js';
 import { CV_MAX_FILE_SIZE, CV_UPLOAD_FIELD, CV_FILE_NAME_PATTERN, CV_FILE_NAME_ERROR } from '~/constants/cv.js';
 
 // Đuôi file chỉ là lọc nhanh; loại file thật được kiểm ở cvText.service bằng byte đầu
@@ -11,7 +12,7 @@ const fileFilter = (req, file, cb) => {
 const uploader = multer({
   storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: CV_MAX_FILE_SIZE, files: 1 },
+  limits: { ...MULTIPART_LIMITS, fileSize: CV_MAX_FILE_SIZE, files: 1 },
 });
 
 const cvUpload = uploader.single(CV_UPLOAD_FIELD);

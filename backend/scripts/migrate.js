@@ -22,6 +22,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 const MIGRATION_FILE = /^\d{3}_\w+\.sql$/;
 const LOCAL_HOSTS = ['localhost', '127.0.0.1'];
+// Hai tiến trình migrate cùng lúc (deploy chồng nhau) thì tiến trình sau chờ
+const LOCK_NAME = 'scholarsgo:migrate';
+const LOCK_WAIT = '5min';
 
 const CREATE_TRACKING_TABLE = `
   CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -73,28 +76,48 @@ function createPool() {
   });
 }
 
+/**
+ * Chờ đến lượt, trả về kết nối đang giữ khóa. Khóa theo transaction trên một kết nối riêng để đúng cả khi đi qua
+ * transaction pooler của Supabase (cổng 6543): khóa theo phiên ở đó không được giữ và có thể kẹt lại.
+ * Đóng kết nối là transaction hủy và khóa nhả.
+ */
+async function acquireLock(pool) {
+  const holder = await pool.connect();
+  await holder.query('BEGIN');
+  await holder.query(`SET LOCAL lock_timeout = '${LOCK_WAIT}'`);
+  await holder.query('SET LOCAL statement_timeout = 0');
+  await holder.query('SET LOCAL idle_in_transaction_session_timeout = 0');
+  await holder.query('SELECT pg_advisory_xact_lock(hashtext($1))', [LOCK_NAME]);
+  return holder;
+}
+
+// RAISE WARNING trong migration (vd. 015 còn email trùng) phải hiện ra cho người chạy
+function printWarning(notice) {
+  if (notice.severity === 'WARNING') console.warn(`   ⚠ ${notice.message}`);
+}
+
 /** Tên file đã áp. Chạy thử (--dry-run) thì chỉ đọc: bảng theo dõi chưa có nghĩa là chưa áp file nào. */
-async function appliedNames(pool, dryRun) {
+async function appliedNames(client, dryRun) {
   if (dryRun) {
-    const { rows } = await pool.query(`SELECT to_regclass('public.schema_migrations') AS t`);
+    const { rows } = await client.query(`SELECT to_regclass('public.schema_migrations') AS t`);
     if (!rows[0].t) return new Set();
   } else {
-    await pool.query(CREATE_TRACKING_TABLE);
+    await client.query(CREATE_TRACKING_TABLE);
   }
-  const { rows } = await pool.query('SELECT name FROM schema_migrations');
+  const { rows } = await client.query('SELECT name FROM schema_migrations');
   const names = rows.map((r) => r.name);
   return new Set(names);
 }
 
-async function apply(pool, name) {
+async function apply(client, name) {
   const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, name), 'utf8');
   try {
-    await pool.query(sql);
+    await client.query(sql);
   } catch (error) {
     error.message = `${name}: ${error.message}`;
     throw error;
   }
-  await pool.query('INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
+  await client.query('INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
 }
 
 /** Lệnh trước deploy: chưa bật AUTO_MIGRATE thì bỏ qua (thoát 0, deploy vẫn tiếp tục). */
@@ -111,17 +134,24 @@ async function main() {
   const dryRun = hasFlag('dry-run');
   const files = listMigrationFiles();
   const pool = createPool();
+  let holder;
+  let client;
   try {
-    const applied = await appliedNames(pool, dryRun);
+    if (!dryRun) holder = await acquireLock(pool);
+    client = await pool.connect();
+    client.on('notice', printWarning);
+    const applied = await appliedNames(client, dryRun);
     const pending = files.filter((f) => !applied.has(f));
     const target = `${process.env.PG_DATABASE || 'postgres'}@${process.env.PG_HOST || 'localhost'}`;
     console.info(`🗄  ${target}: ${pending.length} migration chưa áp${dryRun ? ' (chạy thử, không ghi gì)' : ''}`);
 
     for (const name of pending) {
-      if (!dryRun) await apply(pool, name);
+      if (!dryRun) await apply(client, name);
       console.info(`   ${dryRun ? '·' : '✓'} ${name}`);
     }
   } finally {
+    client?.release(true);
+    holder?.release(true); // đóng hẳn kết nối để nhả khóa
     await pool.end();
   }
 }

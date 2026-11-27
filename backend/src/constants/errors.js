@@ -43,10 +43,18 @@ const postgres = Object.freeze({
   '22P02': { statusCode: 400, code: 'INVALID_DATA_FORMAT', message: 'Dữ liệu có định dạng không hợp lệ' },
 });
 
+// Multipart vượt giới hạn số phần / độ dài field (constants/upload.js)
+const UPLOAD_TOO_MANY_PARTS = Object.freeze({ statusCode: 400, code: 'UPLOAD_LIMIT_EXCEEDED', message: 'Dữ liệu upload vượt giới hạn' });
+
 // Mã lỗi của multer (khóa là err.code)
 const multer = Object.freeze({
   LIMIT_FILE_SIZE: { statusCode: 400, code: 'FILE_TOO_LARGE', message: 'File quá lớn (tối đa 10MB)' },
   LIMIT_UNEXPECTED_FILE: { statusCode: 400, code: 'UNEXPECTED_FILE', message: 'Field upload không hợp lệ' },
+  LIMIT_PART_COUNT: UPLOAD_TOO_MANY_PARTS,
+  LIMIT_FILE_COUNT: UPLOAD_TOO_MANY_PARTS,
+  LIMIT_FIELD_COUNT: UPLOAD_TOO_MANY_PARTS,
+  LIMIT_FIELD_KEY: UPLOAD_TOO_MANY_PARTS,
+  LIMIT_FIELD_VALUE: UPLOAD_TOO_MANY_PARTS,
 });
 
 // Đọc CV bằng AI (cvText.service, cvExtract.service, cvLimiter)
