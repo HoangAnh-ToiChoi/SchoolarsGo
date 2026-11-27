@@ -1,11 +1,11 @@
-import { formatCurrency } from '../../../utils/format.js';
-import { TONE_CLASS } from '../../../utils/palette.js';
+import { formatCurrency } from '~/utils/format.js';
+import { TONE_CLASS } from '~/utils/palette.js';
 import {
   COUNTRY_LABELS,
   DEGREE_LABELS,
   getDeadlineLabel,
   labelOf,
-} from '../../../utils/scholarship.js';
+} from '~/utils/scholarship.js';
 import { HEADER_LABELS, UNKNOWN_LABEL } from '../constants/index.js';
 
 /**
