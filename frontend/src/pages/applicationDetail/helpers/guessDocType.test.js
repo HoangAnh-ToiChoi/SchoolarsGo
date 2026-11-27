@@ -11,7 +11,7 @@ describe('guessDocType', () => {
     assert.equal(guessDocType('2 thư giới thiệu'), 'recommendation_letter');
   });
 
-  it('"cv" nằm trong từ khác không bị nhận nhầm', () => {
+  it('hiện trạng: "cv" phải đứng riêng mới nhận là CV (mẫu ^cv$ trong DOC_TYPE_PATTERNS)', () => {
     assert.equal(guessDocType('CV xin việc kèm ảnh'), 'other');
   });
 
