@@ -45,11 +45,12 @@ Dự án chạy theo **Supabase Cloud** (không dùng Docker nữa):
 | `backend/.env` | Cấu hình chính (Supabase URL, key, `PG_*`) |
 | `backend/.env.cloud` | Cấu hình riêng cho script chạy tay (tự tạo từ `.env.cloud.example`, không commit) |
 
-Tạo bảng: chạy `database.sql` và `databaseChatMessages.sql` trong Supabase SQL Editor, sau đó `node scripts/seedAdmin.js`.
+Tạo bảng: `npm run migrate` (DB local) hoặc `npm run migrate -- --env=.env.cloud --allow-remote` (Supabase Cloud), sau đó `node scripts/seedAdmin.js`. Script chạy `migrations/000_baseline.sql` → mới nhất, bỏ qua file đã ghi trong bảng `schema_migrations`.
 
 ## Kéo học bổng từ nguồn bên ngoài
 
 | Script | Mô tả |
 |---|---|
 | `ingest.js` | Kéo học bổng từ 5 nguồn (module `src/ingestion`). Chi tiết: `docs/scholarshipIngestion/architecture.md`. Dùng `--dry-run` để chạy thử |
-| `applyMigration.js` | Chạy một file trong `scripts/migrations/` (ví dụ `--file=003_ingestion.sql`) |
+| `migrate.js` (`npm run migrate`) | Chạy mọi migration chưa áp theo thứ tự, ghi vào `schema_migrations`. `--dry-run` chỉ liệt kê, không ghi gì vào DB |
+| `applyMigration.js` | Chạy một file trong `scripts/migrations/` (ví dụ `--file=003_ingestion.sql`), không ghi `schema_migrations` |

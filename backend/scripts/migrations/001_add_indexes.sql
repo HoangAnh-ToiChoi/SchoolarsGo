@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_status
 
 -- Composite index cho saved scholarships
 CREATE INDEX IF NOT EXISTS idx_saved_user_scholarship
-  ON saved(user_id, scholarship_id);
+  ON saved_scholarships(user_id, scholarship_id); -- bảng tên saved_scholarships (bản cũ ghi nhầm "saved" nên lỗi khi chạy)
 
 -- Index cho scholarships: lọc theo quốc gia + featured
 CREATE INDEX IF NOT EXISTS idx_scholarships_country_featured

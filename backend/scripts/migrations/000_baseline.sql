@@ -1,13 +1,9 @@
 -- ============================================================
--- SCHOLARSGO — DATABASE SCHEMA MIGRATION
--- Version: v0.2 | Date: 27/3/2026
--- Description: Initial schema — 6 tables with indexes and RLS
+-- SCHOLARSGO — 000 Baseline: lược đồ gốc (trước đây là database.sql ở gốc repo)
 -- ============================================================
---
--- MIGRATION v0.3 | Date: 31/3/2026
--- Thêm unique constraint + tăng country VARCHAR(100→255) tránh lỗi seed
-ALTER TABLE scholarships ADD CONSTRAINT scholarships_title_key UNIQUE (title);
-ALTER TABLE scholarships ALTER COLUMN country TYPE VARCHAR(255);
+-- Dựng DB mới: cd backend && npm run migrate (chạy 000 → mới nhất, ghi lại vào schema_migrations).
+-- Chạy lại nhiều lần không lỗi: CREATE ... IF NOT EXISTS, CREATE OR REPLACE TRIGGER (Postgres ≥ 14).
+-- Đổi lược đồ: tạo migration số tiếp theo, không sửa file này.
 
 -- ============================================================
 -- 1. USERS
@@ -72,7 +68,7 @@ CREATE TABLE IF NOT EXISTS scholarships (
     id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
     title           VARCHAR(500)  UNIQUE NOT NULL,
     provider        VARCHAR(255)   NOT NULL,
-    country         VARCHAR(100)  NOT NULL,
+    country         VARCHAR(255)  NOT NULL,
     city            VARCHAR(255)  NULL,
     university      VARCHAR(255)  NULL,
     degree          VARCHAR(50)   NOT NULL,
@@ -167,22 +163,18 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_users_updated_at
+CREATE OR REPLACE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_profiles_updated_at
+CREATE OR REPLACE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_scholarships_updated_at
+CREATE OR REPLACE TRIGGER update_scholarships_updated_at
     BEFORE UPDATE ON scholarships
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_applications_updated_at
+CREATE OR REPLACE TRIGGER update_applications_updated_at
     BEFORE UPDATE ON applications
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- ============================================================
--- END OF MIGRATION v0.2
--- ============================================================

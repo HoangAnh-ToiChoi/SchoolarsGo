@@ -12,7 +12,7 @@ Chuyển thể từ ECC `database-migrations` + `postgres-patterns`, theo quy ư
 ```bash
 ls backend/scripts/migrations/
 ```
-Số = lớn nhất hiện có + 1, 3 chữ số (đang có tới `008`; `007` bị bỏ trống — **không** điền lại). Tên `00N_tenMigration.sql` camelCase.
+Số = lớn nhất hiện có + 1, 3 chữ số (`ls backend/scripts/migrations`; `npm run migrate` báo lỗi nếu trùng số). Tên `00N_tenMigration.sql` camelCase.
 
 **Không sửa migration đã commit** (hook `guardFiles` sẽ hỏi lại): thay đổi tiếp theo luôn là file mới.
 
@@ -25,8 +25,8 @@ Số = lớn nhất hiện có + 1, 3 chữ số (đang có tới `008`; `007` b
 - Đổi/xóa cột đang dùng → expand–contract: thêm mới → code đọc cả hai → chuyển dữ liệu → bỏ cũ ở migration sau.
 
 ## 3. Đồng bộ
-- Cập nhật `docs/database.md` (mục bảng liên quan) và `database.sql` nếu file này là schema gốc dùng để dựng DB mới.
+- Cập nhật `docs/database.md` (mục bảng liên quan). **Không** sửa `000_baseline.sql`: DB mới dựng bằng `npm run migrate` (000 → mới nhất), nên migration mới là đủ.
 - Model chọn cột mới cụ thể (không SELECT *).
 
 ## 4. Kiểm tra
-Không có DB thật trong phiên → đọc lại toàn file, tự hỏi "chạy lần hai có lỗi không?". Báo người dùng chạy bằng `backend/scripts/applyMigration.js` (xem `backend/scripts/README.md`) — Claude không chạy lên DB thật khi chưa được yêu cầu.
+Có Supabase local (`docs/lab.md`) → `npm run migrate` hai lần (lần 2 phải "0 migration chưa áp"), rồi `npm run test:integration` (bắt bảng thiếu RLS). Không có → đọc lại toàn file, tự hỏi "chạy lần hai có lỗi không?"; CI job Integration sẽ dựng DB từ trống và chạy lại. Lên DB thật: người dùng chạy `npm run migrate -- --env=.env.cloud --allow-remote` — Claude không chạy lên DB thật khi chưa được yêu cầu.

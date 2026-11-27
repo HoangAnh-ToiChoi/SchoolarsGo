@@ -1,6 +1,5 @@
 -- ============================================================
--- SCHOLARSGO — Migration: chat_messages table
--- Chạy trong Supabase Dashboard → SQL Editor
+-- SCHOLARSGO — 012: bảng chat_messages (trước đây là databaseChatMessages.sql ở gốc repo)
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS chat_messages (

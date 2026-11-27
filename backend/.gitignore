@@ -30,3 +30,7 @@ coverage/
 *.bak
 *.swp
 .env.cloud
+
+# Mọi file env (.env.lab, .env.staging…) đều có thể chứa mật khẩu DB; chỉ commit file mẫu
+.env.*
+!.env*.example

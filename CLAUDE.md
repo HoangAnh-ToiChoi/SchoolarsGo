@@ -91,6 +91,8 @@ npm run dev | lint              # nodemon src/server.js · lint 0 lỗi
 npm run test:contract           # test service với model giả, không cần DB
 npm run test:ingestion          # test module kéo học bổng, không cần mạng / DB
 npm run ingest:dry              # chạy thử kéo học bổng, không ghi DB
+npm run migrate                 # áp migration chưa chạy (000 → mới nhất), ghi vào schema_migrations; DB thật thêm --env=.env.cloud --allow-remote
+npm run test:integration        # app thật qua HTTP trên Supabase local (docs/lab.md); thiếu env thì tự bỏ qua
 ```
 
 **Demo:** đẩy `frontend/dist/` (sau `build:pages`) lên nhánh `gh-pages` → https://hoanganh-toichoi.github.io/SchoolarsGo/
@@ -120,7 +122,7 @@ backend/src/
   jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00 (kéo tăng dần mỗi 2 giờ: .github/workflows/ingest.yml)
   ingestion/           module kéo học bổng, tự chứa (đọc index.js trước)
   configs/ validations/ utils/   CORS, DB, JWT, mail, Supabase · schema zod theo nghiệp vụ · hash, hàm thuần dùng chung
-backend/scripts/migrations/  00N_tenMigration.sql, đánh số tăng dần, chạy lại không lỗi
+backend/scripts/migrations/  000_baseline.sql + 00N_tenMigration.sql, đánh số tăng dần, chạy lại không lỗi; dựng DB = npm run migrate
 backend/tests/       contracts/ (test service) · ingestion/ (test module kéo học bổng)
 ```
 

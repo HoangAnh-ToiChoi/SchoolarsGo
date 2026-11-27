@@ -59,6 +59,68 @@ jobs:
         env:
           VITE_API_BASE_URL: /api
 
+  # Dựng DB từ trống bằng migration (000 → mới nhất) trên Supabase local rồi chạy app thật qua HTTP.
+  # Test gắn todo là lỗi đã biết (mã R## trong docs/pendingWork.md): chạy nhưng không làm job đỏ.
+  integration:
+    name: Integration (Supabase local)
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      PG_HOST: 127.0.0.1
+      PG_PORT: '54322'
+      PG_USER: postgres
+      PG_PASSWORD: postgres # mật khẩu mặc định của Supabase local, không phải bí mật
+      PG_DATABASE: postgres
+      JWT_ACCESS_SECRET: ci-access-secret-only-for-local-supabase-tests
+      JWT_REFRESH_SECRET: ci-refresh-secret-only-for-local-supabase-tests
+      CORS_ORIGINS: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      # Cùng bản CLI đã sinh supabase/config.jsonc
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.4.0
+
+      - name: Khởi động Supabase local (chỉ Postgres, REST, Storage)
+        run: supabase start -x studio,imgproxy,realtime,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta
+
+      - name: Lấy URL và khóa của Supabase local
+        run: |
+          supabase status -o env > supabase.env
+          read_var() { grep -E "^$1=" supabase.env | head -1 | cut -d= -f2- | tr -d '"'; }
+          api_url="$(read_var API_URL)"
+          anon_key="$(read_var ANON_KEY)"
+          service_key="$(read_var SERVICE_ROLE_KEY)"
+          # Thiếu biến (CLI đổi tên) thì dừng ở đây thay vì để test tự bỏ qua
+          for value in "$api_url" "$anon_key" "$service_key"; do
+            [ -n "$value" ] || { echo "::error::supabase status thiếu API_URL / ANON_KEY / SERVICE_ROLE_KEY"; exit 1; }
+          done
+          {
+            echo "SUPABASE_URL=$api_url"
+            echo "SUPABASE_ANON_KEY=$anon_key"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$service_key"
+          } >> "$GITHUB_ENV"
+
+      - run: npm ci
+        working-directory: backend
+
+      - name: Dựng DB bằng migration, chạy 2 lần (lần 2 phải không còn gì để áp)
+        working-directory: backend
+        run: |
+          npm run migrate
+          npm run migrate | tee migrate2.log
+          grep -q ': 0 migration chưa áp' migrate2.log
+
+      - run: npm run test:integration
+        working-directory: backend
+
   harness:
     name: Harness (hook test + quy ước)
     runs-on: ubuntu-latest
