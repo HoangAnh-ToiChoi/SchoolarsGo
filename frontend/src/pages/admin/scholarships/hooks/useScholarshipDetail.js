@@ -8,5 +8,7 @@ export function useScholarshipDetail(idOrSlug) {
     queryFn: () => scholarshipService.getById(idOrSlug).then((res) => res.data.data),
     staleTime: 0,
     gcTime: 0,
+    // 404 là học bổng đã quá hạn hoặc bị xóa: thử lại cũng vô ích
+    retry: (failureCount, error) => error?.status !== 404 && failureCount < 2,
   });
 }

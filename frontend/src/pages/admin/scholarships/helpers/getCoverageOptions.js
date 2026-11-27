@@ -1,4 +1,4 @@
-import { COVERAGE_OPTIONS } from '../constants/formOptions.js';
+import { COVERAGE_OPTIONS } from '~/pages/admin/scholarships/constants';
 
 // Học bổng kéo về có hình thức là chữ tự do: thêm vào danh sách để admin thấy đúng giá trị đang lưu
 export function getCoverageOptions(current) {

@@ -19,5 +19,5 @@ export function useScholarshipForm(scholarship, { onSave, onClose }) {
     else onSave(payload);
   };
 
-  return { isEdit, form, set, handleSubmit };
+  return { isEdit, initial, form, set, handleSubmit };
 }

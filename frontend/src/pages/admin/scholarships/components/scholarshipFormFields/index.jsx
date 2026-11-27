@@ -1,10 +1,10 @@
 import FormField from '~/pages/admin/scholarships/components/formField';
-import { DEGREE_OPTIONS } from '~/pages/admin/scholarships/constants';
+import { DEGREE_OPTIONS, MAX_LONG_TEXT } from '~/pages/admin/scholarships/constants';
 import { getCoverageOptions } from '~/pages/admin/scholarships/helpers';
 
 const WIDE = 'sm:col-span-2';
 
-export default function ScholarshipFormFields({ form, set }) {
+export default function ScholarshipFormFields({ form, set, initialCoverage }) {
   const bind = (key) => ({ value: form[key], onChange: (e) => set(key, e.target.value) });
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -18,7 +18,7 @@ export default function ScholarshipFormFields({ form, set }) {
         <input required {...bind('country')} className="input" placeholder="UK, USA..." />
       </FormField>
       <FormField label="Bậc học">
-        <select {...bind('degree')} className="input">
+        <select required {...bind('degree')} className="input">
           <option value="">Chọn bậc học</option>
           {DEGREE_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
         </select>
@@ -29,20 +29,20 @@ export default function ScholarshipFormFields({ form, set }) {
       <FormField label="Hình thức">
         <select {...bind('coverage')} className="input">
           <option value="">Chọn hình thức</option>
-          {getCoverageOptions(form.coverage).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          {getCoverageOptions(initialCoverage).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </FormField>
       <FormField label="Giá trị (USD)">
-        <input type="number" min="0" {...bind('amount')} className="input" placeholder="10000" />
+        <input type="number" min="0" step="any" {...bind('amount')} className="input" placeholder="10000" />
       </FormField>
       <FormField label="Hạn nộp">
         <input type="date" {...bind('deadline')} className="input" />
       </FormField>
       <FormField label="Mô tả" className={WIDE}>
-        <textarea rows={3} {...bind('summary')} className="input resize-none" placeholder="Mô tả học bổng..." />
+        <textarea rows={3} maxLength={MAX_LONG_TEXT} {...bind('summary')} className="input resize-none" placeholder="Mô tả học bổng..." />
       </FormField>
       <FormField label="Yêu cầu" className={WIDE}>
-        <textarea rows={3} {...bind('requirements')} className="input resize-none" placeholder="GPA tối thiểu, IELTS..." />
+        <textarea rows={3} maxLength={MAX_LONG_TEXT} {...bind('requirements')} className="input resize-none" placeholder="GPA tối thiểu, IELTS..." />
       </FormField>
     </div>
   );
