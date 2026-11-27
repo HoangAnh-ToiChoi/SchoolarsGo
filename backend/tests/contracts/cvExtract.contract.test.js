@@ -78,9 +78,23 @@ test('removeContactInfo vẫn ẩn email tên miền nhiều cấp và email có
   assert.doesNotMatch(result, /hcmus|gmail/);
 });
 
+test('R17: removeContactInfo ẩn hộ chiếu, CCCD, số quốc tế, email viết tránh, dòng "Add:"', () => {
+  const text = [
+    'Passport: C1234567',
+    'Số CCCD: 079201001234',
+    'Phone: +1 (415) 555-0134, +44 20 7946 0958',
+    'Mail: nguyen.a [at] gmail [dot] com',
+    'Add: 99 Le Loi, District 1',
+    'GPA 3.4, IELTS 7.0, mã môn CS101, năm 2024, điểm 8.5/10',
+  ].join('\n');
+  const result = removeContactInfo(text);
+  assert.doesNotMatch(result, /C1234567|079201001234|415|555-0134|7946|gmail|Le Loi/);
+  assert.match(result, /GPA 3\.4, IELTS 7\.0, mã môn CS101, năm 2024, điểm 8\.5\/10/);
+});
+
 test('removeContactInfo chạy nhanh với chuỗi rất dài (không treo vì regex)', () => {
   const started = Date.now();
-  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)}`);
+  removeContactInfo(`${'a'.repeat(200000)}@${'b.'.repeat(50000)} ${'1 '.repeat(100000)} ${'+1 '.repeat(50000)} ${'x [at] '.repeat(30000)}`);
   assert.ok(Date.now() - started < 2000);
 });
 

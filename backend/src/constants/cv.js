@@ -40,7 +40,7 @@ const CV_IELTS_MAX_SCORE = 9;
 const GPA_TARGET_SCALE = 4;
 const GPA_DECIMALS = 2;
 
-// Xóa thông tin liên hệ trước khi gửi chữ CV cho AI bên ngoài. Mỗi mẫu chỉ dùng lượng từ đơn giản, không lồng nhau, để chuỗi dài không làm regex chạy mãi
+// Xóa thông tin liên hệ và giấy tờ tùy thân trước khi gửi chữ CV cho AI bên ngoài (R17). Mỗi mẫu chỉ dùng lượng từ đơn giản, không lồng nhau, để chuỗi dài không làm regex chạy mãi
 const CV_HIDDEN_MARK = '[ẩn]';
 const CV_CONTACT_PATTERNS = Object.freeze([
   // Giới hạn độ dài theo chuẩn email (trước @ ≤ 64, mỗi nhãn tên miền ≤ 63): để không giới hạn thì chuỗi dài không có @ chạy O(n²)
@@ -50,7 +50,13 @@ const CV_CONTACT_PATTERNS = Object.freeze([
   /\b[a-z0-9-]{1,63}(?:\.[a-z0-9-]{1,63}){0,4}\.(?:com|io|app|dev|vn|me|org)\b\S*/g,
   /\b(?:linkedin|facebook|github|twitter|instagram|zalo)\.\S+/gi,
   /(?:\+?84|\b0)(?:[\s.-]?\d){8,10}/g,
-  /^.*(?:địa chỉ|address)\s*:.*$/gim,
+  // Số điện thoại quốc tế: +1 (415) 555-0134, +44 20 7946 0958
+  /\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d){5,10}/g,
+  // Email viết tránh bộ lọc: "ten [at] gmail [dot] com"
+  /[\w.+-]{1,64}\s?[[(]\s?at\s?[\])]\s?[\w-]{1,63}(?:\s?[[(]\s?dot\s?[\])]\s?[\w-]{1,63}){1,4}/gi,
+  // Giấy tờ tùy thân có nhãn: hộ chiếu, CCCD / CMND (không nhãn thì không đoán, dễ ẩn nhầm mã môn học)
+  /(?:passport|hộ chiếu|cccd|cmnd|căn cước|national id|id card)(?:\s*(?:no\.?|number|số))?\s*:?\s*[A-Z]{0,2}\d{6,12}\b/gi,
+  /^.*(?:địa chỉ|address|addr\.?|add)\s*:.*$/gim,
 ]);
 
 // Chỉ ngày sinh có nhãn đi trước mới bị rút về năm (xét điều kiện tuổi chỉ cần năm); các ngày khác như ngày cấp chứng chỉ giữ nguyên
