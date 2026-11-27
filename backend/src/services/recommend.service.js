@@ -1,7 +1,6 @@
 import { AppError, recommend as recommendErrors } from '~/constants/errors.js';
 import { extractIeltsScore } from '~/utils/helpers.js';
 import recommendModel from '~/models/recommend.model.js';
-import * as gemini from './gemini.service.js';
 
 const CORE_PROFILE_FIELDS = ['gpa', 'english_level', 'target_country', 'target_major', 'target_degree'];
 const SUPPORTING_PROFILE_FIELDS = ['bio', 'target_intake', 'document_count'];
@@ -200,7 +199,7 @@ class RecommendService {
     const signals = {
       field: scoreTextSimilarity(profile.target_major, scholarship.field_of_study),
       goals: scoreTextSimilarity(profile.intent_summary, [
-        scholarship.description,
+        scholarship.summary,
         scholarship.benefits,
         scholarship.requirements,
         scholarship.eligibility,
@@ -276,6 +275,16 @@ class RecommendService {
     };
   }
 
+  // Bước 3: thay bản chấm điểm (cột nhẹ) bằng bản ghi hiển thị, giữ đúng thứ tự xếp hạng
+  async #attachDetails(ranked) {
+    const ids = ranked.map(item => item.scholarship.id);
+    const details = await recommendModel.findByIds(ids);
+    const byId = new Map(details.map(row => [row.id, row]));
+    return ranked
+      .filter(item => byId.has(item.scholarship.id))
+      .map(item => ({ ...item, scholarship: byId.get(item.scholarship.id) }));
+  }
+
   async recommend(userId, topN = 10) {
     const rawProfile = await recommendModel.findProfileByUserId(userId);
     const profile = rawProfile ? this.#normalizeProfile(rawProfile) : null;
@@ -286,16 +295,17 @@ class RecommendService {
       throw new AppError(recommendErrors.PROFILE_INCOMPLETE);
     }
 
-    const scholarships = await recommendModel.findActiveScholarships(200);
-
-    const top = scholarships
+    const candidates = await recommendModel.findCandidates();
+    const ranked = candidates
       .map(scholarship => this.#buildRecommendation(profile, readiness, scholarship))
       .filter(item => item.eligibility_blockers.length === 0)
       .filter(item => item.match_score > 0.12)
       .sort((a, b) => b.match_score - a.match_score)
       .slice(0, topN);
+    const top = await this.#attachDetails(ranked);
 
-    return gemini.enrichRecommendations(profile, top);
+    // Điểm nối dịch vụ RAG sau này (docs/rankContract.md): xếp hạng lại / viết lý do cho `top`
+    return top;
   }
 }
 

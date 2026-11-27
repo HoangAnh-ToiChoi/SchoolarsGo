@@ -6,6 +6,11 @@ class NotificationController {
     return res.success(data, 'OK', { unread });
   }
 
+  async getChannel(req, res) {
+    const data = await notificationService.getChannel(req.user.id);
+    return res.success(data);
+  }
+
   async markRead(req, res) {
     const data = await notificationService.markRead(req.user.id, req.params.id);
     return res.success(data, 'Đã đánh dấu đã đọc.');

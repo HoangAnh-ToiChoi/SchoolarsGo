@@ -2,9 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { notificationService } from '~/services/notification.service';
 import { selectIsAuthenticated } from '~/store/slices/authSlice';
+import { useRealtimeSignal } from '~/hooks/useRealtimeSignal';
+import { REALTIME_NOTIFICATION_EVENT } from '~/utils/constants';
+import { isRealtimeEnabled } from '~/utils/realtime';
 
 const KEY = ['notifications'];
-// Mở tab lâu thì vẫn thấy nhắc hạn mới (server tạo lúc 7:00 mỗi sáng)
+const CHANNEL_KEY = ['notificationChannel']; // không lồng dưới KEY: invalidate KEY theo tiền tố sẽ tải lại cả kênh
+// Dự phòng khi realtime tắt hoặc mất kết nối: mở tab lâu thì vẫn thấy nhắc hạn mới
 const REFRESH_MS = 5 * 60 * 1000;
 
 // Thông báo của người dùng: server tạo nhắc hạn (14/7/1 ngày) và lưu trạng thái đã đọc,
@@ -19,6 +23,16 @@ export function useNotifications() {
     enabled: isAuthenticated,
     refetchInterval: REFRESH_MS,
   });
+
+  // Có thông báo mới thì DB phát tín hiệu lên kênh riêng của người dùng → tải lại danh sách ngay
+  const channel = useQuery({
+    queryKey: CHANNEL_KEY,
+    queryFn: () => notificationService.getChannel().then((res) => res.data.data.topic),
+    enabled: isAuthenticated && isRealtimeEnabled(),
+    staleTime: Infinity,
+    retry: false, // DB chưa chạy migration 010 thì thôi, đã có tự làm mới
+  });
+  useRealtimeSignal(channel.data, REALTIME_NOTIFICATION_EVENT, () => queryClient.invalidateQueries({ queryKey: KEY, exact: true }));
 
   // Đánh dấu ngay trên giao diện, lỗi thì trả lại như cũ
   const optimistic = (isTarget) => ({

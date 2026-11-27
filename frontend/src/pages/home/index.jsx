@@ -17,6 +17,8 @@ import { filterOpened } from '~/store/slices/uiSlice';
 import FilterBar from '~/pages/home/components/filterBar';
 import ProfileProgressCard from '~/pages/home/components/profileProgressCard';
 import ScopeTabs from '~/pages/home/components/scopeTabs';
+import NewScholarshipsNotice from '~/pages/home/components/newScholarshipsNotice';
+import { useNewScholarships } from '~/pages/home/hooks';
 
 // Trang chủ = trang tìm học bổng: vào là thấy học bổng đang mở; từ khóa và bộ lọc
 // nhập ở thanh tìm kiếm trên header, lưu trên URL (/?search=DAAD&degree=Master).
@@ -34,6 +36,8 @@ export default function HomePage() {
   });
   // Tải quá 5 giây thì hiện thêm thông báo đang tải; có dữ liệu thì tự tắt
   const isSlow = useSlowLoading(isLoading);
+  // Học bổng mới kéo về trong lúc đang xem (realtime): hiện dải báo, bấm mới tải lại
+  const newScholarships = useNewScholarships();
 
   const scholarships = data?.data ?? [];
 
@@ -74,6 +78,7 @@ export default function HomePage() {
         }
       />
       <FilterBar />
+      <NewScholarshipsNotice count={newScholarships.count} onShow={newScholarships.showNew} />
       {isSlow && <SlowLoading />}
 
       {isError ? (

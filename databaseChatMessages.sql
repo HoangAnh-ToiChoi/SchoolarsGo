@@ -17,11 +17,5 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_user_created
 -- RLS
 ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "chat_select_own" ON chat_messages
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "chat_insert_own" ON chat_messages
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "chat_delete_own" ON chat_messages
-  FOR DELETE USING (auth.uid() = user_id);
+-- Không tạo policy: app không dùng Supabase Auth (auth.uid() luôn NULL), backend dùng service role.
+-- Xem migration 011_rlsLockdown.sql.

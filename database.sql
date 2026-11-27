@@ -146,77 +146,15 @@ CREATE INDEX IF NOT EXISTS idx_saved_user_id ON saved_scholarships(user_id);
 -- 7. ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
--- Bật RLS cho tất cả tables
+-- App dùng auth tự viết (bảng users + JWT riêng), không dùng Supabase Auth: backend truy cập DB bằng
+-- service role / chủ bảng nên không cần policy. Bật RLS và KHÔNG tạo policy = khóa anon (khóa công khai)
+-- khỏi mọi bảng qua PostgREST. Xem migration 011_rlsLockdown.sql (DB đã có policy cũ thì chạy migration đó).
 ALTER TABLE users               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE scholarships        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE applications        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE saved_scholarships  ENABLE ROW LEVEL SECURITY;
-
--- 7a. users: chỉ chính mình đọc/sửa
-CREATE POLICY "users_select_own" ON users
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "users_update_own" ON users
-    FOR UPDATE USING (auth.uid() = id);
-
--- 7b. profiles: chỉ chính mình đọc/sửa
-CREATE POLICY "profiles_select_own" ON profiles
-    FOR SELECT USING (
-        EXISTS (SELECT 1 FROM users WHERE users.id = profiles.user_id AND auth.uid() = users.id)
-    );
-
-CREATE POLICY "profiles_insert_own" ON profiles
-    FOR INSERT WITH CHECK (
-        EXISTS (SELECT 1 FROM users WHERE users.id = profiles.user_id AND auth.uid() = users.id)
-    );
-
-CREATE POLICY "profiles_update_own" ON profiles
-    FOR UPDATE USING (auth.uid() = user_id);
-
--- 7c. documents: chỉ chính mình đọc/sửa
-CREATE POLICY "documents_select_own" ON documents
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "documents_insert_own" ON documents
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "documents_delete_own" ON documents
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 7d. scholarships: public read (anonymous)
-CREATE POLICY "scholarships_public_read" ON scholarships
-    FOR SELECT USING (true);
-
-CREATE POLICY "scholarships_admin_insert" ON scholarships
-    FOR INSERT WITH CHECK (true); -- restrict later with admin role check
-
-CREATE POLICY "scholarships_admin_update" ON scholarships
-    FOR UPDATE USING (true);
-
--- 7e. applications: chỉ chính mình đọc/sửa
-CREATE POLICY "applications_select_own" ON applications
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "applications_insert_own" ON applications
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "applications_update_own" ON applications
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "applications_delete_own" ON applications
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 7f. saved_scholarships: chỉ chính mình đọc/sửa
-CREATE POLICY "saved_select_own" ON saved_scholarships
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "saved_insert_own" ON saved_scholarships
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "saved_delete_own" ON saved_scholarships
-    FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================
 -- 8. UPDATED_AT TRIGGER (auto-update updated_at)

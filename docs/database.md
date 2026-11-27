@@ -30,6 +30,7 @@
 | date_of_birth | date | NULLABLE | Ngày sinh |
 | role | varchar(20) | NOT NULL, DEFAULT 'user' | Vai trò: `user`, `admin` |
 | last_login_at | timestamptz | NULLABLE | Thời điểm đăng nhập gần nhất |
+| realtime_topic | uuid | NOT NULL, DEFAULT gen_random_uuid() | Tên kênh Supabase Realtime của chuông (migration 010), ngẫu nhiên để không đoán được |
 | created_at | timestamp | DEFAULT now() | Thời điểm tạo |
 | updated_at | timestamp | DEFAULT now() | Thời điểm cập nhật |
 
@@ -120,6 +121,7 @@
 - `CREATE INDEX idx_scholarships_field ON scholarships(field_of_study);`
 - `CREATE INDEX idx_scholarships_language ON scholarships(language);`
 - `CREATE INDEX idx_scholarships_min_gpa ON scholarships(min_gpa);`
+- Migration `009_searchIndexes.sql`: GIN trigram `idx_scholarships_title_trgm`, `idx_scholarships_provider_trgm` (tìm kiếm `ILIKE '%…%'`); `idx_scholarships_active_relevance_deadline` `(relevance_score DESC, deadline ASC NULLS LAST) WHERE is_active` (thứ tự mặc định của danh sách, nổi bật).
 
 ---
 
@@ -180,6 +182,7 @@ Migration `005_notifications.sql`. Thông báo trên chuông header.
 
 **Unique constraint:** `UNIQUE(user_id, type, scholarship_id, milestone)` — mỗi mốc chỉ nhắc một lần.
 **Indexes:** `(user_id, created_at DESC)`, `(user_id) WHERE read_at IS NULL`.
+**Realtime (migration `010_realtimeSignals.sql`):** trigger theo câu lệnh `trg_signal_notifications_inserted` gửi `realtime.send('{}', 'notification', 'user:' || users.realtime_topic, false)` cho mỗi người có thông báo mới; `trg_signal_scholarships_inserted` trên `scholarships` gửi `{ count }` lên kênh `scholarships`. Gửi lỗi chỉ `WARNING`, không làm hỏng INSERT.
 
 ### 8. user_sessions
 
@@ -206,14 +209,12 @@ Giới hạn ba thiết bị được áp dụng trong một transaction khóa d
 
 ## RLS (Row Level Security)
 
-Mặc định: Tất cả tables có RLS enabled, chỉ owner được truy cập dữ liệu của mình.
-- `users` — chỉ user tự đọc/update profile mình
-- `profiles` — chỉ user tự đọc/update
-- `documents` — chỉ user tự đọc/update
-- `applications` — chỉ user tự đọc/update
-- `saved_scholarships` — chỉ user tự đọc/update
-- `notifications` — chỉ user tự đọc/update
-- `scholarships` — public read (anonymous)
+Migration `011_rlsLockdown.sql` (25/11/2026): **mọi bảng bật RLS, không có policy nào**, quyền bảng của `anon` / `authenticated` bị thu.
+
+- Vì sao: app dùng auth tự viết (bảng `users` + JWT riêng), không dùng Supabase Auth. Các policy cũ theo `auth.uid()` vô nghĩa (luôn NULL), còn `scholarships_admin_insert` / `_update` (`WITH CHECK (true)`) cho khóa anon công khai thêm / sửa học bổng.
+- Backend không bị ảnh hưởng: supabase-js dùng service role (bỏ qua RLS), pool `pg` đăng nhập bằng chủ bảng.
+- Quyền theo người dùng (`user_id`) do backend kiểm (CLAUDE.md 4.7), không dựa vào RLS.
+- Bảng mới: `ENABLE ROW LEVEL SECURITY`, không tạo policy. Kiểm bằng `npm run test:integration` (`backend/tests/integration/rlsLockdown.test.js`) trên Supabase local.
 
 ---
 

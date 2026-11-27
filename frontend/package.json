@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint src/ --ext .js,.jsx",
     "lint:fix": "eslint src/ --ext .js,.jsx --fix",
-    "build:pages": "vite build --mode pages"
+    "build:pages": "vite build --mode pages",
+    "test": "node --test 'src/**/*.test.js'"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -19,6 +20,7 @@
     "@radix-ui/react-tabs": "^1.2.1",
     "@reduxjs/toolkit": "^2.5.0",
     "@sentry/react": "^10.53.1",
+    "@supabase/realtime-js": "^2.119.2",
     "@tanstack/react-query": "^5.17.0",
     "axios": "^1.6.5",
     "class-variance-authority": "^0.7.1",

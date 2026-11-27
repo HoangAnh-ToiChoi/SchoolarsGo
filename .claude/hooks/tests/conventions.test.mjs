@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { checkFile, newFindings } from '../lib/conventions.mjs';
 import { checkGitCommand } from '../lib/gitPolicy.mjs';
 import { fileDecision } from '../lib/filePolicy.mjs';
+import { conventionProblems, missingTestProblems, sourceFiles } from '../lib/changeCheck.mjs';
 
 const rules = (path, content) => checkFile(path, content).map((f) => f.rule);
 
@@ -129,4 +130,36 @@ test('FE: helpers của trang được import ../constants; comment và forwardR
     'const X = forwardRef(function X(p, ref) { return <a ref={ref} target="_blank" rel="noopener noreferrer" />; });',
     'export default X;',
   ].join('\n')), []);
+});
+
+// Bộ đọc giả: base = bản gốc, head = bản hiện tại (null = đã xóa)
+function readersOf(base, head) {
+  return { readBase: (p) => base[p] ?? '', readHead: (p) => (p in head ? head[p] : null) };
+}
+
+test('changeCheck: chỉ lấy file nguồn, chỉ báo vi phạm mới, bỏ file đã xóa', () => {
+  assert.deepEqual(sourceFiles(['backend/src/a.js', 'docs/x.md', 'frontend/src/b.jsx', '.github/ci.yml']), ['backend/src/a.js', 'frontend/src/b.jsx']);
+  const legacy = "console.log('cũ');";
+  const readers = readersOf(
+    { 'backend/src/models/a.model.js': legacy },
+    { 'backend/src/models/a.model.js': `${legacy}\nconsole.log('mới');` },
+  );
+  const problems = conventionProblems(['backend/src/models/a.model.js', 'backend/src/models/gone.model.js'], readers);
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /a\.model\.js:2 \[console-log\]/);
+});
+
+test('changeCheck: service mới và helper mới phải có test; file cũ thì không bắt', () => {
+  const head = {
+    'backend/src/services/new.service.js': 'class A {}',
+    'backend/src/services/tested.service.js': 'class B {}',
+    'backend/src/services/old.service.js': 'class C {}',
+    'frontend/src/pages/x/helpers/toGpa4.js': 'export default 1;',
+    'frontend/src/pages/x/helpers/ok.js': 'export default 1;',
+    'frontend/src/pages/x/helpers/ok.test.js': 'test',
+  };
+  const readers = readersOf({ 'backend/src/services/old.service.js': 'class C {}' }, head);
+  const rulesFound = missingTestProblems(Object.keys(head), { ...readers, testSources: "import('~/services/tested.service.js')" })
+    .map((p) => p.match(/^- (\S+) \[([\w-]+)\]/).slice(1).join(' '));
+  assert.deepEqual(rulesFound, ['backend/src/services/new.service.js service-test', 'frontend/src/pages/x/helpers/toGpa4.js helper-test']);
 });

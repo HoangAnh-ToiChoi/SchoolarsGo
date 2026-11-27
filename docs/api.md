@@ -502,6 +502,12 @@ Query: `limit` (1–50, mặc định 30). Mỗi học bổng chỉ trả thông
 
 `application_id` có giá trị → nhắc theo đơn nháp (FE mở `/applications/:id`); `null` → nhắc học bổng đã lưu (FE mở trang học bổng).
 
+### GET /api/notifications/channel
+
+Tên kênh Supabase Realtime của người đang đăng nhập: `{ "topic": "user:<uuid ngẫu nhiên>" }`. Khi có thông báo mới, DB phát Broadcast event `notification` lên kênh này (migration `010_realtimeSignals.sql`). Tín hiệu không mang dữ liệu: FE nhận xong gọi lại `GET /api/notifications`. 404 `NOTIFICATION_CHANNEL_NOT_FOUND` khi DB chưa chạy migration 010; khi đó FE chỉ dùng tự làm mới 5 phút.
+
+Trang chủ nghe kênh công khai `scholarships`, event `inserted`, payload `{ "count": <số học bổng mới đang mở> }`, phát mỗi câu INSERT vào `scholarships` (ingestion).
+
 ### PATCH /api/notifications/:id/read
 
 Đánh dấu một thông báo đã đọc. 404 nếu thông báo không thuộc người dùng.
@@ -595,6 +601,7 @@ Get scholarship recommendations based on user profile (auth required).
 | GET | /api/notifications | ✅ Implemented (10/11/2026) | Nhắc hạn 14/7/1 ngày + meta.unread |
 | PATCH | /api/notifications/:id/read | ✅ Implemented (10/11/2026) | 404 nếu không phải của người dùng |
 | PATCH | /api/notifications/readAll | ✅ Implemented (10/11/2026) | — |
+| GET | /api/notifications/channel | ✅ Implemented (25/11/2026) | Kênh realtime của chuông |
 | GET | /api/saved | Chưa implement | — |
 | POST | /api/saved/:scholarshipId | Chưa implement | — |
 | DELETE | /api/saved/:scholarshipId | Chưa implement | — |

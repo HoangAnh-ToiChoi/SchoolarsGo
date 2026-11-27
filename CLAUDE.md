@@ -56,7 +56,7 @@ Tài liệu lệch code thì **code là đúng**.
 | FE hook | 150 | | BE service | 200 |
 | FE service | 200 | | BE model | 250 |
 
-File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `chat.service`, `recommend.service` · **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
+File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin.service`, `recommend.service` · **FE (trang legacy)** `chat`, `dashboard`, `profile`, `admin/scholarships`, `admin/users`.
 
 ---
 
@@ -83,7 +83,7 @@ File cũ đang vượt, tách khi sửa tới: **BE** `admin.controller`, `admin
 
 ```bash
 # frontend/
-npm run dev | lint | build      # dev gọi API theo VITE_API_BASE_URL (.env.local) · lint 0 lỗi · build được
+npm run dev | lint | test | build  # dev gọi API theo VITE_API_BASE_URL (.env.local) · lint 0 lỗi · test hàm thuần · build được
 npm run build:pages             # bản demo GitHub Pages (dữ liệu minh họa)
 
 # backend/
@@ -108,7 +108,7 @@ routes/          URL + middleware: auth, requireRole, validate(schema)
   → models/      chỉ truy vấn DB (Supabase client hoặc pg). Không nghiệp vụ
 ```
 
-Vi phạm ranh giới → sửa trước khi merge (`chat.service` còn gọi thẳng Supabase: cần tách `chat.model`).
+Vi phạm ranh giới → sửa trước khi merge.
 
 ### 4.2 Cấu trúc thư mục
 
@@ -117,7 +117,7 @@ backend/src/
   server.js app.js     mở cổng + bật cron · middleware chung (helmet, cors, cookie, rate limit) + gắn routes
   routes/ controllers/ services/ models/   một file mỗi nhóm; routes/index.js tự nạp *.routes.js (saved.routes.js → /saved)
   middlewares/         auth (auth, optionalAuth), requireRole, validate, upload, rateLimiter
-  jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00
+  jobs/                tự nạp hàm start*: nhắc hạn 7:00, kéo học bổng CN 2:00, tắt học bổng quá hạn 3:00 (kéo tăng dần mỗi 2 giờ: .github/workflows/ingest.yml)
   ingestion/           module kéo học bổng, tự chứa (đọc index.js trước)
   configs/ validations/ utils/   CORS, DB, JWT, mail, Supabase · schema zod theo nghiệp vụ · hash, hàm thuần dùng chung
 backend/scripts/migrations/  00N_tenMigration.sql, đánh số tăng dần, chạy lại không lỗi
@@ -202,6 +202,7 @@ const draft = cvDraftSchema.parse(parsed);
 - Chọn cột cụ thể, không `SELECT *` / `select('*')`.
 - Không N+1: JOIN / select lồng (`scholarships(id, title)`) hoặc `Promise.all`.
 - Lọc theo cột mới → kiểm tra index, thiếu thì thêm trong migration.
+- **Bảng mới:** `ENABLE ROW LEVEL SECURITY` và **không tạo policy**. App không dùng Supabase Auth (`auth.uid()` luôn NULL); backend dùng service role nên không bị chặn, còn khóa anon (công khai) không đọc ghi được gì. Test: `npm run test:integration` trên Supabase local.
 - **Lọc không viết gọn được bằng SQL** (tính điểm, so khớp hồ sơ, xếp hạng):
   1. Model lấy nhẹ `id` + cột điều kiện.
   2. Service lọc / chấm điểm / sắp xếp, phân trang trên danh sách `id`.

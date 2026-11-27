@@ -1,5 +1,6 @@
 import { AppError, saved as savedErrors, scholarship as scholarshipErrors } from '~/constants/errors.js';
 import savedModel from '~/models/saved.model.js';
+import notificationService from '~/services/notification.service.js';
 
 class SavedService {
   async getAll(userId) {
@@ -31,6 +32,7 @@ class SavedService {
     try {
       const saved = await savedModel.create({ userId, scholarshipId, note });
       const scholarship = await savedModel.getScholarshipDetails(scholarshipId);
+      notificationService.refreshUserReminders(userId); // không chờ: nhắc hạn không được làm chậm thao tác lưu
       return { ...saved, scholarship };
     } catch (err) {
       if (err.message === 'SCHOLARSHIP_ALREADY_SAVED') {

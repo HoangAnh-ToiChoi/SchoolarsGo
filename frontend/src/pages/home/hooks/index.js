@@ -1,0 +1,1 @@
+export { useNewScholarships } from './useNewScholarships';

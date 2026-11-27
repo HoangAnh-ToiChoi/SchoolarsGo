@@ -1,5 +1,6 @@
 import { AppError, application as applicationErrors, scholarship as scholarshipErrors } from '~/constants/errors.js';
 import applicationModel from '~/models/application.model.js';
+import notificationService from '~/services/notification.service.js';
 import { APPLICATION_VALID_TRANSITIONS, APPLICATION_UNDELETABLE_STATUSES } from '~/constants/application.js';
 
 class ApplicationService {
@@ -62,6 +63,7 @@ class ApplicationService {
 
     try {
       const app = await applicationModel.create(userId, { scholarshipId, checklist, notes });
+      notificationService.refreshUserReminders(userId); // không chờ: nhắc hạn không được làm chậm thao tác tạo đơn
       return this.#formatApplication(app);
     } catch (err) {
       if (err.message === 'APPLICATION_ALREADY_EXISTS') {
