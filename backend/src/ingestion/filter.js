@@ -1,3 +1,5 @@
+import { DAY_MS } from './time.js';
+
 /**
  * BƯỚC 2 và 4 — Loại bài không đạt. Mỗi bài bị loại ghi lại "luật nào" để thống kê.
  *
@@ -16,8 +18,6 @@ const RULES = Object.freeze({
   R5: 'Thiếu link bài',
   R6: 'Rác, quảng cáo',
 });
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /* ───────────── Từ khoá ───────────── */
 

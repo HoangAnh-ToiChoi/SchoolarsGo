@@ -161,7 +161,7 @@ class AdminModel {
 
     const sql = `
       UPDATE scholarships
-      SET ${setClause}, updated_at = NOW()
+      SET ${setClause}, updated_at = NOW(), admin_locked_at = NOW()
       WHERE id = $${keys.length + 1} AND is_active = true
       RETURNING *
     `;
@@ -181,7 +181,7 @@ class AdminModel {
   async softDeleteScholarship(id) {
     const sql = `
       UPDATE scholarships
-      SET is_active = false, updated_at = NOW()
+      SET is_active = false, updated_at = NOW(), admin_locked_at = NOW()
       WHERE id = $1 AND is_active = true
       RETURNING id, title
     `;

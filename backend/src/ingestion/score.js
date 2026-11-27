@@ -1,11 +1,10 @@
 import { VIETNAM } from './filter.js';
+import { DAY_MS } from './time.js';
 
 /**
  * BƯỚC 5 — Chấm độ phù hợp với sinh viên Việt Nam (0–100).
  * Không loại bài nào, chỉ quyết định thứ tự hiển thị (cột relevance_score).
  */
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 const SOUTHEAST_ASIA = /\b(?:asean|south-?east(?:ern)?\s+asia(?:n)?s?)\b/i;
 const ASIA = /\b(?:asia|asian|asians)\b|developing countr(?:y|ies)|low(?:-|\s+and\s+)middle(?:-|\s)income/i;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchPosts } from '~/ingestion/wordpress.js';
 import { runIngestion } from '~/ingestion/index.js';
-import { createStore } from '~/ingestion/save.js';
+import { createStore } from '~/ingestion/store.js';
 import { NOW } from './helpers.js';
 
 const silent = { info() {}, warn() {}, error() {} };
@@ -72,6 +72,7 @@ function storeWithLastRun(lastRunBySource) {
     findExisting: async () => [],
     insertMany: async () => 0,
     updateMany: async () => 0,
+    renewMany: async () => 0,
     recordRun: async () => {},
   };
 }

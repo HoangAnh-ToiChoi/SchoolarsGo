@@ -1,16 +1,15 @@
-import { countryFromSlug } from './countries.js';
+import { toPost } from './toPost.js';
+import { DAY_MS, defaultSleep } from './time.js';
 
 /**
  * BƯỚC 1 — Lấy bài từ một trang WordPress và đổi về dạng `post` chung.
  *
  * Mọi trang WordPress đều có sẵn API JSON: GET {baseUrl}/wp-json/wp/v2/posts?page=1&search=...
- * nên không cần đọc HTML. File này gồm 3 phần:
+ * nên không cần đọc HTML. File này gồm 2 phần, phần đổi bài nằm ở toPost.js:
  *   fetchPosts(source)  ← hàm index.js gọi: chạy từng truy vấn của trang, trả lần lượt từng `post`
  *   fetchPages(...)     gọi API từng trang kết quả, tự thử lại khi bị 429/5xx
- *   toPost(...)         đổi một bài WordPress (có HTML) thành `post` (chữ thuần)
  */
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const USER_AGENT = 'ScholarsGoBot/1.0 (+https://scholarsgo.app)';
 const TIMEOUT_MS = 20000;
 const RETRIES = 3;
@@ -18,11 +17,6 @@ const FIELDS = 'id,date_gmt,modified_gmt,link,title,excerpt,content,categories,c
 // Lượt tăng dần: tham số ngày của WordPress tính theo múi giờ của trang (không biết trước) nên lùi mốc gửi đi 1 ngày,
 // rồi lọc chính xác bằng modified_gmt (giờ UTC) ở phía mình
 const MODIFIED_SLACK_MS = DAY_MS;
-
-const defaultSleep = (ms) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 
 /* ───────────── fetchPosts: lấy mọi bài của một trang ───────────── */
 
@@ -138,107 +132,4 @@ async function request(url, { isLaterPage, fetchImpl, sleep }) {
   }
 }
 
-/* ───────────── toPost: bài WordPress → post ───────────── */
-
-/**
- * Dạng `post` mà mọi bước sau dùng:
- *   { sourceName, priority, externalId, title, link, publishedAt, modifiedAt, excerpt, contentText, categories, signals }
- * `signals` là gợi ý suy từ chuyên mục của trang, ví dụ "region:southeastAsia", "degree:Master", "country:Japan".
- */
-function toPost(wpPost, source) {
-  const categories = (wpPost.class_list || []).filter((c) => c.startsWith('category-')).map((c) => c.slice('category-'.length));
-  const excerpt = stripHtml(wpPost.excerpt?.rendered || '').replace(/\s*\[…\]|\s*\[\.\.\.\]|\s*Read more.*$/i, '').trim();
-
-  return {
-    sourceName: source.name,
-    priority: source.priority,
-    externalId: String(wpPost.id),
-    title: stripHtml(wpPost.title?.rendered || '').replace(/\s+/g, ' ').trim(),
-    link: wpPost.link,
-    publishedAt: new Date(`${wpPost.date_gmt || wpPost.date}Z`),
-    modifiedAt: new Date(`${wpPost.modified_gmt || wpPost.date_gmt || wpPost.date}Z`),
-    excerpt,
-    contentText: stripHtml(wpPost.content?.rendered || ''),
-    categories,
-    signals: signalsFromCategories(categories),
-  };
-}
-
-// Slug chuyên mục → vùng. Thứ tự quan trọng: Đông Nam Á phải xét trước "Asia" chung chung.
-const REGION_BY_SLUG = [
-  [/south-?east/, 'southeastAsia'],
-  [/east-asian|east-asia/, 'eastAsia'],
-  [/south-asian|south-asia/, 'southAsia'],
-  [/^asians?-|^asia-|^asia$|-asia-|-asians-/, 'asia'],
-  [/african|^africa/, 'africa'],
-  [/latin-americ|caribbean/, 'latinAmerica'],
-  [/east-europe|^europe-|-europe-/, 'europe'],
-  [/middle-east|arab/, 'middleEast'],
-  [/pacific/, 'pacific'],
-];
-
-const DEGREE_BY_SLUG = [
-  [/^masters?(-|$)|postgraduate/, 'Master'],
-  [/^phd(-|$)|doctoral/, 'PhD'],
-  [/undergraduate|^bachelors?(-|$)/, 'Bachelor'],
-];
-
-/** "southeast-asians-scholarships" → "region:southeastAsia"; "masters-scholarships" → "degree:Master"… */
-function signalsFromCategories(slugs) {
-  const signals = new Set();
-  for (const slug of slugs) {
-    const region = REGION_BY_SLUG.find(([pattern]) => pattern.test(slug));
-    if (region) signals.add(`region:${region[1]}`);
-    for (const [pattern, degree] of DEGREE_BY_SLUG) {
-      if (pattern.test(slug)) signals.add(`degree:${degree}`);
-    }
-    // Chỉ tin slug dạng "uk-scholarships" (quy ước của scholars4dev). Slug trần như "usa" có thể là vùng đủ điều kiện.
-    if (/-scholarships?$/.test(slug)) {
-      const country = countryFromSlug(slug.replace(/-scholarships?$/, ''));
-      if (country) signals.add(`country:${country}`);
-    }
-  }
-  return [...signals];
-}
-
-/* ───────────── Bỏ HTML ───────────── */
-
-const NAMED_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
-  ndash: '-', mdash: '-', hellip: '...', rsquo: "'", lsquo: "'", ldquo: '"', rdquo: '"',
-};
-
-function fromCodePoint(code) {
-  try {
-    return String.fromCodePoint(code);
-  } catch {
-    return '';
-  }
-}
-
-/** Đổi &amp; &#8211; ... thành ký tự thật, rồi chuẩn hoá dấu nháy và gạch ngang "kiểu đẹp". */
-function decodeEntities(input = '') {
-  return String(input)
-    .replace(/&#(\d+);/g, (_, n) => fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => fromCodePoint(parseInt(h, 16)))
-    .replace(/&([a-z]+);/gi, (match, name) => NAMED_ENTITIES[name.toLowerCase()] ?? match)
-    .replace(/[\u2013\u2014]/g, '-')
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201c\u201d]/g, '"')
-    .replace(/\u00a0/g, ' ');
-}
-
-/** HTML → chữ thuần, giữ xuống dòng giữa các khối để còn đọc được "Nhãn:\nGiá trị". */
-function stripHtml(html = '') {
-  const withBreaks = String(html)
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
-    .replace(/<br\s*\/?>|<\/(p|li|h[1-6]|div|tr|ul|ol)>/gi, '\n')
-    .replace(/<[^>]+>/g, '');
-  return decodeEntities(withBreaks)
-    .replace(/[ \t]+/g, ' ')
-    .replace(/ *\n */g, '\n')
-    .replace(/\n{2,}/g, '\n')
-    .trim();
-}
-
-export { fetchPosts, fetchPages, toPost, signalsFromCategories };
+export { fetchPosts, fetchPages };

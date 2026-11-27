@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import swaggerUi from 'swagger-ui-express';
 
-import { swaggerSpec } from './utils/swagger.js';
+import { swaggerSpec } from './docs/swagger/index.js';
 import { corsOrigin } from './configs/cors.config.js';
 import { getTrustProxy } from './configs/jwt.config.js';
 import { apiLimiter } from './middlewares/rateLimiter.js';

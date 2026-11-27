@@ -18,7 +18,7 @@ const fakeSource = (name, priority, posts, { fail = false } = {}) => ({
 
 /** Store giả trong bộ nhớ, ghi lại những gì được lưu. */
 function fakeStore(existing = []) {
-  const state = { inserted: [], updated: [], runs: [] };
+  const state = { inserted: [], updated: [], renewed: [], runs: [] };
   return {
     state,
     findExisting: async () => existing,
@@ -28,6 +28,10 @@ function fakeStore(existing = []) {
     },
     updateMany: async (rows) => {
       state.updated.push(...rows);
+      return rows.length;
+    },
+    renewMany: async (rows) => {
+      state.renewed.push(...rows);
       return rows.length;
     },
     recordRun: async (run) => {
