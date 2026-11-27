@@ -92,7 +92,7 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 | Backend | Giới hạn đầu vào (R28) | 🟡 chờ merge `fix/backendHardening` | `notes` max 5000 đã có. Còn: `checklist` không giới hạn số mục/độ dài, `documents_used` không kiểm thuộc người dùng, ứng tuyển học bổng đã tắt | 2 |
 | Backend | Health check không kiểm DB; tắt server chưa trọn (R34) | 🟡 chờ merge `fix/backendHardening` | `app.js` luôn trả ok | 2 |
 | Backend | `process.env` đọc ngoài `configs/` (trái CLAUDE.md 4.6) | 🟡 chờ merge `refactor/backendConventions` | `configs/app.config.js`. Còn: `services/storage.service.js` (đã bỏ ở `fix/uploadSafety`, kiểm lại sau khi gộp) | 3 |
-| Backend | File vượt ngưỡng dòng | 🟡 chờ merge `fix/recommendRules`, `refactor/backendConventions` | `recommend.service` 127 + `recommendMatch.service` 172, `errorHandle.controller` 36 (mapper sang `utils/resolveError.js`), `admin.service` 147. Còn FE legacy: `chat`, `dashboard`, `profile`, `admin/*` | 3 |
+| Backend / FE | File vượt ngưỡng dòng | 🟡 chờ merge `fix/recommendRules`, `refactor/backendConventions`, `refactor/backendModules`, `refactor/frontendPages` | BE: tách `recommend.service`, `errorHandle.controller`, `swagger.js` 878 dòng → `src/docs/swagger/`, `ingestion/wordpress.js` + `save.js`. FE: `chat` 496→44, `dashboard` 357→33, `admin/scholarships` 304→66, `admin/users` 257→56; khung dùng chung `components/admin/` | 3 |
 | Dữ liệu | Cột thời gian không múi giờ; hạn ISO `Z` lúc 0h VN lệch một ngày (R25, M6) | 🟡 chờ merge `fix/recommendRules` | Admin ghi hạn đổi về ngày VN (`toVnDate`), đếm ngày theo VN. Còn: cột vẫn không `TIMESTAMPTZ`; dữ liệu hạn 2099 cũ: kiểm `count(*) where deadline >= '2090-01-01'` | 1–2 |
 | Dữ liệu | `country` là chuỗi tự do (R22) | ❌ | ISO mới dùng cho `nationality`, `eligible_nationalities` | 3 |
 | Dữ liệu | Mất transaction khi dùng supabase-js; index thừa/thiếu (R35) | ❌ | | 3 |
@@ -135,4 +135,8 @@ node scripts/applyMigration.js --file=011_rlsLockdown.sql --env=.env.cloud --all
 - Bản ghi tài liệu cũ có `file_url` không khớp dạng URL công khai: xóa bản ghi nhưng file còn trên Storage.
 - Ingestion `classifyError` khớp `401|403|404` trên toàn bộ message lỗi Gemini: message có số này ở chỗ khác sẽ tắt AI cả lượt. Nên đọc `status` của `ApiError`.
 - `utils/deadline.js toVnDate` nhận `Date` thì coi là đã đúng mốc VN: nếu sau này truyền Date do pg parse từ cột `timestamp` (giờ server UTC) sẽ lệch ngày.
+- Swagger (`docs/swagger/index.js`): schema dữ liệu nằm ở `schemas` gốc thay vì `components.schemas` nên mọi `$ref` tới chúng bị hỏng trên `/api-docs` (có từ trước khi tách, giữ nguyên để refactor không đổi JSON).
+- Lặp còn lại ở BE: hạn refresh token 7 ngày viết 3 nơi (`authCookie.controller`, `session.service` ×2; phải khớp nhau); `TIMEZONE` khai báo 3 nơi; tính phân trang ở 4 service/model.
+- FE `dashboard`: nhãn trạng thái khác `STATUS_META` ("Được chấp nhận" / "Bị từ chối" thay vì "Được nhận" / "Từ chối"); badge truyền màu `amber`, `rose` mà `legacy/Badge` không có nên hiện không màu.
+- FE `admin/users`: nếu bản ghi thiếu `is_active` thì nút ghi "Khóa" nhưng gửi `isActive: true` (backend hiện luôn trả cột này nên chưa xảy ra).
 - `npm run lint` của BE còn 42 cảnh báo (`no-console`, `no-param-reassign` ở `scholarship.model`), 0 lỗi.
