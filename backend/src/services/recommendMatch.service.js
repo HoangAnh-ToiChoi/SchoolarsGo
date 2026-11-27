@@ -1,6 +1,6 @@
 import { extractIeltsScore } from '~/utils/helpers.js';
 import { vnToday } from '~/utils/deadline.js';
-import { RECOMMEND_SEMANTIC_TERMS, RECOMMEND_ANY_DEGREE } from '~/constants/recommend.js';
+import { RECOMMEND_SEMANTIC_TERMS, RECOMMEND_ANY_DEGREE, RECOMMEND_TRUSTED_DEGREE_SOURCES } from '~/constants/recommend.js';
 
 const DAY_MS = 864e5;
 
@@ -50,7 +50,8 @@ class RecommendMatchService {
     } else fit.blockers.push(`GPA hiện tại thấp hơn yêu cầu tối thiểu ${scholarship.min_gpa}`);
   }
 
-  // Bậc học là điều kiện cứng (R20): học bổng chỉ cho PhD không gợi ý cho người muốn học Bachelor
+  // Bậc học là điều kiện cứng (R20): học bổng chỉ cho PhD không gợi ý cho người muốn học Bachelor.
+  // Chỉ loại khi bậc đủ tin; bậc đoán mà loại nhầm thì người dùng không hề biết mình mất cơ hội
   #degree(fit, profile, scholarship) {
     if (!profile.target_degree || !scholarship.degree) return;
     const anyOnEitherSide = [scholarship.degree, profile.target_degree].includes(RECOMMEND_ANY_DEGREE);
@@ -61,7 +62,15 @@ class RecommendMatchService {
     } else if (same) {
       fit.breakdown.degree = 1;
       fit.reasons.push(`Bậc học ${scholarship.degree} phù hợp`);
-    } else if (!anyOnEitherSide) fit.blockers.push(`Học bổng dành cho bậc ${scholarship.degree}`);
+    } else if (!anyOnEitherSide) this.#degreeMismatch(fit, scholarship);
+  }
+
+  #degreeMismatch(fit, scholarship) {
+    if (RECOMMEND_TRUSTED_DEGREE_SOURCES.includes(scholarship.degree_source)) {
+      fit.blockers.push(`Học bổng dành cho bậc ${scholarship.degree}`);
+      return;
+    }
+    fit.reasons.push(`Lưu ý: tin có vẻ dành cho bậc ${scholarship.degree}, hãy kiểm tra bài gốc`);
   }
 
   // Quốc tịch là điều kiện cứng (R20). Hồ sơ chưa khai quốc tịch thì không chặn (không đoán).

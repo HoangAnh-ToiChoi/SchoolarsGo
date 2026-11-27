@@ -5,7 +5,7 @@
 
 // Cột ghi khi thêm mới (thứ tự cố định để ghép $1, $2...)
 const INSERT_COLUMNS = [
-  'title', 'provider', 'country', 'degree', 'coverage', 'deadline', 'language',
+  'title', 'provider', 'country', 'degree', 'degree_source', 'coverage', 'deadline', 'language',
   'min_gpa', 'min_ielts', 'summary', 'source', 'source_url', 'source_priority',
   'published_at', 'relevance_score', 'dedup_key', 'is_active', 'is_featured',
 ];
@@ -68,11 +68,14 @@ function createStore(db) {
       const result = await db.query(
         `UPDATE scholarships AS s
             SET deadline = u.deadline, relevance_score = u.relevance_score, is_active = u.is_active,
-                summary = u.summary, updated_at = now()
-           FROM unnest($1::uuid[], $2::timestamp[], $3::smallint[], $4::boolean[], $5::text[])
-                AS u(id, deadline, relevance_score, is_active, summary)
+                summary = u.summary, updated_at = now(),
+                -- Dòng có từ trước migration 016 chưa rõ nguồn bậc học: bù khi bài vẫn cho đúng bậc đang lưu
+                degree_source = CASE WHEN s.degree_source IS NULL AND s.degree = u.degree
+                                     THEN u.degree_source ELSE s.degree_source END
+           FROM unnest($1::uuid[], $2::timestamp[], $3::smallint[], $4::boolean[], $5::text[], $6::text[], $7::text[])
+                AS u(id, deadline, relevance_score, is_active, summary, degree, degree_source)
           WHERE s.id = u.id AND s.admin_locked_at IS NULL`,
-        columnArrays(rows, ['id', 'deadline', 'relevance_score', 'is_active', 'summary'])
+        columnArrays(rows, ['id', 'deadline', 'relevance_score', 'is_active', 'summary', 'degree', 'degree_source'])
       );
       return result.rowCount;
     },

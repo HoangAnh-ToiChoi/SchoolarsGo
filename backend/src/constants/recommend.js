@@ -28,7 +28,10 @@ const RECOMMEND_SEMANTIC_TERMS = Object.freeze([
 // Học bổng nhận mọi bậc học
 const RECOMMEND_ANY_DEGREE = 'Any';
 
-export {
+// Nguồn đủ tin để loại học bổng theo bậc học. 'body' (đoán từ thân bài), 'ai' và NULL chỉ trừ điểm + nhắc kiểm tra
+const RECOMMEND_TRUSTED_DEGREE_SOURCES = Object.freeze(['category', 'title', 'admin']);
+
+export { RECOMMEND_TRUSTED_DEGREE_SOURCES,
   RECOMMEND_SCHOLARSHIP_COLUMNS,
   RECOMMEND_CORE_PROFILE_FIELDS,
   RECOMMEND_SUPPORTING_PROFILE_FIELDS,

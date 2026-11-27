@@ -32,7 +32,7 @@ class RecommendModel {
    */
   async findCandidates() {
     const sql = `
-      SELECT id, title, provider, country, degree, field_of_study, min_gpa, min_ielts, deadline,
+      SELECT id, title, provider, country, degree, degree_source, field_of_study, min_gpa, min_ielts, deadline,
              intake, summary, benefits, requirements, eligibility, eligible_nationalities, max_age
       FROM scholarships
       WHERE is_active = true AND (deadline IS NULL OR deadline >= now())

@@ -31,12 +31,20 @@ const DEGREE_PATTERNS = {
 
 const degreesIn = (text) => Object.keys(DEGREE_PATTERNS).filter((name) => DEGREE_PATTERNS[name].test(text));
 
-/** Ưu tiên gợi ý từ chuyên mục, rồi tiêu đề, rồi đầu bài. Nhiều bậc khác nhau → 'Any'. */
+/**
+ * Ưu tiên gợi ý từ chuyên mục, rồi tiêu đề, rồi đầu bài. Nhiều bậc khác nhau → 'Any'.
+ * degreeSource lưu xuống DB: gợi ý chỉ loại học bổng theo bậc khi nguồn đủ tin (đầu bài chỉ là đoán).
+ */
 function findDegree(post) {
-  const fromSignals = post.signals.filter((s) => s.startsWith('degree:')).map((s) => s.slice('degree:'.length));
-  const found = fromSignals.length ? fromSignals : degreesIn(post.title);
-  const degrees = [...new Set(found.length ? found : degreesIn(post.contentText.slice(0, 1500)))];
-  return degrees.length === 1 ? { degree: degrees[0], degreeKnown: true } : { degree: 'Any', degreeKnown: false };
+  const candidates = [
+    ['category', post.signals.filter((s) => s.startsWith('degree:')).map((s) => s.slice('degree:'.length))],
+    ['title', degreesIn(post.title)],
+    ['body', degreesIn(post.contentText.slice(0, 1500))],
+  ];
+  const [source, found] = candidates.find(([, list]) => list.length > 0) ?? [null, []];
+  const degrees = [...new Set(found)];
+  if (degrees.length !== 1) return { degree: 'Any', degreeKnown: false, degreeSource: null };
+  return { degree: degrees[0], degreeKnown: true, degreeSource: source };
 }
 
 /* ───────────── Nước đến học ───────────── */

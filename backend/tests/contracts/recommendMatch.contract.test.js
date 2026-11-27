@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const { default: recommendMatchService } = await import('~/services/recommendMatch.service.js');
 
 const PROFILE = { gpa: 3.6, english_level: 'IELTS 7.0', target_country: 'Japan', target_degree: 'Master', target_major: 'Computer Science', nationality: 'VN', birth_year: 2000 };
-const SCHOLARSHIP = { country: 'Japan', degree: 'Master', field_of_study: 'Computer Science', min_gpa: 3, min_ielts: 6.5, eligible_nationalities: null, max_age: null };
+const SCHOLARSHIP = { country: 'Japan', degree: 'Master', degree_source: 'title', field_of_study: 'Computer Science', min_gpa: 3, min_ielts: 6.5, eligible_nationalities: null, max_age: null };
 
 const blockersOf = (profile, scholarship) => recommendMatchService.ruleFit({ ...PROFILE, ...profile }, { ...SCHOLARSHIP, ...scholarship }).blockers;
 
@@ -53,4 +53,19 @@ test('GPA / IELTS thấp hơn yêu cầu vẫn là blocker như trước', () =>
 test('similarity: nhóm từ cùng nghĩa giúp "AI" khớp "Computer Science"', () => {
   assert.ok(recommendMatchService.similarity('AI', 'Computer Science') > 0);
   assert.equal(recommendMatchService.similarity('', 'Computer Science'), 0);
+});
+
+test('R20 bậc học: chỉ loại khi bậc lấy từ chuyên mục, tiêu đề hoặc admin xác nhận', () => {
+  for (const source of ['category', 'title', 'admin']) {
+    assert.equal(blockersOf({}, { degree: 'PhD', degree_source: source }).length, 1, source);
+  }
+  for (const source of ['body', 'ai', null, undefined]) {
+    assert.deepEqual(blockersOf({}, { degree: 'PhD', degree_source: source }), [], String(source));
+  }
+});
+
+test('R20 bậc học đoán mà lệch: không loại, không cộng điểm bậc học, kèm lời nhắc kiểm tra bài gốc', () => {
+  const fit = recommendMatchService.ruleFit(PROFILE, { ...SCHOLARSHIP, degree: 'PhD', degree_source: 'body' });
+  assert.equal(fit.breakdown.degree, 0);
+  assert.ok(fit.reasons.some(reason => reason.startsWith('Lưu ý') && reason.includes('PhD')));
 });
